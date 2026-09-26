@@ -166,3 +166,4 @@ class MergedClanSpaceAndSynthesisTest {
         assertTrue(selfResult.reason.contains("cannot marry themselves"))
     }
 }
+

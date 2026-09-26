@@ -1,5 +1,8 @@
 package com.example.btproject2.ui.activities
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -50,6 +53,12 @@ class MergeBranchesActivity : AppCompatActivity() {
     private lateinit var clanTreesContainer: LinearLayout
     private lateinit var btnOpenConnectBranches: Button
 
+    private lateinit var cardMyMergeCode: LinearLayout
+    private lateinit var tvMyMergeCodeDisplay: TextView
+    private lateinit var btnCopyMyMergeCode: Button
+    private lateinit var btnRegenerateMyMergeCode: Button
+    private var myActiveMergeCode: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_merge_branches)
@@ -69,6 +78,26 @@ class MergeBranchesActivity : AppCompatActivity() {
         layoutEmptyClanState = findViewById(R.id.layoutEmptyClanState)
         clanTreesContainer = findViewById(R.id.clanTreesContainer)
         btnOpenConnectBranches = findViewById(R.id.btnOpenConnectBranches)
+
+        cardMyMergeCode = findViewById(R.id.cardMyMergeCode)
+        tvMyMergeCodeDisplay = findViewById(R.id.tvMyMergeCodeDisplay)
+        btnCopyMyMergeCode = findViewById(R.id.btnCopyMyMergeCode)
+        btnRegenerateMyMergeCode = findViewById(R.id.btnRegenerateMyMergeCode)
+
+        btnCopyMyMergeCode.setOnClickListener {
+            if (myActiveMergeCode.isNotBlank()) {
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("KinTrace Clan Merge Code", myActiveMergeCode)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "Clan Merge Code $myActiveMergeCode copied to clipboard!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Generating merge code, please wait...", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        btnRegenerateMyMergeCode.setOnClickListener {
+            confirmRegenerateMergeCode()
+        }
 
         btnOpenSynthesizeClanTree.setOnClickListener {
             if (isViewerOnly) {
@@ -163,8 +192,68 @@ class MergeBranchesActivity : AppCompatActivity() {
             )
         }
 
+        // Load current active tree merge code
+        loadActiveTreeMergeCode()
+
         // Load synthesized clan trees
         loadClanTrees()
+    }
+
+    private fun loadActiveTreeMergeCode() {
+        if (activeTreeId.isBlank()) {
+            cardMyMergeCode.visibility = View.GONE
+            return
+        }
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        val currentUserName = authHelper.getCurrentUser()?.displayName ?: "Owner"
+        val treeName = com.example.btproject2.utils.TreePreferences.getActiveTreeName(this).ifBlank { "Family Tree" }
+
+        firestoreHelper.getOrCreateTreeMergeInviteCode(
+            treeId = activeTreeId,
+            treeName = treeName,
+            ownerId = currentUserId,
+            ownerName = currentUserName,
+            onSuccess = { code ->
+                myActiveMergeCode = code
+                tvMyMergeCodeDisplay.text = code.map { "$it " }.joinToString("").trim()
+            },
+            onFailure = {
+                tvMyMergeCodeDisplay.text = "ERROR"
+            }
+        )
+    }
+
+    private fun confirmRegenerateMergeCode() {
+        if (isViewerOnly) {
+            Toast.makeText(this, "Permission restricted: Only owners can regenerate merge codes.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Regenerate Clan Merge Code?")
+            .setMessage("Generating a new Clan Merge Code will invalidate the previous code ($myActiveMergeCode). Anyone wanting to merge with this tree will need the new code.")
+            .setPositiveButton("Regenerate") { _, _ ->
+                val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                val currentUserName = authHelper.getCurrentUser()?.displayName ?: "Owner"
+                val treeName = com.example.btproject2.utils.TreePreferences.getActiveTreeName(this).ifBlank { "Family Tree" }
+                tvMyMergeCodeDisplay.text = "......"
+                firestoreHelper.regenerateTreeMergeInviteCode(
+                    treeId = activeTreeId,
+                    treeName = treeName,
+                    ownerId = currentUserId,
+                    ownerName = currentUserName,
+                    onSuccess = { newCode ->
+                        myActiveMergeCode = newCode
+                        tvMyMergeCodeDisplay.text = newCode.map { "$it " }.joinToString("").trim()
+                        Toast.makeText(this, "New Clan Merge Code: $newCode", Toast.LENGTH_SHORT).show()
+                    },
+                    onFailure = {
+                        Toast.makeText(this, "Failed to regenerate merge code.", Toast.LENGTH_SHORT).show()
+                        tvMyMergeCodeDisplay.text = myActiveMergeCode.map { "$it " }.joinToString("").trim()
+                    }
+                )
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun loadClanTrees() {
@@ -421,48 +510,41 @@ class MergeBranchesActivity : AppCompatActivity() {
             updateDefaultMasterTreeName()
         }
 
-        // Lookup Invite Code
+        // Lookup Clan Merge Code
         btnLookupInviteCode.setOnClickListener {
             val code = etTree2InviteCode.text.toString().trim().uppercase()
-            if (code.length < 6) {
-                Toast.makeText(this, "Please enter a valid 6-character invite code.", Toast.LENGTH_SHORT).show()
+            if (code.length < 5) {
+                Toast.makeText(this, "Please enter a valid Clan Merge Code.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             btnLookupInviteCode.isEnabled = false
             btnLookupInviteCode.text = "..."
 
-            firestoreHelper.getInviteCodeRecord(code,
-                onSuccess = { record ->
+            firestoreHelper.findTreeByMergeInviteCode(code,
+                onSuccess = { tree ->
                     btnLookupInviteCode.isEnabled = true
                     btnLookupInviteCode.text = "Verify"
-                    if (record == null) {
-                        tvInviteCodeResult.text = "❌ No family tree found with invite code $code."
+                    if (tree == null) {
+                        tvInviteCodeResult.text = "❌ No family tree found with merge code $code."
+                        tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
+                        tvInviteCodeResult.visibility = View.VISIBLE
+                    } else if (tree.id == activeTreeId) {
+                        tvInviteCodeResult.text = "⚠️ This is your own tree's merge code. Please select a different clan tree."
                         tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
                         tvInviteCodeResult.visibility = View.VISIBLE
                     } else {
-                        firestoreHelper.getTree(record.treeId,
-                            onSuccess = { tree ->
-                                externalTreeLoaded = tree
-                                tvInviteCodeResult.text = "✓ Found: ${record.treeName} (${tree?.memberCount ?: 0} members)"
-                                tvInviteCodeResult.setTextColor(Color.parseColor("#4ECCA3"))
-                                tvInviteCodeResult.visibility = View.VISIBLE
-                                updateDefaultMasterTreeName()
-                                loadTree2Members()
-                            },
-                            onFailure = {
-                                tvInviteCodeResult.text = "✓ Found: ${record.treeName}"
-                                tvInviteCodeResult.setTextColor(Color.parseColor("#4ECCA3"))
-                                tvInviteCodeResult.visibility = View.VISIBLE
-                                updateDefaultMasterTreeName()
-                                loadTree2Members()
-                            }
-                        )
+                        externalTreeLoaded = tree
+                        tvInviteCodeResult.text = "✓ Verified Clan: ${tree.name} (${tree.memberCount} members)"
+                        tvInviteCodeResult.setTextColor(Color.parseColor("#4ECCA3"))
+                        tvInviteCodeResult.visibility = View.VISIBLE
+                        updateDefaultMasterTreeName()
+                        loadTree2Members()
                     }
                 },
                 onFailure = { err ->
                     btnLookupInviteCode.isEnabled = true
                     btnLookupInviteCode.text = "Verify"
-                    tvInviteCodeResult.text = "❌ Error looking up invite code: ${err.message}"
+                    tvInviteCodeResult.text = "❌ Error verifying merge code: ${err.message}"
                     tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
                     tvInviteCodeResult.visibility = View.VISIBLE
                 }

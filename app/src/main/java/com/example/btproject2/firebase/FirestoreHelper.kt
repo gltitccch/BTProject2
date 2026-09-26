@@ -483,6 +483,11 @@ class FirestoreHelper {
             return (1..6).map { chars.random() }.joinToString("")
         }
 
+        fun generateMergeInviteCode(): String {
+            val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+            return "M" + (1..5).map { chars.random() }.joinToString("")
+        }
+
         fun documentToFamilyTree(doc: com.google.firebase.firestore.DocumentSnapshot): FamilyTree? {
             if (!doc.exists()) return null
             val data = doc.data ?: return doc.toObject(FamilyTree::class.java)?.copy(id = doc.id)
@@ -507,6 +512,9 @@ class FirestoreHelper {
             val createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis()
             val treeType = (data["treeType"] as? String)?.takeIf { it.isNotBlank() } ?: FamilyTree.TREE_TYPE_PERSONAL
             val bridgeDescription = (data["bridgeDescription"] as? String)?.takeIf { it.isNotBlank() } ?: ""
+            val mergeInviteCode = (data["mergeInviteCode"] as? String)?.takeIf { it.isNotBlank() }
+                ?: (data["mergeCode"] as? String)?.takeIf { it.isNotBlank() }
+                ?: ""
 
             return FamilyTree(
                 id = doc.id,
@@ -518,7 +526,8 @@ class FirestoreHelper {
                 memberCount = memberCount,
                 createdAt = createdAt,
                 treeType = treeType,
-                bridgeDescription = bridgeDescription
+                bridgeDescription = bridgeDescription,
+                mergeInviteCode = mergeInviteCode.replace(" ", "").trim().uppercase()
             )
         }
     }
@@ -2316,6 +2325,166 @@ class FirestoreHelper {
             .addOnFailureListener { onFailure(it) }
     }
 
+    /**
+     * Retrieves or generates an independent unique Clan Merge Code for the specified tree.
+     * This code is exclusively authorized for non-destructive Master Tree C synthesis
+     * and is completely isolated from general member join codes.
+     */
+    fun getOrCreateTreeMergeInviteCode(
+        treeId: String,
+        treeName: String,
+        ownerId: String,
+        ownerName: String = "Owner",
+        onSuccess: (String) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (treeId.isBlank()) {
+            onFailure(IllegalArgumentException("Tree ID cannot be blank"))
+            return
+        }
+        getTree(treeId,
+            onSuccess = { tree ->
+                if (tree != null && tree.mergeInviteCode.isNotBlank()) {
+                    val code = tree.mergeInviteCode.replace(" ", "").trim().uppercase()
+                    val mergeDocRef = db.collection("mergeInviteCodes").document(code)
+                    mergeDocRef.get().addOnSuccessListener { snap ->
+                        if (!snap.exists()) {
+                            val data = mapOf(
+                                "code" to code,
+                                "treeId" to tree.id,
+                                "treeName" to tree.name,
+                                "ownerId" to (tree.ownerId.ifBlank { ownerId }),
+                                "ownerName" to (tree.ownerName.ifBlank { ownerName }),
+                                "createdAt" to System.currentTimeMillis(),
+                                "status" to "ACTIVE"
+                            )
+                            mergeDocRef.set(data)
+                        }
+                        onSuccess(code)
+                    }.addOnFailureListener {
+                        onSuccess(code)
+                    }
+                } else {
+                    val generated = generateMergeInviteCode()
+                    val treeRef = db.collection("trees").document(treeId)
+                    val mergeDocRef = db.collection("mergeInviteCodes").document(generated)
+                    val data = mapOf(
+                        "code" to generated,
+                        "treeId" to treeId,
+                        "treeName" to (tree?.name?.ifBlank { treeName } ?: treeName),
+                        "ownerId" to (tree?.ownerId?.ifBlank { ownerId } ?: ownerId),
+                        "ownerName" to (tree?.ownerName?.ifBlank { ownerName } ?: ownerName),
+                        "createdAt" to System.currentTimeMillis(),
+                        "status" to "ACTIVE"
+                    )
+                    db.runBatch { batch ->
+                        batch.update(treeRef, "mergeInviteCode", generated)
+                        batch.set(mergeDocRef, data)
+                    }.addOnSuccessListener {
+                        onSuccess(generated)
+                    }.addOnFailureListener {
+                        treeRef.update("mergeInviteCode", generated)
+                        mergeDocRef.set(data)
+                            .addOnSuccessListener { onSuccess(generated) }
+                            .addOnFailureListener { onFailure(it) }
+                    }
+                }
+            },
+            onFailure = { onFailure(it) }
+        )
+    }
+
+    /**
+     * Regenerates a fresh independent Clan Merge Code, invalidating any previous merge code.
+     */
+    fun regenerateTreeMergeInviteCode(
+        treeId: String,
+        treeName: String,
+        ownerId: String,
+        ownerName: String = "Owner",
+        onSuccess: (String) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (treeId.isBlank()) {
+            onFailure(IllegalArgumentException("Tree ID cannot be blank"))
+            return
+        }
+        val newCode = generateMergeInviteCode()
+        getTree(treeId,
+            onSuccess = { tree ->
+                val oldCode = tree?.mergeInviteCode?.trim()?.uppercase().orEmpty()
+                val treeRef = db.collection("trees").document(treeId)
+                val newDocRef = db.collection("mergeInviteCodes").document(newCode)
+                val data = mapOf(
+                    "code" to newCode,
+                    "treeId" to treeId,
+                    "treeName" to (tree?.name?.ifBlank { treeName } ?: treeName),
+                    "ownerId" to (tree?.ownerId?.ifBlank { ownerId } ?: ownerId),
+                    "ownerName" to (tree?.ownerName?.ifBlank { ownerName } ?: ownerName),
+                    "createdAt" to System.currentTimeMillis(),
+                    "status" to "ACTIVE"
+                )
+                db.runBatch { batch ->
+                    if (oldCode.isNotBlank()) {
+                        val oldDocRef = db.collection("mergeInviteCodes").document(oldCode)
+                        batch.delete(oldDocRef)
+                    }
+                    batch.update(treeRef, "mergeInviteCode", newCode)
+                    batch.set(newDocRef, data)
+                }.addOnSuccessListener {
+                    onSuccess(newCode)
+                }.addOnFailureListener {
+                    treeRef.update("mergeInviteCode", newCode)
+                    newDocRef.set(data)
+                        .addOnSuccessListener { onSuccess(newCode) }
+                        .addOnFailureListener { onFailure(it) }
+                }
+            },
+            onFailure = { onFailure(it) }
+        )
+    }
+
+    /**
+     * Looks up a Family Tree exclusively by its independent Clan Merge Code.
+     * Searches the dedicated 'mergeInviteCodes' collection first, with fallback to 'trees.mergeInviteCode'.
+     */
+    fun findTreeByMergeInviteCode(
+        code: String,
+        onSuccess: (FamilyTree?) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val normalizedCode = code.replace(" ", "").trim().uppercase()
+        if (normalizedCode.isBlank()) {
+            onSuccess(null)
+            return
+        }
+        db.collection("mergeInviteCodes").document(normalizedCode).get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists() && doc.getString("status") == "ACTIVE") {
+                    val targetTreeId = doc.getString("treeId").orEmpty()
+                    if (targetTreeId.isNotBlank()) {
+                        getTree(targetTreeId, onSuccess = onSuccess, onFailure = onFailure)
+                    } else {
+                        onSuccess(null)
+                    }
+                } else {
+                    db.collection("trees")
+                        .whereEqualTo("mergeInviteCode", normalizedCode)
+                        .get()
+                        .addOnSuccessListener { res ->
+                            if (!res.isEmpty) {
+                                onSuccess(documentToFamilyTree(res.documents.first()))
+                            } else {
+                                // Graceful backward fallback to general invite code if entered
+                                getTreeByInviteCode(normalizedCode, onSuccess = onSuccess, onFailure = onFailure)
+                            }
+                        }
+                        .addOnFailureListener { onFailure(it) }
+                }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
     fun addTreeMember(
         treeMember: TreeMember,
         onSuccess: () -> Unit,
@@ -2509,15 +2678,31 @@ class FirestoreHelper {
                          else db.collection("trees").document()
         val inviteCode = if (masterTree.inviteCode.isNotBlank()) masterTree.inviteCode.replace(" ", "").trim().uppercase()
                          else generateInviteCode()
+        val mergeCode = if (masterTree.mergeInviteCode.isNotBlank()) masterTree.mergeInviteCode.replace(" ", "").trim().uppercase()
+                        else generateMergeInviteCode()
         val finalTree = masterTree.copy(
             id = treeDocRef.id,
             inviteCode = inviteCode,
             memberCount = members.size,
-            treeType = FamilyTree.TREE_TYPE_MERGED_CLAN
+            treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
+            mergeInviteCode = mergeCode
         )
 
         val batch = db.batch()
         batch.set(treeDocRef, finalTree)
+
+        // Save merge code record in dedicated mergeInviteCodes collection
+        val mergeDocRef = db.collection("mergeInviteCodes").document(mergeCode)
+        val mergeData = mapOf(
+            "code" to mergeCode,
+            "treeId" to finalTree.id,
+            "treeName" to finalTree.name,
+            "ownerId" to finalTree.ownerId,
+            "ownerName" to finalTree.ownerName,
+            "createdAt" to System.currentTimeMillis(),
+            "status" to "ACTIVE"
+        )
+        batch.set(mergeDocRef, mergeData)
 
         // Save invite code record in dedicated collection
         val inviteRecord = InviteCodeRecord(

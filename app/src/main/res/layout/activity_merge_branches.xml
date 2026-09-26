@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -206,7 +207,104 @@
                     android:textStyle="bold"
                     android:textColor="#0A1B12"
                     android:background="@drawable/btn_gold_primary"
+                    app:backgroundTint="@null"
                     android:textAllCaps="false" />
+            </LinearLayout>
+
+            <!-- Independent Clan Merge Invite Code Card -->
+            <LinearLayout
+                android:id="@+id/cardMyMergeCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_hero_card"
+                android:padding="16dp"
+                android:layout_marginBottom="22dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="6dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="YOUR TREE CLAN MERGE CODE"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:letterSpacing="0.08" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="INDEPENDENT"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="#4ECCA3"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share this unique merge code with family members or in-laws so they can synthesize a combined Master Clan Tree with your tree. Your original family tree remains strictly read-only and preserved."
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:lineSpacingExtra="2dp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Code display & Copy row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvMyMergeCodeDisplay"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/badge_pill_dark"
+                        android:gravity="center"
+                        android:text="------"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:letterSpacing="0.2"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/btnCopyMyMergeCode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="46dp"
+                        android:text="📋 Copy"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="#0A1B12"
+                        android:background="@drawable/btn_gold_primary"
+                        app:backgroundTint="@null"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="6dp" />
+
+                    <Button
+                        android:id="@+id/btnRegenerateMyMergeCode"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:text="🔄"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/badge_pill_dark"
+                        app:backgroundTint="@null" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Synthesized Clan Trees Header -->
