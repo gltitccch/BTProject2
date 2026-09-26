@@ -41,7 +41,9 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         get() = AffectedScreen.INTERACTIVE_TREE
 
     override val interestedTreeId: String?
-        get() = treeId.ifBlank { null }
+        get() = treeId.ifBlank {
+            com.example.btproject2.utils.TreePreferences.getActiveTreeId(this).ifBlank { null }
+        }
 
     private val firestoreHelper = FirestoreHelper()
     private val centralFamilyService = com.example.btproject2.service.FamilyRelationshipService()
@@ -268,6 +270,9 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
     override fun onStart() {
         super.onStart()
+        if (treeId.isBlank()) {
+            treeId = com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+        }
         CentralTreeSynchronizer.getInstance().startRealtimeListener(treeId)
         CentralTreeSynchronizer.getInstance().registerListener(this)
     }
@@ -282,7 +287,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
     internal val syncCoordinator by lazy {
         InteractiveTreeSyncCoordinator(
-            treeId = treeId,
+            treeId = treeId.ifBlank { com.example.btproject2.utils.TreePreferences.getActiveTreeId(this) },
             listenerKey = subscriberKey,
             allPersonsList = allPersonsList,
             focalPedigreePersonId = focalPedigreePersonId,
@@ -476,7 +481,29 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     }
 
     private fun loadTree(refreshProfile: Boolean = false) {
-        firestoreHelper.getAllPersons(
+        val effectiveTreeId = treeId.ifBlank {
+            com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+        }
+        if (effectiveTreeId.isBlank()) {
+            allPersonsList = emptyList()
+            syncCoordinator.allPersonsList = emptyList()
+            treeView.setDataAndMode(
+                list = emptyList(),
+                mode = currentMode,
+                highlightIds = highlightPathIds,
+                mrcaId = mrcaId,
+                focalPedigreeId = focalPedigreePersonId,
+                personAId = highlightPersonAId,
+                personBId = highlightPersonBId
+            )
+            return
+        }
+        if (treeId.isBlank()) {
+            treeId = effectiveTreeId
+        }
+
+        firestoreHelper.getPersonsByTree(
+            treeId = effectiveTreeId,
             onSuccess = { rawList ->
                 val list = com.example.btproject2.firebase.FirestoreHelper.sanitizeTreeRecords(rawList)
                 allPersonsList = list

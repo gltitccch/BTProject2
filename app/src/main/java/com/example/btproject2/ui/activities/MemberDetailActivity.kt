@@ -448,66 +448,121 @@ class MemberDetailActivity : AppCompatActivity() {
     // ══════════════════════════════════════════════════════════════
 
     /**
-     * Always load ALL members first so relationship names can be resolved,
+     * Always load members of the current tree so relationship names can be resolved,
      * then find and display the current person from that list.
      */
     private fun loadAllAndDisplay() {
-        firestoreHelper.getAllPersons(
-            onSuccess = { members ->
-                allMembers = FirestoreHelper.sanitizeTreeRecords(members)
+        val effectiveTreeId = treeId.ifBlank {
+            com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+        }
+        val handleMembers: (List<Person>) -> Unit = { rawMembers ->
+            val members = FirestoreHelper.sanitizeTreeRecords(rawMembers)
+            val person = members.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
+            if (person != null) {
+                val resolvedTreeId = person.treeId.ifBlank { effectiveTreeId }
+                allMembers = if (resolvedTreeId.isNotBlank()) {
+                    if (resolvedTreeId == "default_tree") {
+                        members.filter { it.treeId.isBlank() || it.treeId == "default_tree" }
+                    } else {
+                        members.filter { it.treeId == resolvedTreeId }
+                    }
+                } else members
+                currentPerson = person
+                syncCoordinator.currentPerson = person
                 syncCoordinator.allMembersList = allMembers
-                val person = allMembers.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
-                if (person != null) {
-                    currentPerson = person
-                    syncCoordinator.currentPerson = person
-                    displayPerson(person)
-                } else {
-                    // Person not in getAllPersons result – fetch individually
-                    firestoreHelper.getPerson(personId,
-                        onSuccess = { p ->
-                            if (p != null) {
-                                currentPerson = p
-                                syncCoordinator.currentPerson = p
-                                displayPerson(p)
-                            }
-                        },
-                        onFailure = {}
-                    )
-                }
-            },
-            onFailure = {
-                firestoreHelper.getPerson(personId,
-                    onSuccess = { p ->
-                        if (p != null) {
-                            currentPerson = p
-                            syncCoordinator.currentPerson = p
-                            displayPerson(p)
-                        }
-                    },
-                    onFailure = {}
-                )
+                displayPerson(person)
+            } else {
+                fetchIndividualPerson()
             }
-        )
+        }
+
+        if (effectiveTreeId.isNotBlank()) {
+            firestoreHelper.getPersonsByTree(
+                treeId = effectiveTreeId,
+                onSuccess = handleMembers,
+                onFailure = { fetchIndividualPerson() }
+            )
+        } else {
+            fetchIndividualPerson()
+        }
     }
 
-    /**
-     * After any write operation, reload all members from Firestore so the UI
-     * reflects the latest state for BOTH the current person AND their relatives.
-     */
-    private fun reloadAndDisplay() {
-        firestoreHelper.getAllPersons(
-            onSuccess = { members ->
-                allMembers = FirestoreHelper.sanitizeTreeRecords(members)
-                syncCoordinator.allMembersList = allMembers
-                val updated = allMembers.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
-                if (updated != null) {
-                    currentPerson = updated
-                    syncCoordinator.currentPerson = updated
-                    displayPerson(updated)
+    private fun fetchIndividualPerson() {
+        firestoreHelper.getPerson(personId,
+            onSuccess = { p ->
+                if (p != null) {
+                    currentPerson = p
+                    syncCoordinator.currentPerson = p
+                    val targetTreeId = p.treeId.ifBlank {
+                        com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+                    }
+                    if (targetTreeId.isNotBlank()) {
+                        treeId = targetTreeId
+                        firestoreHelper.getPersonsByTree(
+                            treeId = targetTreeId,
+                            onSuccess = { treeMembers ->
+                                allMembers = FirestoreHelper.sanitizeTreeRecords(treeMembers)
+                                syncCoordinator.allMembersList = allMembers
+                                displayPerson(p)
+                            },
+                            onFailure = { displayPerson(p) }
+                        )
+                    } else {
+                        displayPerson(p)
+                    }
                 }
             },
             onFailure = { currentPerson?.let { displayPerson(it) } }
         )
+    }
+
+    /**
+     * After any write operation, reload all members of this tree from Firestore so the UI
+     * reflects the latest state for BOTH the current person AND their relatives.
+     */
+    private fun reloadAndDisplay() {
+        val effectiveTreeId = treeId.ifBlank {
+            currentPerson?.treeId.orEmpty().ifBlank {
+                com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+            }
+        }
+        val handleMembers: (List<Person>) -> Unit = { rawMembers ->
+            val members = FirestoreHelper.sanitizeTreeRecords(rawMembers)
+            val updated = members.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
+            if (updated != null) {
+                val resolvedTreeId = updated.treeId.ifBlank { effectiveTreeId }
+                allMembers = if (resolvedTreeId.isNotBlank()) {
+                    if (resolvedTreeId == "default_tree") {
+                        members.filter { it.treeId.isBlank() || it.treeId == "default_tree" }
+                    } else {
+                        members.filter { it.treeId == resolvedTreeId }
+                    }
+                } else members
+                currentPerson = updated
+                syncCoordinator.currentPerson = updated
+                syncCoordinator.allMembersList = allMembers
+                displayPerson(updated)
+            }
+        }
+
+        if (effectiveTreeId.isNotBlank()) {
+            firestoreHelper.getPersonsByTree(
+                treeId = effectiveTreeId,
+                onSuccess = handleMembers,
+                onFailure = { currentPerson?.let { displayPerson(it) } }
+            )
+        } else {
+            firestoreHelper.getPerson(personId,
+                onSuccess = { p ->
+                    if (p != null) {
+                        currentPerson = p
+                        syncCoordinator.currentPerson = p
+                        displayPerson(p)
+                    }
+                },
+                onFailure = { currentPerson?.let { displayPerson(it) } }
+            )
+        }
     }
 
     // ══════════════════════════════════════════════════════════════

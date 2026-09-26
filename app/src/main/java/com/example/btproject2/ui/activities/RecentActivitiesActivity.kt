@@ -69,25 +69,48 @@ class RecentActivitiesActivity : AppCompatActivity() {
                     adapter.submitList(activities)
                 } else {
                     // Fallback to synthesizing activities from member records if empty
-                    firestoreHelper.getAllPersons(
-                        onSuccess = { persons ->
-                            progressBar.visibility = View.GONE
-                            val synthesized = synthesizeActivities(persons)
-                            if (synthesized.isNotEmpty()) {
-                                layoutEmpty.visibility = View.GONE
-                                tvActivityCountBadge.text = "${synthesized.size} total"
-                                adapter.submitList(synthesized)
+                    val effectiveTreeId = treeId.ifBlank {
+                        com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+                    }
+                    val onPersonsLoaded: (List<Person>) -> Unit = { rawPersons ->
+                        progressBar.visibility = View.GONE
+                        val persons = if (effectiveTreeId.isNotBlank()) {
+                            if (effectiveTreeId == "default_tree") {
+                                rawPersons.filter { it.treeId.isBlank() || it.treeId == "default_tree" }
                             } else {
-                                layoutEmpty.visibility = View.VISIBLE
-                                tvActivityCountBadge.text = "0 total"
-                                adapter.submitList(emptyList())
+                                rawPersons.filter { it.treeId == effectiveTreeId }
                             }
-                        },
-                        onFailure = {
-                            progressBar.visibility = View.GONE
+                        } else rawPersons
+                        val synthesized = synthesizeActivities(persons)
+                        if (synthesized.isNotEmpty()) {
+                            layoutEmpty.visibility = View.GONE
+                            tvActivityCountBadge.text = "${synthesized.size} total"
+                            adapter.submitList(synthesized)
+                        } else {
                             layoutEmpty.visibility = View.VISIBLE
+                            tvActivityCountBadge.text = "0 total"
+                            adapter.submitList(emptyList())
                         }
-                    )
+                    }
+
+                    if (effectiveTreeId.isNotBlank()) {
+                        firestoreHelper.getPersonsByTree(
+                            treeId = effectiveTreeId,
+                            onSuccess = onPersonsLoaded,
+                            onFailure = {
+                                progressBar.visibility = View.GONE
+                                layoutEmpty.visibility = View.VISIBLE
+                            }
+                        )
+                    } else {
+                        firestoreHelper.getAllPersons(
+                            onSuccess = onPersonsLoaded,
+                            onFailure = {
+                                progressBar.visibility = View.GONE
+                                layoutEmpty.visibility = View.VISIBLE
+                            }
+                        )
+                    }
                 }
             },
             onFailure = {

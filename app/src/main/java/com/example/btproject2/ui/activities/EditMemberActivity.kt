@@ -390,18 +390,30 @@ class EditMemberActivity : AppCompatActivity() {
     }
 
     private fun loadMemberData() {
-        firestoreHelper.getAllPersons(
-            onSuccess = { members ->
-                allMembers = FirestoreHelper.sanitizeTreeRecords(members)
-                val target = allMembers.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) } ?: FirestoreHelper.getCachedPersons()?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
-                if (target == null) {
-                    Toast.makeText(this, "Member not found", Toast.LENGTH_SHORT).show()
-                    finish()
-                    return@getAllPersons
-                }
+        val preferredTreeId = intent.getStringExtra("TREE_ID")
+            ?: intent.getStringExtra("treeId")
+            ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+
+        val processMembers: (List<Person>) -> Unit = { rawMembers ->
+            val sanitized = FirestoreHelper.sanitizeTreeRecords(rawMembers)
+            val target = sanitized.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
+                ?: FirestoreHelper.getCachedPersons()?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
+            if (target == null) {
+                Toast.makeText(this, "Member not found", Toast.LENGTH_SHORT).show()
+                finish()
+            } else {
+                val effectiveTreeId = target.treeId.ifBlank { preferredTreeId }
+                allMembers = if (effectiveTreeId.isNotBlank()) {
+                    if (effectiveTreeId == "default_tree") {
+                        sanitized.filter { it.treeId.isBlank() || it.treeId == "default_tree" }
+                    } else {
+                        sanitized.filter { it.treeId == effectiveTreeId }
+                    }
+                } else sanitized
+
                 // Mutual spouse resolution: If target's spouseId is missing, resolve from partner pointing to target
                 val resolvedSpouseId = target.spouseId?.ifEmpty { null }
-                    ?: members.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, target.id) }?.id
+                    ?: allMembers.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, target.id) }?.id
                 val effectiveTarget = if (resolvedSpouseId != null && target.spouseId.isNullOrEmpty()) {
                     target.copy(spouseId = resolvedSpouseId, maritalStatus = "Married")
                 } else target
@@ -409,12 +421,35 @@ class EditMemberActivity : AppCompatActivity() {
                 currentPerson = effectiveTarget
                 populateFields(effectiveTarget)
                 refreshCandidateSpinners()
-            },
-            onFailure = {
+            }
+        }
+
+        if (preferredTreeId.isNotBlank()) {
+            firestoreHelper.getPersonsByTree(
+                treeId = preferredTreeId,
+                onSuccess = { members ->
+                    if (members.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }) {
+                        processMembers(members)
+                    } else {
+                        firestoreHelper.getAllPersons(processMembers) {
+                            Toast.makeText(this, "Failed to load member data", Toast.LENGTH_SHORT).show()
+                            finish()
+                        }
+                    }
+                },
+                onFailure = {
+                    firestoreHelper.getAllPersons(processMembers) {
+                        Toast.makeText(this, "Failed to load member data", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                }
+            )
+        } else {
+            firestoreHelper.getAllPersons(processMembers) {
                 Toast.makeText(this, "Failed to load member data", Toast.LENGTH_SHORT).show()
                 finish()
             }
-        )
+        }
     }
 
     private fun populateFields(p: Person) {

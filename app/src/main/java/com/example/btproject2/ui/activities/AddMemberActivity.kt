@@ -579,17 +579,19 @@ class AddMemberActivity : AppCompatActivity() {
     }
 
     private fun loadFamilyMembers() {
-        firestoreHelper.getAllPersons(
-            onSuccess = { persons ->
-                val treeFiltered = if (treeId.isEmpty()) {
-                    emptyList()
-                } else if (treeId == "default_tree") {
-                    persons.filter { it.treeId.isEmpty() || it.treeId == "default_tree" }
-                } else {
-                    persons.filter { it.treeId == treeId }
-                }
-                allMembers = treeFiltered
-                syncCoordinator.allMembersList = allMembers
+        val effectiveTreeId = treeId.ifBlank {
+            com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+        }
+        val handlePersons: (List<Person>) -> Unit = { persons ->
+            val treeFiltered = if (effectiveTreeId.isEmpty()) {
+                emptyList()
+            } else if (effectiveTreeId == "default_tree") {
+                persons.filter { it.treeId.isEmpty() || it.treeId == "default_tree" }
+            } else {
+                persons.filter { it.treeId == effectiveTreeId }
+            }
+            allMembers = treeFiltered
+            syncCoordinator.allMembersList = allMembers
 
                 val presetChildId = intent.getStringExtra("presetChildId")
                 val presetGender = intent.getStringExtra("presetGender")
@@ -623,10 +625,7 @@ class AddMemberActivity : AppCompatActivity() {
                                 .setPositiveButton("Understood") { _, _ -> finish() }
                                 .setCancelable(false)
                                 .show()
-                            return@getAllPersons
-                        }
-
-                        if (selectedChildren.none { it.id == child.id }) {
+                        } else if (selectedChildren.none { it.id == child.id }) {
                             selectedChildren.add(child)
                             tvSelectedChildren.text = "${selectedChildren.size} child(ren) selected (${child.firstName})"
                             tvSelectedChildren.setTextColor(resources.getColor(R.color.white, null))
@@ -637,20 +636,23 @@ class AddMemberActivity : AppCompatActivity() {
                 }
 
                 refreshCandidateSpinners()
-            },
-            onFailure = {
-                firestoreHelper.getPersonsByTree(
-                    treeId,
-                    onSuccess = { persons ->
-                        allMembers = persons
-                        refreshCandidateSpinners()
-                    },
-                    onFailure = {
+            }
+
+        if (effectiveTreeId.isNotBlank()) {
+            firestoreHelper.getPersonsByTree(
+                effectiveTreeId,
+                onSuccess = handlePersons,
+                onFailure = {
+                    firestoreHelper.getAllPersons(handlePersons) {
                         showMessage("Error", "Failed to load existing members.")
                     }
-                )
+                }
+            )
+        } else {
+            firestoreHelper.getAllPersons(handlePersons) {
+                showMessage("Error", "Failed to load existing members.")
             }
-        )
+        }
     }
 
     private fun refreshCandidateSpinners() {
