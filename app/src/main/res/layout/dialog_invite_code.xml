@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_forest_card"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Invite Family Members"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Share this 6-character code with your family members so they can request access to this tree:"
+        android:textSize="13sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:lineSpacingExtra="2dp"
+        android:layout_marginBottom="20dp" />
+
+    <!-- 6-character code badge -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:background="@drawable/bg_hero_card"
+        android:padding="16dp"
+        android:layout_marginBottom="20dp">
+
+        <TextView
+            android:id="@+id/tvInviteCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DC2488"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.25" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnCopyCode"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="📋  Copy Invite Code"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#0A1B12"
+        android:background="@drawable/btn_gold_primary"
+        android:textAllCaps="false" />
+
+</LinearLayout>

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/forest_bg"
+    android:fitsSystemWindows="true">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/dashboard_header_bg"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="36dp"
+        android:paddingBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="← Back"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Connect Branches shortcut (FR-08 / 7.f) -->
+            <TextView
+                android:id="@+id/btnConnectBranchesShortcut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔗 Connect"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <!-- Audit Tree Shortcut -->
+            <TextView
+                android:id="@+id/btnAuditTree"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🛡️ Audit"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <!-- Legend dialog (7.d) -->
+            <TextView
+                android:id="@+id/btnInteractiveLegend"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ℹ Legend"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Title & Subtitle -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🌿 Interactive Tree"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tvTreeSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pinch to zoom · Drag to pan · Tap nodes to inspect"
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="10dp" />
+
+        <!-- View Mode Selector (7.a Main, 7.b Trace, 7.c Pedigree) -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/chipMainTree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🌿 Main Tree"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/btn_gold_primary"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipPedigree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🌳 Ancestor Pedigree"
+                    android:textSize="11sp"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipTraceHighlight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⭐ Trace Path"
+                    android:textSize="11sp"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:visibility="gone"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <!-- Canvas Frame with Floating Controls Overlay -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Native tree canvas fills the container -->
+        <FrameLayout
+            android:id="@+id/treeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/forest_bg" />
+
+        <!-- 7.b Trace Highlight Floating Banner -->
+        <LinearLayout
+            android:id="@+id/layoutTraceBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_forest_card"
+            android:padding="12dp"
+            android:elevation="6dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⭐"
+                android:textSize="14sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvTraceBannerText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Trace Path: Person A ➔ ★ MRCA ➔ Person B"
+                android:textSize="11sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnCloseTraceHighlight"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:gravity="center"
+                android:text="✕"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:background="@drawable/badge_pill_dark"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- 7.c Ancestor Pedigree Focal Bar -->
+        <LinearLayout
+            android:id="@+id/layoutPedigreeFocalBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_forest_card"
+            android:padding="10dp"
+            android:elevation="6dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvFocalBarLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kinship relative to:"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginEnd="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerPedigreeFocal"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"
+                android:background="@drawable/input_bg_filled" />
+        </LinearLayout>
+
+        <!-- Floating Conflict Warning Banner -->
+        <LinearLayout
+            android:id="@+id/layoutConflictBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="64dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_forest_card"
+            android:padding="12dp"
+            android:elevation="7dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️"
+                android:textSize="14sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvConflictBannerText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Relationship conflicts detected. Tap to inspect."
+                android:textSize="11sp"
+                android:textColor="#FCA5A5"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnCloseConflictBanner"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:gravity="center"
+                android:text="✕"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:background="@drawable/badge_pill_dark"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Floating Zoom & Reset Overlay Controls -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="24dp"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/btnZoomIn"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="+"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/card_forest_elevated"
+                android:elevation="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/btnZoomOut"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="−"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/card_forest_elevated"
+                android:elevation="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/btnResetView"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="⟲"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text"
+                android:background="@drawable/card_forest_elevated"
+                android:elevation="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+    </FrameLayout>
+</LinearLayout>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Forest & Warm Gold Bespoke Palette (Dark Mode) -->
+    <color name="primary">#D4A359</color>
+    <color name="primary_dark">#B8863E</color>
+    <color name="primary_light">#1B3D2B</color>
+    <color name="primary_light_stroke">#285C41</color>
+    <color name="accent">#D4A359</color>
+    <color name="accent_dark">#9A6F29</color>
+    <color name="background">#0A1B12</color>
+    <color name="card_bg">#122A1D</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#A3B899</color>
+    <color name="text_hint">#5C7A68</color>
+    <color name="border">#1E4530</color>
+    <color name="surface">#122A1D</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Semantic Status & Alert Colors (Dark Mode) -->
+    <color name="danger">#EF4444</color>
+    <color name="danger_bg">#2B1214</color>
+    <color name="info_bg">#0C2538</color>
+    <color name="info">#38BDF8</color>
+    <color name="warning_bg">#2E2208</color>
+    <color name="warning">#FBBF24</color>
+    <color name="pink_bg">#2D1322</color>
+    <color name="pink">#F472B6</color>
+    <color name="purple_bg">#1E1533</color>
+    <color name="purple">#A78BFA</color>
+
+    <!-- Modern Redesign Palette (Dark Mode) -->
+    <color name="emerald_dark">#07170E</color>
+    <color name="emerald_primary">#1D9E75</color>
+    <color name="emerald_accent">#4ECCA3</color>
+    <color name="emerald_gradient_start">#1D9E75</color>
+    <color name="emerald_gradient_end">#0F6E56</color>
+    <color name="sky_blue">#38BDF8</color>
+    <color name="sky_blue_bg">#0C2538</color>
+    <color name="rose_pink">#FB7185</color>
+    <color name="rose_pink_bg">#2B1218</color>
+    <color name="amber_warm">#D4A359</color>
+    <color name="amber_warm_bg">#2E2208</color>
+    <color name="teal_accent">#1D9E75</color>
+    <color name="teal_accent_bg">#1B3D2B</color>
+    <color name="slate_dark">#0A1B12</color>
+    <color name="slate_card">#122A1D</color>
+    <color name="slate_subtle">#7A9A88</color>
+    <color name="card_border">#1E4530</color>
+    <color name="card_border_subtle">#183626</color>
+
+    <!-- Dark Forest Semantic Tokens (Dark Mode) -->
+    <color name="forest_bg">#0A1B12</color>
+    <color name="forest_card">#122A1D</color>
+    <color name="forest_card_border">#1E4530</color>
+    <color name="forest_card_light">#183626</color>
+    <color name="gold_accent">#D4A359</color>
+    <color name="gold_accent_light">#E8BA6E</color>
+    <color name="gold_accent_dark">#9A6F29</color>
+    <color name="mint_text">#5EEAD4</color>
+    <color name="mint_pill_bg">#1B3D2B</color>
+    <color name="mint_badge_border">#285C41</color>
+    <color name="dark_subtext">#7A9A88</color>
+    <color name="dark_nav_active">#D4A359</color>
+    <color name="dark_nav_inactive">#4A725D</color>
+</resources>

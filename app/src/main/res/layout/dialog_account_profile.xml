@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_forest_card"
+    android:padding="24dp">
+
+    <!-- Header Avatar + Info -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_marginBottom="20dp">
+
+        <TextView
+            android:id="@+id/tvDialogAvatar"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:gravity="center"
+            android:text="U"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:background="@drawable/avatar_circle_dark"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Account Profile"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tvDialogEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="user@example.com"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="3dp" />
+    </LinearLayout>
+
+    <!-- Display Name Field -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FULL / DISPLAY NAME"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_accent"
+        android:letterSpacing="0.08"
+        android:layout_marginBottom="6dp" />
+
+    <EditText
+        android:id="@+id/etDialogDisplayName"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/input_bg"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textSize="14sp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_hint"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Password Actions -->
+    <TextView
+        android:id="@+id/btnDialogChangePassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🔑 Change Password Directly →"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_accent"
+        android:paddingTop="8dp"
+        android:paddingBottom="6dp"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <TextView
+        android:id="@+id/btnDialogResetPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✉️ Send Password Reset Email →"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

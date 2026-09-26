@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_forest_card"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MERGE PREVIEW &amp; CONFLICT RESOLUTION"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvMergePreviewTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unify Duplicate Records"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Visual Mini Diagram -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@drawable/card_forest_elevated"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp">
+
+            <!-- Member A -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvPreviewAvatarA"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/badge_pill_dark"
+                    android:gravity="center"
+                    android:text="A"
+                    android:textColor="@color/gold_accent"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tvPreviewNameA"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Member A"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:gravity="center" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Keeper Record"
+                    android:textSize="10sp"
+                    android:textColor="@color/gold_accent" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="➕"
+                android:textSize="16sp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Member B -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvPreviewAvatarB"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/badge_pill_dark"
+                    android:gravity="center"
+                    android:text="B"
+                    android:textColor="@color/text_secondary"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tvPreviewNameB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Member B"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:gravity="center" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Redundant (Delete)"
+                    android:textSize="10sp"
+                    android:textColor="#FF8A8A" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Matching Fields -->
+        <TextView
+            android:id="@+id/tvMatchingFieldsSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✓ Matching: First Name, Last Name, Gender"
+            android:textSize="12sp"
+            android:textColor="#4ECCA3"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Conflicting Fields Container -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CONFLICT RESOLUTION (SELECT VALUE TO RETAIN)"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:id="@+id/layoutConflictContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Impact & Reparenting Box -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/badge_pill_dark"
+            android:padding="12dp"
+            android:layout_marginBottom="18dp">
+
+            <TextView
+                android:id="@+id/tvAffectedChildrenCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👶 Affected Children: 0 will be reparented"
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvSpouseLinkInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💍 Spouse links will be unified and maintained"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- Action Buttons -->
+        <Button
+            android:id="@+id/btnConfirmExecuteMerge"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Confirm &amp; Execute Merge"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#0A1B12"
+            android:background="@drawable/btn_gold_primary"
+            android:textAllCaps="false"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btnCancelMergeDialog"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="Cancel"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:background="@drawable/btn_dark_secondary"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+</ScrollView>
+

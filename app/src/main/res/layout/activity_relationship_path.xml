@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/forest_bg"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="36dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="32dp">
+
+        <TextView
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:layout_marginBottom="16dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Relationship Path"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvPathSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step-by-step lineage route"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Consanguinity Hero Summary Card -->
+        <LinearLayout
+            android:id="@+id/layoutHeroSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_hero_card"
+            android:padding="20dp"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvConsanguinityBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3RD CIVIL DEGREE · COLLATERAL LINE"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:id="@+id/tvRelationshipHeading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:gravity="center"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:id="@+id/tvSharedAncestorSummary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"
+                android:layout_marginBottom="16dp" />
+
+            <Button
+                android:id="@+id/btnHighlightOnTreeHeader"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:text="🌿  View Highlight on Tree Canvas"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/gold_accent"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <!-- Path container — nodes will be added here dynamically -->
+        <LinearLayout
+            android:id="@+id/pathContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal" />
+
+        <!-- Bottom Actions -->
+        <LinearLayout
+            android:id="@+id/layoutBottomActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="20dp"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnHighlightOnTreeBottom"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="🌿  View Highlight on Tree Canvas"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/gold_accent"
+                android:textAllCaps="false"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btnViewReport"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:text="📄  View Official Relationship Report"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/btn_dark_secondary"
+                android:textAllCaps="false"
+                android:layout_marginBottom="10dp" />
+        </LinearLayout>
+
+        <!-- Info note -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/note_bg"
+            android:padding="16dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💡"
+                android:textSize="18sp"
+                android:layout_marginEnd="12dp" />
+
+            <TextView
+                android:id="@+id/tvPathNote"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="This path shows the shortest bloodline connection between the two individuals through their nearest shared ancestor."
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingMultiplier="1.4" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

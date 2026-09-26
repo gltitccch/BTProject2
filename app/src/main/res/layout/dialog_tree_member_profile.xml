@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_forest_elevated"
+    android:padding="20dp"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Top Row: Title + Close Button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Member Profile"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/btnProfileClose"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:gravity="center"
+                android:text="✕"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Profile Header: Avatar + Change Photo + Names & Status -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <FrameLayout
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginEnd="16dp">
+
+                <ImageView
+                    android:id="@+id/ivProfilePhoto"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvProfileAvatar"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:gravity="center"
+                    android:text="RB"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="@drawable/avatar_circle_dark" />
+
+                <!-- Change Photo Button Badge -->
+                <TextView
+                    android:id="@+id/btnProfileChangePhoto"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="bottom|end"
+                    android:gravity="center"
+                    android:text="📷"
+                    android:textSize="12sp"
+                    android:background="@drawable/circle_gold_btn"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvProfileFullName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Renzy Bugarin"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/tvProfileSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Single · Living"
+                    android:textSize="12sp"
+                    android:textColor="@color/mint_text"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- Badges Row -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvProfileKinshipBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="FATHER"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:layout_marginEnd="6dp" />
+
+                    <TextView
+                        android:id="@+id/tvProfileAgeBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="24 yrs old"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:layout_marginEnd="6dp" />
+
+                    <TextView
+                        android:id="@+id/tvProfileSexBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Male ♂"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/emerald_accent"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Quick Set As Focal Person Action -->
+        <TextView
+            android:id="@+id/btnProfileSetAsFocal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🎯 View Tree Kinship From This Person"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:background="@drawable/badge_pill_dark"
+            android:gravity="center"
+            android:padding="8dp"
+            android:layout_marginBottom="14dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Vital Statistics Details -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/item_member_dark_bg"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="Birth:"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvProfileBirth"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="May 14, 2000 · Quezon City"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowProfileParents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="Parents:"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvProfileParents"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pedro Bugarin &amp; Maria Santos"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rowProfileSpouse"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="Spouse:"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvProfileSpouse"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="None"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Identity Verification & Proof Documents Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_forest_card"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📜 Proof of Identity &amp; Documents"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent" />
+
+                <TextView
+                    android:id="@+id/tvProfileVerificationBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓ Verified"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/emerald_accent"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Attach birth certificates, IDs, or legal documents to prove this family member's existence and lineage."
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Dynamic Documents Container -->
+            <LinearLayout
+                android:id="@+id/layoutProfileDocsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- Empty Docs Notice -->
+            <TextView
+                android:id="@+id/tvProfileNoDocs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="No identity proof documents attached yet."
+                android:textSize="12sp"
+                android:textColor="@color/text_hint"
+                android:padding="10dp" />
+
+            <!-- Attach Document Button -->
+            <TextView
+                android:id="@+id/btnProfileAttachDoc"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="+ Attach PDF / Birth Certificate"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/emerald_accent"
+                android:background="@drawable/btn_outline_bg"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Quick Vital Status Toggle Action -->
+        <TextView
+            android:id="@+id/btnProfileToggleVitalStatus"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:gravity="center"
+            android:text="🕊️ Update Vital Status (Living ↔ Deceased)"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:background="@drawable/badge_pill_dark"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Bottom Action Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/btnProfileAddChild"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:gravity="center"
+                android:text="+ Child"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/emerald_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btnProfileAddSpouse"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:gravity="center"
+                android:text="+ Spouse"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btnProfileEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:gravity="center"
+                android:text="✏ Edit"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btnProfileFullDetail"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Full Profile →"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/forest_bg"
+                android:background="@drawable/btn_gold_primary"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
+

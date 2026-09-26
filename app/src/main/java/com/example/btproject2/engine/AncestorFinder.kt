@@ -7,7 +7,7 @@ class AncestorFinder {
     fun findAncestors(
         personId: String,
         personMap: Map<String, Person>,
-        maxDepth: Int = 5
+        maxDepth: Int = 10
     ): Map<String, Pair<Int, List<Person>>> {
 
         val ancestors = mutableMapOf<String, Pair<Int, List<Person>>>()
@@ -27,23 +27,33 @@ class AncestorFinder {
 
             if (current.distance >= maxDepth) continue
 
-            current.person.motherId?.let { motherId ->
-                val mother = personMap[motherId]
-                if (mother != null && !ancestors.containsKey(motherId)) {
-                    val newPath = current.path + mother
-                    val newDistance = current.distance + 1
-                    ancestors[motherId] = Pair(newDistance, newPath)
-                    queue.add(QueueItem(mother, newDistance, newPath))
+            // Only biological parent links are used for biological bloodline computation (Page 20 of Proposal)
+            // Default is biological unless explicitly designated as Adoptive or Step
+            val mRel = current.person.motherRelationshipType
+            val isMotherBio = mRel.isNullOrBlank() || mRel.equals("Biological", ignoreCase = true)
+            if (isMotherBio) {
+                current.person.motherId?.let { motherId ->
+                    val mother = personMap[motherId]
+                    if (mother != null && !ancestors.containsKey(motherId)) {
+                        val newPath = current.path + mother
+                        val newDistance = current.distance + 1
+                        ancestors[motherId] = Pair(newDistance, newPath)
+                        queue.add(QueueItem(mother, newDistance, newPath))
+                    }
                 }
             }
 
-            current.person.fatherId?.let { fatherId ->
-                val father = personMap[fatherId]
-                if (father != null && !ancestors.containsKey(fatherId)) {
-                    val newPath = current.path + father
-                    val newDistance = current.distance + 1
-                    ancestors[fatherId] = Pair(newDistance, newPath)
-                    queue.add(QueueItem(father, newDistance, newPath))
+            val fRel = current.person.fatherRelationshipType
+            val isFatherBio = fRel.isNullOrBlank() || fRel.equals("Biological", ignoreCase = true)
+            if (isFatherBio) {
+                current.person.fatherId?.let { fatherId ->
+                    val father = personMap[fatherId]
+                    if (father != null && !ancestors.containsKey(fatherId)) {
+                        val newPath = current.path + father
+                        val newDistance = current.distance + 1
+                        ancestors[fatherId] = Pair(newDistance, newPath)
+                        queue.add(QueueItem(father, newDistance, newPath))
+                    }
                 }
             }
         }

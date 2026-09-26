@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/forest_bg"
+    android:fitsSystemWindows="true">
+
+    <!-- Top Navigation Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="36dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="16dp"
+        android:background="@color/forest_bg">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="← Back"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/btnShareText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📤 Share"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btnExportPdf"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📄 Save PDF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/gold_accent"
+                android:background="@drawable/btn_gold_primary"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Relationship Report"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tvReportSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Official Genealogical &amp; Legal Verification • Module 6"
+            android:textSize="12sp"
+            android:textColor="@color/gold_accent"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <!-- Scrollable Report Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="36dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Official Certification Stamp Banner -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="16dp"
+                android:layout_marginBottom="14dp">
+
+                <TextView
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:background="@drawable/badge_pill_dark"
+                    android:gravity="center"
+                    android:text="🏛"
+                    android:textSize="20sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Official Genealogical Record"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tvCertDetails"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="KinTrace Certification • Family Code Verification"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VERIFIED"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp" />
+            </LinearLayout>
+
+            <!-- Subject Profiles Comparison Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="16dp"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="14dp">
+
+                <!-- Person A Column -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <TextView
+                        android:id="@+id/tvAvatarA"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:gravity="center"
+                        android:text="A"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:background="@drawable/node_male_sample"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:id="@+id/tvNameA"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Person A"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:id="@+id/tvDetailsA"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Male • Living"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <!-- Connection Icon -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⇄"
+                        android:textSize="20sp"
+                        android:textColor="@color/gold_accent" />
+
+                    <TextView
+                        android:id="@+id/tvStepsSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4 steps"
+                        android:textSize="10sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+
+                <!-- Person B Column -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <TextView
+                        android:id="@+id/tvAvatarB"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:gravity="center"
+                        android:text="B"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:background="@drawable/node_female_sample"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:id="@+id/tvNameB"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Person B"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:id="@+id/tvDetailsB"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Female • Living"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:gravity="center" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Consanguinity Degree Hero Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="20dp"
+                android:layout_marginBottom="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="COMPUTED RELATIONSHIP"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:letterSpacing="0.08" />
+
+                    <TextView
+                        android:id="@+id/tvDegreePill"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4th Degree"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="#0A1B12"
+                        android:background="@drawable/btn_gold_primary"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvRelationshipTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="First Cousins"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    android:id="@+id/tvConsanguinityDetails"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Collateral Line • 4th Civil Degree (Roman Civil Method, Art. 963 NCC)"
+                    android:textSize="12sp"
+                    android:textColor="@color/mint_text"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <!-- Philippine Family Code Legal Assessment Card -->
+            <LinearLayout
+                android:id="@+id/layoutLegalCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="18dp"
+                android:layout_marginBottom="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/tvLegalBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PROHIBITED"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp"
+                        android:layout_marginEnd="10dp" />
+
+                    <TextView
+                        android:id="@+id/tvLegalTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Void ab initio (Public Policy)"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvLegalDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Under Article 38, Paragraph 1 of the Family Code of the Philippines, marriage between collateral blood relatives up to the 4th civil degree is void for reasons of public policy."
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:lineSpacingExtra="3dp" />
+
+                <TextView
+                    android:id="@+id/tvLegalArticle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Statutory Article: Article 38 (1), Family Code of the Philippines"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+
+            <!-- Most Recent Common Ancestor (MRCA) Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="18dp"
+                android:layout_marginBottom="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CLOSEST COMMON ANCESTOR (MRCA)"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:letterSpacing="0.08" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/tvMrcaAvatar"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/node_mrca_sample"
+                        android:gravity="center"
+                        android:text="★"
+                        android:textSize="16sp"
+                        android:textColor="#0A1B12"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvMrcaName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ancestor Name"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvMrcaGenerations"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2 generations to Person A • 2 generations to Person B"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Step-by-Step Natural Language Narrative Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="18dp"
+                android:layout_marginBottom="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NATURAL LANGUAGE EXPLANATION"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:letterSpacing="0.08"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvNarrativeExplanation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Maria is the daughter of Rosa, who is the daughter of Juan. Carlos is the son of Pedro, who is also the son of Juan. Since they share the same grandfather at the 4th civil degree, they are first cousins."
+                    android:textSize="13sp"
+                    android:textColor="@color/text_primary"
+                    android:lineSpacingExtra="4dp" />
+            </LinearLayout>
+
+            <!-- Descent Path Ladder Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="18dp"
+                android:layout_marginBottom="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="GENEALOGICAL PATH LADDER"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:letterSpacing="0.08" />
+
+                    <TextView
+                        android:id="@+id/btnOpenVisualPath"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Interactive Path ➔"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/mint_text"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvPathLadderText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Person A ➔ Parent ➔ MRCA ➔ Parent ➔ Person B"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:lineSpacingExtra="3dp" />
+
+                <Button
+                    android:id="@+id/btnViewTraceOnTree"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="🌿  View Highlighted Bloodline on Tree"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/gold_accent"
+                    android:textAllCaps="false"
+                    android:layout_marginTop="12dp" />
+            </LinearLayout>
+
+            <!-- Reference Support Link -->
+            <LinearLayout
+                android:id="@+id/cardReferenceSupport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="16dp"
+                android:layout_marginBottom="24dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/badge_pill_dark"
+                    android:gravity="center"
+                    android:text="⚖"
+                    android:textSize="18sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Statutory Reference Guide"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Articles 963–967 Civil Code &amp; Articles 37–38 Family Code"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="›"
+                    android:textSize="20sp"
+                    android:textColor="@color/gold_accent" />
+            </LinearLayout>
+
+            <!-- Bottom Action Buttons -->
+            <TextView
+                android:id="@+id/btnSavePrintPdfBottom"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:text="📄  Save / Print Official PDF Report"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/gold_accent"
+                android:background="@drawable/btn_gold_primary"
+                android:layout_marginBottom="12dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btnShareTextBottom"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="📤  Share Formatted Report Summary"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:background="@drawable/btn_dark_secondary"
+                android:layout_marginBottom="24dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
+

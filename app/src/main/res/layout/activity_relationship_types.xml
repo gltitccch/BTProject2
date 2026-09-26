@@ -2,32 +2,36 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/forest_bg"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="48dp"
+        android:paddingTop="36dp"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
-        android:paddingBottom="24dp">
+        android:paddingBottom="36dp">
 
+        <!-- Back Button -->
         <TextView
             android:id="@+id/btnBack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="← Back"
             android:textSize="14sp"
-            android:textColor="@color/primary"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
             android:layout_marginBottom="16dp"
             android:clickable="true"
             android:focusable="true" />
 
+        <!-- Title Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Relationship Types"
+            android:text="Relationship Types &amp; Consanguinity"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
@@ -36,100 +40,109 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="How KinTrace classifies blood connections."
+            android:text="Roman Civil Method &amp; Philippine Family Code Guide"
             android:textSize="13sp"
             android:textColor="@color/text_secondary"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="20dp" />
 
-        <!-- LINEAL Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="LINEAL"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary_dark"
-            android:background="@drawable/tag_lineal_bg"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:layout_marginBottom="10dp" />
-
+        <!-- Hero Card: Roman Civil Method (Art. 963 Civil Code) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
             android:orientation="vertical"
-            android:layout_marginBottom="8dp">
+            android:background="@drawable/bg_hero_card"
+            android:padding="20dp"
+            android:layout_marginBottom="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Direct Bloodline"
-                android:textSize="15sp"
+                android:text="ROMAN CIVIL METHOD"
+                android:textSize="10sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="4dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="One person is a direct ancestor of the other. Traced by vertical path only."
-                android:textSize="13sp"
-                android:textColor="@color/text_secondary"
-                android:lineSpacingMultiplier="1.4"
+                android:textColor="@color/mint_text"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:letterSpacing="0.1"
                 android:layout_marginBottom="10dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Examples: Parent, Grandparent, Great-grandparent"
-                android:textSize="12sp"
-                android:textColor="@color/text_hint"
-                android:background="@color/surface"
-                android:padding="8dp" />
+                android:text="Civil Code of the Philippines (Art. 963)"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Proximity of relationship is determined by the number of generations. Each generation forms one degree. In the direct line, degrees equal the steps ascending or descending. In the collateral line, degrees equal the steps up to the common ancestor plus steps down to the relative."
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingMultiplier="1.4" />
         </LinearLayout>
 
-        <!-- Degree Table — Lineal -->
+        <!-- SECTION 1: LINEAL CONSANGUINITY -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1. LINEAL CONSANGUINITY (DIRECT LINE)"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="10dp" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
             android:orientation="vertical"
-            android:layout_marginBottom="24dp">
+            android:background="@drawable/bg_forest_card"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="LINEAL (direct path)"
-                android:textSize="11sp"
+                android:text="Direct Vertical Bloodline"
+                android:textSize="14sp"
                 android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ascending line links a person with ancestors; descending line links a person with posterity. Counted strictly vertically."
+                android:textSize="12sp"
                 android:textColor="@color/text_secondary"
-                android:letterSpacing="0.05"
+                android:lineSpacingMultiplier="1.3"
                 android:layout_marginBottom="12dp" />
 
-            <!-- 1st degree -->
+            <!-- Lineal Table Rows -->
+            <!-- 1st Degree -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:background="@drawable/card_bg_selected"
-                android:padding="10dp"
-                android:layout_marginBottom="6dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
                 <TextView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:gravity="center"
-                    android:text="1"
-                    android:textSize="13sp"
+                    android:text="1°"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/avatar_bg" />
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -141,39 +154,48 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Parent / Child"
-                        android:textSize="14sp"
+                        android:text="Parent and Child"
+                        android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1st degree"
+                        android:text="1 generation · Father/Mother to Son/Daughter"
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary" />
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VOID (Art. 37)"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF5C5C" />
             </LinearLayout>
 
-            <!-- 2nd degree -->
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
+
+            <!-- 2nd Degree -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:background="@drawable/card_bg"
-                android:padding="10dp"
-                android:layout_marginBottom="6dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
                 <TextView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:gravity="center"
-                    android:text="2"
-                    android:textSize="13sp"
+                    android:text="2°"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/avatar_bg" />
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -185,38 +207,48 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Grandparent / Grandchild"
-                        android:textSize="14sp"
+                        android:text="Grandparent and Grandchild"
+                        android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2nd degree"
+                        android:text="2 generations · Lolo/Lola to Apo"
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary" />
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VOID (Art. 37)"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF5C5C" />
             </LinearLayout>
 
-            <!-- 3rd degree -->
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
+
+            <!-- 3rd Degree -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:background="@drawable/card_bg"
-                android:padding="10dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
                 <TextView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:gravity="center"
-                    android:text="3"
-                    android:textSize="13sp"
+                    android:text="3°"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/avatar_bg" />
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -228,89 +260,117 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Great-grandparent / Great-grandchild"
-                        android:textSize="14sp"
+                        android:text="Great-Grandparent and Great-Grandchild"
+                        android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="3rd degree"
+                        android:text="3 generations · Lolo/Lola sa Tuhod"
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary" />
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VOID (Art. 37)"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF5C5C" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
+
+            <!-- 4th Degree -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:gravity="center"
+                    android:text="4°"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/badge_pill_gold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Great-Great-Grandparent &amp; Great-Great-Grandchild"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4 generations · Lolo/Lola sa Talampakan"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VOID (Art. 37)"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF5C5C" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- COLLATERAL Section -->
+        <!-- SECTION 2: COLLATERAL CONSANGUINITY -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="COLLATERAL"
+            android:text="2. COLLATERAL CONSANGUINITY (SHARED ANCESTOR)"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="@color/info"
-            android:background="@drawable/tag_collateral_bg"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
             android:layout_marginBottom="10dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
             android:orientation="vertical"
-            android:layout_marginBottom="8dp">
+            android:background="@drawable/bg_forest_card"
+            android:padding="16dp"
+            android:layout_marginBottom="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Shared Ancestor"
-                android:textSize="15sp"
+                android:text="Degree = Steps Up to MRCA + Steps Down"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:layout_marginBottom="4dp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Neither is ancestor of the other. Connected through a common ancestor."
-                android:textSize="13sp"
-                android:textColor="@color/text_secondary"
-                android:lineSpacingMultiplier="1.4"
-                android:layout_marginBottom="10dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Examples: Siblings, Cousins, Uncle/Aunt"
+                android:text="Connects persons who do not descend one from the other, but share a common biological progenitor."
                 android:textSize="12sp"
-                android:textColor="@color/text_hint"
-                android:background="@color/surface"
-                android:padding="8dp" />
-        </LinearLayout>
-
-        <!-- Collateral Degree Table -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="COLLATERAL (via shared ancestor)"
-                android:textSize="11sp"
-                android:textStyle="bold"
                 android:textColor="@color/text_secondary"
-                android:letterSpacing="0.05"
+                android:lineSpacingMultiplier="1.3"
                 android:layout_marginBottom="12dp" />
 
             <!-- Siblings -->
@@ -319,59 +379,105 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:padding="10dp"
-                android:layout_marginBottom="6dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
                 <TextView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:gravity="center"
-                    android:text="S"
-                    android:textSize="12sp"
+                    android:text="2°"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/avatar_bg" />
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/badge_pill_gold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Siblings (Brothers / Sisters)"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 step up to Parent + 1 step down · Full or Half"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Siblings — Both 1 step from parent"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_primary"
-                    android:layout_marginStart="12dp" />
+                    android:text="VOID (Art. 37)"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF5C5C" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/surface" android:layout_marginBottom="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
 
-            <!-- Uncle/Aunt -->
+            <!-- Uncle / Aunt & Niece / Nephew -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:padding="10dp"
-                android:layout_marginBottom="6dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
                 <TextView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:gravity="center"
-                    android:text="U"
-                    android:textSize="12sp"
+                    android:text="3°"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/avatar_bg" />
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/badge_pill_gold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Uncle / Aunt &amp; Niece / Nephew"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 step up + 2 steps down from Grandparent · Tito/Tita &amp; Pamangkin"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Uncle/Aunt — 1 and 2 steps from ancestor"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_primary"
-                    android:layout_marginStart="12dp" />
+                    android:text="VOID (Art. 38)"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF8A8A" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/surface" android:layout_marginBottom="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
 
             <!-- First Cousins -->
             <LinearLayout
@@ -379,29 +485,158 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:padding="10dp"
-                android:layout_marginBottom="6dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
                 <TextView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:gravity="center"
-                    android:text="1C"
+                    android:text="4°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/avatar_bg" />
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/badge_pill_gold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="First Cousins"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2 steps up + 2 steps down from Grandparent · Pinsang Buo"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="First Cousins — Both 2 steps from grandparent"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_primary"
-                    android:layout_marginStart="12dp" />
+                    android:text="VOID (Art. 38)"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF8A8A" />
             </LinearLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/surface" android:layout_marginBottom="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
+
+            <!-- Great-Uncle & Grandniece -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:gravity="center"
+                    android:text="4°"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/badge_pill_gold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Great-Uncle / Aunt &amp; Grandniece / Nephew"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 step up + 3 steps down from Great-Grandparent"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VOID (Art. 38)"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF8A8A" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
+
+            <!-- First Cousin Once Removed -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:gravity="center"
+                    android:text="5°"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/mint_text"
+                    android:background="@drawable/badge_pill_dark" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="First Cousin Once Removed"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2 steps up + 3 steps down · Child of first cousin"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PERMISSIBLE"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#4ECCA3" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
 
             <!-- Second Cousins -->
             <LinearLayout
@@ -409,52 +644,178 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:padding="10dp">
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
                 <TextView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:gravity="center"
-                    android:text="2C"
+                    android:text="6°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/avatar_bg" />
+                    android:textColor="@color/mint_text"
+                    android:background="@drawable/badge_pill_dark" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Second Cousins"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3 steps up + 3 steps down from Great-Grandparent"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Second Cousins — Both 3 steps from great-grandparent"
-                    android:textSize="13sp"
-                    android:textColor="@color/text_primary"
-                    android:layout_marginStart="12dp" />
+                    android:text="PERMISSIBLE"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#4ECCA3" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
+
+            <!-- Third Cousins -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:gravity="center"
+                    android:text="8°"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/mint_text"
+                    android:background="@drawable/badge_pill_dark" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Third Cousins"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4 steps up + 4 steps down from Great-Great-Grandparent"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PERMISSIBLE"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#4ECCA3" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Info Note -->
+        <!-- SECTION 3: LEGAL STATUTES REFERENCE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3. FAMILY CODE OF THE PHILIPPINES (ARTS. 37 &amp; 38)"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="10dp" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/note_bg"
-            android:padding="14dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:orientation="vertical"
+            android:background="@drawable/bg_forest_card"
+            android:padding="18dp">
 
+            <!-- Art 37 -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💡"
-                android:textSize="16sp"
-                android:layout_marginEnd="10dp" />
+                android:text="Article 37: Incestuous Marriages (Void ab initio)"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FF5C5C"
+                android:layout_marginBottom="4dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Degree is calculated by counting the number of generational steps between two individuals through their nearest shared ancestor."
+                android:text="Marriages between the following are incestuous and void from the beginning, whether relationship between the parties be legitimate or illegitimate:\n(1) Between ascendants and descendants of any degree;\n(2) Between brothers and sisters, whether of full or half blood."
                 android:textSize="12sp"
-                android:textColor="@color/accent_dark"
-                android:lineSpacingMultiplier="1.4" />
+                android:textColor="@color/text_secondary"
+                android:lineSpacingMultiplier="1.3"
+                android:layout_marginBottom="14dp" />
+
+            <!-- Art 38 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Article 38(1): Void by Reason of Public Policy"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FF8A8A"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="The following marriages shall be void from the beginning for reasons of public policy:\n(1) Between collateral blood relatives, whether legitimate or illegitimate, up to the fourth civil degree (includes uncles/aunts and nieces/nephews, and first cousins)."
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingMultiplier="1.3"
+                android:layout_marginBottom="14dp" />
+
+            <!-- Beyond 4th Degree -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Beyond the Fourth Civil Degree"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#4ECCA3"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Relationships at the fifth civil degree or beyond (such as first cousins once removed, or second cousins) are NOT prohibited by reason of blood relationship under Philippine law."
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingMultiplier="1.3" />
         </LinearLayout>
 
     </LinearLayout>

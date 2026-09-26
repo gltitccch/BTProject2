@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/card_forest_elevated"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <!-- Card Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="POSSIBLE DUPLICATE MATCH"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.06" />
+
+        <TextView
+            android:id="@+id/tvSimilarityScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="85% Match"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#4ECCA3"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp" />
+    </LinearLayout>
+
+    <!-- Comparison Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/badge_pill_dark"
+        android:padding="12dp"
+        android:layout_marginBottom="14dp">
+
+        <!-- Person A -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMatchNameA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="First Last A"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tvMatchDetailsA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Male • b. 1975"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Primary Record"
+                android:textSize="9sp"
+                android:textColor="@color/gold_accent"
+                android:layout_marginTop="3dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="➔"
+            android:textSize="18sp"
+            android:textColor="@color/gold_accent"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Person B -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMatchNameB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="First Last B"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tvMatchDetailsB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Male • b. 1975"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="To Be Merged"
+                android:textSize="9sp"
+                android:textColor="#FF8A8A"
+                android:layout_marginTop="3dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/btnCardReview"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Review &amp; Resolve"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_dark_secondary"
+            android:textAllCaps="false"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnCardMerge"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Merge Now"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#0A1B12"
+            android:background="@drawable/btn_gold_primary"
+            android:textAllCaps="false"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/btnCardIgnore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ignore"
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+</LinearLayout>
+

@@ -1,7 +1,11 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.BTProject2" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.BTProject2" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/gold_accent</item>
+        <item name="colorPrimaryDark">@color/gold_accent_dark</item>
+        <item name="colorAccent">@color/gold_accent</item>
+        <item name="android:windowBackground">@color/forest_bg</item>
+        <item name="android:statusBarColor">@color/forest_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

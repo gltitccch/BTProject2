@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/card_forest_elevated"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <!-- Header Row: Severity Badge + Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/tvIssueBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CRITICAL ERROR"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:layout_marginEnd="10dp" />
+
+        <TextView
+            android:id="@+id/tvIssueTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Issue Title"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+    </LinearLayout>
+
+    <!-- Description -->
+    <TextView
+        android:id="@+id/tvIssueDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Detailed explanation of the issue."
+        android:textSize="13sp"
+        android:textColor="@color/text_secondary"
+        android:lineSpacingExtra="3dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Legal Basis Pill -->
+    <TextView
+        android:id="@+id/tvIssueLegalBasis"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Article 37 (2), Family Code of the Philippines"
+        android:textSize="11sp"
+        android:textStyle="italic"
+        android:textColor="#E0A96D"
+        android:background="@drawable/badge_pill_dark"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="3dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Connecting Path Container -->
+    <LinearLayout
+        android:id="@+id/layoutFamilyPath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/forest_card_light"
+        android:padding="8dp"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Path causing conflict:"
+            android:textSize="11sp"
+            android:textColor="#81C784"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvFamilyPathText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pedro ➔ Clara ➔ Jose"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary" />
+    </LinearLayout>
+
+    <!-- Action Button -->
+    <TextView
+        android:id="@+id/btnViewPerson"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:text="View Member ➔"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#4ECCA3"
+        android:background="@drawable/badge_pill_dark"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp" />
+
+</LinearLayout>
+

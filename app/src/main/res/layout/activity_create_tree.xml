@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:paddingTop="48dp">
+
+        <!-- Back Button -->
+        <TextView
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:textSize="14sp"
+            android:textColor="@color/primary"
+            android:layout_marginBottom="16dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create family tree"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Give your tree a name and add yourself as the first member."
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Tree Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tree name"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/etTreeName"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="e.g., Dela Cruz Family"
+            android:inputType="textCapWords"
+            android:background="@drawable/input_bg_white"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Section: Your profile in this tree -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your profile in this tree"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Your Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your name"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etCreatorName"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Enter your full name"
+            android:inputType="textPersonName"
+            android:background="@drawable/input_bg_white"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Gender -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gender"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerGender"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/input_bg_white"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Birth Date -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Birth date"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etBirthDate"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Select birth date"
+            android:focusable="false"
+            android:clickable="true"
+            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+            android:background="@drawable/input_bg_white"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Create Tree Button -->
+        <Button
+            android:id="@+id/btnCreateTree"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Create tree"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#0A1B12"
+            android:background="@drawable/btn_primary_bg"
+            android:textAllCaps="false"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="You will be the owner of this tree and can invite others to join."
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+</ScrollView>
+

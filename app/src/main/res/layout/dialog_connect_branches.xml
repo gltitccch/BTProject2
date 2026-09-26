@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_forest_card"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MANUAL BRANCH CONNECTOR"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connect Disconnected Lineages"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Member A Selection -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MEMBER FROM BRANCH A"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:layout_marginBottom="6dp" />
+
+        <Spinner
+            android:id="@+id/spinnerBranchMemberA"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/input_bg_filled"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Connection Type -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RELATIONSHIP CONNECTION"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:layout_marginBottom="6dp" />
+
+        <Spinner
+            android:id="@+id/spinnerConnectionType"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/input_bg_filled"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Member B Selection -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MEMBER FROM BRANCH B"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:layout_marginBottom="6dp" />
+
+        <Spinner
+            android:id="@+id/spinnerBranchMemberB"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/input_bg_filled"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Cycle & Biological Warning Container -->
+        <LinearLayout
+            android:id="@+id/layoutCycleWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/badge_pill_dark"
+            android:padding="12dp"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvCycleWarningText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Biological conflict detected: Connecting these members would create a genealogical loop."
+                android:textSize="12sp"
+                android:textColor="#FF8A8A" />
+        </LinearLayout>
+
+        <!-- Action Buttons -->
+        <Button
+            android:id="@+id/btnConfirmConnect"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Establish Connection"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#0A1B12"
+            android:background="@drawable/btn_gold_primary"
+            android:textAllCaps="false"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btnCancelConnect"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="Cancel"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:background="@drawable/btn_dark_secondary"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+</ScrollView>
+

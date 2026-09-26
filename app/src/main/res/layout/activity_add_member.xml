@@ -2,33 +2,37 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/forest_bg"
     android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp"
-        android:paddingTop="40dp">
+        android:paddingTop="36dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="36dp">
 
-        <!-- Back arrow + Title -->
+        <!-- Back arrow -->
         <TextView
             android:id="@+id/btnBack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="← Back"
             android:textSize="14sp"
-            android:textColor="@color/primary"
-            android:layout_marginBottom="12dp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:layout_marginBottom="16dp"
             android:clickable="true"
             android:focusable="true" />
 
+        <!-- Title & Subtitle -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Add Member"
-            android:textSize="22sp"
+            android:textSize="26sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:layout_marginBottom="4dp" />
@@ -41,49 +45,99 @@
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="20dp" />
 
+        <!-- Parent Context Banner (Shown when presetParentId is provided) -->
+        <LinearLayout
+            android:id="@+id/layoutParentContextBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/badge_pill_dark"
+            android:padding="14dp"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👶 LINEAL RELATIONSHIP (1st DEGREE)"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/tvParentBannerText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Adding child to parent"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="3dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Direct Line Descendant · Family Code Art. 37"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Section 1: Personal Details -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PERSONAL DETAILS"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="10dp" />
+
         <!-- First Name -->
         <EditText
             android:id="@+id/etFirstName"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:hint="First Name"
             android:inputType="textPersonName"
             android:background="@drawable/input_bg"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:textSize="14sp"
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_hint"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="12dp" />
 
         <!-- Last Name -->
         <EditText
             android:id="@+id/etLastName"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:hint="Last Name"
             android:inputType="textPersonName"
             android:background="@drawable/input_bg"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:textSize="14sp"
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_hint"
-            android:layout_marginBottom="10dp" />
+            android:layout_marginBottom="12dp" />
 
         <!-- Gender + Civil Status side by side -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="12dp">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_marginEnd="5dp">
+                android:layout_marginEnd="6dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -91,15 +145,15 @@
                     android:text="Gender"
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginBottom="6dp" />
 
                 <Spinner
                     android:id="@+id/spinnerGender"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="50dp"
                     android:background="@drawable/input_bg"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp" />
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -107,7 +161,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:layout_marginStart="5dp">
+                android:layout_marginStart="6dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -115,80 +169,207 @@
                     android:text="Civil Status"
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginBottom="6dp" />
 
                 <Spinner
                     android:id="@+id/spinnerCivilStatus"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="50dp"
                     android:background="@drawable/input_bg"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="10dp" />
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
             </LinearLayout>
+        </LinearLayout>
+
+        <!-- Vital Status (Living vs Deceased) Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_forest_card"
+            android:padding="14dp"
+            android:layout_marginBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Vital Status"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/tvVitalStatusDesc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Person is currently living"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <Switch
+                android:id="@+id/switchIsLiving"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+        </LinearLayout>
+
+        <!-- Death Details (Visible if deceased) -->
+        <LinearLayout
+            android:id="@+id/layoutDeathDetails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp">
+
+            <EditText
+                android:id="@+id/etDeathDate"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Date of Passing (Optional)"
+                android:background="@drawable/input_bg"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:focusable="false"
+                android:clickable="true"
+                android:drawableEnd="@android:drawable/ic_menu_my_calendar" />
         </LinearLayout>
 
         <!-- Birthdate -->
         <EditText
             android:id="@+id/etBirthDate"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:hint="Birthdate"
             android:background="@drawable/input_bg"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:textSize="14sp"
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_hint"
             android:focusable="false"
             android:clickable="true"
             android:drawableEnd="@android:drawable/ic_menu_my_calendar"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="24dp" />
 
-        <!-- Relationships Section -->
+        <!-- Section 2: Relationships -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Relationships"
-            android:textSize="14sp"
+            android:text="RELATIONSHIPS"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
             android:layout_marginBottom="10dp" />
 
         <!-- Father -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Father"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginBottom="4dp" />
-
-        <Spinner
-            android:id="@+id/spinnerFather"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/input_bg"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:layout_marginBottom="10dp" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Father"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Type"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <Spinner
+                android:id="@+id/spinnerFather"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@drawable/input_bg"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:layout_marginEnd="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerFatherType"
+                android:layout_width="120dp"
+                android:layout_height="50dp"
+                android:background="@drawable/input_bg"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp" />
+        </LinearLayout>
 
         <!-- Mother -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Mother"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginBottom="4dp" />
-
-        <Spinner
-            android:id="@+id/spinnerMother"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/input_bg"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:layout_marginBottom="10dp" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Mother"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Type"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <Spinner
+                android:id="@+id/spinnerMother"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="@drawable/input_bg"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:layout_marginEnd="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerMotherType"
+                android:layout_width="120dp"
+                android:layout_height="50dp"
+                android:background="@drawable/input_bg"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp" />
+        </LinearLayout>
 
         <!-- Spouse -->
         <TextView
@@ -197,28 +378,153 @@
             android:text="Spouse"
             android:textSize="12sp"
             android:textColor="@color/text_secondary"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="6dp" />
 
         <Spinner
             android:id="@+id/spinnerSpouse"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:background="@drawable/input_bg"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:layout_marginBottom="24dp" />
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Children Section (Optional - link existing members as children to this new person) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Children (Optional)"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:id="@+id/btnSelectChildren"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal"
+            android:background="@drawable/input_bg"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="28dp">
+
+            <TextView
+                android:id="@+id/tvSelectedChildren"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tap to select children (optional)"
+                android:textSize="14sp"
+                android:textColor="@color/text_hint" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="›"
+                android:textSize="18sp"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
+
+        <!-- Section: Identity Proof & Photo (Optional) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IDENTITY &amp; VERIFICATION (OPTIONAL)"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Add Photo Row -->
+        <LinearLayout
+            android:id="@+id/btnAttachPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal"
+            android:background="@drawable/input_bg"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📷 "
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvAttachedPhotoStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Attach Profile Photo (Optional)"
+                android:textSize="14sp"
+                android:textColor="@color/text_hint" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="›"
+                android:textSize="18sp"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
+
+        <!-- Add Document / Birth Certificate Row -->
+        <LinearLayout
+            android:id="@+id/btnAttachDocument"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal"
+            android:background="@drawable/input_bg"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="28dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📜 "
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvAttachedDocStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Attach Birth Certificate / PDF (Optional)"
+                android:textSize="14sp"
+                android:textColor="@color/text_hint" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="›"
+                android:textSize="18sp"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
 
         <!-- Save Button -->
         <Button
             android:id="@+id/btnSaveMember"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="52dp"
             android:text="Save Member"
             android:textSize="15sp"
+            android:textStyle="bold"
             android:textColor="@color/white"
-            android:background="@drawable/btn_primary_bg"
+            android:backgroundTint="@color/gold_accent"
             android:textAllCaps="false"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="24dp" />
 
     </LinearLayout>
 </ScrollView>

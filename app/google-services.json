@@ -1,22 +1,22 @@
 {
   "project_info": {
-    "project_number": "760981652107",
-    "firebase_url": "https://btproject1-b6ac4-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "project_id": "btproject1-b6ac4",
-    "storage_bucket": "btproject1-b6ac4.firebasestorage.app"
+    "project_number": "779695190642",
+    "firebase_url": "https://project-x-61285-default-rtdb.firebaseio.com/",
+    "project_id": "project-x-61285",
+    "storage_bucket": "project-x-61285.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:760981652107:android:7b50ff4af768dd9edbca8e",
+        "mobilesdk_app_id": "1:779695190642:android:9053b131b3e2f48f8bc8eb",
         "android_client_info": {
-          "package_name": "com.example.btproject1"
+          "package_name": "com.example.btproject2"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDgeS86IQpsdJumIlXTJ1JugdzxD3C7oEM"
+          "current_key": "AIzaSyC63EGnH09W_YbTsw3_bJYtvVuIfmk3yIo"
         }
       ],
       "services": {

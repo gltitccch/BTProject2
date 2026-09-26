@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- Dot + line -->
+    <LinearLayout
+        android:layout_width="24dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginEnd="12dp">
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/progress_bar_fill" />
+
+    </LinearLayout>
+
+    <!-- Year -->
+    <TextView
+        android:id="@+id/tvYear"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:text="2004"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_secondary"
+        android:layout_marginEnd="10dp" />
+
+    <!-- Event description -->
+    <TextView
+        android:id="@+id/tvEventDesc"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Born · Male"
+        android:textSize="13sp"
+        android:textColor="@color/text_primary" />
+
+</LinearLayout>

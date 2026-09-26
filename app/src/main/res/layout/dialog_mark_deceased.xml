@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/bg_forest_card">
+
+    <TextView
+        android:id="@+id/tvMarkDeceasedTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mark Member as Deceased"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tvMarkDeceasedDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Record passing details. If this member is currently married, the surviving spouse's status will automatically be updated to 'Widowed'."
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Date of Passing (Optional / Approximate)"
+        android:textColor="@color/mint_text"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/etDeceasedDate"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_input_dark"
+        android:paddingHorizontal="12dp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_hint"
+        android:hint="YYYY-MM-DD (Tap to pick date)"
+        android:focusable="false"
+        android:clickable="true"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Place of Passing (Optional)"
+        android:textColor="@color/mint_text"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/etDeceasedPlace"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_input_dark"
+        android:paddingHorizontal="12dp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_hint"
+        android:hint="e.g. Quezon City, Philippines"
+        android:inputType="textCapWords"
+        android:layout_marginBottom="20dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btnCancelDeceased"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Cancel"
+            android:textColor="@color/text_secondary"
+            android:background="@android:color/transparent"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnConfirmDeceased"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Mark Deceased"
+            android:textColor="@color/forest_bg"
+            android:backgroundTint="@color/emerald_accent"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>
+

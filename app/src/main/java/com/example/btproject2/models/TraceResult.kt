@@ -12,5 +12,9 @@ data class TraceResult(
     val pathFromB: List<Person>,
     val explanation: String,
     val distanceA: Int,
-    val distanceB: Int
+    val distanceB: Int,
+    val legalStatus: String = "No Consanguinity Impediment",
+    val legalArticle: String = "N/A",
+    val isMarriageProhibited: Boolean = false,
+    val legalDescription: String = "No biological relationship found."
 )

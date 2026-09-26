@@ -1,0 +1,1232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header / Hero -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/forest_bg"
+            android:paddingTop="36dp"
+            android:paddingBottom="24dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp">
+
+            <TextView
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="← Back"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="16dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Member Profile"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/btnTopEditMember"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✏ Edit"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:background="@drawable/badge_pill_dark"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/btnTopDeleteMember"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🗑 Delete"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/danger"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:background="@drawable/badge_pill_dark"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_marginEnd="14dp">
+
+                        <ImageView
+                            android:id="@+id/ivDetailPhoto"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/tvAvatar"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:gravity="center"
+                            android:text="RB"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"
+                            android:background="@drawable/avatar_bg" />
+
+                        <TextView
+                            android:id="@+id/btnDetailChangePhoto"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:layout_gravity="bottom|end"
+                            android:gravity="center"
+                            android:text="📷"
+                            android:textSize="10sp"
+                            android:background="@drawable/circle_gold_btn"
+                            android:clickable="true"
+                            android:focusable="true" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvFullName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Member Name"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Male · Single"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="2dp" />
+
+                        <TextView
+                            android:id="@+id/tvLivingBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Living"
+                            android:textSize="11sp"
+                            android:textColor="@color/primary_dark"
+                            android:background="@drawable/tag_lineal_bg"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:layout_marginTop="6dp" />
+                        <TextView
+                            android:id="@+id/tvAgeBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Age 20"
+                            android:textSize="11sp"
+                            android:textColor="@color/primary_dark"
+                            android:background="@drawable/tag_collateral_bg"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:layout_marginTop="4dp"
+                            android:visibility="gone" />
+                        <TextView
+                            android:id="@+id/tvTimelineConflictBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⚠️ Timeline Conflict"
+                            android:textSize="11sp"
+                            android:textColor="#B91C1C"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:layout_marginTop="4dp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Quick Actions: Trace & Interactive Tree (Figure 11) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="14dp">
+
+                    <TextView
+                        android:id="@+id/btnQuickTrace"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="🔍  Trace Bloodline"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:background="@drawable/btn_gold_primary"
+                        android:layout_marginEnd="6dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/btnQuickTreeView"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="🌿  Interactive Tree"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/btn_dark_secondary"
+                        android:layout_marginStart="6dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Body -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- PERSONAL DETAILS Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PERSONAL DETAILS"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_hint"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:layout_marginBottom="20dp">
+
+                <!-- Birth Date Row -->
+                <LinearLayout
+                    android:id="@+id/rowDetailBirthDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp">
+                    <TextView
+                        android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:text="Birth Date"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tvDetailBirthDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="—"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/divDetailBirthPlace"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp" />
+
+                <!-- Birth Place Row -->
+                <LinearLayout
+                    android:id="@+id/rowDetailBirthPlace"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp">
+                    <TextView
+                        android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:text="Birth Place"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tvDetailBirthPlace"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="—"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <!-- Death Date Row (if deceased) -->
+                <View
+                    android:id="@+id/divDetailDeathDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/rowDetailDeathDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:text="Death Date"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tvDetailDeathDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="—"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <!-- Death Place Row (if deceased) -->
+                <View
+                    android:id="@+id/divDetailDeathPlace"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/rowDetailDeathPlace"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:text="Death Place"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tvDetailDeathPlace"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="—"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- RELATIONSHIPS Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RELATIONSHIPS"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_hint"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:layout_marginBottom="20dp">
+
+                <!-- Father Row -->
+                <LinearLayout
+                    android:id="@+id/rowFather"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="Father"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tvFatherName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="—"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/surface" android:layout_marginStart="14dp" android:layout_marginEnd="14dp" />
+                <!-- Mother Row -->
+                <LinearLayout
+                    android:id="@+id/rowMother"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="Mother"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tvMotherName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="—"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+                </LinearLayout>
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/surface" android:layout_marginStart="14dp" android:layout_marginEnd="14dp" />
+                <!-- Spouse Row (clickable) -->
+                <LinearLayout
+                    android:id="@+id/rowSpouse"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="Spouse"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvSpouseName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tap to select"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" ›"
+                        android:textSize="18sp"
+                        android:textColor="@color/primary"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp" />
+
+                <!-- Marriage Date Row (hidden until spouse is set) -->
+                <LinearLayout
+                    android:id="@+id/rowMarriageDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:text="💍 Married on"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvMarriageDate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tap to set date"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        android:gravity="end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" ›"
+                        android:textSize="18sp"
+                        android:textColor="@color/primary"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp" />
+
+                <!-- Children Row (clickable) -->
+                <LinearLayout
+                    android:id="@+id/rowChildren"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="Children"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvChildrenNames"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tap to add"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" ›"
+                        android:textSize="18sp"
+                        android:textColor="@color/primary"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp" />
+
+                <!-- Step-Parents Row -->
+                <LinearLayout
+                    android:id="@+id/rowStepParents"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:text="Step-Parent"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tvStepParentsName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="None"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/dividerStepParents"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp"
+                    android:visibility="gone" />
+
+                <!-- Siblings Row (clickable for Full, Half, Step breakdown) -->
+                <LinearLayout
+                    android:id="@+id/rowSiblings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="Siblings"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tvSiblingsNames"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="None"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:gravity="end" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" ›"
+                        android:textSize="18sp"
+                        android:textColor="@color/primary"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/surface"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp" />
+
+                <!-- Child Quick Action Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/btnAddChildDirect"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="+ Add New Child"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="#0A1B12"
+                        android:background="@drawable/btn_gold_primary"
+                        android:layout_marginEnd="6dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/btnLinkChildExisting"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="🔗 Link / Unlink"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/btn_dark_secondary"
+                        android:layout_marginStart="6dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- LINEAL CONSANGUINITY Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LINEAL CONSANGUINITY (DIRECT LINE)"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Roman Civil Method (Art. 963 Civil Code) · Barred from Marriage (Art. 37 Family Code)"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_forest_elevated"
+                android:padding="16dp"
+                android:layout_marginBottom="20dp">
+
+                <!-- 1st Degree: Parent / Child -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1° DEGREE"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Parent / Child"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/containerDegree1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#1AFFFFFF"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 2nd Degree: Grandparent / Grandchild -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2° DEGREE"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Grandparent / Grandchild"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/containerDegree2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#1AFFFFFF"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 3rd Degree: Great-Grandparent / Great-Grandchild -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="3° DEGREE"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Great-Grandparent / Great-Grandchild"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/containerDegree3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#1AFFFFFF"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 4th Degree: Great-Great-Grandparent / Great-Great-Grandchild -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="4° DEGREE"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Great-Great-Grandparent / Great-Great-Grandchild"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/containerDegree4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+
+                <!-- Legal notice banner -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/badge_pill_dark"
+                    android:padding="10dp"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚖️"
+                        android:textSize="16sp"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Article 37 (1) Family Code: All marriages between ascendants and descendants of any degree are void ab initio (incestuous)."
+                        android:textSize="11sp"
+                        android:textColor="@color/gold_accent" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- IDENTITY VERIFICATION & PROOF DOCUMENTS Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="IDENTITY VERIFICATION &amp; PROOF DOCUMENTS"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:padding="16dp"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="6dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📜 Proof Documents"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tvDetailVerificationBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚠️ Unverified"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingBottom="3dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Attach birth certificates, IDs, or legal documents to prove this family member's existence and lineage."
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Dynamic Documents Container -->
+                <LinearLayout
+                    android:id="@+id/layoutDetailDocsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <!-- Empty Docs Notice -->
+                <TextView
+                    android:id="@+id/tvDetailNoDocs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="No identity proof documents attached yet."
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint"
+                    android:padding="10dp" />
+
+                <!-- Attach Document Button -->
+                <TextView
+                    android:id="@+id/btnDetailAttachDoc"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:text="+ Attach PDF / Birth Certificate"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/emerald_accent"
+                    android:background="@drawable/btn_outline_bg"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+
+            <!-- BIOGRAPHY Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BIOGRAPHY"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_hint"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/layoutBioView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="10dp">
+
+                    <TextView
+                        android:id="@+id/tvBiography"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No biography yet."
+                        android:textSize="13sp"
+                        android:textColor="@color/text_secondary"
+                        android:lineSpacingMultiplier="1.4" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnEdit"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="✏ Edit"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/btn_outline_bg"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/btnAutoGenerate"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="⚡ Auto-generate"
+                        android:textSize="13sp"
+                        android:textColor="@color/white"
+                        android:background="@drawable/btn_primary_bg"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutBioEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/etBiography"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="100dp"
+                    android:gravity="top"
+                    android:padding="12dp"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_primary"
+                    android:background="@drawable/input_bg_filled"
+                    android:hint="Write a biography..."
+                    android:inputType="textMultiLine"
+                    android:layout_marginBottom="10dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnSaveBio"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="Save Biography"
+                        android:textSize="13sp"
+                        android:textColor="@color/white"
+                        android:background="@drawable/btn_primary_bg"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/btnCancelBio"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="Cancel"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/btn_outline_bg"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- AUTO TIMELINE Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AUTO TIMELINE"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_hint"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:padding="14dp"
+                android:layout_marginBottom="32dp">
+
+                <LinearLayout
+                    android:id="@+id/layoutTimeline"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+
+            <!-- Delete Member Button -->
+            <Button
+                android:id="@+id/btnDeleteMember"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Delete Member"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/gold_accent"
+                android:textAllCaps="false"
+                android:layout_marginBottom="32dp" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -1,27 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#1D9E75</color>
-    <color name="primary_dark">#0F6E56</color>
-    <color name="primary_light">#E8F4EE</color>
-    <color name="primary_light_stroke">#9FD9BA</color>
-    <color name="accent">#FAC775</color>
-    <color name="accent_dark">#633806</color>
-    <color name="background">#FAFAF7</color>
-    <color name="card_bg">#FFFFFF</color>
-    <color name="text_primary">#2C2A24</color>
-    <color name="text_secondary">#888780</color>
-    <color name="text_hint">#B4B2A9</color>
-    <color name="border">#D3D1C7</color>
-    <color name="surface">#F1EFE8</color>
+    <!-- Light & Warm Amber Palette (Light Mode) -->
+    <!-- Non-glare, eye-comfortable darker off-white / warm linen surfaces -->
+    <color name="primary">#B45309</color>
+    <color name="primary_dark">#78350F</color>
+    <color name="primary_light">#FEF3C7</color>
+    <color name="primary_light_stroke">#FDE68A</color>
+    <color name="accent">#B45309</color>
+    <color name="accent_dark">#78350F</color>
+    <color name="background">#EAECE4</color>
+    <color name="card_bg">#F5F7F1</color>
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#475569</color>
+    <color name="text_hint">#788A7E</color>
+    <color name="border">#D2D9CE</color>
+    <color name="surface">#F5F7F1</color>
     <color name="white">#FFFFFF</color>
-    <color name="danger">#D85A30</color>
-    <color name="danger_bg">#FDF1E6</color>
-    <color name="info_bg">#E8F0FA</color>
-    <color name="info">#185FA5</color>
-    <color name="warning_bg">#FDF1E6</color>
-    <color name="warning">#BA7517</color>
-    <color name="pink_bg">#FAF0F5</color>
-    <color name="pink">#993556</color>
-    <color name="purple_bg">#F0EBF8</color>
-    <color name="purple">#7F77DD</color>
+    <color name="danger">#DC2626</color>
+    <color name="danger_bg">#FEF2F2</color>
+    <color name="info_bg">#F0F9FF</color>
+    <color name="info">#0284C7</color>
+    <color name="warning_bg">#FFFBEB</color>
+    <color name="warning">#D97706</color>
+    <color name="pink_bg">#FDF2F8</color>
+    <color name="pink">#DB2777</color>
+    <color name="purple_bg">#FAF5FF</color>
+    <color name="purple">#7C3AED</color>
+
+    <!-- Modern Redesign Palette -->
+    <color name="emerald_dark">#78350F</color>
+    <color name="emerald_primary">#B45309</color>
+    <color name="emerald_accent">#D97706</color>
+    <color name="emerald_gradient_start">#B45309</color>
+    <color name="emerald_gradient_end">#D97706</color>
+    <color name="sky_blue">#2563EB</color>
+    <color name="sky_blue_bg">#EFF6FF</color>
+    <color name="rose_pink">#E11D48</color>
+    <color name="rose_pink_bg">#FFF1F2</color>
+    <color name="amber_warm">#D97706</color>
+    <color name="amber_warm_bg">#FFFBEB</color>
+    <color name="teal_accent">#B45309</color>
+    <color name="teal_accent_bg">#FEF3C7</color>
+    <color name="slate_dark">#0F172A</color>
+    <color name="slate_card">#F5F7F1</color>
+    <color name="slate_subtle">#64748B</color>
+    <color name="card_border">#D2D9CE</color>
+    <color name="card_border_subtle">#E0E5DC</color>
+
+    <!-- Light & Amber Semantic Tokens -->
+    <color name="forest_bg">#EAECE4</color>
+    <color name="forest_card">#F5F7F1</color>
+    <color name="forest_card_border">#D2D9CE</color>
+    <color name="forest_card_light">#E0E5DC</color>
+    <color name="gold_accent">#B45309</color>
+    <color name="gold_accent_light">#D97706</color>
+    <color name="gold_accent_dark">#78350F</color>
+    <color name="mint_text">#B45309</color>
+    <color name="mint_pill_bg">#FEF3C7</color>
+    <color name="mint_badge_border">#FCD34D</color>
+    <color name="dark_subtext">#57635A</color>
+    <color name="dark_nav_active">#B45309</color>
+    <color name="dark_nav_inactive">#64748B</color>
 </resources>

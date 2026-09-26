@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:paddingTop="60dp">
+
+        <!-- Back -->
+        <TextView
+            android:id="@+id/btnBackToWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:textSize="14sp"
+            android:textColor="@color/primary"
+            android:layout_marginBottom="24dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Account"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Join and start building your family record."
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:lineSpacingMultiplier="1.4"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Full Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Full Name"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/etFullName"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="Enter your full name"
+            android:inputType="textPersonName"
+            android:background="@drawable/input_bg_white"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="15sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Email -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Email Address"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="Enter your email"
+            android:inputType="textEmailAddress"
+            android:background="@drawable/input_bg_white"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="15sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Password -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="Minimum 6 characters"
+            android:inputType="textPassword"
+            android:background="@drawable/input_bg_white"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="15sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Confirm Password -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confirm Password"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
+
+        <EditText
+            android:id="@+id/etConfirmPassword"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:hint="Re-enter your password"
+            android:inputType="textPassword"
+            android:background="@drawable/input_bg_white"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textSize="15sp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:layout_marginBottom="28dp" />
+
+        <!-- Create Account Button -->
+        <Button
+            android:id="@+id/btnCreateAccount"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Create Account"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:background="@drawable/btn_primary_bg"
+            android:textAllCaps="false"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Already have account -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Already have an account? "
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tvGoToLogin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Login"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

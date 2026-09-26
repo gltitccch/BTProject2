@@ -2,7 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Needed for PDF/PNG/GEDCOM/CSV export on Android < 10 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
     <application
+        android:name=".KinTraceApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,8 +20,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BTProject2">
 
+        <activity android:name=".ui.activities.LoginActivity" />
+        <activity android:name=".ui.activities.RegisterActivity" />
+        <activity android:name=".ui.activities.ForgotPasswordActivity" />
+        <activity android:name=".ui.activities.InteractiveTreeActivity"
+            android:exported="false"
+            android:label="Interactive Tree" />
+
+        <activity android:name=".ui.activities.WelcomeActivity" />
+
         <activity
-            android:name=".ui.activities.LoginActivity"
+            android:name=".ui.activities.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,7 +44,37 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".ui.activities.FamilyRecordsActivity" />
         <activity android:name=".ui.activities.RelationshipTypesActivity" />
+        <activity android:name=".ui.activities.MemberDetailActivity" />
+        <activity android:name=".ui.activities.InsightsActivity" />
+        <activity android:name=".ui.activities.RelationshipPathActivity" />
+        <activity android:name=".ui.activities.MergeBranchesActivity" />
 
+        <!-- ── NEW ACTIVITIES ──────────────────────────────────── -->
+        <activity android:name=".ui.activities.FamilyTreeActivity" />
+        <activity android:name=".ui.activities.ExportTreeActivity" />
+        <activity android:name=".ui.activities.PrivacyControlsActivity" />
+        <activity android:name=".ui.activities.CreateTreeActivity" />
+        <activity android:name=".ui.activities.JoinTreeActivity" />
+        <activity android:name=".ui.activities.EditMemberActivity" />
+        <activity android:name=".ui.activities.NotificationsActivity" />
+        <activity android:name=".ui.activities.RecentActivitiesActivity" />
+        <activity android:name=".ui.activities.TreeAuditActivity"
+            android:exported="false"
+            android:label="Tree Audit &amp; Legal Verification" />
+        <activity android:name=".ui.activities.RelationshipReportActivity"
+            android:exported="false"
+            android:label="Relationship Report" />
+
+        <!-- FileProvider for secure PDF export and sharing -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

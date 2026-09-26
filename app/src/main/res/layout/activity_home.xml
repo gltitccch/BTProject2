@@ -3,457 +3,1101 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background">
+    android:background="@color/forest_bg">
 
-    <!-- Green Top Bar with extra top padding for status bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/primary"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="48dp"
-        android:paddingBottom="24dp">
-
-        <!-- Greeting Row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="4dp">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvGreeting"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Good morning,"
-                    android:textSize="13sp"
-                    android:textColor="#B0FFFFFF" />
-
-                <TextView
-                    android:id="@+id/tvUserName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="User"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
-            </LinearLayout>
-
-            <!-- Profile circle -->
-            <TextView
-                android:id="@+id/tvProfileInitial"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:gravity="center"
-                android:text="U"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary"
-                android:background="@drawable/profile_circle_bg" />
-        </LinearLayout>
-
-        <!-- Stats Row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="16dp">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="@drawable/stat_card_bg"
-                android:padding="12dp"
-                android:layout_marginEnd="6dp">
-
-                <TextView
-                    android:id="@+id/tvMemberCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Members"
-                    android:textSize="11sp"
-                    android:textColor="#B0FFFFFF" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="@drawable/stat_card_bg"
-                android:padding="12dp"
-                android:layout_marginEnd="6dp">
-
-                <TextView
-                    android:id="@+id/tvBranchCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Branches"
-                    android:textSize="11sp"
-                    android:textColor="#B0FFFFFF" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="@drawable/stat_card_bg"
-                android:padding="12dp">
-
-                <TextView
-                    android:id="@+id/tvRecentCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Recent"
-                    android:textSize="11sp"
-                    android:textColor="#B0FFFFFF" />
-            </LinearLayout>
-
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Scrollable Content -->
+    <!-- Scrollable Main Content -->
     <ScrollView
+        android:id="@+id/scrollHome"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true"
-        android:clipToPadding="false">
+        android:scrollbars="none"
+        android:overScrollMode="never">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="24dp">
 
-            <!-- Row 1 -->
+            <!-- ── Top Header Section ── -->
+            <TextView
+                android:id="@+id/tvHeaderDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WEDNESDAY, SEP 23"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"
+                android:textColor="@color/dark_subtext"
+                android:layout_marginBottom="4dp" />
+
+            <!-- User Greeting & Header Actions Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="10dp">
-
-                <!-- Add Family Member -->
-                <LinearLayout
-                    android:id="@+id/cardAddMember"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/card_bg"
-                    android:padding="16dp"
-                    android:layout_marginEnd="6dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <TextView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:gravity="center"
-                        android:text="👤"
-                        android:textSize="20sp"
-                        android:background="@drawable/icon_bg_green"
-                        android:layout_marginBottom="12dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Add Family\nMember"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:lineSpacingMultiplier="1.2" />
-                </LinearLayout>
-
-                <!-- View Family Tree -->
-                <LinearLayout
-                    android:id="@+id/cardViewTree"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/card_bg"
-                    android:padding="16dp"
-                    android:layout_marginStart="6dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <TextView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:gravity="center"
-                        android:text="🌳"
-                        android:textSize="20sp"
-                        android:background="@drawable/icon_bg_blue"
-                        android:layout_marginBottom="12dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="View Family\nTree"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:lineSpacingMultiplier="1.2" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Row 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="10dp">
-
-                <!-- Trace Relationship -->
-                <LinearLayout
-                    android:id="@+id/cardTrace"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/card_bg"
-                    android:padding="16dp"
-                    android:layout_marginEnd="6dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <TextView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:gravity="center"
-                        android:text="🔗"
-                        android:textSize="20sp"
-                        android:background="@drawable/icon_bg_amber"
-                        android:layout_marginBottom="12dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Trace\nRelationship"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:lineSpacingMultiplier="1.2" />
-                </LinearLayout>
-
-                <!-- Manage Records -->
-                <LinearLayout
-                    android:id="@+id/cardRecords"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/card_bg"
-                    android:padding="16dp"
-                    android:layout_marginStart="6dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <TextView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:gravity="center"
-                        android:text="📋"
-                        android:textSize="20sp"
-                        android:background="@drawable/icon_bg_pink"
-                        android:layout_marginBottom="12dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Manage\nRecords"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:lineSpacingMultiplier="1.2" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Row 3: Merge (full width) -->
-            <LinearLayout
-                android:id="@+id/cardMerge"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="@drawable/card_bg"
-                android:padding="16dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="20dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_marginBottom="18dp">
 
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvGreeting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hi, "
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tvUserName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Optismiclemon15"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" 👋"
+                        android:textSize="22sp" />
+                </LinearLayout>
+
+                <!-- Notification Bell Button -->
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp">
+
+                    <LinearLayout
+                        android:id="@+id/btnNotificationBell"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:background="@drawable/circle_dark_action"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🔔"
+                            android:textSize="17sp" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/viewNotifBadge"
+                        android:layout_width="9dp"
+                        android:layout_height="9dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:background="@drawable/badge_pill_gold"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <!-- Profile Avatar Circle -->
                 <TextView
+                    android:id="@+id/tvProfileInitial"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:gravity="center"
-                    android:text="🔀"
-                    android:textSize="20sp"
-                    android:background="@drawable/icon_bg_purple"
-                    android:layout_marginEnd="14dp" />
+                    android:text="O"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:background="@drawable/circle_dark_action"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <!-- ── Hero Heritage Card (Figure 6 Bespoke Dark Design) ── -->
+            <LinearLayout
+                android:id="@+id/layoutStatsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_hero_card"
+                android:padding="18dp"
+                android:layout_marginBottom="22dp">
+
+                <!-- Pill Headers Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:id="@+id/tvTreeTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✎  Family Tree"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent_light"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp" />
+
+                    <!-- Theme Toggle Button (Beside Family Tree Banner) -->
+                    <LinearLayout
+                        android:id="@+id/btnThemeToggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:id="@+id/tvThemeToggleIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☀️"
+                            android:textSize="12sp"
+                            android:textColor="@color/gold_accent" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/tvHealthScoreBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="100% Health"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/mint_text"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp" />
+                </LinearLayout>
+
+                <!-- Large Generations Hero Metric -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="bottom"
+                    android:layout_marginBottom="2dp">
+
+                    <TextView
+                        android:id="@+id/tvGenerationCountLarge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5"
+                        android:textSize="40sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginEnd="10dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Generations"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="4dp" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Merge Family Branches"
+                    android:text="of documented heritage"
                     android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary" />
+                    android:textColor="@color/dark_subtext"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Divider Line -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/forest_card_border"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- 4-Stat Column Grid -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="18dp">
+
+                    <!-- Stat 1: Members -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/tvMemberCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Members"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:layout_marginTop="2dp" />
+
+                        <TextView
+                            android:id="@+id/tvMemberDelta"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+2"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <!-- Stat 2: Generations -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/tvGenerationsCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Generations"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:layout_marginTop="2dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=" "
+                            android:textSize="10sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <!-- Stat 3: Branches -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/tvBranchCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Branches"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:layout_marginTop="2dp" />
+
+                        <TextView
+                            android:id="@+id/tvBranchDelta"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+1"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <!-- Stat 4: Records -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/tvRecordsCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Records"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:layout_marginTop="2dp" />
+
+                        <TextView
+                            android:id="@+id/tvRecordsDelta"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+1"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Triple Action CTAs Inside Hero Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/btnAddMemberHero"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:background="@drawable/btn_gold_primary"
+                        android:layout_marginEnd="4dp"
+                        android:paddingStart="2dp"
+                        android:paddingEnd="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="＋  Add Member"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold"
+                            android:textColor="#0A1B12"
+                            android:gravity="center" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnViewTreeHero"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:background="@drawable/btn_dark_secondary"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:paddingStart="2dp"
+                        android:paddingEnd="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="👁  View Tree"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:gravity="center" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnFamilyInsightsHero"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:background="@drawable/btn_dark_secondary"
+                        android:layout_marginStart="4dp"
+                        android:paddingStart="2dp"
+                        android:paddingEnd="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📊  Family Insights"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:gravity="center" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Hidden compatibility tags -->
+                <TextView android:id="@+id/tvHealthScore" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/tvRecentCount" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/tvLivingCount" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/btnSeeAllInsights" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/tvTreeRolePill" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
             </LinearLayout>
 
-            <!-- Quick Info Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Quick Info"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="10dp" />
-
-            <!-- Info Card 1 -->
+            <!-- ── EMPTY STATE ── -->
             <LinearLayout
+                android:id="@+id/layoutEmptyState"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/card_bg"
-                android:padding="16dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:gravity="center"
-                    android:text="🧬"
-                    android:textSize="18sp"
-                    android:background="@drawable/icon_bg_green"
-                    android:layout_marginEnd="14dp" />
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:background="@drawable/bg_forest_card"
+                    android:padding="24dp"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:gravity="center"
+                        android:text="🌳"
+                        android:textSize="28sp"
+                        android:background="@drawable/circle_dark_action"
+                        android:layout_marginBottom="14dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="What is Bloodline Tracing?"
+                        android:text="No family tree yet"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Create a new tree or join an existing tree with an invite code."
+                        android:textSize="12sp"
+                        android:textColor="@color/dark_subtext"
+                        android:gravity="center"
+                        android:layout_marginBottom="18dp" />
+
+                    <Button
+                        android:id="@+id/btnEmptyCreateTree"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:text="＋  Create New Family Tree"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0A1B12"
+                        android:backgroundTint="@color/gold_accent"
+                        android:layout_marginBottom="8dp" />
+
+                    <Button
+                        android:id="@+id/btnEmptyJoinTree"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:text="👥  Join Tree with Invite Code"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
-                        android:layout_marginBottom="2dp" />
+                        android:backgroundTint="@color/forest_card_light"
+                        android:layout_marginBottom="8dp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Identifies biological relationships by finding shared ancestors and computing consanguinity."
-                        android:textSize="11sp"
-                        android:textColor="@color/text_secondary"
-                        android:lineSpacingMultiplier="1.3" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Info Card 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/card_bg"
-                android:padding="16dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:gravity="center"
-                    android:text="📖"
-                    android:textSize="18sp"
-                    android:background="@drawable/icon_bg_blue"
-                    android:layout_marginEnd="14dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="How to get started"
+                    <Button
+                        android:id="@+id/btnEmptyAddMember"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:text="👤  Add First Family Member"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
-                        android:layout_marginBottom="2dp" />
+                        android:backgroundTint="@color/forest_card" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ── POPULATED STATE ── -->
+            <LinearLayout
+                android:id="@+id/layoutPopulatedState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- ── TOOLS Section Header ── -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Add family members → Set parents → Trace bloodline connections"
-                        android:textSize="11sp"
-                        android:textColor="@color/text_secondary"
-                        android:lineSpacingMultiplier="1.3" />
+                        android:text="TOOLS"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.08"
+                        android:textColor="@color/mint_text" />
                 </LinearLayout>
+
+                <!-- ── 3-Column x 2-Row Tools Grid ── -->
+                <!-- Row 1: Trace Bloodline | Tree View | Records -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10dp">
+
+                    <!-- Tool 1: Trace Bloodline -->
+                    <LinearLayout
+                        android:id="@+id/cardTrace"
+                        android:layout_width="0dp"
+                        android:layout_height="124dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_forest_card"
+                        android:padding="12dp"
+                        android:layout_marginEnd="5dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:gravity="center"
+                            android:text="🧬"
+                            android:textSize="16sp"
+                            android:background="@drawable/icon_squircle_dark"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Trace\nBloodline"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:lineSpacingMultiplier="1.1" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Find MRCA &amp;\ndegree"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:lineSpacingMultiplier="1.1"
+                            android:layout_marginTop="3dp" />
+                    </LinearLayout>
+
+                    <!-- Tool 2: Tree View -->
+                    <LinearLayout
+                        android:id="@+id/cardViewTree"
+                        android:layout_width="0dp"
+                        android:layout_height="124dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_forest_card"
+                        android:padding="12dp"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:gravity="center"
+                            android:text="👁"
+                            android:textSize="16sp"
+                            android:background="@drawable/icon_squircle_dark"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tree View"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pedigree &amp; fan\nchart"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:lineSpacingMultiplier="1.1"
+                            android:layout_marginTop="3dp" />
+                    </LinearLayout>
+
+                    <!-- Tool 3: Records -->
+                    <LinearLayout
+                        android:id="@+id/cardRecords"
+                        android:layout_width="0dp"
+                        android:layout_height="124dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_forest_card"
+                        android:padding="12dp"
+                        android:layout_marginStart="5dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:gravity="center"
+                            android:text="📋"
+                            android:textSize="16sp"
+                            android:background="@drawable/icon_squircle_dark"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Records"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Directory &amp;\ndocs"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:lineSpacingMultiplier="1.1"
+                            android:layout_marginTop="3dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Row 2: Merge Branches | Privacy | Add Member -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="18dp">
+
+                    <!-- Tool 4: Merge Branches -->
+                    <LinearLayout
+                        android:id="@+id/cardMerge"
+                        android:layout_width="0dp"
+                        android:layout_height="124dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_forest_card"
+                        android:padding="12dp"
+                        android:layout_marginEnd="5dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:gravity="center"
+                            android:text="⚡"
+                            android:textSize="16sp"
+                            android:background="@drawable/icon_squircle_dark"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Merge\nBranches"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:lineSpacingMultiplier="1.1" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Link family\nlines"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:lineSpacingMultiplier="1.1"
+                            android:layout_marginTop="3dp" />
+                    </LinearLayout>
+
+                    <!-- Tool 5: Privacy -->
+                    <LinearLayout
+                        android:id="@+id/btnPrivacy"
+                        android:layout_width="0dp"
+                        android:layout_height="124dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_forest_card"
+                        android:padding="12dp"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:gravity="center"
+                            android:text="🛡️"
+                            android:textSize="16sp"
+                            android:background="@drawable/icon_squircle_dark"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Privacy"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Roles &amp; redact"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:layout_marginTop="3dp" />
+                    </LinearLayout>
+
+                    <!-- Tool 6: Add Member -->
+                    <LinearLayout
+                        android:id="@+id/cardAddMember"
+                        android:layout_width="0dp"
+                        android:layout_height="124dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_forest_card"
+                        android:padding="12dp"
+                        android:layout_marginStart="5dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:gravity="center"
+                            android:text="👤"
+                            android:textSize="16sp"
+                            android:background="@drawable/icon_squircle_dark"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Add Member"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Expand the\ntree"
+                            android:textSize="10sp"
+                            android:textColor="@color/dark_subtext"
+                            android:lineSpacingMultiplier="1.1"
+                            android:layout_marginTop="3dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- ── Spotlight Action Banner: Trace a Bloodline ── -->
+                <LinearLayout
+                    android:id="@+id/cardTraceSpotlight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_forest_card"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="24dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:text="🧬"
+                        android:textSize="18sp"
+                        android:background="@drawable/icon_squircle_dark"
+                        android:layout_marginEnd="14dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Trace a Bloodline"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select two members to find their exact biological relationship &amp; common ancestor"
+                            android:textSize="11sp"
+                            android:textColor="@color/dark_subtext"
+                            android:lineSpacingMultiplier="1.2"
+                            android:layout_marginTop="3dp" />
+                    </LinearLayout>
+
+                    <!-- Circular Gold Arrow Button -->
+                    <TextView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:gravity="center"
+                        android:text="→"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#0A1B12"
+                        android:background="@drawable/circle_gold_btn"
+                        android:layout_marginStart="12dp" />
+                </LinearLayout>
+
+                <!-- Hidden compatibility references for secondary buttons -->
+                <LinearLayout android:id="@+id/btnCreateTree" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <LinearLayout android:id="@+id/btnJoinTree" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <LinearLayout android:id="@+id/cardInsightsBanner" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone">
+                    <TextView android:id="@+id/tvInsightsBannerSub" android:layout_width="0dp" android:layout_height="0dp" />
+                </LinearLayout>
+
+                <!-- ── RECENT ACTIVITIES Section Header ── -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:id="@+id/tvRecentSectionTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="RECENT ACTIVITIES"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.08"
+                        android:textColor="@color/mint_text" />
+
+                    <TextView
+                        android:id="@+id/btnExportTree"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="See all ›"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/mint_text"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
+                <!-- Recent Activities Container -->
+                <LinearLayout
+                    android:id="@+id/containerRecentItems"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvNoRecentActivity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_forest_card"
+                    android:padding="16dp"
+                    android:text="No recent activities yet. Changes made to family members and relationships will appear here."
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_subtext"
+                    android:gravity="center"
+                    android:layout_marginBottom="14dp"
+                    android:visibility="gone" />
+
             </LinearLayout>
 
-            <!-- Logout -->
+            <!-- Logout Link -->
             <TextView
                 android:id="@+id/btnLogout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Log out"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textColor="@color/danger"
                 android:layout_gravity="center"
-                android:padding="16dp"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="20dp"
+                android:padding="12dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
                 android:clickable="true"
                 android:focusable="true" />
 
         </LinearLayout>
     </ScrollView>
+
+    <!-- ── Persistent Dark Bottom Navigation Bar ── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:orientation="horizontal"
+        android:background="@drawable/bottom_nav_dark_bg"
+        android:gravity="center_vertical"
+        android:elevation="10dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp">
+
+        <!-- Tab 1: Home (Active) -->
+        <LinearLayout
+            android:id="@+id/navHome"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏠"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Home"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/dark_nav_active" />
+        </LinearLayout>
+
+        <!-- Tab 2: Tree -->
+        <LinearLayout
+            android:id="@+id/navTree"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌳"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tree"
+                android:textSize="10sp"
+                android:textColor="@color/dark_nav_inactive" />
+        </LinearLayout>
+
+        <!-- Tab 3: Trace -->
+        <LinearLayout
+            android:id="@+id/navTrace"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔗"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trace"
+                android:textSize="10sp"
+                android:textColor="@color/dark_nav_inactive" />
+        </LinearLayout>
+
+        <!-- Tab 4: Profile -->
+        <LinearLayout
+            android:id="@+id/navProfile"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👤"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Profile"
+                android:textSize="10sp"
+                android:textColor="@color/dark_nav_inactive" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>
