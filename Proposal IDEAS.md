@@ -26,6 +26,7 @@
 | **14** | **Automated Graph Overlap & 3-Way Diff Engine** | Graph Intelligence | Phase 2.14 | Bipartite duplicate detection, side-by-side field conflict picker, and cycle/legal pre-commit audit |
 | **15** | **Safe Master Tree Synthesis (Zero-Risk Clan Fusion Engine)** | Non-Destructive Synthesis | **Immediate / Executable** | Deep-clones Tree A & Tree B (or via Invite Code) into new Master Tree C; original trees 100% untouched |
 | **16** | **Dedicated "Merged Clan Space" & Separate Sandbox Viewer** | Architectural Isolation | **Immediate / Executable** | Houses merged trees exclusively inside the "Merge Branches" portal; user's "View Tree" stays 100% pure |
+| **17** | **Multi-Generational Benchmark Tree Seeder (20-Member Clan Suite)** | Testing & Simulation | Developer Utility / Immediate | Topological 4-generation 20-member benchmark via FamilyRelationshipService & CentralTreeSynchronizer |
 
 ---
 
@@ -691,6 +692,89 @@ When the user opens a clan tree from the Merged Clan Space:
 
 ---
 
+### Proposal 17: Multi-Generational Benchmark Tree Seeder (20-Member Clan Suite)
+
+#### 17.1 Concept & Genealogical Motivation
+- **Primary Function**: Provides an automated, topologically valid mechanism to generate a comprehensive 20-member, 4-generation family tree benchmark suite directly into a designated tree.
+- **The Core Problem Solved**: Validating high-level architectural features—specifically the **Merged Clan Space (Proposal 16)**, **Master Tree Synthesis (Proposal 15)**, Ahnentafel pedigree traversals, Fan Charts, and Dashboard Insights—requires a rich, interconnected multi-generational tree. Manually creating 20 members through the mobile UI requires 15–20 minutes of repetitive typing and dropdown selections.
+- **Genealogical Benchmark Standard**: The dataset is deliberately structured to include all major genealogical relationships:
+  - Direct ancestral lineage (Great-Grandparents $\rightarrow$ Grandparents $\rightarrow$ Parents $\rightarrow$ Children)
+  - Horizontal spousal unions with reciprocal partner links
+  - Collateral branches (Aunts, Uncles, Nieces, Nephews, First Cousins)
+  - In-laws and marriage ties across family lines
+
+---
+
+#### 17.2 The 20-Member 4-Generation Benchmark Blueprint
+
+```mermaid
+graph TD
+    subgraph Gen 1: Patriarch & Matriarch (Great-Grandparents)
+        G1["1. Mateo Guaniso (b. 1945)"] ---|Married| G2["2. Elena Ramos (b. 1948)"]
+    end
+
+    subgraph Gen 2: Parents, Aunts/Uncles & In-Laws
+        G1 & G2 --> P1["3. Roberto Guaniso (b. 1970)"]
+        G1 & G2 --> P2["4. Maria Guaniso (b. 1973)"]
+        G1 & G2 --> P3["5. Antonio Guaniso (b. 1978)"]
+        P1 ---|Married| P4["6. Carmen Santos (b. 1972)"]
+        P2 ---|Married| P5["7. Danilo Cruz (b. 1971)"]
+    end
+
+    subgraph Gen 3: Target Generation, Siblings, Cousins & Spouses
+        P1 & P4 --> C1["8. Gabriel Guaniso (b. 1995)"]
+        P1 & P4 --> C2["9. Sophia Guaniso (b. 1998)"]
+        P1 & P4 --> C3["10. Lucas Guaniso (b. 2002)"]
+        P2 & P5 --> C4["11. Andrea Cruz (b. 1999)"]
+        P2 & P5 --> C5["12. Marco Cruz (b. 2004)"]
+        P3 --> C6["13. Juan Guaniso (b. 2008)"]
+        C1 ---|Married| C7["14. Isabella Reyes (b. 1996)"]
+        C2 ---|Married| C8["15. Miguel Torres (b. 1997)"]
+    end
+
+    subgraph Gen 4: Descendants (Great-Grandchildren of Gen 1)
+        C1 & C7 --> GG1["16. Liam Guaniso (b. 2020)"]
+        C1 & C7 --> GG2["17. Maya Guaniso (b. 2022)"]
+        C2 & C8 --> GG3["18. Noah Torres (b. 2021)"]
+        C2 & C8 --> GG4["19. Emma Torres (b. 2023)"]
+        C2 & C8 --> GG5["20. Leo Torres (b. 2025)"]
+    end
+```
+
+---
+
+#### 17.3 Architectural Compliance Pipeline & Technical Workflow
+The seeder enforces the KinTrace Global Integration Standard at every layer:
+
+1. **Topological Generation Sequencing**:
+   - In graph theory, child nodes cannot reference nonexistent parent keys.
+   - Generation executes strictly top-down: Generation 1 roots $\rightarrow$ Generation 2 $\rightarrow$ Generation 3 $\rightarrow$ Generation 4.
+2. **Central Relationship Validation (`FamilyRelationshipService.kt`)**:
+   - Each proposed relationship is validated through `FamilyRelationshipService` before persistence.
+   - Enforces Philippine Family Code (Arts. 37 & 38) incest prohibitions.
+   - Prevents cyclical ancestry graphs (nobody can be their own ancestor).
+   - Enforces 2-biological-parent maximum cap and bi-directional spousal links (`spouseId` reciprocity).
+3. **Central Cloud Firestore Persistence (`FirestoreHelper.kt`)**:
+   - Records are committed to `trees/{treeId}/members/{memberId}` with complete metadata:
+     - Full names, gender (`MALE` / `FEMALE`), birth dates, vital status (`isLiving = true/false`, death dates where applicable).
+     - Relational pointers (`fatherId`, `motherId`, `spouseId`).
+4. **Reactive Synchronization (`CentralTreeSynchronizer.kt`)**:
+   - Emits `TreeEvent.TreeGraphMutated` upon batch completion.
+   - Automatically updates all connected views without restarting the app:
+     - **Interactive Tree Canvas**: Renders the complete 4-generation canvas with connection vectors and status badges.
+     - **Pedigree & Fan Chart Views**: Populates full Ahnentafel generational tiers.
+     - **Family Records Screen**: Lists all 20 searchable and filterable profiles.
+     - **Dashboard & Insights**: Instantly updates member counts, generation depths, and demographic ratios.
+
+---
+
+#### 17.4 Permission Gate & Execution Safety
+- **Strict Authorization Rule**: The benchmark seeder is strictly gated; it never creates, modifies, or deletes database records without explicit user confirmation and architectural scope approval.
+- **Target Selection**: Requires explicit designation of the destination tree (e.g. active `"Guaniso Family"` tree or a newly created test tree).
+- **Zero-Pollution Guarantee**: Can be safely tested in isolation or paired with the **Merged Clan Space** to verify inter-clan synthesis against an incoming second tree.
+
+---
+
 ## 3. Proposal Ideas Changelog & Expansion Log
 
 | Date | Added By | Summary of Ideas Logged |
@@ -699,6 +783,7 @@ When the user opens a clan tree from the Merged Clan Space:
 | **2026-09-26** | System Architecture Review | Added Proposals 11 through 14: Comprehensive Multi-Tree Merging Architecture (Anchor-Bridge Merger, Non-Destructive Clan Synthesis, Cross-Account Handshake, Automated 3-Way Graph Diff Engine, Architectural Comparison Matrix, 5-Step UI/UX Wizard, & Module Impact Mapping). |
 | **2026-09-26** | System Architecture Review | Added Proposal 15: Safe Master Tree Synthesis (Zero-Risk Clan Fusion Engine) — combines non-destructive Master Tree C generation with Invite Code support; 100% read-only on source trees, 3-step wizard, and instant execution blueprint. |
 | **2026-09-26** | System Architecture Review | Added Proposal 16: Dedicated "Merged Clan Space" & Separate Sandbox Viewer — isolates merged trees exclusively inside the "Merge Branches" portal; guarantees the user's primary "View Tree" remains 100% pure, unpolluted, and preserved. |
+| **2026-09-26** | System Architecture Review | Added Proposal 17: Multi-Generational Benchmark Tree Seeder (20-Member Clan Suite) — topologically sequenced 4-generation family tree generator passing through FamilyRelationshipService & CentralTreeSynchronizer for testing tree mergers and canvas rendering. |
 
 *(New proposals and suggestions requested in future interactions will be appended here automatically.)*
 
