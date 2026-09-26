@@ -49,14 +49,15 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:layout_marginEnd="14dp">
 
                     <TextView
                         android:id="@+id/tvGreeting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Hi, "
-                        android:textSize="24sp"
+                        android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
 
@@ -64,10 +65,12 @@
                         android:id="@+id/tvUserName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:maxWidth="235dp"
                         android:text="Optismiclemon15"
-                        android:textSize="24sp"
+                        android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/gold_accent"
+                        android:singleLine="true"
                         android:maxLines="1"
                         android:ellipsize="end" />
 
@@ -75,7 +78,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text=" 👋"
-                        android:textSize="22sp" />
+                        android:textSize="18sp" />
                 </LinearLayout>
 
                 <!-- Notification Bell Button -->
@@ -598,11 +601,11 @@
                     <LinearLayout
                         android:id="@+id/cardTrace"
                         android:layout_width="0dp"
-                        android:layout_height="124dp"
+                        android:layout_height="138dp"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:background="@drawable/bg_forest_card"
-                        android:padding="12dp"
+                        android:padding="11dp"
                         android:layout_marginEnd="5dp"
                         android:clickable="true"
                         android:focusable="true">
@@ -614,7 +617,7 @@
                             android:text="🧬"
                             android:textSize="16sp"
                             android:background="@drawable/icon_squircle_dark"
-                            android:layout_marginBottom="10dp" />
+                            android:layout_marginBottom="7dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -632,18 +635,18 @@
                             android:textSize="10sp"
                             android:textColor="@color/dark_subtext"
                             android:lineSpacingMultiplier="1.1"
-                            android:layout_marginTop="3dp" />
+                            android:layout_marginTop="2dp" />
                     </LinearLayout>
 
                     <!-- Tool 2: Tree View -->
                     <LinearLayout
                         android:id="@+id/cardViewTree"
                         android:layout_width="0dp"
-                        android:layout_height="124dp"
+                        android:layout_height="138dp"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:background="@drawable/bg_forest_card"
-                        android:padding="12dp"
+                        android:padding="11dp"
                         android:layout_marginStart="2dp"
                         android:layout_marginEnd="2dp"
                         android:clickable="true"
@@ -656,7 +659,7 @@
                             android:text="👁"
                             android:textSize="16sp"
                             android:background="@drawable/icon_squircle_dark"
-                            android:layout_marginBottom="10dp" />
+                            android:layout_marginBottom="7dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -673,18 +676,18 @@
                             android:textSize="10sp"
                             android:textColor="@color/dark_subtext"
                             android:lineSpacingMultiplier="1.1"
-                            android:layout_marginTop="3dp" />
+                            android:layout_marginTop="2dp" />
                     </LinearLayout>
 
                     <!-- Tool 3: Records -->
                     <LinearLayout
                         android:id="@+id/cardRecords"
                         android:layout_width="0dp"
-                        android:layout_height="124dp"
+                        android:layout_height="138dp"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:background="@drawable/bg_forest_card"
-                        android:padding="12dp"
+                        android:padding="11dp"
                         android:layout_marginStart="5dp"
                         android:clickable="true"
                         android:focusable="true">
@@ -696,7 +699,7 @@
                             android:text="📋"
                             android:textSize="16sp"
                             android:background="@drawable/icon_squircle_dark"
-                            android:layout_marginBottom="10dp" />
+                            android:layout_marginBottom="7dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -713,7 +716,7 @@
                             android:textSize="10sp"
                             android:textColor="@color/dark_subtext"
                             android:lineSpacingMultiplier="1.1"
-                            android:layout_marginTop="3dp" />
+                            android:layout_marginTop="2dp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -728,11 +731,11 @@
                     <LinearLayout
                         android:id="@+id/cardMerge"
                         android:layout_width="0dp"
-                        android:layout_height="124dp"
+                        android:layout_height="138dp"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:background="@drawable/bg_forest_card"
-                        android:padding="12dp"
+                        android:padding="11dp"
                         android:layout_marginEnd="5dp"
                         android:clickable="true"
                         android:focusable="true">
@@ -744,7 +747,7 @@
                             android:text="⚡"
                             android:textSize="16sp"
                             android:background="@drawable/icon_squircle_dark"
-                            android:layout_marginBottom="10dp" />
+                            android:layout_marginBottom="7dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -762,18 +765,18 @@
                             android:textSize="10sp"
                             android:textColor="@color/dark_subtext"
                             android:lineSpacingMultiplier="1.1"
-                            android:layout_marginTop="3dp" />
+                            android:layout_marginTop="2dp" />
                     </LinearLayout>
 
                     <!-- Tool 5: Privacy -->
                     <LinearLayout
                         android:id="@+id/btnPrivacy"
                         android:layout_width="0dp"
-                        android:layout_height="124dp"
+                        android:layout_height="138dp"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:background="@drawable/bg_forest_card"
-                        android:padding="12dp"
+                        android:padding="11dp"
                         android:layout_marginStart="2dp"
                         android:layout_marginEnd="2dp"
                         android:clickable="true"
@@ -786,7 +789,7 @@
                             android:text="🛡️"
                             android:textSize="16sp"
                             android:background="@drawable/icon_squircle_dark"
-                            android:layout_marginBottom="10dp" />
+                            android:layout_marginBottom="7dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -802,18 +805,18 @@
                             android:text="Roles &amp; redact"
                             android:textSize="10sp"
                             android:textColor="@color/dark_subtext"
-                            android:layout_marginTop="3dp" />
+                            android:layout_marginTop="2dp" />
                     </LinearLayout>
 
                     <!-- Tool 6: Add Member -->
                     <LinearLayout
                         android:id="@+id/cardAddMember"
                         android:layout_width="0dp"
-                        android:layout_height="124dp"
+                        android:layout_height="138dp"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:background="@drawable/bg_forest_card"
-                        android:padding="12dp"
+                        android:padding="11dp"
                         android:layout_marginStart="5dp"
                         android:clickable="true"
                         android:focusable="true">
@@ -825,7 +828,7 @@
                             android:text="👤"
                             android:textSize="16sp"
                             android:background="@drawable/icon_squircle_dark"
-                            android:layout_marginBottom="10dp" />
+                            android:layout_marginBottom="7dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -842,7 +845,7 @@
                             android:textSize="10sp"
                             android:textColor="@color/dark_subtext"
                             android:lineSpacingMultiplier="1.1"
-                            android:layout_marginTop="3dp" />
+                            android:layout_marginTop="2dp" />
                     </LinearLayout>
                 </LinearLayout>
 

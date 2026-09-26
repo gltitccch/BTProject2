@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_forest_card"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Top Header & Guarantee -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ZERO-RISK CLAN FUSION"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Synthesize Master Clan Tree"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Guarantee Pill -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/badge_pill_dark"
+            android:padding="10dp"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🛡️ 100% Safe Sandbox: "
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#4ECCA3" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Source trees are strictly read-only. Your primary family tree in View Tree is completely preserved."
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- STEP 1: TREE SELECTION -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STEP 1: SELECT TREES TO COMBINE"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.06"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Tree 1 Selection -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Primary Tree (Source A)"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerTree1"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:background="@drawable/input_bg_filled"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Tree 2 Selection -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Secondary Tree (Source B)"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <RadioGroup
+            android:id="@+id/rgTree2Source"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <RadioButton
+                android:id="@+id/rbTree2MyTrees"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="From My Trees"
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/rbTree2InviteCode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Enter Invite Code"
+                android:textSize="12sp"
+                android:textColor="@color/text_primary" />
+        </RadioGroup>
+
+        <Spinner
+            android:id="@+id/spinnerTree2"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:background="@drawable/input_bg_filled"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Invite Code Container -->
+        <LinearLayout
+            android:id="@+id/layoutTree2InviteCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/etTree2InviteCode"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/input_bg_filled"
+                    android:hint="6-Character Code (e.g. 5SRQJU)"
+                    android:textColorHint="@color/text_secondary"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:maxLines="1"
+                    android:textAllCaps="true" />
+
+                <Button
+                    android:id="@+id/btnLookupInviteCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="46dp"
+                    android:layout_marginStart="8dp"
+                    android:text="Verify"
+                    android:textSize="12sp"
+                    android:textColor="#0A1B12"
+                    android:background="@drawable/btn_gold_primary"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvInviteCodeResult"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="11sp"
+                android:textColor="#4ECCA3"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Master Tree Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Master Clan Tree Name"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/etMasterTreeName"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:background="@drawable/input_bg_filled"
+            android:hint="e.g. Dela Cruz - Santos Master Clan Tree"
+            android:textColorHint="@color/text_secondary"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:maxLines="1"
+            android:layout_marginBottom="16dp" />
+
+        <!-- STEP 2: ANCHOR BRIDGE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STEP 2: ESTABLISH ANCHOR CONNECTION"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:letterSpacing="0.06"
+            android:layout_marginBottom="6dp" />
+
+        <RadioGroup
+            android:id="@+id/rgBridgeType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <RadioButton
+                android:id="@+id/rbBridgeSpouse"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💍 Spousal Union (Member in Tree A married to Member in Tree B)"
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/rbBridgeParentChild"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="👶 Parent-Child Link (Member in Tree A is Parent of Member in Tree B)"
+                android:textSize="12sp"
+                android:textColor="@color/text_primary" />
+
+            <RadioButton
+                android:id="@+id/rbBridgeSharedAncestor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="👥 Shared Ancestor (Same relative exists in both trees)"
+                android:textSize="12sp"
+                android:textColor="@color/text_primary" />
+        </RadioGroup>
+
+        <!-- Member Pickers -->
+        <TextView
+            android:id="@+id/tvAnchor1Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Member from Tree A"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerAnchorPerson1"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:background="@drawable/input_bg_filled"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tvAnchor2Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Member from Tree B"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerAnchorPerson2"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:background="@drawable/input_bg_filled"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Validation Alert Container -->
+        <LinearLayout
+            android:id="@+id/layoutValidationWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="#331A1A"
+            android:padding="10dp"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ "
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvValidationWarningText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Relationship violates Philippine Family Code or creates a cycle."
+                android:textSize="11sp"
+                android:textColor="#FF6B6B" />
+        </LinearLayout>
+
+        <!-- Synthesis Summary -->
+        <TextView
+            android:id="@+id/tvSynthesisSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ready to synthesize. Tree A &amp; Tree B will remain unchanged."
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBarSynthesis"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/gold_accent"
+            android:visibility="gone"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Action Buttons -->
+        <Button
+            android:id="@+id/btnExecuteSynthesis"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="🛡️  Generate Master Clan Tree C"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#0A1B12"
+            android:background="@drawable/btn_gold_primary"
+            app:backgroundTint="@null"
+            android:textAllCaps="false"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnCancelSynthesis"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="Cancel"
+            android:textSize="13sp"
+            android:textColor="#C2C7C4"
+            android:background="@drawable/badge_pill_dark"
+            app:backgroundTint="@null"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+</ScrollView>

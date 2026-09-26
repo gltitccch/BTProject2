@@ -20,6 +20,12 @@
 | **08** | **Collaborative 3-Way Branch Merge Wizard** | Collaboration | Phase 2.8 | Visual side-by-side branch comparison with interactive conflict resolver |
 | **09** | **Oral History & Voice Memories Archive** | Multimedia Heritage | Phase 2.9 | AAC audio recorder with waveforms attached to member timeline events |
 | **10** | **Kinship-Aware Reunion & Milestone Planner** | Community & Family | Phase 2.10 | Calendar integration generating proximity-based invitations & reminder feeds |
+| **11** | **Multi-Tree Anchor-Bridge Merger** | Cross-Tree Integration | Phase 2.11 | Select target & incoming trees; link via Spouse, Parent-Child, or Shared Ancestor bridge |
+| **12** | **Non-Destructive Clan Synthesis** | Safety & Data Integrity | Phase 2.12 | Generates new combined Master Tree C while keeping original trees 100% intact |
+| **13** | **Cross-Account Collaborative Tree Merge** | Social & Clan Federation | Phase 2.13 | Merge with external family trees via Invite Code handshake and dual-owner approval |
+| **14** | **Automated Graph Overlap & 3-Way Diff Engine** | Graph Intelligence | Phase 2.14 | Bipartite duplicate detection, side-by-side field conflict picker, and cycle/legal pre-commit audit |
+| **15** | **Safe Master Tree Synthesis (Zero-Risk Clan Fusion Engine)** | Non-Destructive Synthesis | **Immediate / Executable** | Deep-clones Tree A & Tree B (or via Invite Code) into new Master Tree C; original trees 100% untouched |
+| **16** | **Dedicated "Merged Clan Space" & Separate Sandbox Viewer** | Architectural Isolation | **Immediate / Executable** | Houses merged trees exclusively inside the "Merge Branches" portal; user's "View Tree" stays 100% pure |
 
 ---
 
@@ -137,11 +143,562 @@
 
 ---
 
+### Proposal 11: Multi-Tree Anchor-Bridge Merger (Target-Absorptive Model)
+
+#### 11.1 Concept & Genealogical Motivation
+- **Primary Function**: Transforms the "Merge Branches" tool from an intra-tree duplicate finder into a true **Inter-Tree Merger** that merges two distinct family trees in the app.
+- **The Core Problem**: A user frequently builds two separate family trees—for example, *Tree A: Paternal Dela Cruz Tree* (15 members) and *Tree B: Maternal Santos Tree* (12 members), or one spouse built their side and the other built theirs. The user now wants to merge them into a single, comprehensive family tree without manually re-typing 12 people.
+- **The Model**: Tree A is chosen as the **Target (Recipient) Tree**, and Tree B is designated as the **Incoming Tree**. Tree B is absorbed into Tree A, resulting in a single expanded tree with 27 members.
+
+```
+[ Tree A: Dela Cruz Tree (15 members) ] ──┐
+                                          ├─► [ Unified Tree A (27 members) ]
+[ Tree B: Santos Tree (12 members)    ] ──┘   (Linked via Genealogical Anchor Bridge)
+```
+
+---
+
+#### 11.2 The Three Genealogical "Anchor Bridge" Mechanisms
+In graph theory, two disconnected acyclic directed graphs (DAGs) cannot be unified without establishing at least one connecting edge. Approach 1 introduces **3 Anchor Bridge Types**:
+
+##### A. 💍 Spousal Union Bridge (Horizontal Link)
+- **User Story**: *"My father is in Tree A, and my mother is in Tree B. I want to connect the two trees by marrying them."*
+- **Mechanism**:
+  1. User selects `Person A` from Tree A (e.g., Father) and `Person B` from Tree B (e.g., Mother).
+  2. The system sets `Person A.spouseId = Person B.id` and `Person B.spouseId = Person A.id`.
+  3. All of Tree B's maternal ancestors (maternal grandparents, great-grandparents, aunts/uncles) are imported into Tree A, perfectly rooted through Mother's horizontal marriage link to Father.
+- **Graph Transformation**: Paternal branch and maternal branch align side-by-side on the generation canvas with a connecting marriage ring badge.
+
+##### B. 👶 Parent-Child Bridge (Vertical Link)
+- **User Story**: *"My uncle created a separate tree containing his children and grandchildren. I want to attach his branch under his profile in our main family tree."*
+- **Mechanism**:
+  1. User selects `Person A` in Tree A (Uncle) and `Person B` in Tree B (his eldest Child, or the root of the sub-branch).
+  2. User specifies the direction: *"Person A is Parent of Person B"* (or *"Person B is Parent of Person A"*).
+  3. The system assigns `Person B.fatherId` (or `motherId`) to `Person A.id`.
+  4. Tree B's descendants are attached vertically underneath Person A.
+
+##### C. 👥 Shared Ancestor Bridge (Anchor Node Fusion)
+- **User Story**: *"Both my tree and my cousin's tree already contain our common grandfather Don Ramon Dela Cruz. I want to fuse his two records into one so the branches join together."*
+- **Mechanism**:
+  1. User selects `Person A` in Tree A and `Person B` in Tree B as representing the **exact same individual**.
+  2. The system fuses the two records into a single canonical record in Tree A.
+  3. All children, parents, and siblings from Tree B that pointed to `Person B` are re-wired to point to canonical `Person A`.
+  4. Both lineages converge cleanly at that common ancestor.
+
+---
+
+#### 11.3 Handling Overlapping & Duplicate Members (Field-by-Field Conflict Resolution)
+When two trees are merged, several people might exist in both trees (e.g., common children, cousins, or in-laws).
+- **Automated Overlap Detection**:
+  - The engine runs a bipartite similarity scan comparing all nodes in Tree A against Tree B using Jaro-Winkler full name scoring and birthdate equality.
+  - Matches with $>85\%$ confidence are flagged as candidate duplicate pairs.
+- **Field-by-Field Conflict Resolution UI**:
+  - If attributes differ (e.g., Tree A says birthdate is *May 10, 1965* while Tree B says *May 12, 1965*), the user is presented with an interactive conflict card:
+
+```
+┌────────────────────────────────────────────────────────┐
+│  ⚠️ Duplicate Candidate: Jose Dela Cruz               │
+│  Similarity Score: 92% Match                           │
+├────────────────────────────────────────────────────────┤
+│  Birth Date:                                           │
+│  (●) May 10, 1965  [Tree A: Dela Cruz Tree]            │
+│  (○) May 12, 1965  [Tree B: Santos Tree]               │
+│                                                        │
+│  Birth Place:                                          │
+│  (○) Manila        [Tree A: Dela Cruz Tree]            │
+│  (●) Quezon City   [Tree B: Santos Tree]               │
+│                                                        │
+│  Profile Photo:                                        │
+│  (●) Keep Tree A Photo     (○) Use Tree B Photo        │
+└────────────────────────────────────────────────────────┘
+```
+- The user taps their preferred value for each conflicting field before the merge executes.
+
+---
+
+#### 11.4 Original Tree B Retention Strategies
+What happens to Tree B after its records are absorbed into Tree A? Three distinct strategies are proposed:
+
+1. **Option 1: Archived Snapshot (Recommended for Safety)**:
+   - Tree B remains in the database and user account, but its metadata is updated: `isArchived = true` and `mergedIntoTreeId = TreeA.id`.
+   - In the tree selector, it appears with a subtle badge: `📁 Santos Tree (Merged into Dela Cruz Tree)`.
+   - **Advantage**: 100% fail-safe. The user can still open Tree B as a historical standalone snapshot or manually delete it later when satisfied.
+2. **Option 2: Auto-Clean / Complete Deletion**:
+   - Once the merge transaction commits, the system deletes Tree B and its member records from Firestore.
+   - **Advantage**: Tree switcher remains clean with zero duplicate tree entries.
+   - **Disadvantage**: Irreversible; cannot be undone if the user regrets the merge.
+3. **Option 3: Automated Pre-Merge JSON/GEDCOM Backup**:
+   - Before executing the merge, the app automatically generates and exports an offline JSON/GEDCOM backup snapshot of Tree B to device storage (`Downloads/KinTrace_Backups/TreeB_backup.json`).
+   - Ensures user data is never permanently lost.
+
+---
+
+#### 11.5 Detailed 5-Step UI/UX Wizard Walkthrough (`MergeBranchesActivity`)
+
+```
+Step 1: Select Trees
+├── Primary / Target Tree Dropdown: [ Dela Cruz Family Tree (15 members) ▼ ]
+└── Secondary / Incoming Tree Dropdown: [ Santos Family Tree (12 members) ▼ ]
+      [ Button: "Scan & Proceed to Bridge Connection ➔" ]
+
+Step 2: Choose Anchor Bridge Mode
+├── (●) 💍 Spousal Union Bridge ("Member in Tree A married to Member in Tree B")
+├── (○) 👶 Parent-Child Bridge ("Member in Tree A is parent/child of Member in Tree B")
+└── (○) 👥 Shared Ancestor Bridge ("Same person exists in both trees")
+
+Step 3: Select Anchor Members
+├── Select Person from Dela Cruz Tree: [ Juan Dela Cruz (Father) ▼ ]
+└── Select Person from Santos Tree:   [ Maria Santos (Mother) ▼ ]
+      [ Visual Link Preview Card showing relationship badge: "Spouse Link" ]
+
+Step 4: Review Overlaps & Conflicts
+├── Duplicate Scanner: "2 duplicate children detected across trees"
+├── Conflict Resolver: Interactive radio cards to pick winning birthdate/photos
+└── Affected Sub-branches: "10 new relatives will be attached to Maria Santos"
+
+Step 5: Safety Audit & Final Merge
+├── System Validation Check:
+│     ✓ Cycle Check: 0 circular parentage detected
+│     ✓ Legal Consanguinity: Philippine Family Code Arts. 37 & 38 satisfied
+│     ✓ Permissions: User is verified Owner of both trees
+├── Retention Choice: [●] Keep Tree B as Archived Snapshot   [○] Delete Tree B
+└── [ Big Action Button: "Confirm & Execute Inter-Tree Merge" ]
+      └── Progress indicator ──► CentralTreeSynchronizer updates app in real time
+```
+
+---
+
+#### 11.6 Technical Data Flow & Backend Transaction Mechanics
+1. **ID Translation & Relational Pointer Mapping**:
+   - When Tree B members are ingested into Tree A:
+     - Each person in Tree B can retain their original ID or receive a mapped UUID.
+     - A translation dictionary `idMap: Map<String, String>` maps every Tree B person ID to their new Tree A person ID.
+     - For every incoming person:
+       - `treeId` is updated to `treeA.id`.
+       - `fatherId = idMap[fatherId] ?: fatherId`
+       - `motherId = idMap[motherId] ?: motherId`
+       - `spouseId = idMap[spouseId] ?: spouseId`
+2. **Anchor Edge Application**:
+   - If Spousal Bridge: `personA.spouseId = personB.id` and `personB.spouseId = personA.id`.
+   - If Parent-Child Bridge: `personB.fatherId` (or `motherId`) = `personA.id`.
+   - If Shared Ancestor Bridge: Canonical record created with merged attributes; duplicate record deleted.
+3. **Atomic Firestore Batch Transaction**:
+   - Written using Firestore `WriteBatch` (up to 500 operations per batch) ensuring that either all members and relational pointers are committed successfully, or no change is made at all.
+4. **Activity Logging & Notification**:
+   - Creates an entry in `activity_logs`: `"Tree Merger: Santos Family Tree absorbed into Dela Cruz Family Tree (12 members merged)"`.
+   - Emits an in-app notification confirming successful tree union.
+5. **Real-Time Reactive Notification**:
+   - Calls `CentralTreeSynchronizer.notifyTreeDataChanged(treeA.id)`.
+   - Active tree canvas (`InteractiveTreeActivity`), records list (`FamilyRecordsActivity`), and dashboard counters (`HomeActivity`) immediately reload with the new 27-member tree graph.
+
+---
+
+#### 11.7 Legal & Topological Safety Guardrails
+1. **Cycle Prevention Engine**:
+   - Executes topological cycle detection (`FamilyRelationshipService.detectCycles()`) on the unified graph before the database write is committed.
+   - Prevents paradoxes where a person could become their own ancestor.
+2. **Philippine Family Code Consanguinity Compliance**:
+   - If a Spousal Bridge is selected, `MarriageValidationEngine.validateMarriage()` verifies that the couple does not violate **Executive Order No. 209 (Family Code of the Philippines)**:
+     - **Article 37 (Incestuous Marriages)**: No marriages between ascendants and descendants of any degree, or between brothers and sisters (full or half blood).
+     - **Article 38 (Against Public Policy)**: No marriages between collateral relatives within the fourth civil degree (first cousins, uncle/niece, aunt/nephew).
+   - If an invalid marriage is attempted, the merge is blocked with an explicit legal alert.
+3. **Owner Authorization Gate**:
+   - Verifies that the current user has `Owner` role on both Tree A and Tree B, ensuring no unauthorized tree takeovers can occur.
+
+---
+
+### Proposal 12: Non-Destructive Clan Synthesis (Master Tree Generator)
+- **Concept & Purpose**: Eliminates the danger of data loss or tree corruption. Instead of modifying Tree A or Tree B directly, this approach synthesizes data from both trees into a **brand-new, independent Master Tree C** (e.g., *"Dela Cruz – Santos Master Clan Tree"*).
+- **Architectural Fit**:
+  - Creates a new document in the `trees` collection (`masterClanTreeId`).
+  - Deep-clones all `Person` records from Tree A and Tree B into Tree C with new UUIDs, utilizing an in-memory translation lookup map (`oldId -> newId`) to preserve all existing marital and parent-child edges.
+  - Applies the selected Anchor Bridge (Spousal, Parent-Child, or Shared Ancestor) within the new Tree C.
+  - **100% Fail-Safe & Reversible**: Both original trees (Tree A and Tree B) remain completely untouched and fully functional. If the user makes an error or is dissatisfied with the merged layout, they can simply delete Tree C with zero consequence to their original trees.
+- **Value Proposition**: Provides users with maximum confidence and psychological safety when executing complex family mergers.
+
+---
+
+### Proposal 13: Cross-Account Collaborative Tree Merge via Invite Code & Handshake
+- **Concept & Purpose**: Extends tree merging across different user accounts. Allows two different KinTrace users (e.g., distant cousins, or a husband and wife who each built their own family tree on separate phones) to merge their family trees collaboratively.
+- **Architectural Fit**:
+  - **Step 1: Code Verification**: Initiator enters the 6-character Invite Code of the external tree. `FirestoreHelper.getInviteCodeRecord()` validates the code and fetches the target tree metadata.
+  - **Step 2: Merge Proposal Draft**: Initiator selects the Anchor Bridge (e.g., "Person X in my tree is married to Person Y in your tree") and previews potential duplicates.
+  - **Step 3: Handshake Protocol**: Rather than merging unilaterally, the app creates a document in `tree_merge_proposals` with status `"PENDING"`.
+  - **Step 4: Dual-Owner Authorization**: The owner of the external tree receives an in-app notification (*"Juan Dela Cruz has requested to merge his tree with yours"*). They can open an interactive review modal displaying the bridge proposal and duplicate preview.
+  - **Step 5: Mutual Approval & Federation**: Upon approval, the merge executes (either as Target Absorption or Master Tree C), and both users are granted Co-Owner / Editor roles in `tree_members`.
+- **Value Proposition**: Enables decentralized clan federation across large extended families without requiring password sharing or manual double-entry.
+
+---
+
+### Proposal 14: Automated Graph Overlap & 3-Way Topological Diff Engine
+- **Concept & Purpose**: When merging two established trees containing dozens or hundreds of relatives, manually searching for duplicate entries is impractical. This engine executes automated bipartite matching across both trees and presents an interactive 3-way reconciliation interface.
+- **Architectural Fit**:
+  - **Bipartite Detection**: Compares all nodes of Tree A against Tree B using multi-attribute similarity (Jaro-Winkler full name scoring, birth/death date matching, and parent/spouse topological context).
+  - **3-Way Visual Reconciliation Interface**:
+    - **Identical Nodes**: Automatically grouped and merged (marked green).
+    - **Conflicting Attributes**: For records with matching identities but divergent data (e.g., Birthdate: "1965-03-12" vs "1965-03-15", or different middle names/birthplaces), the UI renders side-by-side radio chips allowing the user to select which field value wins on a field-by-field basis.
+    - **Unique Lineages**: Visualized as incoming branches that will attach to the anchor node.
+  - **Mandatory Pre-Commit Legal & Graph Audit**:
+    - Feeds the combined proposed graph into `FamilyRelationshipService.auditFamilyTree()`.
+    - Enforces cycle prevention (ensures no node becomes their own ancestor).
+    - Enforces Philippine Family Code marriage rules (Articles 37 & 38: no direct ascendant/descendant marriages, no sibling marriages, no collateral marriages within the 4th civil degree).
+    - If any legal or topological violation is detected, merge execution is strictly blocked with clear error badges explaining the issue.
+- **Value Proposition**: Guarantees that large, complex tree mergers result in clean, non-duplicated, legally compliant genealogical data.
+
+---
+
+### Comparative Analysis of Tree-Merging Architectural Paradigms
+
+| Paradigm | Target Tree Impact | Reversibility | Data Duplication | Complexity | Best Suited For |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Approach 1: Target-Absorptive (Tree B $\rightarrow$ Tree A)** | Tree A grows; Tree B absorbed | Low (requires manual rollback or backup restore) | None (single expanded tree) | Moderate | Consolidating personal sub-branches into one definitive tree |
+| **Approach 2: Clan Synthesis (Tree A + B $\rightarrow$ Tree C)** | None (Tree A & B untouched) | High (simply delete Tree C if not satisfied) | Moderate (nodes cloned into Tree C) | Moderate | Risk-free experimentation, major multi-family weddings/unions |
+| **Approach 3: Cross-Account Handshake** | Dependent on chosen model (1 or 2) | High (requires dual consent before write) | None to Moderate | High | Distant relatives, cousins, or in-laws collaborating across accounts |
+| **Approach 4: Automated 3-Way Overlap Diff** | Applied atop Approach 1, 2, or 3 | High (explicit user confirmation per conflict) | N/A | High | Large family trees with multiple overlapping generations |
+
+---
+
+### Proposed 5-Step UI/UX Wizard for `MergeBranchesActivity`
+
+```
+[ Step 1: Select Trees ]
+   ├── Pick Primary Tree (Tree A: e.g. "Dela Cruz Family Tree")
+   └── Pick Second Tree (Tree B: From "My Trees" OR "Enter 6-Char Invite Code")
+             │
+             ▼
+[ Step 2: Choose Anchor Bridge Mode ]
+   ├── 💍 Spousal Union Bridge ("Member in Tree A married to Member in Tree B")
+   ├── 👶 Parent-Child Bridge ("Member in Tree A is parent/child of Member in Tree B")
+   └── 👥 Shared Ancestor Bridge ("Same person exists in both trees")
+             │
+             ▼
+[ Step 3: Select Anchor Members ]
+   ├── Tree A Member Picker (Searchable autocomplete dropdown)
+   └── Tree B Member Picker (Searchable autocomplete dropdown)
+             │
+             ▼
+[ Step 4: Overlap & Conflict Review ]
+   ├── Automated Duplicate Detection Scan (Bipartite Jaro-Winkler)
+   ├── Side-by-side Field Conflict Resolver (Choose Name, Birthdate, Photos)
+   └── Affected Children / Relatives Preview
+             │
+             ▼
+[ Step 5: Pre-Commit Audit & Execution ]
+   ├── Choose Output Mode: ( ) Absorb into Tree A   ( ) Create New Master Tree C
+   ├── System Validation: Philippine Family Code & Cycle Check (FamilyRelationshipService)
+   └── [ Confirm & Execute Merge ] ──► CentralTreeSynchronizer triggers real-time refresh
+```
+
+---
+
+### Architectural Scope & Connected Modules Mapping (KinTrace Standard)
+
+When implementing the multi-tree merge feature, the following core architectural layers will be integrated:
+1. **Cloud Firestore Persistence & Repository (`FirestoreHelper.kt`)**:
+   - New batch transaction for cross-tree cloning, person ID re-mapping, and anchor edge creation.
+   - Support for `tree_merge_proposals` collection for cross-account handshake requests.
+2. **Real-Time Tree Synchronizer (`CentralTreeSynchronizer.kt`)**:
+   - Emits `TreeSyncEvent.TreeDataChanged` or `TreeSyncEvent.TreeCreated` to notify active screens.
+3. **Central Relationship Validation Pipeline (`FamilyRelationshipService.kt`, `MarriageValidationEngine.kt`)**:
+   - Pre-commit audit ensures that connecting the two trees creates no graph cycles and violates no Philippine civil consanguinity laws (Articles 37 & 38).
+4. **Interactive Family Tree Canvas (`FamilyTreeView.kt`, `InteractiveTreeActivity.kt`)**:
+   - Redraws the new unified hierarchical graph with proper generational tiering and spouse bridges.
+5. **Dashboard, Records & Insights (`HomeActivity.kt`, `FamilyRecordsActivity.kt`, `InsightsActivity.kt`)**:
+   - Member counters, generation depths, and surname distributions update dynamically without requiring manual reload or app restart.
+
+---
+
+### Proposal 15: Safe Master Tree Synthesis (Zero-Risk Clan Fusion Engine)
+
+#### 15.1 Executive Summary & Why It Is Immediately Executable
+This proposal synthesizes the best strengths of **Proposal 12 (Non-Destructive Master Tree Generator)** and **Proposal 13 (Invite Code External Tree Connection)** into a **workable, production-ready, zero-risk solution** that can be built and run right now without requiring complex backend migrations.
+
+- **The Core Innovation**: Instead of modifying, overwriting, or deleting either family tree (which risks corrupting existing genealogies), the system leaves Tree A and Tree B **100% untouched and strictly read-only**. It synthesizes both trees into a **brand-new Master Tree C** (e.g., *"Dela Cruz – Santos Master Clan Tree"*).
+- **Zero Risk / Effortless Rollback**: Because original trees are never written to, there is literally zero possibility of data loss or corrupted lineages. If the user dislikes the merged outcome or made a mistake, they simply delete Tree C. Both Tree A and Tree B remain completely intact.
+- **Immediate Workability**: It builds entirely upon KinTrace's existing and proven architecture:
+  - Fetches existing trees via `FirestoreHelper.getUserTrees()`.
+  - Fetches external trees via `FirestoreHelper.getInviteCodeRecord()` / `getTreeByInviteCode()`.
+  - Validates marriage consanguinity via `MarriageValidationEngine.validateMarriage()`.
+  - Prevents graph cycles via `FamilyRelationshipService.auditFamilyTree()`.
+  - Broadcasts immediate UI canvas updates via `CentralTreeSynchronizer.notifyTreeDataChanged()`.
+
+---
+
+#### 15.2 Dual Input Sources: Merging Own Trees or via 6-Digit Invite Code
+Users can synthesize Master Tree C from two flexible sources:
+
+```
+[ Tree 1: Source A ] ───► Pick from "My Family Trees" (e.g. Dela Cruz Tree)
+                                 │
+                                 ├──► [ Master Tree C: "Dela Cruz – Santos Clan" ]
+                                 │    (Original Trees Remain 100% Untouched!)
+[ Tree 2: Source B ] ───► Toggle:
+                          ├── Option 1: Pick from "My Trees" (e.g. Santos Tree)
+                          └── Option 2: Enter 6-Char Invite Code (e.g. "5SRQJU" from a relative)
+```
+
+1. **Local Merge**: User owns both Tree A (paternal) and Tree B (maternal) under their own account.
+2. **Collaborative / Cross-Account Merge**: User enters the 6-character Invite Code of a relative's tree. The app reads the public/shared tree records of Tree B and merges them with Tree A to produce Tree C in the user's account.
+
+---
+
+#### 15.3 The Three Anchor Link Types
+When synthesizing Master Tree C, the user specifies how the two families connect:
+
+1. **💍 Marriage Link (Spousal Union Bridge)**
+   - *Example*: Juan Dela Cruz (Tree A) is married to Maria Santos (Tree B).
+   - In Tree C, the cloned Juan and cloned Maria are linked as spouses (`spouseId`). Their respective ancestral trees branch out horizontally beside each other.
+2. **👶 Parent-Child Link (Ancestral Bridge)**
+   - *Example*: Jose Dela Cruz (Tree A) is the father of Pedro Dela Cruz (Tree B, a sub-branch created separately).
+   - In Tree C, cloned Jose is assigned as the `fatherId` of cloned Pedro.
+3. **👥 Shared Duplicate Ancestor Fusion**
+   - *Example*: Both trees contain the common grandfather *Ramon Dela Cruz*.
+   - In Tree C, *Ramon* is created as a single canonical person. Relatives from both sides point to this single node.
+
+---
+
+#### 15.4 The 3-Step Instant Execution Wizard (`MergeBranchesActivity`)
+
+A clean, distraction-free 3-step flow designed for speed and clarity:
+
+```
+┌────────────────────────────────────────────────────────┐
+│ STEP 1: Select Trees to Combine                        │
+├────────────────────────────────────────────────────────┤
+│ Primary Tree:                                          │
+│ [ Dela Cruz Family Tree (15 members)                ▼ ]│
+│                                                        │
+│ Secondary Tree:                                        │
+│ (●) From My Trees      (○) Enter 6-Char Invite Code    │
+│ [ Santos Family Tree (12 members)                   ▼ ]│
+│                                                        │
+│ Master Tree Name:                                      │
+│ [ Dela Cruz - Santos Master Clan Tree                 ]│
+│                                   [ Next: Link Trees ➔ ]
+└────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ STEP 2: Establish the Anchor Connection                │
+├────────────────────────────────────────────────────────┤
+│ How are these two families connected?                  │
+│ [●] 💍 Married Couple (Spouse Link)                    │
+│ [ ] 👶 Parent & Child                                  │
+│ [ ] 👥 Shared Same Relative (Duplicate Ancestor)       │
+│                                                        │
+│ Member from Dela Cruz Tree:                            │
+│ [ Juan Dela Cruz (Father)                           ▼ ]│
+│                                                        │
+│ Member from Santos Tree:                               │
+│ [ Maria Santos (Mother)                             ▼ ]│
+│                                   [ Next: Review ➔ ]   │
+└────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ STEP 3: Zero-Risk Safety Review & Create               │
+├────────────────────────────────────────────────────────┤
+│ 🛡️ Zero-Risk Guarantee:                                │
+│ Dela Cruz Tree and Santos Tree will NOT be modified.   │
+│ All records are safely copied into Master Tree C.     │
+│                                                        │
+│ 📊 Synthesis Summary:                                  │
+│ • Dela Cruz Tree: 15 members                           │
+│ • Santos Tree: 12 members                              │
+│ • Master Tree C: 27 total members                      │
+│ • Bridge: Juan Dela Cruz 💍 Maria Santos               │
+│ • Validation: ✓ 0 Cycles  ✓ Philippine Law Compliant  │
+│                                                        │
+│ [  GENERATE MASTER TREE C (ZERO RISK)  ]               │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### 15.5 Technical Algorithm & Execution Blueprint
+
+```kotlin
+// Step 1: Read source records (STRICTLY READ-ONLY)
+val membersA = firestoreHelper.getPersonsByTree(treeAId)
+val membersB = firestoreHelper.getPersonsByTree(treeBId)
+
+// Step 2: Build UUID Remapping Dictionary (prevents ID collisions)
+val idMap = mutableMapOf<String, String>()
+for (person in membersA + membersB) {
+    idMap[person.id] = UUID.randomUUID().toString()
+}
+
+// Step 3: Create Master Tree C record
+val masterTreeId = UUID.randomUUID().toString()
+val masterTree = FamilyTree(
+    id = masterTreeId,
+    name = masterTreeName,
+    ownerId = currentUserId,
+    ownerName = currentUserName,
+    memberCount = membersA.size + membersB.size,
+    createdAt = System.currentTimeMillis()
+)
+
+// Step 4: Deep-clone members into Tree C with re-mapped relational pointers
+val clonedMembersC = mutableListOf<Person>()
+
+fun clonePerson(p: Person): Person {
+    return p.copy(
+        id = idMap[p.id]!!,
+        treeId = masterTreeId,
+        fatherId = idMap[p.fatherId] ?: p.fatherId,
+        motherId = idMap[p.motherId] ?: p.motherId,
+        spouseId = idMap[p.spouseId] ?: p.spouseId,
+        createdBy = currentUserId,
+        createdAt = System.currentTimeMillis()
+    )
+}
+
+for (p in membersA) clonedMembersC.add(clonePerson(p))
+for (p in membersB) clonedMembersC.add(clonePerson(p))
+
+// Step 5: Apply the Anchor Bridge on the cloned records in Tree C
+val clonedAnchorA = clonedMembersC.first { it.id == idMap[anchorPersonAId] }
+val clonedAnchorB = clonedMembersC.first { it.id == idMap[anchorPersonBId] }
+
+when (bridgeMode) {
+    BridgeMode.SPOUSE -> {
+        // Enforce Philippine Family Code consanguinity validation
+        val validation = MarriageValidationEngine.validateMarriage(clonedAnchorA, clonedAnchorB, clonedMembersC)
+        if (!validation.isValid) throw IllegalStateException(validation.errorMessage)
+
+        clonedAnchorA.spouseId = clonedAnchorB.id
+        clonedAnchorB.spouseId = clonedAnchorA.id
+    }
+    BridgeMode.PARENT_CHILD -> {
+        clonedAnchorB.fatherId = clonedAnchorA.id // or motherId based on gender
+    }
+    BridgeMode.SHARED_ANCESTOR -> {
+        // Fuse records: retain Anchor A's record, re-point Anchor B's children to Anchor A, remove duplicate Anchor B
+        clonedMembersC.filter { it.fatherId == clonedAnchorB.id }.forEach { it.fatherId = clonedAnchorA.id }
+        clonedMembersC.filter { it.motherId == clonedAnchorB.id }.forEach { it.motherId = clonedAnchorA.id }
+        clonedMembersC.remove(clonedAnchorB)
+    }
+}
+
+// Step 6: Verify topological graph integrity
+val cycleDetected = FamilyRelationshipService.detectCycles(clonedMembersC)
+if (cycleDetected) throw IllegalStateException("Cycle detected in merged graph")
+
+// Step 7: Atomic Firestore Commit
+firestoreHelper.saveMasterTreeAndMembers(masterTree, clonedMembersC, onSuccess = {
+    // Notify reactive synchronizer
+    CentralTreeSynchronizer.notifyTreeDataChanged(masterTreeId)
+    TreePreferences.setActiveTreeId(context, masterTreeId)
+    // Open the new master tree on canvas!
+})
+```
+
+---
+
+#### 15.6 Comparison: Why Proposal 15 is Superior for Immediate Execution
+
+| Dimension | Approach 1 (Absorb into Tree A) | Proposal 15 (Safe Master Tree Synthesis) |
+| :--- | :--- | :--- |
+| **Risk to Original Data** | ⚠️ Moderate risk: Tree A and B are mutated | 🛡️ **Zero Risk**: Tree A and B are strictly read-only |
+| **Reversibility** | Difficult; requires complex rollback logic | **Effortless**: User simply deletes Tree C |
+| **Invite Code Compatibility** | Difficult: Cannot easily mutate someone else's tree | **Seamless**: Reads external tree data and clones it locally |
+| **User Psychological Safety** | High anxiety about breaking existing records | **Complete Confidence**: Original trees are 100% guaranteed safe |
+| **Implementation Complexity** | High (must handle mutations, soft-deletes, rollbacks) | **Clean & Modular**: Read $\rightarrow$ Clone $\rightarrow$ Write new tree |
+
+---
+
+### Proposal 16: Dedicated "Merged Clan Space" & Separate Sandbox Viewer (Preserving Original Family Tree)
+
+#### 16.1 Concept & User Motivation: Preserving the Pure Original Family Tree
+- **The Core User Insight**: A user's personal family tree is sacred. When a user explores connecting their paternal tree with their maternal tree, or linking their tree with their spouse’s or cousin’s tree, they **do not want their main personal tree polluted, distorted, or crowded out** by dozens of in-laws and collateral branches.
+- **The Pitfall of Traditional Genealogy Merges**: In conventional applications, merging forces all incoming members into the primary tree view. As a result, the primary tree canvas becomes overwhelming, difficult to navigate, and the user's direct line of ancestors gets buried among new relatives.
+- **The KinTrace Solution (Separate Space Architecture)**:
+  - **"View Tree" on Home Dashboard**: Always opens the user's pure, direct **Personal Family Tree** in `InteractiveTreeActivity`. It remains 100% untouched, clean, and unpolluted.
+  - **"Merge Branches" Action Card on Home Dashboard**: Acts as the dedicated entrance to an **isolated "Merged Clan Space"**.
+  - Merged clan trees (synthesized Master Trees) exist and are explored **exclusively inside this separate space**, completely quarantined from the user's primary tree.
+
+---
+
+#### 16.2 Navigation & Architectural Flow
+
+```
+                                  [ Home Dashboard ]
+                                    │             │
+              ┌─────────────────────┘             └─────────────────────┐
+              ▼                                                         ▼
+     [ "View Tree" Button ]                               [ "Merge Branches" Action Card ]
+              │                                                         │
+              ▼                                                         ▼
+ [ Pure Personal Family Tree ]                            [ Dedicated "Merged Clan Space" ]
+ • Screen: InteractiveTreeActivity                        • Screen: MergeBranchesActivity (Clan Hub)
+ • Displays only user's primary bloodline                 • Tab 1: "My Merged Clan Trees"
+ • 100% Preserved & Pristine                                └── View synthesized clan trees
+ • Zero in-law or cross-family clutter                      └── [ 👁️ Open Merged Clan Canvas ]
+ • Active tree ID stays personal                          • Tab 2: "Synthesize New Clan Tree"
+                                                            └── 3-Step Zero-Risk Fusion Wizard
+```
+
+---
+
+#### 16.3 The "Merged Clan Space" Screen Experience
+When the user taps the **Merge Branches** action card from the Home dashboard:
+
+1. **Header & Context**:
+   - Title: *"Merged Clan Space"*
+   - Subtitle: *"Multi-Family Clan Unions & Cross-Tree Synergies"*
+   - Info Pill: *"🛡️ Separate Sandbox: Viewing or creating clan trees here never alters your personal family tree."*
+
+2. **State A: Empty State (No Merged Trees Yet)**:
+   - Illustrative welcome card: *"Connect two family trees (e.g. Paternal & Maternal, or a Spouse's tree) into a unified clan view without touching your original family trees."*
+   - Action Button: `[ + Synthesize New Clan Tree ]` $\rightarrow$ Launches the 3-step synthesis wizard (Proposal 15).
+
+3. **State B: Active Merged Clan Trees List**:
+   - Displays cards for all synthesized clan trees in the user's account:
+     ```
+     ┌────────────────────────────────────────────────────────────┐
+     │  🏛️ Dela Cruz & Santos Master Clan Tree                    │
+     │  27 Total Members • 4 Generations                          │
+     │  Bridge: Juan Dela Cruz 💍 Maria Santos (Spouse Union)     │
+     │  Created: Sep 2026 • Status: Active Clan Sandbox           │
+     ├────────────────────────────────────────────────────────────┤
+     │  [ 👁️ View Clan Canvas ]       [ 🗑️ Delete Clan Tree ]     │
+     └────────────────────────────────────────────────────────────┘
+     ```
+   - **`[ 👁️ View Clan Canvas ]`**: Launches the dedicated **Merged Clan Sandbox Viewer**.
+   - **`[ 🗑️ Delete Clan Tree ]`**: Effortlessly deletes the synthesized Master Tree C. Both original trees remain 100% intact.
+   - **Floating Action Button**: `[ + Merge Another Tree ]`.
+
+---
+
+#### 16.4 Dedicated "Merged Clan Sandbox Viewer"
+When the user opens a clan tree from the Merged Clan Space:
+- **Visual Family Lineage Differentiation**:
+  - **Family A Nodes**: Rendered with subtle Slate Blue borders and badges (*"Dela Cruz Line"*).
+  - **Family B Nodes**: Rendered with subtle Emerald Green borders and badges (*"Santos Line"*).
+  - **Anchor Bridge Node**: Highlighted with an illuminated Golden Ring badge (indicating the marital or ancestral union point).
+- **Session Independence**:
+  - Navigating and interacting with the Merged Clan Canvas does **not overwrite the user's active personal tree preference** (`TreePreferences.getActiveTreeId()`).
+  - Pressing "Back" returns the user cleanly to the Merged Clan Space, and tapping Home returns to their personal tree without any session contamination.
+
+---
+
+#### 16.5 Data Segregation Standard
+- In `FamilyTree` model and Firestore documents:
+  - Add attribute: `treeType: String = "PERSONAL"` (default for standard family trees) or `"MERGED_CLAN"` (for synthesized trees).
+  - `HomeActivity` and `FamilyRecordsActivity`: Query `treeType == "PERSONAL"`, ensuring merged trees never appear in the primary personal tree dropdowns.
+  - `MergeBranchesActivity`: Queries `treeType == "MERGED_CLAN"` for its list, maintaining complete architectural separation.
+
+---
+
 ## 3. Proposal Ideas Changelog & Expansion Log
 
 | Date | Added By | Summary of Ideas Logged |
 | :--- | :--- | :--- |
 | **2026-09-25** | System Architecture Review | Initialized `Proposal IDEAS.md` with Proposals 01 through 10 (GEDCOM, ML Kit OCR, DNA cM Correlation, GIS Migration, Offline-First Room SQLite, Encrypted Vault, Regional Dialects, 3-Way Merge, Oral History, Reunion Planner). |
+| **2026-09-26** | System Architecture Review | Added Proposals 11 through 14: Comprehensive Multi-Tree Merging Architecture (Anchor-Bridge Merger, Non-Destructive Clan Synthesis, Cross-Account Handshake, Automated 3-Way Graph Diff Engine, Architectural Comparison Matrix, 5-Step UI/UX Wizard, & Module Impact Mapping). |
+| **2026-09-26** | System Architecture Review | Added Proposal 15: Safe Master Tree Synthesis (Zero-Risk Clan Fusion Engine) — combines non-destructive Master Tree C generation with Invite Code support; 100% read-only on source trees, 3-step wizard, and instant execution blueprint. |
+| **2026-09-26** | System Architecture Review | Added Proposal 16: Dedicated "Merged Clan Space" & Separate Sandbox Viewer — isolates merged trees exclusively inside the "Merge Branches" portal; guarantees the user's primary "View Tree" remains 100% pure, unpolluted, and preserved. |
 
 *(New proposals and suggestions requested in future interactions will be appended here automatically.)*
 

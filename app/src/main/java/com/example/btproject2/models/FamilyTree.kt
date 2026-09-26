@@ -12,6 +12,13 @@ data class FamilyTree(
     val inviteCode: String = "",
     @get:PropertyName("isPrivate") @set:PropertyName("isPrivate") var isPrivate: Boolean = false,
     val memberCount: Int = 1,
-    val createdAt: Long = System.currentTimeMillis()
-)
+    val createdAt: Long = System.currentTimeMillis(),
+    val treeType: String = TREE_TYPE_PERSONAL,
+    val bridgeDescription: String = ""
+) {
+    companion object {
+        const val TREE_TYPE_PERSONAL = "PERSONAL"
+        const val TREE_TYPE_MERGED_CLAN = "MERGED_CLAN"
+    }
+}
 

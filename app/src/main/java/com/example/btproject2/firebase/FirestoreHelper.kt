@@ -505,6 +505,8 @@ class FirestoreHelper {
                 ?: false
             val memberCount = (data["memberCount"] as? Number)?.toInt() ?: 1
             val createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis()
+            val treeType = (data["treeType"] as? String)?.takeIf { it.isNotBlank() } ?: FamilyTree.TREE_TYPE_PERSONAL
+            val bridgeDescription = (data["bridgeDescription"] as? String)?.takeIf { it.isNotBlank() } ?: ""
 
             return FamilyTree(
                 id = doc.id,
@@ -514,7 +516,9 @@ class FirestoreHelper {
                 inviteCode = inviteCode.replace(" ", "").trim().uppercase(),
                 isPrivate = isPrivate,
                 memberCount = memberCount,
-                createdAt = createdAt
+                createdAt = createdAt,
+                treeType = treeType,
+                bridgeDescription = bridgeDescription
             )
         }
     }
@@ -2385,6 +2389,7 @@ class FirestoreHelper {
 
     fun getUserTrees(
         userId: String,
+        includeMergedClan: Boolean = false,
         onSuccess: (List<FamilyTree>) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
@@ -2421,7 +2426,8 @@ class FirestoreHelper {
                                     .distinct()
 
                                 if (memberTreeIds.isEmpty()) {
-                                    onSuccess(ownedTrees)
+                                    val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                                    onSuccess(filtered)
                                 } else {
                                     val combinedTrees = ownedTrees.toMutableList()
                                     var remaining = memberTreeIds.size
@@ -2433,13 +2439,15 @@ class FirestoreHelper {
                                                 }
                                                 remaining--
                                                 if (remaining <= 0) {
-                                                    onSuccess(combinedTrees)
+                                                    val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                                                    onSuccess(filtered)
                                                 }
                                             },
                                             onFailure = {
                                                 remaining--
                                                 if (remaining <= 0) {
-                                                    onSuccess(combinedTrees)
+                                                    val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                                                    onSuccess(filtered)
                                                 }
                                             }
                                         )
@@ -2447,12 +2455,137 @@ class FirestoreHelper {
                                 }
                             }
                             .addOnFailureListener {
-                                onSuccess(ownedTrees)
+                                val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                                onSuccess(filtered)
                             }
                     }
                     .addOnFailureListener {
-                        onSuccess(ownedTrees)
+                        val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                        onSuccess(filtered)
                     }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Backward-compatible overload for getUserTrees without includeMergedClan parameter.
+     */
+    fun getUserTrees(
+        userId: String,
+        onSuccess: (List<FamilyTree>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        getUserTrees(userId, includeMergedClan = false, onSuccess = onSuccess, onFailure = onFailure)
+    }
+
+    /**
+     * Retrieves all merged clan trees (Master Tree C) owned by or shared with the user.
+     */
+    fun getMergedClanTrees(
+        userId: String,
+        onSuccess: (List<FamilyTree>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        getUserTrees(userId, includeMergedClan = true,
+            onSuccess = { allTrees ->
+                val clanTrees = allTrees.filter { it.treeType == FamilyTree.TREE_TYPE_MERGED_CLAN }
+                onSuccess(clanTrees)
+            },
+            onFailure = onFailure
+        )
+    }
+
+    /**
+     * Synthesizes and saves a brand-new Master Clan Tree C along with its cloned members
+     * in an atomic Firestore batch. Original trees are untouched and strictly read-only.
+     */
+    fun saveMasterTreeAndMembers(
+        masterTree: FamilyTree,
+        members: List<Person>,
+        onSuccess: (FamilyTree) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val treeDocRef = if (masterTree.id.isNotEmpty()) db.collection("trees").document(masterTree.id)
+                         else db.collection("trees").document()
+        val inviteCode = if (masterTree.inviteCode.isNotBlank()) masterTree.inviteCode.replace(" ", "").trim().uppercase()
+                         else generateInviteCode()
+        val finalTree = masterTree.copy(
+            id = treeDocRef.id,
+            inviteCode = inviteCode,
+            memberCount = members.size,
+            treeType = FamilyTree.TREE_TYPE_MERGED_CLAN
+        )
+
+        val batch = db.batch()
+        batch.set(treeDocRef, finalTree)
+
+        // Save invite code record in dedicated collection
+        val inviteRecord = InviteCodeRecord(
+            code = inviteCode,
+            treeId = finalTree.id,
+            treeName = finalTree.name,
+            createdBy = finalTree.ownerId,
+            createdAt = System.currentTimeMillis(),
+            expiresAt = 0L,
+            usageLimit = 0,
+            usageCount = 0,
+            status = InviteCodeRecord.STATUS_ACTIVE
+        )
+        val inviteDocRef = db.collection("inviteCodes").document(inviteCode)
+        batch.set(inviteDocRef, inviteRecord)
+
+        // Add creator as Owner in tree_members
+        val memberDoc = db.collection("tree_members").document()
+        val ownerMember = TreeMember(
+            id = memberDoc.id,
+            treeId = finalTree.id,
+            userId = finalTree.ownerId,
+            userName = finalTree.ownerName,
+            role = "Owner",
+            status = "Approved"
+        )
+        batch.set(memberDoc, ownerMember)
+
+        // Set all cloned persons in persons collection
+        for (person in members) {
+            val personDocRef = db.collection("persons").document(person.id)
+            batch.set(personDocRef, person.copy(treeId = finalTree.id))
+        }
+
+        batch.commit()
+            .addOnSuccessListener { onSuccess(finalTree) }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Safely deletes a tree (e.g. a Merged Clan Tree) and its associated members.
+     */
+    fun deleteTree(
+        treeId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (treeId.isBlank()) {
+            onSuccess()
+            return
+        }
+        db.collection("trees").document(treeId).delete()
+            .addOnSuccessListener {
+                db.collection("persons").whereEqualTo("treeId", treeId).get()
+                    .addOnSuccessListener { querySnapshot ->
+                        if (querySnapshot.isEmpty) {
+                            onSuccess()
+                        } else {
+                            val batch = db.batch()
+                            for (doc in querySnapshot.documents) {
+                                batch.delete(doc.reference)
+                            }
+                            batch.commit()
+                                .addOnSuccessListener { onSuccess() }
+                                .addOnFailureListener { onSuccess() }
+                        }
+                    }
+                    .addOnFailureListener { onSuccess() }
             }
             .addOnFailureListener { onFailure(it) }
     }

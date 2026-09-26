@@ -25,3 +25,15 @@ When a global scope is confirmed:
 - Guarantee that every connected screen, validation check, and visual component updates automatically in real time without requiring app restarts or manual reloads.
 - **Never write isolated, single-screen solutions** unless the user explicitly confirms that the change is strictly local.
 
+---
+
+## GitHub Push Workflow Standard (`/push` Signal Condition)
+- Code must **never be pushed to remote GitHub automatically** without explicit user instruction.
+- The slash command `/push` serves as the **exclusive signal/condition** authorizing and triggering a git push to the official remote repository: `https://github.com/gltitccch/BTProject2.git`.
+- When the user sends `/push`:
+  1. Verify that all unit tests pass (`.\gradlew.bat testDebugUnitTest`) and the debug build compiles cleanly.
+  2. Check local git status and commit any outstanding verified changes.
+  3. Push to `origin master` (`https://github.com/gltitccch/BTProject2.git`).
+  4. Report the push status and remote commit hash to the user.
+
+

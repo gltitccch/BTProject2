@@ -44,7 +44,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Family Branch Integration"
+                    android:text="Merged Clan Space"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary" />
@@ -53,7 +53,7 @@
                     android:id="@+id/tvSubtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Unify duplicate lineages &amp; link separate branches"
+                    android:text="Multi-family clan unions &amp; cross-tree synergies"
                     android:textSize="11sp"
                     android:textColor="@color/text_secondary"
                     android:layout_marginTop="2dp" />
@@ -75,6 +75,36 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Sandbox Isolation Assurance Pill -->
+    <LinearLayout
+        android:id="@+id/layoutSandboxPill"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#1B3326"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🛡️ Sandbox Isolated: "
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#4ECCA3" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Viewing or synthesizing trees here never alters your personal family tree in View Tree."
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary" />
+    </LinearLayout>
+
     <!-- Viewer Read-Only Banner -->
     <LinearLayout
         android:id="@+id/layoutViewerBanner"
@@ -92,7 +122,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👁 Viewer Mode: Branch merging is restricted to Owners and Editors."
+            android:text="👁 Viewer Mode: Clan tree synthesis is restricted to Owners."
             android:textSize="11sp"
             android:textColor="@color/gold_accent" />
     </LinearLayout>
@@ -109,9 +139,9 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Manual Branch Connector Hero Card -->
+            <!-- Zero-Risk Clan Tree Synthesis Hero Card -->
             <LinearLayout
-                android:id="@+id/cardManualConnectHero"
+                android:id="@+id/cardSynthesizeClanHero"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -130,7 +160,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="MANUAL BRANCH CONNECTOR"
+                        android:text="ZERO-RISK CLAN FUSION"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:textColor="@color/gold_accent"
@@ -139,7 +169,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="FR-08"
+                        android:text="PROPOSAL 15 &amp; 16"
                         android:textSize="10sp"
                         android:textColor="@color/text_secondary"
                         android:background="@drawable/badge_pill_dark"
@@ -152,8 +182,8 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Connect Two Disconnected Branches"
-                    android:textSize="15sp"
+                    android:text="Synthesize Master Clan Tree"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="4dp" />
@@ -161,17 +191,17 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Select a person from Branch A and a person from Branch B to establish a marital or parent-child link with biological cycle verification."
+                    android:text="Combine two separate family trees (e.g., Paternal &amp; Maternal, or a Spouse's tree via 6-digit Invite Code) into a new Master Clan Tree C. Both original trees remain 100% untouched and safe."
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
                     android:lineSpacingExtra="2dp"
                     android:layout_marginBottom="14dp" />
 
                 <Button
-                    android:id="@+id/btnOpenConnectBranches"
+                    android:id="@+id/btnOpenSynthesizeClanTree"
                     android:layout_width="match_parent"
                     android:layout_height="46dp"
-                    android:text="🔗  Connect Branches Manually"
+                    android:text="➕  Synthesize New Clan Tree"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="#0A1B12"
@@ -179,7 +209,7 @@
                     android:textAllCaps="false" />
             </LinearLayout>
 
-            <!-- Auto-Detected Matches Header -->
+            <!-- Synthesized Clan Trees Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -191,14 +221,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="AUTO-DETECTED DUPLICATE MATCHES"
+                    android:text="SYNTHESIZED CLAN TREES (SANDBOX)"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:textColor="@color/gold_accent"
                     android:letterSpacing="0.08" />
 
                 <TextView
-                    android:id="@+id/tvMatchCount"
+                    android:id="@+id/tvClanTreeCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Scanning..."
@@ -212,34 +242,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
                 android:indeterminateTint="@color/gold_accent" />
 
-            <!-- Empty State -->
+            <!-- Empty State for Clan Trees -->
             <LinearLayout
-                android:id="@+id/layoutEmptyState"
+                android:id="@+id/layoutEmptyClanState"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
                 android:background="@drawable/bg_forest_card"
-                android:padding="32dp"
-                android:visibility="gone">
+                android:padding="28dp"
+                android:visibility="gone"
+                android:layout_marginBottom="20dp">
 
                 <TextView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="@drawable/badge_pill_dark"
                     android:gravity="center"
-                    android:text="🌿"
+                    android:text="🏛️"
                     android:textSize="22sp"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="10dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="No Duplicate Records Detected"
+                    android:text="No Synthesized Clan Trees Yet"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
@@ -248,19 +279,67 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="All family members appear distinct. If you have separate family branches to link, use the Manual Branch Connector above."
+                    android:text="Your primary family tree in View Tree is preserved and clean. Tap 'Synthesize New Clan Tree' above to combine two family trees into a dedicated clan sandbox."
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
                     android:gravity="center"
                     android:lineSpacingExtra="2dp" />
             </LinearLayout>
 
-            <!-- Dynamic Match Cards Container -->
+            <!-- Container for Clan Trees -->
             <LinearLayout
-                android:id="@+id/matchContainer"
+                android:id="@+id/clanTreesContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Secondary Section: Single-Tree Intra-Branch Connector -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_forest_card"
+                android:padding="16dp"
+                android:layout_marginBottom="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="INTRA-TREE BRANCH CONNECTIONS"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:letterSpacing="0.06"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Link Disconnected Nodes Inside Current Tree"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Connect floating or unparented nodes within your currently active family tree."
+                    android:textSize="11sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="12dp" />
+
+                <Button
+                    android:id="@+id/btnOpenConnectBranches"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="🔗  Connect Internal Tree Nodes"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_primary"
+                    android:background="@drawable/badge_pill_dark"
+                    android:textAllCaps="false" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
