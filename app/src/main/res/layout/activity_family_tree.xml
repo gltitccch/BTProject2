@@ -17,61 +17,29 @@
         android:paddingTop="36dp"
         android:paddingBottom="16dp">
 
-        <TextView
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="← Back"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/gold_accent"
-            android:layout_marginBottom="12dp"
-            android:clickable="true"
-            android:focusable="true" />
-
+        <!-- Tier 1: Navigation & Action Shortcuts -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
 
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Family Tree"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary" />
-
-            <TextView
-                android:id="@+id/tvTreeRoleBadge"
+                android:id="@+id/btnBack"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="★ Owner"
-                android:textSize="11sp"
+                android:text="← Back"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:layout_marginEnd="8dp" />
+                android:clickable="true"
+                android:focusable="true" />
 
-            <TextView
-                android:id="@+id/tvMemberCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 members"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="@color/mint_text"
-                android:background="@drawable/badge_pill_dark"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/btnExportTree"
@@ -84,9 +52,9 @@
                 android:background="@drawable/badge_pill_dark"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:layout_marginStart="8dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="8dp"
                 android:clickable="true"
                 android:focusable="true" />
 
@@ -101,11 +69,58 @@
                 android:background="@drawable/badge_pill_dark"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:layout_marginStart="8dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
                 android:clickable="true"
                 android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Tier 2: Title & Identity Badges -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Family Tree"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tvTreeRoleBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="★ Owner"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvMemberCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 members"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp" />
         </LinearLayout>
     </LinearLayout>
 
