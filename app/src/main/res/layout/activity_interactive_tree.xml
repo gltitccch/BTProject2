@@ -76,6 +76,24 @@
                 android:clickable="true"
                 android:focusable="true" />
 
+            <!-- Export Tree Shortcut -->
+            <TextView
+                android:id="@+id/btnExportTreeShortcut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📤 Export"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
             <!-- Legend dialog (7.d) -->
             <TextView
                 android:id="@+id/btnInteractiveLegend"

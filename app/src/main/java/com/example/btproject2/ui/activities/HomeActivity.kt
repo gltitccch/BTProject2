@@ -225,14 +225,14 @@ class HomeActivity : AppCompatActivity() {
         }
 
         // ── Populated State Action Buttons (Figure 6) ──────────────
-        val cardAddMember = findViewById<LinearLayout>(R.id.cardAddMember)
+        val cardExportTree = findViewById<LinearLayout>(R.id.cardExportTree)
         val cardViewTree = findViewById<LinearLayout>(R.id.cardViewTree)
         val cardTrace = findViewById<LinearLayout>(R.id.cardTrace)
         val cardRecords = findViewById<LinearLayout>(R.id.cardRecords)
         val cardMerge = findViewById<LinearLayout>(R.id.cardMerge)
         val btnCreateTree = findViewById<LinearLayout?>(R.id.btnCreateTree)
         val btnJoinTree = findViewById<LinearLayout?>(R.id.btnJoinTree)
-        val btnExportTree = findViewById<View>(R.id.btnExportTree)
+        val btnSeeAllRecentActivities = findViewById<View>(R.id.btnSeeAllRecentActivities)
         val btnPrivacy = findViewById<LinearLayout>(R.id.btnPrivacy)
         val btnLogout = findViewById<TextView>(R.id.btnLogout)
 
@@ -256,9 +256,10 @@ class HomeActivity : AppCompatActivity() {
         tvProfileInitial.setOnClickListener { showAccountProfileDialog() }
         tvUserName.setOnClickListener { showAccountProfileDialog() }
 
-        cardAddMember.setOnClickListener {
-            val intent = Intent(this, AddMemberActivity::class.java).apply {
-                if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
+        cardExportTree.setOnClickListener {
+            val intent = Intent(this, ExportTreeActivity::class.java).apply {
+                val activeId = TreePreferences.getActiveTreeId(this@HomeActivity).ifEmpty { treeId }
+                if (activeId.isNotEmpty()) putExtra("TREE_ID", activeId)
             }
             startActivity(intent)
         }
@@ -291,9 +292,10 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        btnExportTree.setOnClickListener {
-            val intent = Intent(this, ExportTreeActivity::class.java).apply {
-                if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
+        btnSeeAllRecentActivities.setOnClickListener {
+            val intent = Intent(this, RecentActivitiesActivity::class.java).apply {
+                val activeId = TreePreferences.getActiveTreeId(this@HomeActivity).ifEmpty { treeId }
+                if (activeId.isNotEmpty()) putExtra("TREE_ID", activeId)
             }
             startActivity(intent)
         }

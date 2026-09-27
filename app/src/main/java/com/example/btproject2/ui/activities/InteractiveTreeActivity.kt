@@ -137,6 +137,15 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             startActivity(Intent(this, MergeBranchesActivity::class.java))
         }
 
+        findViewById<TextView>(R.id.btnExportTreeShortcut)?.setOnClickListener {
+            val intent = Intent(this, ExportTreeActivity::class.java).apply {
+                val activeTreeId = treeId.ifBlank { com.example.btproject2.utils.TreePreferences.getActiveTreeId(this@InteractiveTreeActivity) }
+                putExtra("TREE_ID", activeTreeId)
+                putExtra("treeId", activeTreeId)
+            }
+            startActivity(intent)
+        }
+
         findViewById<TextView>(R.id.btnInteractiveLegend)?.setOnClickListener {
             showTreeLegendDialog()
         }
@@ -1210,13 +1219,15 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 // FamilyTreeView — Canvas with Photo Nodes, Ahnentafel Pedigree & Trace
 // ══════════════════════════════════════════════════════════════════════
 
-class FamilyTreeView(
+class FamilyTreeView @JvmOverloads constructor(
     context: Context,
-    private val onOpenPerson:  (personId: String) -> Unit,
-    private val onAddChild:    (parentId: String) -> Unit,
-    private val onAddFirst:    () -> Unit,
-    private val onAddAncestor: (childId: String, isFather: Boolean) -> Unit
+    private val onOpenPerson:  (personId: String) -> Unit = {},
+    private val onAddChild:    (parentId: String) -> Unit = {},
+    private val onAddFirst:    () -> Unit = {},
+    private val onAddAncestor: (childId: String, isFather: Boolean) -> Unit = { _, _ -> }
 ) : View(context) {
+
+    var isExportMode: Boolean = false
 
     private val CARD_W      = 150f
     private val CARD_H      = 172f
@@ -1459,23 +1470,27 @@ class FamilyTreeView(
         updateThemeColors()
     }
 
+    fun applyDarkPalette() {
+        pCardBg.color = Color.parseColor("#0F241A")
+        pCardBorder.color = Color.parseColor("#234E3B")
+        pFirstName.color = Color.WHITE
+        pLastName.color = Color.parseColor("#A3B899")
+        pYear.color = Color.parseColor("#7A9A88")
+        pDashedCircle.color = Color.parseColor("#5A6E60")
+        pDashedLine.color = Color.parseColor("#344C3D")
+        pPedigreeLine.color = Color.parseColor("#1D9E75")
+        pPedigreeDashedLine.color = Color.parseColor("#344C3D")
+        pDashedText.color = Color.parseColor("#A3B899")
+        pDashedLabel.color = Color.parseColor("#7A9A88")
+        pLine.color = Color.parseColor("#1D9E75")
+        pEmpty.color = Color.parseColor("#A3B899")
+        pEmptySub.color = Color.parseColor("#7A9A88")
+    }
+
     fun updateThemeColors() {
         val isDark = ThemePreferences.isDarkTheme(context)
         if (isDark) {
-            pCardBg.color = Color.parseColor("#0F241A")
-            pCardBorder.color = Color.parseColor("#234E3B")
-            pFirstName.color = Color.WHITE
-            pLastName.color = Color.parseColor("#A3B899")
-            pYear.color = Color.parseColor("#7A9A88")
-            pDashedCircle.color = Color.parseColor("#5A6E60")
-            pDashedLine.color = Color.parseColor("#344C3D")
-            pPedigreeLine.color = Color.parseColor("#1D9E75")
-            pPedigreeDashedLine.color = Color.parseColor("#344C3D")
-            pDashedText.color = Color.parseColor("#A3B899")
-            pDashedLabel.color = Color.parseColor("#7A9A88")
-            pLine.color = Color.parseColor("#1D9E75")
-            pEmpty.color = Color.parseColor("#A3B899")
-            pEmptySub.color = Color.parseColor("#7A9A88")
+            applyDarkPalette()
         } else {
             pCardBg.color = Color.parseColor("#F5F7F1")
             pCardBorder.color = Color.parseColor("#D2D9CE")
@@ -2718,8 +2733,8 @@ class FamilyTreeView(
 
             drawPersonCard(canvas, p, pos.x, pos.y, isTraceMode, isOnPath, isMrca)
 
-            // Add Child Quick Button docked at bottom center of card (only in Main mode when not dimmed)
-            if (mode == "MAIN" && (!isTraceMode || isOnPath)) {
+            // Add Child Quick Button docked at bottom center of card (only in Main mode when not dimmed and not exporting)
+            if (mode == "MAIN" && (!isTraceMode || isOnPath) && !isExportMode) {
                 val btnY = pos.y + CARD_H / 2f
                 canvas.drawCircle(pos.x, btnY, ADD_BTN_R, pAddBtn)
                 canvas.drawCircle(pos.x, btnY, ADD_BTN_R, pAddBtnBorder)
@@ -3008,5 +3023,154 @@ class FamilyTreeView(
                 return
             }
         }
+    }
+
+    /**
+     * Renders a pristine visual bitmap of the genealogical family tree suitable for high-resolution
+     * image export and embedding in PDF executive reports.
+     */
+    fun exportToBitmap(persons: List<Person>, treeName: String = "Family Tree"): Bitmap {
+        isExportMode = true
+        val prevMode = mode
+        val prevFocal = focalPersonId
+        val prevPersons = allPersons
+        val wasDark = ThemePreferences.isDarkTheme(context)
+
+        applyDarkPalette()
+        mode = "MAIN"
+        focalPersonId = null
+        allPersons = persons
+
+        val diameter = (NODE_RADIUS * 2).toInt()
+        persons.forEach { p ->
+            if (p.photoBase64.isNotEmpty() && !avatarBitmapCache.containsKey(p.id)) {
+                val raw = DocumentHelper.decodeBase64Bitmap(p.photoBase64)
+                if (raw != null) {
+                    val circ = DocumentHelper.getCircularBitmap(raw, diameter)
+                    if (raw != circ && !raw.isRecycled) {
+                        raw.recycle()
+                    }
+                    avatarBitmapCache[p.id] = circ
+                }
+            }
+        }
+
+        updateDisplayPersons()
+
+        var minX = Float.MAX_VALUE; var maxX = 0f
+        var minY = Float.MAX_VALUE; var maxY = 0f
+        if (posMap.isEmpty()) {
+            minX = 0f; maxX = 1200f
+            minY = 0f; maxY = 800f
+        } else {
+            posMap.values.forEach {
+                minX = minOf(minX, it.x - CARD_W / 2f)
+                maxX = maxOf(maxX, it.x + CARD_W / 2f)
+                minY = minOf(minY, it.y - CARD_H / 2f)
+                maxY = maxOf(maxY, it.y + CARD_H / 2f)
+            }
+        }
+        val treeW = (maxX - minX).coerceAtLeast(800f)
+        val treeH = (maxY - minY).coerceAtLeast(600f)
+
+        val padding = 80f
+        val headerH = 130f
+
+        val bmpW = (treeW + padding * 2).toInt().coerceAtLeast(1400)
+        val bmpH = (treeH + headerH + padding * 2).toInt().coerceAtLeast(900)
+
+        val maxDim = 4096f
+        val scale = if (bmpW > maxDim || bmpH > maxDim) {
+            minOf(maxDim / bmpW, maxDim / bmpH)
+        } else {
+            1.0f
+        }
+
+        val finalW = (bmpW * scale).toInt()
+        val finalH = (bmpH * scale).toInt()
+
+        val bmp = Bitmap.createBitmap(finalW, finalH, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        if (scale != 1.0f) {
+            canvas.scale(scale, scale)
+        }
+
+        // Rich dark background matching KinTrace emerald theme
+        canvas.drawColor(Color.parseColor("#06120D"))
+
+        // Header Card
+        val headerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#0C2017")
+            style = Paint.Style.FILL
+        }
+        val headerBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#1D9E75")
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+        }
+        val headerRect = RectF(padding, padding / 2, bmpW - padding, headerH + padding / 2)
+        canvas.drawRoundRect(headerRect, 16f, 16f, headerPaint)
+        canvas.drawRoundRect(headerRect, 16f, 16f, headerBorderPaint)
+
+        val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            textSize = 30f
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        val subPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#1D9E75")
+            textSize = 16f
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        val metaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#94A3B8")
+            textSize = 14f
+        }
+
+        val dateStr = java.text.SimpleDateFormat("MMMM d, yyyy", java.util.Locale.getDefault()).format(java.util.Date())
+        val livingCount = persons.count { it.isLiving }
+        val deceasedCount = persons.size - livingCount
+
+        canvas.drawText("🌳 KinTrace  ·  $treeName", padding + 24f, padding / 2 + 42f, titlePaint)
+        canvas.drawText("AUTHENTIC GENEALOGICAL CHART", padding + 24f, padding / 2 + 74f, subPaint)
+        canvas.drawText("Total Kinfolk: ${persons.size}   |   Living: $livingCount   |   Deceased: $deceasedCount   |   Exported: $dateStr", padding + 24f, padding / 2 + 104f, metaPaint)
+
+        // Draw Tree
+        canvas.save()
+        val originX = padding - minX
+        val originY = headerH + padding - minY
+        canvas.translate(originX, originY)
+
+        drawMainTree(
+            canvas = canvas,
+            isTraceMode = false,
+            cullLeft = -100000f,
+            cullRight = 100000f,
+            cullTop = -100000f,
+            cullBottom = 100000f
+        )
+        canvas.restore()
+
+        // Watermark / footer
+        val footerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#475569")
+            textSize = 13f
+            textAlign = Paint.Align.RIGHT
+        }
+        canvas.drawText("Generated by KinTrace  ·  Certified Family Records System", bmpW - padding, bmpH - padding / 2, footerPaint)
+
+        // Restore state if view was used interactively
+        isExportMode = false
+        mode = prevMode
+        focalPersonId = prevFocal
+        allPersons = prevPersons
+        if (!wasDark) {
+            updateThemeColors()
+        }
+        if (allPersons.isNotEmpty()) {
+            updateDisplayPersons()
+        }
+
+        return bmp
     }
 }

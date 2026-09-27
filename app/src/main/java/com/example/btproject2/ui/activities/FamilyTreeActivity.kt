@@ -175,6 +175,14 @@ class FamilyTreeActivity : AppCompatActivity() {
         val btnTreeLegend = findViewById<TextView>(R.id.btnTreeLegend)
         btnTreeLegend?.setOnClickListener { showTreeLegendDialog() }
 
+        val btnExportTree = findViewById<TextView>(R.id.btnExportTree)
+        btnExportTree?.setOnClickListener {
+            val intent = Intent(this, ExportTreeActivity::class.java).apply {
+                if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
+            }
+            startActivity(intent)
+        }
+
         // Tab buttons
         btnPedigree.setOnClickListener { switchTab(pedigree = true) }
         btnFanChart.setOnClickListener { switchTab(pedigree = false) }

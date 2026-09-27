@@ -808,9 +808,9 @@
                             android:layout_marginTop="2dp" />
                     </LinearLayout>
 
-                    <!-- Tool 6: Add Member -->
+                    <!-- Tool 6: Export Tree -->
                     <LinearLayout
-                        android:id="@+id/cardAddMember"
+                        android:id="@+id/cardExportTree"
                         android:layout_width="0dp"
                         android:layout_height="138dp"
                         android:layout_weight="1"
@@ -825,7 +825,7 @@
                             android:layout_width="34dp"
                             android:layout_height="34dp"
                             android:gravity="center"
-                            android:text="👤"
+                            android:text="📤"
                             android:textSize="16sp"
                             android:background="@drawable/icon_squircle_dark"
                             android:layout_marginBottom="7dp" />
@@ -833,7 +833,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Add Member"
+                            android:text="Export Tree"
                             android:textSize="12sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary" />
@@ -841,7 +841,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Expand the\ntree"
+                            android:text="PDF, PNG,\nCSV records"
                             android:textSize="10sp"
                             android:textColor="@color/dark_subtext"
                             android:lineSpacingMultiplier="1.1"
@@ -935,7 +935,7 @@
                         android:textColor="@color/mint_text" />
 
                     <TextView
-                        android:id="@+id/btnExportTree"
+                        android:id="@+id/btnSeeAllRecentActivities"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="See all ›"
