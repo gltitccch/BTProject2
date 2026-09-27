@@ -86,6 +86,7 @@ class ExportTreeActivity : AppCompatActivity() {
         }
 
         loadData()
+        updateTreePillBadge()
     }
 
     private fun loadData() {
@@ -94,6 +95,7 @@ class ExportTreeActivity : AppCompatActivity() {
                 onSuccess = { tree ->
                     if (tree != null && tree.name.isNotBlank()) {
                         treeName = tree.name
+                        updateTreePillBadge()
                     }
                 },
                 onFailure = {}
@@ -107,11 +109,20 @@ class ExportTreeActivity : AppCompatActivity() {
                 tvTotalMembers.text  = list.size.toString()
                 tvParentLinks.text   = parentLinks.toString()
                 tvLivingMembers.text = living.toString()
+                updateTreePillBadge()
             },
             onFailure = {
                 toast("Failed to load family members: ${it.message}")
             }
         )
+    }
+
+    private fun updateTreePillBadge() {
+        val tvTreePillBadge = findViewById<TextView?>(R.id.tvTreePillBadge) ?: return
+        val count = persons.size
+        val countText = if (count == 1) "1 Member" else "$count Members"
+        val displayName = if (treeName.isNotBlank() && treeName != "Family") treeName else "Family Tree"
+        tvTreePillBadge.text = "🌳 $displayName • $countText"
     }
 
     private fun selectFormat(format: String, card: LinearLayout) {
@@ -122,12 +133,12 @@ class ExportTreeActivity : AppCompatActivity() {
         listOf(cardPdf, cardPng, cardGedcom, cardCsv).forEach {
             it.setBackgroundResource(R.drawable.card_bg)
         }
-        // Highlight selected
-        card.setBackgroundResource(R.drawable.card_bg_selected)
+        // Highlight selected with gold accent border
+        card.setBackgroundResource(R.drawable.bg_export_card_selected)
 
-        // Enable export button
-        btnExport.setBackgroundResource(R.drawable.btn_primary_bg)
-        btnExport.setTextColor(resources.getColor(R.color.white, null))
+        // Enable export button with radiant gold styling
+        btnExport.setBackgroundResource(R.drawable.btn_gold_primary)
+        btnExport.setTextColor(resources.getColor(R.color.forest_bg, null))
         btnExport.text = "Export as $format"
     }
 

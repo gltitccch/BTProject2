@@ -6,4 +6,5 @@
     <item name="btnSeeAllRecentActivities" type="id" />
     <item name="btnExportTree" type="id" />
     <item name="btnExportTreeShortcut" type="id" />
+    <item name="tvTreePillBadge" type="id" />
 </resources>
