@@ -165,5 +165,25 @@ class MergedClanSpaceAndSynthesisTest {
         assertFalse(selfResult.isAllowed)
         assertTrue(selfResult.reason.contains("cannot marry themselves"))
     }
-}
+    @Test
+    fun testTreeListDeduplication_ensuresSingleSourceOfTruth() {
+        val duplicateRawTrees = listOf(
+            FamilyTree(id = "clan1", name = "Smith - Malone Master Clan Tree", treeType = FamilyTree.TREE_TYPE_MERGED_CLAN),
+            FamilyTree(id = "clan1", name = "Smith - Malone Master Clan Tree", treeType = FamilyTree.TREE_TYPE_MERGED_CLAN),
+            FamilyTree(id = "treeA", name = "Smith Family", treeType = FamilyTree.TREE_TYPE_PERSONAL),
+            FamilyTree(id = "treeA", name = "Smith Family", treeType = FamilyTree.TREE_TYPE_PERSONAL),
+            FamilyTree(id = "treeB", name = "Malone Family", treeType = FamilyTree.TREE_TYPE_PERSONAL)
+        )
 
+        // Verifying distinctBy preserves single instance per tree ID
+        val distinctUserTrees = duplicateRawTrees.distinctBy { it.id }
+        assertEquals(3, distinctUserTrees.size)
+        assertEquals(listOf("clan1", "treeA", "treeB"), distinctUserTrees.map { it.id })
+
+        val distinctClanTrees = duplicateRawTrees
+            .filter { it.treeType == FamilyTree.TREE_TYPE_MERGED_CLAN }
+            .distinctBy { it.id }
+        assertEquals(1, distinctClanTrees.size)
+        assertEquals("clan1", distinctClanTrees.first().id)
+    }
+}

@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.AdapterView
@@ -62,6 +64,12 @@ class MergeBranchesActivity : AppCompatActivity() {
     private lateinit var btnRegenerateMyMergeCode: Button
     private var myActiveMergeCode: String = ""
 
+    private val clanRefreshHandler = Handler(Looper.getMainLooper())
+    private val clanRefreshRunnable = Runnable {
+        loadClanTrees()
+    }
+    private var isLoadingClanTrees: Boolean = false
+
     private val mergeSyncListener = object : SyncEventListener {
         override val subscriberKey: String = "MergeBranchesActivity@${System.identityHashCode(this)}"
         override val interestedTreeId: String? = null
@@ -69,7 +77,8 @@ class MergeBranchesActivity : AppCompatActivity() {
             if (event.changeType == SyncChangeType.TREE_DELETED ||
                 event.changeType == SyncChangeType.MEMBER_ADDED) {
                 runOnUiThread {
-                    loadClanTrees()
+                    clanRefreshHandler.removeCallbacks(clanRefreshRunnable)
+                    clanRefreshHandler.postDelayed(clanRefreshRunnable, 250L)
                 }
             }
         }
@@ -88,6 +97,11 @@ class MergeBranchesActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         CentralTreeSynchronizer.getInstance().unregisterListener(mergeSyncListener)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        clanRefreshHandler.removeCallbacks(clanRefreshRunnable)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -225,9 +239,6 @@ class MergeBranchesActivity : AppCompatActivity() {
 
         // Load current active tree merge code
         loadActiveTreeMergeCode()
-
-        // Load synthesized clan trees
-        loadClanTrees()
     }
 
     private fun loadActiveTreeMergeCode() {
@@ -288,29 +299,36 @@ class MergeBranchesActivity : AppCompatActivity() {
     }
 
     private fun loadClanTrees() {
+        if (isLoadingClanTrees) return
+        isLoadingClanTrees = true
+
         val currentUserId = authHelper.getCurrentUserId() ?: ""
         progressBarMerge.visibility = View.VISIBLE
         layoutEmptyClanState.visibility = View.GONE
-        clanTreesContainer.removeAllViews()
         tvClanTreeCount.text = "Scanning..."
 
         firestoreHelper.getMergedClanTrees(currentUserId,
             onSuccess = { clanTrees ->
+                isLoadingClanTrees = false
                 progressBarMerge.visibility = View.GONE
-                if (clanTrees.isEmpty()) {
+                clanTreesContainer.removeAllViews()
+                val distinctTrees = clanTrees.distinctBy { it.id }
+                if (distinctTrees.isEmpty()) {
                     tvClanTreeCount.text = "0 Clan Trees"
                     layoutEmptyClanState.visibility = View.VISIBLE
                 } else {
-                    tvClanTreeCount.text = "${clanTrees.size} Clan Tree(s)"
+                    tvClanTreeCount.text = "${distinctTrees.size} Clan Tree(s)"
                     layoutEmptyClanState.visibility = View.GONE
                     val inflater = LayoutInflater.from(this)
-                    for (tree in clanTrees) {
+                    for (tree in distinctTrees) {
                         addClanTreeCard(inflater, tree)
                     }
                 }
             },
             onFailure = {
+                isLoadingClanTrees = false
                 progressBarMerge.visibility = View.GONE
+                clanTreesContainer.removeAllViews()
                 tvClanTreeCount.text = "0 Clan Trees"
                 layoutEmptyClanState.visibility = View.VISIBLE
             }
@@ -318,7 +336,11 @@ class MergeBranchesActivity : AppCompatActivity() {
     }
 
     private fun addClanTreeCard(inflater: LayoutInflater, tree: FamilyTree) {
+        if (clanTreesContainer.findViewWithTag<View>(tree.id) != null) {
+            return
+        }
         val card = inflater.inflate(R.layout.item_clan_tree_card, clanTreesContainer, false)
+        card.tag = tree.id
 
         val tvName = card.findViewById<TextView>(R.id.tvClanTreeName)
         val tvMembers = card.findViewById<TextView>(R.id.tvClanTreeMemberCount)
@@ -358,7 +380,8 @@ class MergeBranchesActivity : AppCompatActivity() {
                         onSuccess = {
                             progressBarMerge.visibility = View.GONE
                             Toast.makeText(this, "Master Clan Tree deleted.", Toast.LENGTH_SHORT).show()
-                            loadClanTrees()
+                            clanRefreshHandler.removeCallbacks(clanRefreshRunnable)
+                            clanRefreshHandler.postDelayed(clanRefreshRunnable, 100L)
                         },
                         onFailure = { error ->
                             progressBarMerge.visibility = View.GONE

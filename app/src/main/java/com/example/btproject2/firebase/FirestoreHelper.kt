@@ -2608,7 +2608,7 @@ class FirestoreHelper {
 
                                 if (memberTreeIds.isEmpty()) {
                                     val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                    onSuccess(filtered)
+                                    onSuccess(filtered.distinctBy { it.id })
                                 } else {
                                     val combinedTrees = ownedTrees.toMutableList()
                                     var remaining = memberTreeIds.size
@@ -2621,14 +2621,14 @@ class FirestoreHelper {
                                                 remaining--
                                                 if (remaining <= 0) {
                                                     val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                                    onSuccess(filtered)
+                                                    onSuccess(filtered.distinctBy { it.id })
                                                 }
                                             },
                                             onFailure = {
                                                 remaining--
                                                 if (remaining <= 0) {
                                                     val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                                    onSuccess(filtered)
+                                                    onSuccess(filtered.distinctBy { it.id })
                                                 }
                                             }
                                         )
@@ -2637,12 +2637,12 @@ class FirestoreHelper {
                             }
                             .addOnFailureListener {
                                 val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                onSuccess(filtered)
+                                onSuccess(filtered.distinctBy { it.id })
                             }
                     }
                     .addOnFailureListener {
                         val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                        onSuccess(filtered)
+                        onSuccess(filtered.distinctBy { it.id })
                     }
             }
             .addOnFailureListener { onFailure(it) }
@@ -2669,7 +2669,7 @@ class FirestoreHelper {
     ) {
         getUserTrees(userId, includeMergedClan = true,
             onSuccess = { allTrees ->
-                val clanTrees = allTrees.filter { it.treeType == FamilyTree.TREE_TYPE_MERGED_CLAN }
+                val clanTrees = allTrees.filter { it.treeType == FamilyTree.TREE_TYPE_MERGED_CLAN }.distinctBy { it.id }
                 onSuccess(clanTrees)
             },
             onFailure = onFailure

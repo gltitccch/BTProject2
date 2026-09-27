@@ -2620,3 +2620,44 @@ This file tracks all code changes implemented for each user request.
 - `[MODIFY]` [`InsightsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/InsightsActivity.kt)
 - `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
 
+---
+
+## [Request #23] - Global Tree De-duplication, Concurrency Guarding, and Double-Card Elimination
+- **Date**: 2026-09-27
+- **Requested By**: User
+- **User Request**: 
+  > *"i found some problem. the merge master tree gets duplicate and when i deleted one of it, then both of it gets deleted."*
+  > Followed by confirmed architectural scope:
+  > *"Global Scope: Enforce strict tree de-duplication in FirestoreHelper (getUserTrees, getMergedClanTrees via distinctBy), add in-flight query concurrency guards, and protect tree list containers and sync listeners globally."*
+
+### Root Cause Analysis
+1. **Activity Lifecycle Race Condition**: `MergeBranchesActivity` invoked `loadClanTrees()` concurrently in `onCreate()` and in `onResume()`. When entering the activity, both lifecycle callbacks triggered asynchronous Firestore network calls nearly simultaneously.
+2. **Container Clearing Timing**: `clanTreesContainer.removeAllViews()` was previously called before starting the async query rather than inside the `onSuccess` callback. Consequently, query 1 inflated its card into the container, and shortly after, query 2 completed and appended another identical card to the container.
+3. **Display vs Model Discrepancy**: The header counter `tvClanTreeCount.text = "${clanTrees.size} Clan Tree(s)"` displayed `1 Clan Tree(s)`, confirming Firestore held only 1 document, while the UI container contained two rendered card views referencing the same underlying tree ID.
+4. **Simultaneous Deletion Bug**: When tapping "Delete" on either card, the underlying single Firestore document (`tree.id`) was deleted; upon sync refresh, both UI cards disappeared simultaneously, giving the illusion of a phantom duplicate.
+5. **Missing Global Repository Filter**: `FirestoreHelper.getUserTrees` and `FirestoreHelper.getMergedClanTrees` lacked a terminal `.distinctBy { it.id }` across all branches.
+
+### Summary of Changes
+1. **FirestoreHelper Global Tree De-Duplication**:
+   - In [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt), applied `.distinctBy { it.id }` across all return branches in `getUserTrees` (both owner and member lookups) and in `getMergedClanTrees`.
+2. **MergeBranchesActivity Concurrency & Lifecycle Protection**:
+   - In [`MergeBranchesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt):
+     - Added atomic in-flight guard `isLoadingClanTrees` to prevent concurrent network requests.
+     - Moved `clanTreesContainer.removeAllViews()` directly inside `onSuccess` / `onFailure`, ensuring previous views are never left or appended to erroneously.
+     - Removed redundant `loadClanTrees()` call from `onCreate()`, letting `onResume()` serve as the single, reliable lifecycle trigger.
+     - Debounced `mergeSyncListener` via `Handler(Looper.getMainLooper())` (`clanRefreshHandler.postDelayed(clanRefreshRunnable, 250L)`) to prevent multiple sync events from triggering overlapping fetches.
+     - Added `clanRefreshHandler.removeCallbacks(clanRefreshRunnable)` in `onDestroy()` to avoid memory leaks.
+     - Applied view tag-based de-duplication in `addClanTreeCard`: tagged every card with `card.tag = tree.id` and checked `if (clanTreesContainer.findViewWithTag<View>(tree.id) != null) return`.
+3. **Unit Tests Added**:
+   - In [`MergedClanSpaceAndSynthesisTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/MergedClanSpaceAndSynthesisTest.kt), added `testTreeListDeduplication_ensuresSingleSourceOfTruth()` verifying that raw query outputs containing duplicate entries are strictly de-duplicated down to a single instance per tree ID.
+4. **Verification & Testing**:
+   - Executed `.\gradlew.bat testDebugUnitTest`: All 270 unit tests passed cleanly (`BUILD SUCCESSFUL in 15s`).
+   - Executed `.\gradlew.bat installDebug` and verified on `emulator-5554` with visual screenshot inspection (`merge_branches_screen.png`, `after_back2.png`).
+
+### Files Modified
+- `[MODIFY]` [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt)
+- `[MODIFY]` [`MergeBranchesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt)
+- `[MODIFY]` [`MergedClanSpaceAndSynthesisTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/MergedClanSpaceAndSynthesisTest.kt)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+
