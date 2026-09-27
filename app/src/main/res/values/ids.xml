@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Permanent ID declarations to guarantee R.id resolution across incremental builds and layouts -->
+    <item name="cardExportTree" type="id" />
+    <item name="cardAddMember" type="id" />
+    <item name="btnSeeAllRecentActivities" type="id" />
+    <item name="btnExportTree" type="id" />
+    <item name="btnExportTreeShortcut" type="id" />
+</resources>
