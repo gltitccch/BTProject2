@@ -46,6 +46,11 @@ enum class SyncChangeType {
      * 8. A user corrects or removes an invalid family relationship (e.g., resolving a graph cycle,
      * removing an illegal consanguinity connection, or fixing parent-child misalignments).
      */
-    RELATIONSHIP_CORRECTED
+    RELATIONSHIP_CORRECTED,
+
+    /**
+     * 9. A family tree (e.g., Master Clan Tree C or personal tree) is deleted.
+     */
+    TREE_DELETED
 }
 

@@ -351,6 +351,13 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     }
 
     override fun onSyncEvent(event: TreeSyncEvent) {
+        if (event.changeType == SyncChangeType.TREE_DELETED && (event.treeId == treeId || event.treeId == interestedTreeId)) {
+            runOnUiThread {
+                Toast.makeText(this, "The displayed family tree was removed.", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            return
+        }
         try {
             runOnUiThread {
                 if (isSafeToUpdateUI) {

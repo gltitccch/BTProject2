@@ -62,16 +62,39 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvNoRecentActivity: TextView
     private lateinit var viewNotifBadge: View
 
+    private val reloadDebounceHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val reloadTreeRunnable = Runnable {
+        if (!isFinishing && !isDestroyed) {
+            resolveAndLoadTree()
+        }
+    }
+
+    private fun debounceReloadTree(delayMs: Long = 300L) {
+        reloadDebounceHandler.removeCallbacks(reloadTreeRunnable)
+        reloadDebounceHandler.postDelayed(reloadTreeRunnable, delayMs)
+    }
+
     private val homeSyncListener = object : com.example.btproject2.sync.SyncEventListener {
         override val subscriberKey: String = "HomeActivity@${System.identityHashCode(this)}"
         override val screenType: com.example.btproject2.sync.AffectedScreen = com.example.btproject2.sync.AffectedScreen.HOME_OVERVIEW
         override val interestedTreeId: String? = null
 
         override fun onSyncEvent(event: com.example.btproject2.sync.TreeSyncEvent) {
-            runOnUiThread {
-                if (!isFinishing && !isDestroyed) {
-                    resolveAndLoadTree()
+            if (event.changeType == com.example.btproject2.sync.SyncChangeType.TREE_DELETED) {
+                if (event.treeId == treeId) {
+                    runOnUiThread {
+                        treeId = ""
+                        resolveAndLoadTree()
+                    }
+                    return
                 }
+            }
+            // Only reload if the event belongs to this activity's active tree or is global
+            if (event.treeId.isNotEmpty() && treeId.isNotEmpty() && event.treeId != treeId) {
+                return
+            }
+            runOnUiThread {
+                debounceReloadTree()
             }
         }
 
@@ -90,6 +113,7 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        reloadDebounceHandler.removeCallbacks(reloadTreeRunnable)
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().unregisterListener(homeSyncListener)
     }
 
@@ -368,13 +392,16 @@ class HomeActivity : AppCompatActivity() {
                             ?: trees.firstOrNull { it.id == profileTreeId }
                             ?: trees.first()
 
+                        val treeChanged = this.treeId != targetTree.id
                         this.treeId = targetTree.id
                         TreePreferences.setActiveTree(this, targetTree.id, targetTree.name)
                         CentralTreeSynchronizer.getInstance().startRealtimeListener(targetTree.id)
 
                         layoutStatsHeader.visibility = View.VISIBLE
                         findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  ${targetTree.name}"
-                        loadStatsForTree(targetTree.id)
+                        if (treeChanged || cachedTreeId.isEmpty()) {
+                            loadStatsForTree(targetTree.id)
+                        }
                     },
                     onFailure = {
                         if (cachedTreeId.isEmpty()) {

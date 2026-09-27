@@ -140,6 +140,13 @@ class PedigreeFanChartSyncCoordinator(
                 }
                 onTreeUpdated?.invoke(allPersonsList, event)
             }
+
+            SyncChangeType.TREE_DELETED -> {
+                if (event.treeId == treeId) {
+                    allPersonsList = emptyList()
+                    onTreeUpdated?.invoke(emptyList(), event)
+                }
+            }
         }
     }
 

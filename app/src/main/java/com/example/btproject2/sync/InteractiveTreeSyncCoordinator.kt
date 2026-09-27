@@ -124,6 +124,14 @@ class InteractiveTreeSyncCoordinator(
 
                 onTreeUpdated?.invoke(allPersonsList, true)
             }
+
+            SyncChangeType.TREE_DELETED -> {
+                if (event.treeId == treeId) {
+                    allPersonsList = emptyList()
+                    focalPedigreePersonId = null
+                    onTreeUpdated?.invoke(emptyList(), true)
+                }
+            }
         }
     }
 

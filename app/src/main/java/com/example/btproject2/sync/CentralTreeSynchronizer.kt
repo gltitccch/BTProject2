@@ -372,6 +372,29 @@ class CentralTreeSynchronizer private constructor() {
         publishConfirmedEvent(event)
     }
 
+    /**
+     * 9. A family tree is deleted (e.g. Master Clan Tree C or personal tree).
+     */
+    fun notifyTreeDeleted(
+        deletedTreeId: String,
+        sourceScreen: String = ""
+    ) {
+        if (currentActiveTreeId == deletedTreeId) {
+            stopRealtimeListener()
+        }
+        val scope = SyncScopeResolver.resolveTreeDeleted(deletedTreeId)
+        val event = TreeSyncEvent(
+            changeType = SyncChangeType.TREE_DELETED,
+            treeId = deletedTreeId,
+            scope = scope,
+            primaryPerson = null,
+            affectedPersons = emptyList(),
+            sourceScreenDescription = sourceScreen,
+            isConfirmedSave = true
+        )
+        publishConfirmedEvent(event)
+    }
+
     // ══════════════════════════════════════════════════════════════
     // EVENT BROADCAST & CONFLICT DISPATCH ENGINE
     // ══════════════════════════════════════════════════════════════
@@ -517,11 +540,20 @@ class CentralTreeSynchronizer private constructor() {
             realtimeListenerRegistration = FirestoreHelper().listenToTreePersons(
                 treeId = treeId,
                 onUpdate = { updatedPersons ->
-                    val oldList = FirestoreHelper.getCachedPersons().orEmpty()
+                    val oldList = FirestoreHelper.getCachedPersons().orEmpty().filter { it.treeId == treeId }
                     FirestoreHelper.setCachedPersons(updatedPersons)
 
                     val oldMap = oldList.associateBy { it.id }
                     val newMap = updatedPersons.associateBy { it.id }
+
+                    // Avoid event storm when an entire tree is loaded for the first time
+                    if (oldList.isEmpty() && updatedPersons.size > 1) {
+                        val focal = updatedPersons.firstOrNull()
+                        if (focal != null) {
+                            notifyMemberAdded(focal, sourceScreen = "RealtimeListenerInitialLoad")
+                        }
+                        return@listenToTreePersons
+                    }
 
                     // Broadcast additions and modifications
                     for (person in updatedPersons) {

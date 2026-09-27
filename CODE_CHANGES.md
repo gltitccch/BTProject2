@@ -2492,8 +2492,88 @@ This file tracks all code changes implemented for each user request.
 - `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
 - `[MODIFY]` [`DOCUMENTATION.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/DOCUMENTATION.md)
 
+---
 
+## [Request #55] - Tree Merge ANR Resolution, Real-Time Sync Event Storm Suppression & Clan Sandbox Isolation
+- **Date**: 2026-09-26
+- **Requested By**: User
+- **User Request**: 
+  > *"it keeps crashing when i'm merging trees we need to find what is the root cause of it. And the itself is failing now we need to fix this."*
 
+### Summary of Changes
+1. **$O(1)$ Optimization in `FirestoreHelper.sanitizeTreeRecords`**:
+   - Replaced quadratic and quartic list traversals in tree sanitization with $O(1)$ constant-time map lookups.
+   - Enforced immediate ancestral loop detection, sibling check, and disallowed parental combinations without CPU stalls or GC pressure.
+2. **CentralTreeSynchronizer Bulk Snapshot Suppression**:
+   - Filtered `oldList` by `treeId` to ensure tree-isolated change detection.
+   - Suppressed individual `notifyMemberAdded` loops on initial snapshot arrivals (`oldList.isEmpty() && updatedPersons.size > 1`), broadcasting a single consolidated notification instead of flooding the event bus.
+3. **Master Clan Tree Sandbox Isolation**:
+   - In `MergeBranchesActivity`, removed `CentralTreeSynchronizer.startRealtimeListener(createdTree.id)` on clan tree creation, ensuring the app's central real-time listener continues tracking the user's active personal tree and strictly preserving sandbox boundaries.
+4. **HomeActivity Debounced & Tree-Filtered Sync Listener**:
+   - Updated `homeSyncListener` in `HomeActivity` to filter out events belonging to other trees (`event.treeId != this.treeId`).
+   - Added a 300ms Main Looper debounce handler (`debounceReloadTree`) to prevent rapid concurrent stats reloads.
+   - Eliminated redundant duplicate calls to `loadStatsForTree` when the cached active tree is already loaded.
 
+### Files Modified
+- `[MODIFY]` [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt)
+- `[MODIFY]` [`CentralTreeSynchronizer.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt)
+- `[MODIFY]` [`HomeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt)
+- `[MODIFY]` [`MergeBranchesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
 
+---
 
+## [Request #21] - Master Clan Tree Deletion Integrity & Global Synchronized Cleanup Pipeline
+- **Date**: 2026-09-27
+- **Requested By**: User
+- **User Request**: 
+  > *"i recently deleted a master tree C in merge clan space, i want you to check if there's some problem occur when i did it. And report to me what you found."*
+  > Followed by confirmed global architectural scope:
+  > *"Global Scope: Implement an atomic cleanup pipeline in FirestoreHelper and CentralTreeSynchronizer that purges orphaned tree_members, invite codes, cache, and active preferences across all modules"*
+
+### Summary of Changes
+1. **Multi-Collection Atomic Deletion in `FirestoreHelper.deleteTree`**:
+   - Upgraded `deleteTree(treeId, context, onSuccess, onFailure)` to execute parallel queries via `Tasks.whenAllComplete` across all five dependent collections:
+     - `trees/{treeId}`: Root tree document.
+     - `persons`: All cloned members associated with `treeId`.
+     - `tree_members`: All role assignments and ownership records for `treeId` (eliminating ghost records in `getUserTrees`).
+     - `mergeInviteCodes`: 6-character clan merge codes generated for `treeId`.
+     - `inviteCodes`: 6-digit invite codes generated for `treeId`.
+   - Chunked batch deletions into sets of 400 operations to guarantee compliance with Firestore's 500-operation-per-batch ceiling.
+2. **In-Memory Cache Purge (`inMemoryPersonsCache`)**:
+   - Explicitly purged all member records belonging to the deleted tree from `FirestoreHelper.inMemoryPersonsCache` upon deletion, preventing stale node reads during the app's lifecycle.
+3. **Active Tree Automatic Fallback (`TreePreferences`)**:
+   - When a deleted tree was currently selected as active in `TreePreferences` (`kintrace_tree_prefs`), `deleteTree` automatically queries the user's primary personal trees and updates `TreePreferences.setActiveTree(context, fallback.id, fallback.name)` or clears preferences safely.
+4. **Reactive Real-time Synchronization (`TREE_DELETED`)**:
+   - Added `SyncChangeType.TREE_DELETED` to `SyncChangeType.kt`.
+   - Added `notifyTreeDeleted` to `CentralTreeSynchronizer.kt`, which halts real-time listener registrations on the deleted tree and authoritatively broadcasts a `TreeSyncEvent` to all subscribed screens.
+   - Handled `TREE_DELETED` in all five screen sync coordinators:
+     - `InteractiveTreeSyncCoordinator.kt`: Clears canvas nodes and resets focal pedigree state.
+     - `PedigreeFanChartSyncCoordinator.kt`: Clears member lists and resets pedigree/fan chart trees.
+     - `RecordsSyncCoordinator.kt`: Clears member list and updates search filters.
+     - `MemberDetailSyncCoordinator.kt`: Triggers graceful dismissal if the inspected member belonged to the deleted tree.
+     - `AddMemberSyncCoordinator.kt`: Resets member lists and clears candidate selections.
+5. **Interactive UI Screen Integrations**:
+   - In `HomeActivity.kt`, updated `homeSyncListener` to immediately detect if the active tree was deleted and automatically trigger `resolveAndLoadTree()`.
+   - In `InteractiveTreeActivity.kt`, updated `onSyncEvent` to display an informative notice and finish safely if the displayed tree was deleted.
+   - In `MergeBranchesActivity.kt`, registered `mergeSyncListener` to automatically refresh `loadClanTrees()` upon receiving `TREE_DELETED` or `MEMBER_ADDED` events, enabling instant real-time multi-device synchronization. Passed `context = this` in `btnDeleteClanTree` for seamless active tree fallback.
+6. **Automated Unit Testing & Verification**:
+   - Added `testTreeDeleted_broadcastsGlobalEventAndStopsActiveListener` in [`CentralTreeSynchronizerTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/CentralTreeSynchronizerTest.kt).
+   - Executed `.\gradlew.bat testDebugUnitTest`: All 269 unit tests passed cleanly (`BUILD SUCCESSFUL in 1m 59s`).
+   - Built and installed updated APK to connected device (`.\gradlew.bat installDebug`, `BUILD SUCCESSFUL in 33s`).
+
+### Files Modified & Created
+- `[MODIFY]` [`SyncChangeType.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/SyncChangeType.kt)
+- `[MODIFY]` [`SyncScopeResolver.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/SyncScopeResolver.kt)
+- `[MODIFY]` [`CentralTreeSynchronizer.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt)
+- `[MODIFY]` [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt)
+- `[MODIFY]` [`HomeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt)
+- `[MODIFY]` [`InteractiveTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/InteractiveTreeActivity.kt)
+- `[MODIFY]` [`MergeBranchesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt)
+- `[MODIFY]` [`AddMemberSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/AddMemberSyncCoordinator.kt)
+- `[MODIFY]` [`InteractiveTreeSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/InteractiveTreeSyncCoordinator.kt)
+- `[MODIFY]` [`MemberDetailSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/MemberDetailSyncCoordinator.kt)
+- `[MODIFY]` [`PedigreeFanChartSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/PedigreeFanChartSyncCoordinator.kt)
+- `[MODIFY]` [`RecordsSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/RecordsSyncCoordinator.kt)
+- `[MODIFY]` [`CentralTreeSynchronizerTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/CentralTreeSynchronizerTest.kt)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)

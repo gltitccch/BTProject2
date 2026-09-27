@@ -99,6 +99,14 @@ class AddMemberSyncCoordinator(
                 }
                 notifyCandidates()
             }
+
+            SyncChangeType.TREE_DELETED -> {
+                if (event.treeId == treeId) {
+                    allMembersList = emptyList()
+                    selectedChildrenList.clear()
+                    notifyCandidates()
+                }
+            }
         }
     }
 

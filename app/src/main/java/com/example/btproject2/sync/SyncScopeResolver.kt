@@ -271,5 +271,20 @@ object SyncScopeResolver {
             affectedFields = setOf("correction")
         )
     }
+
+    /**
+     * Resolves the affected scope when a tree is deleted.
+     */
+    fun resolveTreeDeleted(treeId: String): AffectedScope {
+        return AffectedScope(
+            treeId = treeId,
+            primaryPersonId = "",
+            relatedPersonIds = emptySet(),
+            affectedScreens = setOf(AffectedScreen.ALL_SCREENS),
+            requiresStructuralRelayout = true,
+            requiresKinshipRecomputation = true,
+            affectedFields = setOf("treeDeleted")
+        )
+    }
 }
 

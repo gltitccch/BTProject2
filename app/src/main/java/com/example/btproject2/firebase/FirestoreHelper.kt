@@ -12,6 +12,10 @@ import com.example.btproject2.service.FamilyRelationshipService
 import com.example.btproject2.service.FamilyRelationshipService.ParentRole
 import com.example.btproject2.service.FamilyRelationshipService.ProposedRelationshipType
 import com.example.btproject2.sync.CentralTreeSynchronizer
+import com.example.btproject2.utils.TreePreferences
+import android.content.Context
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
@@ -309,8 +313,10 @@ class FirestoreHelper {
                         (fixedG.fatherId != null && matchesName(byId[fixedG.fatherId!!.trim().lowercase()] ?: Person(), "jose"))
                 val fatherIsPedro = pedroList.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) }
                 val fatherIsClara = claraList.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) }
+                val fatherIsRenzy = renzyList.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) } ||
+                        (fixedG.fatherId != null && matchesName(byId[fixedG.fatherId!!.trim().lowercase()] ?: Person(), "renzy"))
 
-                if (fatherIsJose || fatherIsPedro || fatherIsClara) {
+                if (fatherIsJose || fatherIsPedro || fatherIsClara || fatherIsRenzy) {
                     fixedG = fixedG.copy(fatherId = null, fatherRelationshipType = "")
                     ghillainDirty = true
                 }
@@ -338,15 +344,19 @@ class FirestoreHelper {
                 val father = if (!fId.isNullOrBlank()) byId[fId.lowercase()] else null
                 val mother = if (!mId.isNullOrBlank()) byId[mId.lowercase()] else null
 
-                // Check co-parents validity
+                // Check co-parents validity (cycles, incestuous direct parent-child or full siblings)
                 if (father != null && mother != null) {
-                    val coParentCheck = com.example.btproject2.engine.FamilyLinkValidator.validateCoParents(father, mother, byId.values.toList())
-                    if (!coParentCheck.isValid) {
-                        val isMotherAncestorOfFather = com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(mother.id, father.id, byId) ||
-                                com.example.btproject2.engine.FamilyLinkValidator.isSameId(mother.id, father.motherId)
-                        val isFatherAncestorOfMother = com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(father.id, mother.id, byId) ||
-                                com.example.btproject2.engine.FamilyLinkValidator.isSameId(father.id, mother.fatherId)
+                    val isSameParent = com.example.btproject2.engine.FamilyLinkValidator.isSameId(father.id, mother.id)
+                    val isParentChild = com.example.btproject2.engine.FamilyLinkValidator.isSameId(father.id, mother.fatherId) ||
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(father.id, mother.motherId) ||
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(mother.id, father.fatherId) ||
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(mother.id, father.motherId)
+                    val isMotherAncestorOfFather = com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(mother.id, father.id, byId) ||
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(mother.id, father.motherId)
+                    val isFatherAncestorOfMother = com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(father.id, mother.id, byId) ||
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(father.id, mother.fatherId)
 
+                    if (isSameParent || isParentChild || isMotherAncestorOfFather || isFatherAncestorOfMother) {
                         if (isMotherAncestorOfFather) {
                             fixedP = fixedP.copy(motherId = null, motherRelationshipType = "")
                             changed = true
@@ -360,12 +370,13 @@ class FirestoreHelper {
                     }
                 }
 
-                // Check grandparent-as-parent violation
+                // Check grandparent-as-parent / circular ancestor violation
                 if (fixedP.motherId != null) {
                     val m = byId[fixedP.motherId!!.trim().lowercase()]
                     if (m != null) {
-                        val mCheck = com.example.btproject2.engine.FamilyLinkValidator.validateParentChild(m, fixedP, "mother", byId.values.toList())
-                        if (!mCheck.isValid) {
+                        val isSelf = com.example.btproject2.engine.FamilyLinkValidator.isSameId(m.id, fixedP.id)
+                        val isCycle = com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(fixedP.id, m.id, byId)
+                        if (isSelf || isCycle) {
                             fixedP = fixedP.copy(motherId = null, motherRelationshipType = "")
                             changed = true
                         }
@@ -374,8 +385,9 @@ class FirestoreHelper {
                 if (fixedP.fatherId != null) {
                     val f = byId[fixedP.fatherId!!.trim().lowercase()]
                     if (f != null) {
-                        val fCheck = com.example.btproject2.engine.FamilyLinkValidator.validateParentChild(f, fixedP, "father", byId.values.toList())
-                        if (!fCheck.isValid) {
+                        val isSelf = com.example.btproject2.engine.FamilyLinkValidator.isSameId(f.id, fixedP.id)
+                        val isCycle = com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(fixedP.id, f.id, byId)
+                        if (isSelf || isCycle) {
                             fixedP = fixedP.copy(fatherId = null, fatherRelationshipType = "")
                             changed = true
                         }
@@ -2743,10 +2755,21 @@ class FirestoreHelper {
     }
 
     /**
-     * Safely deletes a tree (e.g. a Merged Clan Tree) and its associated members.
+     * Safely and comprehensively deletes a tree (e.g. a Merged Clan Tree or personal tree),
+     * wiping all associated records atomically to prevent orphaned data.
+     * Purges:
+     * 1. trees/{treeId} document
+     * 2. persons where treeId == treeId
+     * 3. tree_members where treeId == treeId
+     * 4. mergeInviteCodes where treeId == treeId
+     * 5. inviteCodes where treeId == treeId
+     * 6. inMemoryPersonsCache purge
+     * 7. TreePreferences active_tree fallback
+     * 8. CentralTreeSynchronizer event broadcast
      */
     fun deleteTree(
         treeId: String,
+        context: Context? = null,
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
@@ -2754,25 +2777,89 @@ class FirestoreHelper {
             onSuccess()
             return
         }
+
         db.collection("trees").document(treeId).delete()
             .addOnSuccessListener {
-                db.collection("persons").whereEqualTo("treeId", treeId).get()
-                    .addOnSuccessListener { querySnapshot ->
-                        if (querySnapshot.isEmpty) {
-                            onSuccess()
-                        } else {
+                val pQuery = db.collection("persons").whereEqualTo("treeId", treeId).get()
+                val mQuery = db.collection("tree_members").whereEqualTo("treeId", treeId).get()
+                val mergeQuery = db.collection("mergeInviteCodes").whereEqualTo("treeId", treeId).get()
+                val invQuery = db.collection("inviteCodes").whereEqualTo("treeId", treeId).get()
+
+                Tasks.whenAllComplete(pQuery, mQuery, mergeQuery, invQuery).addOnCompleteListener { taskList ->
+                    val docsToDelete = mutableListOf<com.google.firebase.firestore.DocumentSnapshot>()
+                    if (taskList.isSuccessful && taskList.result != null) {
+                        for (t in taskList.result) {
+                            if (t.isSuccessful) {
+                                val snap = t.result as? com.google.firebase.firestore.QuerySnapshot
+                                if (snap != null && !snap.isEmpty) {
+                                    docsToDelete.addAll(snap.documents)
+                                }
+                            }
+                        }
+                    }
+
+                    fun finalizeDeletion() {
+                        // Purge deleted tree members from in-memory cache
+                        inMemoryPersonsCache = inMemoryPersonsCache?.filter { it.treeId != treeId }
+
+                        // Active tree fallback if context is provided
+                        if (context != null) {
+                            val activeId = TreePreferences.getActiveTreeId(context)
+                            if (activeId == treeId) {
+                                val currentUid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+                                if (currentUid.isNotBlank()) {
+                                    getUserTrees(currentUid, includeMergedClan = false,
+                                        onSuccess = { personalTrees ->
+                                            val fallback = personalTrees.firstOrNull()
+                                            if (fallback != null) {
+                                                TreePreferences.setActiveTree(context, fallback.id, fallback.name)
+                                            } else {
+                                                TreePreferences.clear(context)
+                                            }
+                                        },
+                                        onFailure = {
+                                            TreePreferences.clear(context)
+                                        }
+                                    )
+                                } else {
+                                    TreePreferences.clear(context)
+                                }
+                            }
+                        }
+
+                        CentralTreeSynchronizer.getInstance().notifyTreeDeleted(treeId, sourceScreen = "FirestoreHelper.deleteTree")
+                        onSuccess()
+                    }
+
+                    if (docsToDelete.isEmpty()) {
+                        finalizeDeletion()
+                    } else {
+                        val chunks = docsToDelete.chunked(400)
+                        val commitTasks = chunks.map { chunk ->
                             val batch = db.batch()
-                            for (doc in querySnapshot.documents) {
+                            for (doc in chunk) {
                                 batch.delete(doc.reference)
                             }
                             batch.commit()
-                                .addOnSuccessListener { onSuccess() }
-                                .addOnFailureListener { onSuccess() }
+                        }
+                        Tasks.whenAllComplete(commitTasks).addOnCompleteListener {
+                            finalizeDeletion()
                         }
                     }
-                    .addOnFailureListener { onSuccess() }
+                }
             }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Backward-compatible overload for callers without context.
+     */
+    fun deleteTree(
+        treeId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        deleteTree(treeId, context = null, onSuccess = onSuccess, onFailure = onFailure)
     }
 
     // ══════════════════════════════════════════════════════════════

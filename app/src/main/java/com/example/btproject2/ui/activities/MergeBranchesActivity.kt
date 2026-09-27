@@ -28,6 +28,9 @@ import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.Person
 import com.example.btproject2.sync.CentralTreeSynchronizer
+import com.example.btproject2.sync.SyncChangeType
+import com.example.btproject2.sync.SyncEventListener
+import com.example.btproject2.sync.TreeSyncEvent
 import com.example.btproject2.utils.NotificationHelper
 import com.example.btproject2.utils.setDarkAdapter
 import java.util.UUID
@@ -58,6 +61,34 @@ class MergeBranchesActivity : AppCompatActivity() {
     private lateinit var btnCopyMyMergeCode: Button
     private lateinit var btnRegenerateMyMergeCode: Button
     private var myActiveMergeCode: String = ""
+
+    private val mergeSyncListener = object : SyncEventListener {
+        override val subscriberKey: String = "MergeBranchesActivity@${System.identityHashCode(this)}"
+        override val interestedTreeId: String? = null
+        override fun onSyncEvent(event: TreeSyncEvent) {
+            if (event.changeType == SyncChangeType.TREE_DELETED ||
+                event.changeType == SyncChangeType.MEMBER_ADDED) {
+                runOnUiThread {
+                    loadClanTrees()
+                }
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        CentralTreeSynchronizer.getInstance().registerListener(mergeSyncListener)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadClanTrees()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        CentralTreeSynchronizer.getInstance().unregisterListener(mergeSyncListener)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -321,8 +352,11 @@ class MergeBranchesActivity : AppCompatActivity() {
                 .setMessage("Are you sure you want to remove '${tree.name}'?\n\n🛡️ 100% Safe: Your original family trees will NOT be modified or deleted.")
                 .setPositiveButton("Delete") { _, _ ->
                     progressBarMerge.visibility = View.VISIBLE
-                    firestoreHelper.deleteTree(tree.id,
+                    firestoreHelper.deleteTree(
+                        treeId = tree.id,
+                        context = this,
                         onSuccess = {
+                            progressBarMerge.visibility = View.GONE
                             Toast.makeText(this, "Master Clan Tree deleted.", Toast.LENGTH_SHORT).show()
                             loadClanTrees()
                         },
@@ -694,7 +728,6 @@ class MergeBranchesActivity : AppCompatActivity() {
             // 5. Commit atomic batch write
             firestoreHelper.saveMasterTreeAndMembers(masterTree, clonedList,
                 onSuccess = { createdTree ->
-                    CentralTreeSynchronizer.getInstance().startRealtimeListener(createdTree.id)
                     dialog.dismiss()
                     Toast.makeText(this, "Master Clan Tree synthesized successfully!", Toast.LENGTH_LONG).show()
                     loadClanTrees()

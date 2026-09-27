@@ -172,6 +172,14 @@ class MemberDetailSyncCoordinator(
 
                 onPersonUpdated?.invoke(currentPerson, allMembersList, event)
             }
+
+            SyncChangeType.TREE_DELETED -> {
+                if (event.treeId == treeId) {
+                    currentPerson = null
+                    allMembersList = emptyList()
+                    onCurrentPersonDeleted?.invoke(personId)
+                }
+            }
         }
     }
 

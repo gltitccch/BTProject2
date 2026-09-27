@@ -382,5 +382,30 @@ class CentralTreeSynchronizerTest {
         assertTrue(tree1Received)
         assertFalse("Tree 2 subscriber must not receive Tree 1 events", tree2Received)
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // 12. TREE DELETED TRIGGER
+    // ─────────────────────────────────────────────────────────────
+    @Test
+    fun testTreeDeleted_broadcastsGlobalEventAndStopsActiveListener() {
+        var receivedEvent: TreeSyncEvent? = null
+        val listener = object : SyncEventListener {
+            override val subscriberKey: String = "TestTreeDeletedSub"
+            override val interestedTreeId: String? = null
+            override fun onSyncEvent(event: TreeSyncEvent) {
+                receivedEvent = event
+            }
+        }
+        synchronizer.registerListener(listener)
+
+        synchronizer.notifyTreeDeleted("clan_tree_xyz", sourceScreen = "MergeBranchesActivity")
+
+        assertNotNull(receivedEvent)
+        assertEquals(SyncChangeType.TREE_DELETED, receivedEvent?.changeType)
+        assertEquals("clan_tree_xyz", receivedEvent?.treeId)
+        assertTrue(receivedEvent!!.scope.isScreenAffected(AffectedScreen.INTERACTIVE_TREE))
+        assertTrue(receivedEvent!!.scope.isScreenAffected(AffectedScreen.HOME_OVERVIEW))
+        assertTrue(receivedEvent!!.scope.isScreenAffected(AffectedScreen.RECORDS_LIST))
+    }
 }
 
