@@ -32,7 +32,16 @@ class FirestoreHelper {
         @Volatile
         private var inMemoryPersonsCache: List<Person>? = null
 
-        fun getCachedPersons(): List<Person>? = inMemoryPersonsCache
+        fun getCachedPersons(treeId: String? = null): List<Person>? {
+            val list = inMemoryPersonsCache ?: return null
+            if (treeId == null) return list
+            if (treeId.isEmpty()) return emptyList()
+            return if (treeId == "default_tree") {
+                list.filter { it.treeId.isEmpty() || it.treeId == "default_tree" }
+            } else {
+                list.filter { it.treeId == treeId }
+            }
+        }
 
         fun documentToPerson(doc: com.google.firebase.firestore.DocumentSnapshot): Person? {
             val p = doc.toObject(Person::class.java) ?: return null
@@ -596,7 +605,7 @@ class FirestoreHelper {
         onSuccess: (String) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
-        val all = inMemoryPersonsCache.orEmpty()
+        val all = getCachedPersons(person.treeId).orEmpty()
         val tempMap = all.associateBy { it.id }.toMutableMap()
         tempMap[person.id] = person
 
@@ -725,7 +734,10 @@ class FirestoreHelper {
             .addOnSuccessListener { doc ->
                 val p = documentToPerson(doc)
                 if (p != null) {
-                    val partner = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, p.id) }
+                    val partner = inMemoryPersonsCache?.find {
+                        (it.treeId == p.treeId || (it.treeId.isEmpty() && p.treeId.isEmpty())) &&
+                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, p.id)
+                    }
                     val effective = if (partner != null && (p.spouseId.isNullOrEmpty() || p.maritalStatus != "Married")) {
                         p.copy(spouseId = partner.id, maritalStatus = "Married", marriageDate = if (p.marriageDate.isNotEmpty()) p.marriageDate else partner.marriageDate)
                     } else p
@@ -932,9 +944,8 @@ class FirestoreHelper {
         val trimmedPid = personId.trim()
         val trimmedMid = motherId?.trim()?.ifEmpty { null }
         val trimmedFid = fatherId?.trim()?.ifEmpty { null }
-        val all = inMemoryPersonsCache.orEmpty()
-        val existing = all.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
-        val targetPerson = existing ?: Person(id = trimmedPid)
+        val targetPerson = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) } ?: Person(id = trimmedPid)
+        val all = getCachedPersons(targetPerson.treeId.ifBlank { null }).orEmpty()
 
         val treeMap = all.associateBy { it.id }.toMutableMap()
         treeMap[targetPerson.id] = targetPerson
@@ -999,7 +1010,7 @@ class FirestoreHelper {
             .set(mapOf("motherId" to trimmedMid, "fatherId" to trimmedFid), SetOptions.merge())
             .addOnSuccessListener {
                 updatePersonInCache(updated)
-                val allPersons = inMemoryPersonsCache.orEmpty()
+                val allPersons = getCachedPersons(targetPerson.treeId.ifBlank { null }).orEmpty()
                 val fObj = trimmedFid?.let { fid -> allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, fid) } }
                 val mObj = trimmedMid?.let { mid -> allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, mid) } }
                 if (fObj != null) {
@@ -1035,8 +1046,8 @@ class FirestoreHelper {
     ) {
         val trimmedPid = personId.trim()
         val trimmedFid = fatherId?.trim()?.ifEmpty { null }
-        val all = inMemoryPersonsCache.orEmpty()
-        val existing = all.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
+        val existing = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
+        val all = getCachedPersons(existing?.treeId?.ifBlank { null }).orEmpty()
 
         if (trimmedFid != null && existing != null) {
             val treeMap = all.associateBy { it.id }.toMutableMap()
@@ -1121,8 +1132,8 @@ class FirestoreHelper {
     ) {
         val trimmedPid = personId.trim()
         val trimmedMid = motherId?.trim()?.ifEmpty { null }
-        val all = inMemoryPersonsCache.orEmpty()
-        val existing = all.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
+        val existing = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
+        val all = getCachedPersons(existing?.treeId?.ifBlank { null }).orEmpty()
 
         if (trimmedMid != null && existing != null) {
             val treeMap = all.associateBy { it.id }.toMutableMap()
@@ -1232,11 +1243,10 @@ class FirestoreHelper {
                 onSuccess(personMap)
             }
             .addOnFailureListener {
-                inMemoryPersonsCache?.let { cached ->
-                    if (cached.isNotEmpty()) {
-                        onSuccess(cached.associateBy { it.id })
-                        return@addOnFailureListener
-                    }
+                val fallbackCached = getCachedPersons(treeId).orEmpty()
+                if (fallbackCached.isNotEmpty()) {
+                    onSuccess(fallbackCached.associateBy { it.id })
+                    return@addOnFailureListener
                 }
                 onFailure(it)
             }
@@ -1253,7 +1263,7 @@ class FirestoreHelper {
         val personToSave = person.copy(maritalStatus = effectiveMaritalStatus)
 
         // Pre-flight Central Validation Service Check for Spouse
-        val all = inMemoryPersonsCache.orEmpty()
+        val all = getCachedPersons(personToSave.treeId.ifBlank { null }).orEmpty()
         if (!personToSave.spouseId.isNullOrBlank()) {
             val treeMap = all.associateBy { it.id }.toMutableMap()
             treeMap[personToSave.id] = personToSave
@@ -1290,10 +1300,14 @@ class FirestoreHelper {
 
                 // Handle surviving spouse automatic status update
                 val partnerId = personToSave.spouseId ?: inMemoryPersonsCache?.find {
+                    (it.treeId == personToSave.treeId || (it.treeId.isEmpty() && personToSave.treeId.isEmpty())) &&
                     com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, personToSave.id)
                 }?.id
                 if (!partnerId.isNullOrBlank()) {
-                    val partner = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, partnerId) }
+                    val partner = inMemoryPersonsCache?.find {
+                        (it.treeId == personToSave.treeId || (it.treeId.isEmpty() && personToSave.treeId.isEmpty())) &&
+                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, partnerId)
+                    }
                     if (partner != null && partner.isLiving) {
                         val targetStatus = if (!personToSave.isLiving) "Widowed" else "Married"
                         if (!partner.maritalStatus.equals(targetStatus, ignoreCase = true)) {
@@ -1317,7 +1331,10 @@ class FirestoreHelper {
                 if (!personToSave.spouseId.isNullOrBlank()) {
                     updateSpouse(personToSave.id, personToSave.spouseId, effectiveMaritalStatus, onSuccess = onSuccess, onFailure = onFailure)
                 } else {
-                    val exSpouse = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, personToSave.id) }
+                    val exSpouse = inMemoryPersonsCache?.find {
+                        (it.treeId == personToSave.treeId || (it.treeId.isEmpty() && personToSave.treeId.isEmpty())) &&
+                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, personToSave.id)
+                    }
                     if (exSpouse != null) {
                         updateSpouse(personToSave.id, null, "Single", onSuccess = onSuccess, onFailure = onFailure)
                     } else {
@@ -1343,8 +1360,8 @@ class FirestoreHelper {
         onFailure: (Exception) -> Unit = {}
     ) {
         val trimmedId = personId.trim()
-        val all = inMemoryPersonsCache.orEmpty()
-        val existing = all.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedId) }
+        val existing = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedId) }
+        val all = getCachedPersons(existing?.treeId?.ifBlank { null }).orEmpty()
         val effectiveDeathDate = if (isLiving) "" else deathDate.trim()
         val effectiveDeathPlace = if (isLiving) "" else deathPlace.trim()
 
@@ -1537,11 +1554,12 @@ class FirestoreHelper {
         val trimmedPersonId = personId.trim()
         val trimmedSpouseId = spouseId?.trim()?.ifEmpty { null }
 
-        val allPersons = inMemoryPersonsCache.orEmpty()
-        val personA = allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPersonId) }
+        val personA = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPersonId) }
         val personB = if (trimmedSpouseId != null) {
-            allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedSpouseId) }
+            inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedSpouseId) }
         } else null
+        val treeScope = personA?.treeId?.ifBlank { personB?.treeId }?.ifBlank { null }
+        val allPersons = getCachedPersons(treeScope).orEmpty()
 
         val batch = db.batch()
         val cacheUpdates = mutableListOf<Person>()
@@ -1766,10 +1784,11 @@ class FirestoreHelper {
         val trimmedCid = childId.trim()
         val trimmedPid = parentId.trim()
         val isFemale = parentGender.lowercase() == "female"
-        val all = inMemoryPersonsCache.orEmpty()
-        val existing = all.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedCid) }
+        val existing = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedCid) }
         val child = existing ?: Person(id = trimmedCid)
-        val parent = all.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
+        val parent = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
+        val treeScope = child.treeId.ifBlank { parent?.treeId.orEmpty() }.ifBlank { null }
+        val all = getCachedPersons(treeScope).orEmpty()
 
         if (parent != null) {
             val treeMap = all.associateBy { it.id }.toMutableMap()
@@ -1895,7 +1914,7 @@ class FirestoreHelper {
                             treeFilter(it)
                         }
                         val combined = (serverChildren + currentCached).distinctBy { it.id.trim().lowercase() }.sortedBy { it.birthDate }
-                        val sanitizedTree = sanitizeTreeRecords(inMemoryPersonsCache.orEmpty() + combined)
+                        val sanitizedTree = sanitizeTreeRecords(getCachedPersons(treeId).orEmpty() + combined)
                         val finalChildren = sanitizedTree.filter {
                             (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.fatherId, trimmedPid) ||
                              com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.motherId, trimmedPid)) &&
@@ -2689,6 +2708,7 @@ class FirestoreHelper {
     fun updateClanMergeRequestStatus(
         requestId: String,
         newStatus: String,
+        createdMasterTreeId: String = "",
         masterTreeId: String = "",
         onSuccess: () -> Unit = {},
         onFailure: (Exception) -> Unit = {}
@@ -2698,6 +2718,7 @@ class FirestoreHelper {
             return
         }
 
+        val effectiveTreeId = if (masterTreeId.isNotBlank()) masterTreeId else createdMasterTreeId
         val docRef = db.collection("clan_merge_requests").document(requestId)
         docRef.get().addOnSuccessListener { snap ->
             val req = documentToClanMergeRequest(snap)
@@ -2705,8 +2726,8 @@ class FirestoreHelper {
                 "status" to newStatus,
                 "updatedAt" to System.currentTimeMillis()
             )
-            if (masterTreeId.isNotBlank()) {
-                updates["createdMasterTreeId"] = masterTreeId
+            if (effectiveTreeId.isNotBlank()) {
+                updates["createdMasterTreeId"] = effectiveTreeId
             }
 
             docRef.update(updates)
@@ -2715,7 +2736,7 @@ class FirestoreHelper {
                         val updatedReq = req.copy(
                             status = newStatus,
                             updatedAt = System.currentTimeMillis(),
-                            createdMasterTreeId = if (masterTreeId.isNotBlank()) masterTreeId else req.createdMasterTreeId
+                            createdMasterTreeId = if (effectiveTreeId.isNotBlank()) effectiveTreeId else req.createdMasterTreeId
                         )
 
                         // If approved, notify requester

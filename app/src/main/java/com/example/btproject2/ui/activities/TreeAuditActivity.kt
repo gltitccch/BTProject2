@@ -129,7 +129,7 @@ class TreeAuditActivity : AppCompatActivity() {
         firestoreHelper.getPersonsByTree(
             treeId = treeId,
             onSuccess = { persons ->
-                val cached = FirestoreHelper.getCachedPersons().orEmpty()
+                val cached = FirestoreHelper.getCachedPersons(treeId).orEmpty()
                 val mergedPersons = (persons + cached).distinctBy { it.id.trim().lowercase() }
                 val treeMap = mergedPersons.associateBy { it.id }
 
@@ -143,7 +143,7 @@ class TreeAuditActivity : AppCompatActivity() {
                 }
             },
             onFailure = {
-                val cached = FirestoreHelper.getCachedPersons().orEmpty()
+                val cached = FirestoreHelper.getCachedPersons(treeId).orEmpty()
                 val treeMap = cached.associateBy { it.id }
                 val report = familyService.auditFamilyTree(treeMap)
                 currentReport = report

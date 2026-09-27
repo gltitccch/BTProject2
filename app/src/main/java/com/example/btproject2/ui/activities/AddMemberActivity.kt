@@ -322,7 +322,7 @@ class AddMemberActivity : AppCompatActivity() {
                 documents = attachedDocumentsList
             )
 
-            val effectiveMembers = (allMembers + FirestoreHelper.getCachedPersons().orEmpty()).distinctBy { it.id.trim().lowercase() }
+            val effectiveMembers = getEffectiveTreeMembers()
             val treeMap = effectiveMembers.associateBy { it.id }.toMutableMap()
             treeMap[tempPerson.id] = tempPerson
 
@@ -578,10 +578,33 @@ class AddMemberActivity : AppCompatActivity() {
         }
     }
 
+    private fun getEffectiveTreeMembers(): List<Person> {
+        val effectiveTree = treeId.ifBlank {
+            com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+        }
+        val cachedForTree = if (effectiveTree.isNotBlank()) {
+            FirestoreHelper.getCachedPersons(effectiveTree).orEmpty()
+        } else emptyList()
+
+        return (allMembers + cachedForTree)
+            .filter { person ->
+                if (effectiveTree.isNotBlank()) {
+                    if (effectiveTree == "default_tree") {
+                        person.treeId.isBlank() || person.treeId == "default_tree"
+                    } else {
+                        person.treeId == effectiveTree
+                    }
+                } else true
+            }
+            .distinctBy { it.id.trim().lowercase() }
+    }
+
     private fun loadFamilyMembers() {
         val effectiveTreeId = treeId.ifBlank {
             com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
         }
+        treeId = effectiveTreeId
+        syncCoordinator.treeId = effectiveTreeId
         val handlePersons: (List<Person>) -> Unit = { persons ->
             val treeFiltered = if (effectiveTreeId.isEmpty()) {
                 emptyList()
@@ -667,7 +690,7 @@ class AddMemberActivity : AppCompatActivity() {
             createdBy = authHelper.getCurrentUserId() ?: ""
         )
 
-        val effectiveMembers = (allMembers + FirestoreHelper.getCachedPersons().orEmpty()).distinctBy { it.id.trim().lowercase() }
+        val effectiveMembers = getEffectiveTreeMembers()
         val presetParent = presetParentId?.let { pid -> effectiveMembers.find { it.id == pid } }
         val presetIsFather = presetParent?.gender.equals("male", ignoreCase = true)
         val presetIsMother = presetParent?.gender.equals("female", ignoreCase = true)
@@ -826,7 +849,7 @@ class AddMemberActivity : AppCompatActivity() {
         spinnerFather.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (isUpdatingSpinners) return
-                val effectiveMembers = (allMembers + FirestoreHelper.getCachedPersons().orEmpty()).distinctBy { it.id.trim().lowercase() }
+                val effectiveMembers = getEffectiveTreeMembers()
                 val selectedFather = if (position > 0 && position - 1 < maleMembers.size) maleMembers[position - 1] else null
                 val currentMother = if (spinnerMother.selectedItemPosition > 0 && spinnerMother.selectedItemPosition - 1 < femaleMembers.size) femaleMembers[spinnerMother.selectedItemPosition - 1] else null
 
@@ -860,7 +883,7 @@ class AddMemberActivity : AppCompatActivity() {
         spinnerMother.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (isUpdatingSpinners) return
-                val effectiveMembers = (allMembers + FirestoreHelper.getCachedPersons().orEmpty()).distinctBy { it.id.trim().lowercase() }
+                val effectiveMembers = getEffectiveTreeMembers()
                 val selectedMother = if (position > 0 && position - 1 < femaleMembers.size) femaleMembers[position - 1] else null
                 val currentFather = if (spinnerFather.selectedItemPosition > 0 && spinnerFather.selectedItemPosition - 1 < maleMembers.size) maleMembers[spinnerFather.selectedItemPosition - 1] else null
 
@@ -905,7 +928,7 @@ class AddMemberActivity : AppCompatActivity() {
             gender = spinnerGender.selectedItem?.toString() ?: "",
             birthDate = selectedDate
         )
-        val effectiveMembers = (allMembers + FirestoreHelper.getCachedPersons().orEmpty()).distinctBy { it.id.trim().lowercase() }
+        val effectiveMembers = getEffectiveTreeMembers()
         // Allow all existing tree members to be visible and clickable (except parents of the proposed member)
         val candidates = effectiveMembers.filter { it.id !in excludeIds }
 

@@ -141,7 +141,7 @@ class CentralTreeSynchronizer private constructor() {
         previousPerson: Person? = null,
         sourceScreen: String = ""
     ) {
-        val allPersons = FirestoreHelper.getCachedPersons().orEmpty()
+        val allPersons = FirestoreHelper.getCachedPersons(updatedPerson.treeId.ifBlank { null }).orEmpty()
         val scope = SyncScopeResolver.resolveProfileEdited(updatedPerson, previousPerson, allPersons)
         val event = TreeSyncEvent(
             changeType = SyncChangeType.PROFILE_EDITED,
@@ -162,7 +162,7 @@ class CentralTreeSynchronizer private constructor() {
         newPerson: Person,
         sourceScreen: String = ""
     ) {
-        val allPersons = FirestoreHelper.getCachedPersons().orEmpty()
+        val allPersons = FirestoreHelper.getCachedPersons(newPerson.treeId.ifBlank { null }).orEmpty()
         val scope = SyncScopeResolver.resolveMemberAdded(newPerson, allPersons)
         val event = TreeSyncEvent(
             changeType = SyncChangeType.MEMBER_ADDED,
@@ -582,7 +582,7 @@ class CentralTreeSynchronizer private constructor() {
             realtimeListenerRegistration = FirestoreHelper().listenToTreePersons(
                 treeId = treeId,
                 onUpdate = { updatedPersons ->
-                    val oldList = FirestoreHelper.getCachedPersons().orEmpty().filter { it.treeId == treeId }
+                    val oldList = FirestoreHelper.getCachedPersons(treeId).orEmpty()
                     FirestoreHelper.setCachedPersons(updatedPersons)
 
                     val oldMap = oldList.associateBy { it.id }

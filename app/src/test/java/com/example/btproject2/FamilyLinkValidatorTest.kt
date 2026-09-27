@@ -654,5 +654,31 @@ class FamilyLinkValidatorTest {
         val eligibleSpouses = FamilyLinkValidator.getEligibleSpouses(jose, tree)
         assertFalse("Sister Luz must NOT be in eligible spouses for Jose", eligibleSpouses.any { it.id == luz.id })
     }
+
+    @Test
+    fun testTreeIsolationPreventsForeignTreeMembersFromBleedingIntoCacheAndSelection() {
+        val smith1 = Person(id = "smith_1", firstName = "Renzy", lastName = "Bugarin", gender = "Male", treeId = "smith_tree")
+        val smith2 = Person(id = "smith_2", firstName = "Lucas", lastName = "Smith", gender = "Male", treeId = "smith_tree")
+        val creado1 = Person(id = "creado_1", firstName = "Cornell", lastName = "Creado", gender = "Male", treeId = "creado_tree")
+
+        com.example.btproject2.firebase.FirestoreHelper.invalidateCache()
+        com.example.btproject2.firebase.FirestoreHelper.setCachedPersons(listOf(smith1, smith2, creado1))
+
+        // 1. Verify getCachedPersons with treeId strictly isolates
+        val creadoCached = com.example.btproject2.firebase.FirestoreHelper.getCachedPersons("creado_tree")
+        assertNotNull(creadoCached)
+        assertEquals("creado_tree cache must only have 1 member", 1, creadoCached?.size)
+        assertEquals("creado_tree member must be Cornell Creado", "creado_1", creadoCached?.first()?.id)
+
+        val smithCached = com.example.btproject2.firebase.FirestoreHelper.getCachedPersons("smith_tree")
+        assertNotNull(smithCached)
+        assertEquals("smith_tree cache must only have 2 members", 2, smithCached?.size)
+        assertTrue(smithCached?.none { it.id == "creado_1" } == true)
+
+        // 2. Verify candidate selection for a new member in creado_tree contains NO members of smith_tree
+        val newSpouseCandidate = Person(id = "creado_spouse_draft", firstName = "New", lastName = "Spouse", gender = "Female", treeId = "creado_tree")
+        val eligibleSpouses = FamilyLinkValidator.getEligibleSpouses(newSpouseCandidate, creadoCached.orEmpty())
+        assertTrue("Eligible spouses for Creado tree must NOT contain any member of smith_tree", eligibleSpouses.none { it.treeId == "smith_tree" })
+    }
 }
 

@@ -100,7 +100,7 @@ class TraceActivity : AppCompatActivity() {
                 loadRecentTraceReports()
             }
 
-            val cached = FirestoreHelper.getCachedPersons()
+            val cached = FirestoreHelper.getCachedPersons(treeId)
             val cachedMap = cached?.associateBy { it.id }
             if (cachedMap != null && cachedMap.containsKey(personAId) && cachedMap.containsKey(personBId)) {
                 executeTrace(cachedMap)
@@ -299,7 +299,7 @@ class TraceActivity : AppCompatActivity() {
     }
 
     private fun loadFamilyMembers(spinnerA: Spinner, spinnerB: Spinner) {
-        val cached = FirestoreHelper.getCachedPersons()
+        val cached = FirestoreHelper.getCachedPersons(treeId)
         if (!cached.isNullOrEmpty()) {
             familyMembers = cached
             val names = cached.map { "${it.firstName} ${it.lastName}" }

@@ -101,7 +101,7 @@ class RecordsSyncCoordinator(
                 if (incoming.isNotEmpty()) {
                     mergePersonsIntoList(incoming)
                 } else {
-                    val cached = FirestoreHelper.getCachedPersons()
+                    val cached = FirestoreHelper.getCachedPersons(treeId)
                     if (!cached.isNullOrEmpty()) {
                         allMembersList = FirestoreHelper.sanitizeTreeRecords(cached)
                     }
@@ -126,12 +126,25 @@ class RecordsSyncCoordinator(
      */
     fun mergePersonsIntoList(incoming: List<Person>) {
         if (incoming.isEmpty()) return
-        val incomingMap = incoming.associateBy { it.id }
+        val existingIds = allMembersList.map { it.id }.toSet()
+        val relevantIncoming = incoming.filter { p ->
+            if (existingIds.contains(p.id)) {
+                true
+            } else if (treeId.isBlank()) {
+                true
+            } else if (treeId == "default_tree") {
+                p.treeId.isEmpty() || p.treeId == "default_tree"
+            } else {
+                p.treeId == treeId
+            }
+        }
+        if (relevantIncoming.isEmpty()) return
+        val incomingMap = relevantIncoming.associateBy { it.id }
         val result = allMembersList.map { existing ->
             incomingMap[existing.id] ?: existing
         }.toMutableList()
 
-        for (p in incoming) {
+        for (p in relevantIncoming) {
             if (result.none { it.id == p.id }) {
                 result.add(p)
             }

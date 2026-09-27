@@ -179,7 +179,7 @@ class FamilyRecordsActivity : AppCompatActivity() {
         rvMembers.adapter = adapter
 
         // 0ms instant render from memory cache if available
-        val cached = FirestoreHelper.getCachedPersons()
+        val cached = FirestoreHelper.getCachedPersons(treeId)
         if (!cached.isNullOrEmpty()) {
             val active = cached.filter { it.id !in recentlyDeletedIds }
             allMembers = active.sortedBy { "${it.firstName} ${it.lastName}" }

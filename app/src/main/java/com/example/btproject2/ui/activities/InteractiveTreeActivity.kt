@@ -829,7 +829,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 }
 
                 // If person is a mother, verify death date is not before any biological child's birth date
-                val allPersons = allPersonsList.ifEmpty { FirestoreHelper.getCachedPersons().orEmpty() }
+                val allPersons = allPersonsList.ifEmpty { FirestoreHelper.getCachedPersons(treeId).orEmpty() }
                 val children = allPersons.filter {
                     com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.motherId, person.id) &&
                     (it.motherRelationshipType.isBlank() || it.motherRelationshipType.equals("Biological", ignoreCase = true))

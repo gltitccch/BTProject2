@@ -16,7 +16,7 @@ import com.example.btproject2.models.Person
  * - Enforces the single source of truth by resolving conflicts with [ConflictChoice.REFRESH].
  */
 class AddMemberSyncCoordinator(
-    val treeId: String = "",
+    var treeId: String = "",
     val listenerKey: String = "AddMemberActivity@${System.currentTimeMillis()}",
     var allMembersList: List<Person> = emptyList(),
     var selectedChildrenList: MutableList<Person> = mutableListOf(),
@@ -92,7 +92,7 @@ class AddMemberSyncCoordinator(
                 if (incoming.isNotEmpty()) {
                     mergePersonsIntoList(incoming)
                 } else {
-                    val cached = FirestoreHelper.getCachedPersons()
+                    val cached = FirestoreHelper.getCachedPersons(treeId)
                     if (!cached.isNullOrEmpty()) {
                         allMembersList = FirestoreHelper.sanitizeTreeRecords(cached)
                     }
@@ -118,12 +118,18 @@ class AddMemberSyncCoordinator(
      */
     fun mergePersonsIntoList(incoming: List<Person>) {
         if (incoming.isEmpty()) return
-        val incomingMap = incoming.associateBy { it.id }
+        val relevantIncoming = incoming.filter {
+            if (treeId.isBlank()) true
+            else if (treeId == "default_tree") it.treeId.isEmpty() || it.treeId == "default_tree"
+            else it.treeId == treeId
+        }
+        if (relevantIncoming.isEmpty()) return
+        val incomingMap = relevantIncoming.associateBy { it.id }
         val result = allMembersList.map { existing ->
             incomingMap[existing.id] ?: existing
         }.toMutableList()
 
-        for (p in incoming) {
+        for (p in relevantIncoming) {
             if (result.none { FamilyLinkValidator.isSameId(it.id, p.id) }) {
                 result.add(p)
             }

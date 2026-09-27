@@ -44,7 +44,7 @@ class RelationshipPathActivity : AppCompatActivity() {
             ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
 
         // Instant cache dispatch with network fallback
-        val cached = FirestoreHelper.getCachedPersons()
+        val cached = FirestoreHelper.getCachedPersons(treeId)
         val cachedMap = cached?.associateBy { it.id }
         if (cachedMap != null && cachedMap.containsKey(personAId) && cachedMap.containsKey(personBId)) {
             val result = bloodlineTracer.trace(personAId, personBId, cachedMap)

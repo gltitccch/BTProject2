@@ -219,7 +219,25 @@ class EditMemberActivity : AppCompatActivity() {
                 biography = bio
             )
 
-            val effectiveMembers = (allMembers + FirestoreHelper.getCachedPersons().orEmpty()).distinctBy { it.id.trim().lowercase() }
+            val effectiveTree = currentPerson?.treeId.orEmpty().ifBlank {
+                intent.getStringExtra("TREE_ID")
+                    ?: intent.getStringExtra("treeId")
+                    ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+            }
+            val cachedForTree = if (effectiveTree.isNotBlank()) {
+                FirestoreHelper.getCachedPersons(effectiveTree).orEmpty()
+            } else emptyList()
+            val effectiveMembers = (allMembers + cachedForTree)
+                .filter { person ->
+                    if (effectiveTree.isNotBlank()) {
+                        if (effectiveTree == "default_tree") {
+                            person.treeId.isBlank() || person.treeId == "default_tree"
+                        } else {
+                            person.treeId == effectiveTree
+                        }
+                    } else true
+                }
+                .distinctBy { it.id.trim().lowercase() }
             val treeMap = effectiveMembers.associateBy { it.id }.toMutableMap()
             treeMap[updated.id] = updated
 
@@ -397,7 +415,7 @@ class EditMemberActivity : AppCompatActivity() {
         val processMembers: (List<Person>) -> Unit = { rawMembers ->
             val sanitized = FirestoreHelper.sanitizeTreeRecords(rawMembers)
             val target = sanitized.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
-                ?: FirestoreHelper.getCachedPersons()?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
+                ?: FirestoreHelper.getCachedPersons(preferredTreeId.ifBlank { null })?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
             if (target == null) {
                 Toast.makeText(this, "Member not found", Toast.LENGTH_SHORT).show()
                 finish()
