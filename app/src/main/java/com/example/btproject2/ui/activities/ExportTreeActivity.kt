@@ -150,319 +150,328 @@ class ExportTreeActivity : AppCompatActivity() {
 
     // ── Export implementations ────────────────────────────────────────
 
-    private fun exportPdf() {
-        if (persons.isEmpty()) { toast("No members to export"); return }
-        if (isExporting) return
-        setExporting(true, "Generating comprehensive PDF report...")
-
-        Thread {
-            try {
-                val pdfDoc = PdfDocument()
-                val pageWidth = 595
-                val pageHeight = 842
-
-                // Calculate metrics
-                val totalMembers = persons.size
-                val livingCount = persons.count { it.isLiving }
-                val deceasedCount = totalMembers - livingCount
-                val parentLinks = persons.count { !it.fatherId.isNullOrBlank() || !it.motherId.isNullOrBlank() }
-                val marriageCount = persons.count { !it.spouseId.isNullOrBlank() } / 2
-                val dateStr = java.text.SimpleDateFormat("MMMM d, yyyy", java.util.Locale.getDefault()).format(java.util.Date())
-
-                val personMap = persons.associateBy { it.id }
-
-                // Determine pagination for member directory table
-                val rowsPerPage = 24
-                val memberPages = ((persons.size + rowsPerPage - 1) / rowsPerPage).coerceAtLeast(1)
-                val totalPages = 1 + memberPages
-
-                // ─────────────────────────────────────────────────────────────
-                // PAGE 1: Executive Heritage Summary & Visual Tree Diagram
-                // ─────────────────────────────────────────────────────────────
-                val page1Info = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create()
-                val page1 = pdfDoc.startPage(page1Info)
-                val canvas1 = page1.canvas
-
-                // 1. Header Banner
-                val pDarkBg = Paint().apply { color = Color.parseColor("#0C2017"); style = Paint.Style.FILL }
-                val pEmeraldBar = Paint().apply { color = Color.parseColor("#1D9E75"); style = Paint.Style.FILL }
-                canvas1.drawRect(0f, 0f, pageWidth.toFloat(), 85f, pDarkBg)
-                canvas1.drawRect(0f, 85f, pageWidth.toFloat(), 88f, pEmeraldBar)
-
-                val pTitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Color.WHITE; textSize = 20f; typeface = Typeface.DEFAULT_BOLD
-                }
-                val pSubtitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Color.parseColor("#A3B899"); textSize = 11f; typeface = Typeface.DEFAULT_BOLD
-                }
-                val pDate = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Color.parseColor("#94A3B8"); textSize = 9f; textAlign = Paint.Align.RIGHT
-                }
-
-                canvas1.drawText("KinTrace Genealogical Heritage Report", 36f, 40f, pTitle)
-                canvas1.drawText("Family Tree: $treeName", 36f, 62f, pSubtitle)
-                canvas1.drawText("Exported: $dateStr", 559f, 62f, pDate)
-
-                // 2. Executive Metric Cards (4 cards)
-                val cardY = 104f
-                val cardH = 50f
-                val cardGap = 8f
-                val cardW = (523f - 3f * cardGap) / 4f
-
-                val metrics = listOf(
-                    "TOTAL MEMBERS" to totalMembers.toString(),
-                    "LIVING KIN" to livingCount.toString(),
-                    "DECEASED" to deceasedCount.toString(),
-                    "PARENT LINKS" to parentLinks.toString()
-                )
-
-                val pCardBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#F8FAFC"); style = Paint.Style.FILL }
-                val pCardStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#E2E8F0"); style = Paint.Style.STROKE; strokeWidth = 1f }
-                val pMetricLabel = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#64748B"); textSize = 8f; typeface = Typeface.DEFAULT_BOLD }
-                val pMetricVal = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#0F6E56"); textSize = 18f; typeface = Typeface.DEFAULT_BOLD }
-
-                metrics.forEachIndexed { i, (label, value) ->
-                    val cx = 36f + i * (cardW + cardGap)
-                    val r = RectF(cx, cardY, cx + cardW, cardY + cardH)
-                    canvas1.drawRoundRect(r, 6f, 6f, pCardBg)
-                    canvas1.drawRoundRect(r, 6f, 6f, pCardStroke)
-                    canvas1.drawText(label, cx + 10f, cardY + 18f, pMetricLabel)
-                    canvas1.drawText(value, cx + 10f, cardY + 40f, pMetricVal)
-                }
-
-                // 3. Demographics & Overview Info Box
-                val infoBoxY = 166f
-                val infoBoxH = 52f
-                val infoRect = RectF(36f, infoBoxY, 559f, infoBoxY + infoBoxH)
-                val pInfoBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#F1F5F9"); style = Paint.Style.FILL }
-                val pInfoStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#CBD5E1"); style = Paint.Style.STROKE; strokeWidth = 1f }
-                canvas1.drawRoundRect(infoRect, 6f, 6f, pInfoBg)
-                canvas1.drawRoundRect(infoRect, 6f, 6f, pInfoStroke)
-
-                val pInfoText = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#334155"); textSize = 9.5f }
-                val pInfoBold = Paint(pInfoText).apply { typeface = Typeface.DEFAULT_BOLD }
-
-                val oldest = persons.filter { it.birthDate.isNotEmpty() }.minByOrNull { it.birthDate }
-                val oldestStr = if (oldest != null) "${oldest.firstName} ${oldest.lastName} (${oldest.birthDate})" else "None recorded"
-                val verifiedDocs = persons.sumOf { it.documents.size }
-
-                canvas1.drawText("Oldest Recorded Ancestor: ", 48f, infoBoxY + 22f, pInfoBold)
-                canvas1.drawText(oldestStr, 190f, infoBoxY + 22f, pInfoText)
-
-                canvas1.drawText("Recorded Marriages: ", 48f, infoBoxY + 40f, pInfoBold)
-                canvas1.drawText("$marriageCount unions", 160f, infoBoxY + 40f, pInfoText)
-
-                canvas1.drawText("Attached Archive Documents: ", 320f, infoBoxY + 22f, pInfoBold)
-                canvas1.drawText("$verifiedDocs documents", 475f, infoBoxY + 22f, pInfoText)
-
-                canvas1.drawText("Family Tree Identifier: ", 320f, infoBoxY + 40f, pInfoBold)
-                canvas1.drawText(treeId.take(16).ifBlank { "N/A" }, 430f, infoBoxY + 40f, pInfoText)
-
-                // 4. Section Header: Visual Tree Chart
-                val chartHeaderY = 236f
-                val pSectionTitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Color.parseColor("#0F6E56"); textSize = 11f; typeface = Typeface.DEFAULT_BOLD
-                }
-                val pSectionSub = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Color.parseColor("#64748B"); textSize = 8.5f
-                }
-                canvas1.drawText("GENEALOGICAL TREE DIAGRAM", 36f, chartHeaderY, pSectionTitle)
-                canvas1.drawText("Visual relational tree and generational connections", 36f, chartHeaderY + 12f, pSectionSub)
-
-                // 5. Embedded Scaled Visual Tree Diagram
-                val treeFrameTop = 256f
-                val treeFrameBottom = 780f
-                val treeFrameW = 523f
-                val treeFrameH = treeFrameBottom - treeFrameTop
-
-                val pFrameBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#06120D"); style = Paint.Style.FILL }
-                val pFrameBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#1D9E75"); style = Paint.Style.STROKE; strokeWidth = 1.5f }
-                val frameRect = RectF(36f, treeFrameTop, 559f, treeFrameBottom)
-                canvas1.drawRoundRect(frameRect, 8f, 8f, pFrameBg)
-                canvas1.drawRoundRect(frameRect, 8f, 8f, pFrameBorder)
-
-                // Render tree bitmap and scale to frame
-                val treeView = FamilyTreeView(this@ExportTreeActivity)
-                val treeBmp = treeView.exportToBitmap(persons, treeName)
-
-                // Compute scaling preserving aspect ratio
-                val scaleW = (treeFrameW - 8f) / treeBmp.width.toFloat()
-                val scaleH = (treeFrameH - 8f) / treeBmp.height.toFloat()
-                val fitScale = minOf(scaleW, scaleH)
-                val targetW = treeBmp.width * fitScale
-                val targetH = treeBmp.height * fitScale
-                val drawLeft = 36f + 4f + (treeFrameW - 8f - targetW) / 2f
-                val drawTop = treeFrameTop + 4f + (treeFrameH - 8f - targetH) / 2f
-                val destRect = RectF(drawLeft, drawTop, drawLeft + targetW, drawTop + targetH)
-
-                val pBmpFilter = Paint(Paint.FILTER_BITMAP_FLAG)
-                canvas1.drawBitmap(treeBmp, null, destRect, pBmpFilter)
-                if (!treeBmp.isRecycled) {
-                    treeBmp.recycle()
-                }
-
-                // 6. Page 1 Footer
-                val pDivider = Paint().apply { color = Color.parseColor("#E2E8F0"); strokeWidth = 1f }
-                canvas1.drawLine(36f, 796f, 559f, 796f, pDivider)
-                val pFooterL = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#94A3B8"); textSize = 8f }
-                val pFooterR = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#64748B"); textSize = 8f; textAlign = Paint.Align.RIGHT }
-                canvas1.drawText("KinTrace Certified Family Records  •  Heritage Preservation", 36f, 810f, pFooterL)
-                canvas1.drawText("Page 1 of $totalPages", 559f, 810f, pFooterR)
-
-                pdfDoc.finishPage(page1)
-
-                // ─────────────────────────────────────────────────────────────
-                // PAGES 2+: Detailed Paginated Member Registry Table
-                // ─────────────────────────────────────────────────────────────
-                var personIdx = 0
-                for (pageNum in 2..totalPages) {
-                    val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNum).create()
-                    val page = pdfDoc.startPage(pageInfo)
-                    val canvas = page.canvas
-
-                    // Page Header
-                    canvas.drawRect(0f, 0f, pageWidth.toFloat(), 55f, pDarkBg)
-                    canvas.drawRect(0f, 55f, pageWidth.toFloat(), 57f, pEmeraldBar)
-                    val pDirTitle = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 13f; typeface = Typeface.DEFAULT_BOLD }
-                    val pDirSub = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#A3B899"); textSize = 9.5f }
-                    canvas.drawText("KinTrace Member Directory & Lineage Register", 36f, 30f, pDirTitle)
-                    canvas.drawText(treeName, 36f, 46f, pDirSub)
-                    canvas.drawText(dateStr, 559f, 46f, pDate)
-
-                    // Table Columns Setup (Total width = 523 pt)
-                    val colX = floatArrayOf(36f, 58f, 173f, 215f, 261f, 336f, 428f)
-                    val colW = floatArrayOf(22f, 115f, 42f, 46f, 75f, 92f, 131f)
-                    val colTitles = arrayOf("#", "Full Name", "Gender", "Status", "Birth / Death", "Spouse", "Parents")
-
-                    // Table Header Row
-                    val tableHeaderY = 72f
-                    val tableHeaderH = 22f
-                    val pThBg = Paint().apply { color = Color.parseColor("#0F6E56"); style = Paint.Style.FILL }
-                    val pThText = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 8.5f; typeface = Typeface.DEFAULT_BOLD }
-                    canvas.drawRect(36f, tableHeaderY, 559f, tableHeaderY + tableHeaderH, pThBg)
-                    colTitles.forEachIndexed { i, title ->
-                        canvas.drawText(title, colX[i] + 4f, tableHeaderY + 15f, pThText)
-                    }
-
-                    var rowY = tableHeaderY + tableHeaderH
-                    val rowH = 25f
-
-                    val pRowEven = Paint().apply { color = Color.WHITE; style = Paint.Style.FILL }
-                    val pRowOdd = Paint().apply { color = Color.parseColor("#F8FAFC"); style = Paint.Style.FILL }
-                    val pRowBorder = Paint().apply { color = Color.parseColor("#E2E8F0"); strokeWidth = 0.5f }
-                    val pCellText = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#1E293B"); textSize = 8.5f }
-                    val pCellBold = Paint(pCellText).apply { typeface = Typeface.DEFAULT_BOLD }
-                    val pLiving = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#0F766E"); textSize = 8f; typeface = Typeface.DEFAULT_BOLD }
-                    val pDeceased = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#64748B"); textSize = 8f }
-
-                    for (r in 0 until rowsPerPage) {
-                        if (personIdx >= persons.size) break
-                        val p = persons[personIdx]
-                        val isEven = (personIdx % 2 == 0)
-                        canvas.drawRect(36f, rowY, 559f, rowY + rowH, if (isEven) pRowEven else pRowOdd)
-                        canvas.drawLine(36f, rowY + rowH, 559f, rowY + rowH, pRowBorder)
-
-                        // 1. #
-                        canvas.drawText((personIdx + 1).toString(), colX[0] + 4f, rowY + 16f, pCellText)
-
-                        // 2. Full Name
-                        val fullName = "${p.firstName} ${p.lastName}".trim()
-                        val shortName = android.text.TextUtils.ellipsize(fullName, android.text.TextPaint(pCellBold), colW[1] - 8f, android.text.TextUtils.TruncateAt.END).toString()
-                        canvas.drawText(shortName, colX[1] + 4f, rowY + 16f, pCellBold)
-
-                        // 3. Gender
-                        canvas.drawText(p.gender.take(6), colX[2] + 4f, rowY + 16f, pCellText)
-
-                        // 4. Status
-                        val statusText = if (p.isLiving) "Living" else "Deceased"
-                        canvas.drawText(statusText, colX[3] + 4f, rowY + 16f, if (p.isLiving) pLiving else pDeceased)
-
-                        // 5. Birth / Death
-                        val bStr = p.birthDate.ifEmpty { "—" }
-                        val dStr = if (!p.isLiving) "† ${p.deathDate.ifEmpty { "Deceased" }}" else ""
-                        val dateLine = if (dStr.isNotEmpty()) "$bStr / $dStr" else bStr
-                        val shortDate = android.text.TextUtils.ellipsize(dateLine, android.text.TextPaint(pCellText), colW[4] - 8f, android.text.TextUtils.TruncateAt.END).toString()
-                        canvas.drawText(shortDate, colX[4] + 4f, rowY + 16f, pCellText)
-
-                        // 6. Spouse
-                        val spouse = personMap[p.spouseId]
-                        val spouseStr = if (spouse != null) "${spouse.firstName} ${spouse.lastName}".trim() else "None"
-                        val shortSpouse = android.text.TextUtils.ellipsize(spouseStr, android.text.TextPaint(pCellText), colW[5] - 8f, android.text.TextUtils.TruncateAt.END).toString()
-                        canvas.drawText(shortSpouse, colX[5] + 4f, rowY + 16f, pCellText)
-
-                        // 7. Parents
-                        val father = personMap[p.fatherId]
-                        val mother = personMap[p.motherId]
-                        val pStr = when {
-                            father != null && mother != null -> "${father.firstName} & ${mother.firstName}"
-                            father != null -> "F: ${father.firstName} ${father.lastName}"
-                            mother != null -> "M: ${mother.firstName} ${mother.lastName}"
-                            else -> "—"
-                        }
-                        val shortParents = android.text.TextUtils.ellipsize(pStr, android.text.TextPaint(pCellText), colW[6] - 8f, android.text.TextUtils.TruncateAt.END).toString()
-                        canvas.drawText(shortParents, colX[6] + 4f, rowY + 16f, pCellText)
-
-                        rowY += rowH
-                        personIdx++
-                    }
-
-                    // Directory Page Footer
-                    canvas.drawLine(36f, 796f, 559f, 796f, pDivider)
-                    canvas.drawText("KinTrace Certified Family Records  •  Member Registry", 36f, 810f, pFooterL)
-                    canvas.drawText("Page $pageNum of $totalPages", 559f, 810f, pFooterR)
-
-                    pdfDoc.finishPage(page)
-                }
-
-                val fileName = getSafeTreeFileName("Report.pdf")
-                saveFile(fileName, "application/pdf") { out ->
-                    pdfDoc.writeTo(out)
-                    pdfDoc.close()
-                }
-
-                runOnUiThread {
-                    setExporting(false)
-                    toast("✅ Comprehensive PDF Report saved to Downloads: $fileName")
-                }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    setExporting(false)
-                    toast("PDF export failed: ${e.message}")
-                }
-            }
-        }.start()
-    }
-
     private fun exportPng() {
         if (persons.isEmpty()) { toast("No members to export"); return }
         if (isExporting) return
         setExporting(true, "Generating visual tree PNG...")
 
-        Thread {
-            try {
-                val treeView = FamilyTreeView(this@ExportTreeActivity)
-                val bmp = treeView.exportToBitmap(persons, treeName)
-                val fileName = getSafeTreeFileName("Chart.png")
+        try {
+            // Instantiate View and render bitmap on Main Thread
+            val treeView = FamilyTreeView(this)
+            val bmp = treeView.exportToBitmap(persons, treeName)
+            val fileName = getSafeTreeFileName("Chart.png")
 
-                saveFile(fileName, "image/png") { out ->
-                    bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+            Thread {
+                try {
+                    saveFile(fileName, "image/png") { out ->
+                        bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    }
+                    if (!bmp.isRecycled) {
+                        bmp.recycle()
+                    }
+                    runOnUiThread {
+                        setExporting(false)
+                        toast("✅ Visual Tree saved to Downloads: $fileName")
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        setExporting(false)
+                        toast("Export failed: ${e.message}")
+                    }
                 }
+            }.start()
+        } catch (e: Exception) {
+            setExporting(false)
+            toast("Export failed: ${e.message}")
+        }
+    }
 
-                if (!bmp.isRecycled) {
-                    bmp.recycle()
-                }
+    private fun exportPdf() {
+        if (persons.isEmpty()) { toast("No members to export"); return }
+        if (isExporting) return
+        setExporting(true, "Generating comprehensive PDF report...")
 
-                runOnUiThread {
-                    setExporting(false)
-                    toast("✅ Visual Tree PNG exported to Downloads: $fileName")
+        try {
+            // Pre-render visual tree bitmap on Main Thread
+            val treeView = FamilyTreeView(this)
+            val treeBmp = treeView.exportToBitmap(persons, treeName)
+
+            Thread {
+                try {
+                    val pdfDoc = PdfDocument()
+                    val pageWidth = 595
+                    val pageHeight = 842
+
+                    // Calculate metrics
+                    val totalMembers = persons.size
+                    val livingCount = persons.count { it.isLiving }
+                    val deceasedCount = totalMembers - livingCount
+                    val parentLinks = persons.count { !it.fatherId.isNullOrBlank() || !it.motherId.isNullOrBlank() }
+                    val marriageCount = persons.count { !it.spouseId.isNullOrBlank() } / 2
+                    val dateStr = java.text.SimpleDateFormat("MMMM d, yyyy", java.util.Locale.getDefault()).format(java.util.Date())
+
+                    val personMap = persons.associateBy { it.id }
+
+                    // Determine pagination for member directory table
+                    val rowsPerPage = 24
+                    val memberPages = ((persons.size + rowsPerPage - 1) / rowsPerPage).coerceAtLeast(1)
+                    val totalPages = 1 + memberPages
+
+                    // ─────────────────────────────────────────────────────────
+                    // PAGE 1: Executive Heritage Summary & Visual Tree Diagram
+                    // ─────────────────────────────────────────────────────────
+                    val page1Info = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create()
+                    val page1 = pdfDoc.startPage(page1Info)
+                    val canvas1 = page1.canvas
+
+                    // 1. Header Banner
+                    val pDarkBg = Paint().apply { color = Color.parseColor("#0C2017"); style = Paint.Style.FILL }
+                    val pEmeraldBar = Paint().apply { color = Color.parseColor("#1D9E75"); style = Paint.Style.FILL }
+                    canvas1.drawRect(0f, 0f, pageWidth.toFloat(), 85f, pDarkBg)
+                    canvas1.drawRect(0f, 85f, pageWidth.toFloat(), 88f, pEmeraldBar)
+
+                    val pTitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.WHITE; textSize = 20f; typeface = Typeface.DEFAULT_BOLD
+                    }
+                    val pSubtitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.parseColor("#A3B899"); textSize = 11f; typeface = Typeface.DEFAULT_BOLD
+                    }
+                    val pDate = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.parseColor("#94A3B8"); textSize = 9f; textAlign = Paint.Align.RIGHT
+                    }
+
+                    canvas1.drawText("KinTrace Genealogical Heritage Report", 36f, 40f, pTitle)
+                    canvas1.drawText("Family Tree: $treeName", 36f, 62f, pSubtitle)
+                    canvas1.drawText("Exported: $dateStr", 559f, 62f, pDate)
+
+                    // 2. Executive Metric Cards (4 cards)
+                    val cardY = 104f
+                    val cardH = 50f
+                    val cardGap = 8f
+                    val cardW = (523f - 3f * cardGap) / 4f
+
+                    val metrics = listOf(
+                        "TOTAL MEMBERS" to totalMembers.toString(),
+                        "LIVING KIN" to livingCount.toString(),
+                        "DECEASED" to deceasedCount.toString(),
+                        "PARENT LINKS" to parentLinks.toString()
+                    )
+
+                    val pCardBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#F8FAFC"); style = Paint.Style.FILL }
+                    val pCardStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#E2E8F0"); style = Paint.Style.STROKE; strokeWidth = 1f }
+                    val pMetricLabel = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#64748B"); textSize = 8f; typeface = Typeface.DEFAULT_BOLD }
+                    val pMetricVal = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#0F6E56"); textSize = 18f; typeface = Typeface.DEFAULT_BOLD }
+
+                    metrics.forEachIndexed { i, (label, value) ->
+                        val cx = 36f + i * (cardW + cardGap)
+                        val r = RectF(cx, cardY, cx + cardW, cardY + cardH)
+                        canvas1.drawRoundRect(r, 6f, 6f, pCardBg)
+                        canvas1.drawRoundRect(r, 6f, 6f, pCardStroke)
+                        canvas1.drawText(label, cx + 10f, cardY + 18f, pMetricLabel)
+                        canvas1.drawText(value, cx + 10f, cardY + 40f, pMetricVal)
+                    }
+
+                    // 3. Demographics & Overview Info Box
+                    val infoBoxY = 166f
+                    val infoBoxH = 52f
+                    val infoRect = RectF(36f, infoBoxY, 559f, infoBoxY + infoBoxH)
+                    val pInfoBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#F1F5F9"); style = Paint.Style.FILL }
+                    val pInfoStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#CBD5E1"); style = Paint.Style.STROKE; strokeWidth = 1f }
+                    canvas1.drawRoundRect(infoRect, 6f, 6f, pInfoBg)
+                    canvas1.drawRoundRect(infoRect, 6f, 6f, pInfoStroke)
+
+                    val pInfoText = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#334155"); textSize = 9.5f }
+                    val pInfoBold = Paint(pInfoText).apply { typeface = Typeface.DEFAULT_BOLD }
+
+                    val oldest = persons.filter { it.birthDate.isNotEmpty() }.minByOrNull { it.birthDate }
+                    val oldestStr = if (oldest != null) "${oldest.firstName} ${oldest.lastName} (${oldest.birthDate})" else "None recorded"
+                    val verifiedDocs = persons.sumOf { it.documents.size }
+
+                    canvas1.drawText("Oldest Recorded Ancestor: ", 48f, infoBoxY + 22f, pInfoBold)
+                    canvas1.drawText(oldestStr, 190f, infoBoxY + 22f, pInfoText)
+
+                    canvas1.drawText("Recorded Marriages: ", 48f, infoBoxY + 40f, pInfoBold)
+                    canvas1.drawText("$marriageCount unions", 160f, infoBoxY + 40f, pInfoText)
+
+                    canvas1.drawText("Attached Archive Documents: ", 320f, infoBoxY + 22f, pInfoBold)
+                    canvas1.drawText("$verifiedDocs documents", 475f, infoBoxY + 22f, pInfoText)
+
+                    canvas1.drawText("Family Tree Identifier: ", 320f, infoBoxY + 40f, pInfoBold)
+                    canvas1.drawText(treeId.take(16).ifBlank { "N/A" }, 430f, infoBoxY + 40f, pInfoText)
+
+                    // 4. Section Header: Visual Tree Chart
+                    val chartHeaderY = 236f
+                    val pSectionTitle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.parseColor("#0F6E56"); textSize = 11f; typeface = Typeface.DEFAULT_BOLD
+                    }
+                    val pSectionSub = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                        color = Color.parseColor("#64748B"); textSize = 8.5f
+                    }
+                    canvas1.drawText("GENEALOGICAL TREE DIAGRAM", 36f, chartHeaderY, pSectionTitle)
+                    canvas1.drawText("Visual relational tree and generational connections", 36f, chartHeaderY + 12f, pSectionSub)
+
+                    // 5. Embedded Scaled Visual Tree Diagram
+                    val treeFrameTop = 256f
+                    val treeFrameBottom = 780f
+                    val treeFrameW = 523f
+                    val treeFrameH = treeFrameBottom - treeFrameTop
+
+                    val pFrameBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#06120D"); style = Paint.Style.FILL }
+                    val pFrameBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#1D9E75"); style = Paint.Style.STROKE; strokeWidth = 1.5f }
+                    val frameRect = RectF(36f, treeFrameTop, 559f, treeFrameBottom)
+                    canvas1.drawRoundRect(frameRect, 8f, 8f, pFrameBg)
+                    canvas1.drawRoundRect(frameRect, 8f, 8f, pFrameBorder)
+
+                    // Compute scaling preserving aspect ratio
+                    val scaleW = (treeFrameW - 8f) / treeBmp.width.toFloat()
+                    val scaleH = (treeFrameH - 8f) / treeBmp.height.toFloat()
+                    val fitScale = minOf(scaleW, scaleH)
+                    val targetW = treeBmp.width * fitScale
+                    val targetH = treeBmp.height * fitScale
+                    val drawLeft = 36f + 4f + (treeFrameW - 8f - targetW) / 2f
+                    val drawTop = treeFrameTop + 4f + (treeFrameH - 8f - targetH) / 2f
+                    val destRect = RectF(drawLeft, drawTop, drawLeft + targetW, drawTop + targetH)
+
+                    val pBmpFilter = Paint(Paint.FILTER_BITMAP_FLAG)
+                    canvas1.drawBitmap(treeBmp, null, destRect, pBmpFilter)
+                    if (!treeBmp.isRecycled) {
+                        treeBmp.recycle()
+                    }
+
+                    // 6. Page 1 Footer
+                    val pDivider = Paint().apply { color = Color.parseColor("#E2E8F0"); strokeWidth = 1f }
+                    canvas1.drawLine(36f, 796f, 559f, 796f, pDivider)
+                    val pFooterL = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#94A3B8"); textSize = 8f }
+                    val pFooterR = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#64748B"); textSize = 8f; textAlign = Paint.Align.RIGHT }
+                    canvas1.drawText("KinTrace Certified Family Records  •  Heritage Preservation", 36f, 810f, pFooterL)
+                    canvas1.drawText("Page 1 of $totalPages", 559f, 810f, pFooterR)
+
+                    pdfDoc.finishPage(page1)
+
+                    // ─────────────────────────────────────────────────────────
+                    // PAGES 2+: Detailed Paginated Member Registry Table
+                    // ─────────────────────────────────────────────────────────
+                    var personIdx = 0
+                    for (pageNum in 2..totalPages) {
+                        val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNum).create()
+                        val page = pdfDoc.startPage(pageInfo)
+                        val canvas = page.canvas
+
+                        // Page Header
+                        canvas.drawRect(0f, 0f, pageWidth.toFloat(), 55f, pDarkBg)
+                        canvas.drawRect(0f, 55f, pageWidth.toFloat(), 57f, pEmeraldBar)
+                        val pDirTitle = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 13f; typeface = Typeface.DEFAULT_BOLD }
+                        val pDirSub = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#A3B899"); textSize = 9.5f }
+                        canvas.drawText("KinTrace Member Directory & Lineage Register", 36f, 30f, pDirTitle)
+                        canvas.drawText(treeName, 36f, 46f, pDirSub)
+                        canvas.drawText(dateStr, 559f, 46f, pDate)
+
+                        // Table Columns Setup (Total width = 523 pt)
+                        val colX = floatArrayOf(36f, 58f, 173f, 215f, 261f, 336f, 428f)
+                        val colW = floatArrayOf(22f, 115f, 42f, 46f, 75f, 92f, 131f)
+                        val colTitles = arrayOf("#", "Full Name", "Gender", "Status", "Birth / Death", "Spouse", "Parents")
+
+                        // Table Header Row
+                        val tableHeaderY = 72f
+                        val tableHeaderH = 22f
+                        val pThBg = Paint().apply { color = Color.parseColor("#0F6E56"); style = Paint.Style.FILL }
+                        val pThText = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 8.5f; typeface = Typeface.DEFAULT_BOLD }
+                        canvas.drawRect(36f, tableHeaderY, 559f, tableHeaderY + tableHeaderH, pThBg)
+                        colTitles.forEachIndexed { i, title ->
+                            canvas.drawText(title, colX[i] + 4f, tableHeaderY + 15f, pThText)
+                        }
+
+                        var rowY = tableHeaderY + tableHeaderH
+                        val rowH = 25f
+
+                        val pRowEven = Paint().apply { color = Color.WHITE; style = Paint.Style.FILL }
+                        val pRowOdd = Paint().apply { color = Color.parseColor("#F8FAFC"); style = Paint.Style.FILL }
+                        val pRowBorder = Paint().apply { color = Color.parseColor("#E2E8F0"); strokeWidth = 0.5f }
+                        val pCellText = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#1E293B"); textSize = 8.5f }
+                        val pCellBold = Paint(pCellText).apply { typeface = Typeface.DEFAULT_BOLD }
+                        val pLiving = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#0F766E"); textSize = 8f; typeface = Typeface.DEFAULT_BOLD }
+                        val pDeceased = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#64748B"); textSize = 8f }
+
+                        for (r in 0 until rowsPerPage) {
+                            if (personIdx >= persons.size) break
+                            val p = persons[personIdx]
+                            val isEven = (personIdx % 2 == 0)
+                            canvas.drawRect(36f, rowY, 559f, rowY + rowH, if (isEven) pRowEven else pRowOdd)
+                            canvas.drawLine(36f, rowY + rowH, 559f, rowY + rowH, pRowBorder)
+
+                            // 1. #
+                            canvas.drawText((personIdx + 1).toString(), colX[0] + 4f, rowY + 16f, pCellText)
+
+                            // 2. Full Name
+                            val fullName = "${p.firstName} ${p.lastName}".trim()
+                            val shortName = android.text.TextUtils.ellipsize(fullName, android.text.TextPaint(pCellBold), colW[1] - 8f, android.text.TextUtils.TruncateAt.END).toString()
+                            canvas.drawText(shortName, colX[1] + 4f, rowY + 16f, pCellBold)
+
+                            // 3. Gender
+                            canvas.drawText(p.gender.take(6), colX[2] + 4f, rowY + 16f, pCellText)
+
+                            // 4. Status
+                            val statusText = if (p.isLiving) "Living" else "Deceased"
+                            canvas.drawText(statusText, colX[3] + 4f, rowY + 16f, if (p.isLiving) pLiving else pDeceased)
+
+                            // 5. Birth / Death
+                            val bStr = p.birthDate.ifEmpty { "—" }
+                            val dStr = if (!p.isLiving) "† ${p.deathDate.ifEmpty { "Deceased" }}" else ""
+                            val dateLine = if (dStr.isNotEmpty()) "$bStr / $dStr" else bStr
+                            val shortDate = android.text.TextUtils.ellipsize(dateLine, android.text.TextPaint(pCellText), colW[4] - 8f, android.text.TextUtils.TruncateAt.END).toString()
+                            canvas.drawText(shortDate, colX[4] + 4f, rowY + 16f, pCellText)
+
+                            // 6. Spouse
+                            val spouse = personMap[p.spouseId]
+                            val spouseStr = if (spouse != null) "${spouse.firstName} ${spouse.lastName}".trim() else "None"
+                            val shortSpouse = android.text.TextUtils.ellipsize(spouseStr, android.text.TextPaint(pCellText), colW[5] - 8f, android.text.TextUtils.TruncateAt.END).toString()
+                            canvas.drawText(shortSpouse, colX[5] + 4f, rowY + 16f, pCellText)
+
+                            // 7. Parents
+                            val father = personMap[p.fatherId]
+                            val mother = personMap[p.motherId]
+                            val pStr = when {
+                                father != null && mother != null -> "${father.firstName} & ${mother.firstName}"
+                                father != null -> "F: ${father.firstName} ${father.lastName}"
+                                mother != null -> "M: ${mother.firstName} ${mother.lastName}"
+                                else -> "—"
+                            }
+                            val shortParents = android.text.TextUtils.ellipsize(pStr, android.text.TextPaint(pCellText), colW[6] - 8f, android.text.TextUtils.TruncateAt.END).toString()
+                            canvas.drawText(shortParents, colX[6] + 4f, rowY + 16f, pCellText)
+
+                            rowY += rowH
+                            personIdx++
+                        }
+
+                        // Directory Page Footer
+                        canvas.drawLine(36f, 796f, 559f, 796f, pDivider)
+                        canvas.drawText("KinTrace Certified Family Records  •  Member Registry", 36f, 810f, pFooterL)
+                        canvas.drawText("Page $pageNum of $totalPages", 559f, 810f, pFooterR)
+
+                        pdfDoc.finishPage(page)
+                    }
+
+                    val fileName = getSafeTreeFileName("Report.pdf")
+                    saveFile(fileName, "application/pdf") { out ->
+                        pdfDoc.writeTo(out)
+                        pdfDoc.close()
+                    }
+
+                    runOnUiThread {
+                        setExporting(false)
+                        toast("✅ Comprehensive PDF Report saved: $fileName")
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        setExporting(false)
+                        toast("PDF export failed: ${e.message}")
+                    }
                 }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    setExporting(false)
-                    toast("Image export failed: ${e.message}")
-                }
-            }
-        }.start()
+            }.start()
+        } catch (e: Exception) {
+            setExporting(false)
+            toast("PDF export failed: ${e.message}")
+        }
     }
 
     private fun exportGedcom() {
@@ -570,7 +579,7 @@ class ExportTreeActivity : AppCompatActivity() {
 
                 runOnUiThread {
                     setExporting(false)
-                    toast("✅ CSV Spreadsheet saved to Downloads: $fileName")
+                    toast("✅ CSV Spreadsheet saved: $fileName")
                 }
             } catch (e: Exception) {
                 runOnUiThread {
@@ -592,7 +601,7 @@ class ExportTreeActivity : AppCompatActivity() {
 
     private fun saveFile(fileName: String, mimeType: String, write: (OutputStream) -> Unit) {
         try {
-            val out: OutputStream?
+            var saved = false
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val values = ContentValues().apply {
                     put(MediaStore.Downloads.DISPLAY_NAME, fileName)
@@ -600,17 +609,20 @@ class ExportTreeActivity : AppCompatActivity() {
                     put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
                 }
                 val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                out = uri?.let { contentResolver.openOutputStream(it) }
-            } else {
-                @Suppress("DEPRECATION")
-                val file = java.io.File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    fileName
-                )
-                out = java.io.FileOutputStream(file)
+                if (uri != null) {
+                    contentResolver.openOutputStream(uri)?.use { write(it) }
+                    saved = true
+                }
             }
-            out?.use { write(it) }
-        } catch (e: IOException) {
+            if (!saved) {
+                @Suppress("DEPRECATION")
+                val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).apply { mkdirs() }
+                val file = java.io.File(dir, fileName)
+                java.io.FileOutputStream(file).use { write(it) }
+            }
+            android.util.Log.i("ExportTreeActivity", "Successfully saved: $fileName ($mimeType)")
+        } catch (e: Exception) {
+            android.util.Log.e("ExportTreeActivity", "Failed to save $fileName", e)
             runOnUiThread {
                 toast("Export failed: ${e.message}")
             }
