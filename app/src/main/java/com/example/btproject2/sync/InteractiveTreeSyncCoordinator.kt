@@ -134,6 +134,7 @@ class InteractiveTreeSyncCoordinator(
             }
 
             SyncChangeType.TREE_CREATED -> {}
+            SyncChangeType.CLAN_MERGE_REQUEST_UPDATED -> {}
         }
     }
 

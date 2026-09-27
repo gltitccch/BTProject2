@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_forest_card"
+    android:padding="22dp">
+
+    <!-- Header Icon & Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📩 "
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/tvReviewRequestTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Clan Merge Authorization"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <Button
+            android:id="@+id/btnCloseReviewDialog"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:text="✕"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Another family tree owner entered your Clan Merge Code and is requesting authorization to link your tree as Tree B in their Merged Clan Space."
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:lineSpacingExtra="2dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Details Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_input_dark"
+        android:padding="14dp"
+        android:layout_marginBottom="14dp">
+
+        <TextView
+            android:id="@+id/tvReviewRequesterInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Requester: Karl Malone"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/tvReviewSourceTreeInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Requesting Tree: Malone Family"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvReviewTargetTreeInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Target Tree: Smith Family"
+            android:textSize="12sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/tvReviewTimestamps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status: Pending Approval • Expires in 48h"
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary" />
+    </LinearLayout>
+
+    <!-- Security Note -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#1B3326"
+        android:padding="10dp"
+        android:layout_marginBottom="18dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🛡️ "
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Approving this request allows this specific tree to synthesize a deep-cloned Master Tree C with yours. Your original tree remains 100% read-only and safe."
+            android:textSize="11sp"
+            android:textColor="#4ECCA3"
+            android:lineSpacingExtra="2dp" />
+    </LinearLayout>
+
+    <!-- Actions -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnRejectMergeRequest"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Decline"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#FF6B6B"
+            android:background="@drawable/btn_dark_secondary"
+            android:textAllCaps="false"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnApproveMergeRequest"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Approve Access"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#0A1B12"
+            android:background="@drawable/btn_gold_primary"
+            android:textAllCaps="false" />
+    </LinearLayout>
+</LinearLayout>
+

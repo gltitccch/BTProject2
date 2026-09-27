@@ -128,6 +128,43 @@
             android:textColor="@color/gold_accent" />
     </LinearLayout>
 
+    <!-- Incoming Clan Merge Requests Notification Banner -->
+    <LinearLayout
+        android:id="@+id/layoutIncomingMergeRequests"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#2E1F08"
+        android:paddingStart="20dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvIncomingMergeRequestsText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🔒 Pending Clan Merge Request(s) awaiting your review"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent" />
+
+        <Button
+            android:id="@+id/btnReviewMergeRequests"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Review"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#1B3326"
+            android:background="@drawable/btn_gold_primary"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
+    </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

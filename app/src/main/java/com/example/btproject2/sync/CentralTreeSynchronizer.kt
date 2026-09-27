@@ -3,6 +3,7 @@ package com.example.btproject2.sync
 import android.os.Handler
 import android.os.Looper
 import com.example.btproject2.firebase.FirestoreHelper
+import com.example.btproject2.models.ClanMergeRequest
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.Person
 import java.util.concurrent.ConcurrentHashMap
@@ -407,6 +408,26 @@ class CentralTreeSynchronizer private constructor() {
         val event = TreeSyncEvent(
             changeType = SyncChangeType.TREE_CREATED,
             treeId = tree.id,
+            scope = scope,
+            primaryPerson = null,
+            affectedPersons = emptyList(),
+            sourceScreenDescription = sourceScreen,
+            isConfirmedSave = true
+        )
+        publishConfirmedEvent(event)
+    }
+
+    /**
+     * 11. A clan merge request was updated (created, approved, rejected, cancelled, completed, failed).
+     */
+    fun notifyClanMergeRequestUpdated(
+        request: ClanMergeRequest,
+        sourceScreen: String = ""
+    ) {
+        val scope = SyncScopeResolver.resolveClanMergeRequestUpdated(request.targetTreeId)
+        val event = TreeSyncEvent(
+            changeType = SyncChangeType.CLAN_MERGE_REQUEST_UPDATED,
+            treeId = request.targetTreeId,
             scope = scope,
             primaryPerson = null,
             affectedPersons = emptyList(),

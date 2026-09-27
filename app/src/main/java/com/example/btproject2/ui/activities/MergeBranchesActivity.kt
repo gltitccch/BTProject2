@@ -27,6 +27,7 @@ import com.example.btproject2.engine.FamilyLinkValidator
 import com.example.btproject2.engine.MarriageValidationEngine
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
+import com.example.btproject2.models.ClanMergeRequest
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.Person
 import com.example.btproject2.sync.CentralTreeSynchronizer
@@ -35,6 +36,7 @@ import com.example.btproject2.sync.SyncEventListener
 import com.example.btproject2.sync.TreeSyncEvent
 import com.example.btproject2.utils.NotificationHelper
 import com.example.btproject2.utils.setDarkAdapter
+import com.google.firebase.firestore.ListenerRegistration
 import java.util.UUID
 
 class MergeBranchesActivity : AppCompatActivity() {
@@ -58,6 +60,12 @@ class MergeBranchesActivity : AppCompatActivity() {
     private lateinit var clanTreesContainer: LinearLayout
     private lateinit var btnOpenConnectBranches: Button
 
+    private lateinit var layoutIncomingMergeRequests: View
+    private lateinit var tvIncomingMergeRequestsText: TextView
+    private lateinit var btnReviewMergeRequests: Button
+    private var pendingRequestsRegistration: ListenerRegistration? = null
+    private var pendingIncomingRequests: List<ClanMergeRequest> = emptyList()
+
     private lateinit var cardMyMergeCode: LinearLayout
     private lateinit var tvMyMergeCodeDisplay: TextView
     private lateinit var btnCopyMyMergeCode: Button
@@ -76,7 +84,8 @@ class MergeBranchesActivity : AppCompatActivity() {
         override fun onSyncEvent(event: TreeSyncEvent) {
             if (event.changeType == SyncChangeType.TREE_DELETED ||
                 event.changeType == SyncChangeType.TREE_CREATED ||
-                event.changeType == SyncChangeType.MEMBER_ADDED) {
+                event.changeType == SyncChangeType.MEMBER_ADDED ||
+                event.changeType == SyncChangeType.CLAN_MERGE_REQUEST_UPDATED) {
                 runOnUiThread {
                     clanRefreshHandler.removeCallbacks(clanRefreshRunnable)
                     clanRefreshHandler.postDelayed(clanRefreshRunnable, 250L)
@@ -88,6 +97,7 @@ class MergeBranchesActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         CentralTreeSynchronizer.getInstance().registerListener(mergeSyncListener)
+        startListeningPendingMergeRequests()
     }
 
     override fun onResume() {
@@ -98,11 +108,14 @@ class MergeBranchesActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         CentralTreeSynchronizer.getInstance().unregisterListener(mergeSyncListener)
+        pendingRequestsRegistration?.remove()
+        pendingRequestsRegistration = null
     }
 
     override fun onDestroy() {
         super.onDestroy()
         clanRefreshHandler.removeCallbacks(clanRefreshRunnable)
+        pendingRequestsRegistration?.remove()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -124,6 +137,14 @@ class MergeBranchesActivity : AppCompatActivity() {
         layoutEmptyClanState = findViewById(R.id.layoutEmptyClanState)
         clanTreesContainer = findViewById(R.id.clanTreesContainer)
         btnOpenConnectBranches = findViewById(R.id.btnOpenConnectBranches)
+
+        layoutIncomingMergeRequests = findViewById(R.id.layoutIncomingMergeRequests)
+        tvIncomingMergeRequestsText = findViewById(R.id.tvIncomingMergeRequestsText)
+        btnReviewMergeRequests = findViewById(R.id.btnReviewMergeRequests)
+
+        btnReviewMergeRequests.setOnClickListener {
+            showReviewPendingRequestsDialog()
+        }
 
         cardMyMergeCode = findViewById(R.id.cardMyMergeCode)
         tvMyMergeCodeDisplay = findViewById(R.id.tvMyMergeCodeDisplay)
@@ -299,6 +320,97 @@ class MergeBranchesActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun startListeningPendingMergeRequests() {
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        if (currentUserId.isBlank()) return
+
+        pendingRequestsRegistration?.remove()
+        pendingRequestsRegistration = firestoreHelper.listenToPendingClanMergeRequests(currentUserId) { requests ->
+            runOnUiThread {
+                pendingIncomingRequests = requests
+                if (requests.isNotEmpty()) {
+                    layoutIncomingMergeRequests.visibility = View.VISIBLE
+                    tvIncomingMergeRequestsText.text = "📩 ${requests.size} Pending Clan Merge Request(s) awaiting your review"
+                } else {
+                    layoutIncomingMergeRequests.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun showReviewPendingRequestsDialog() {
+        if (pendingIncomingRequests.isEmpty()) {
+            Toast.makeText(this, "No pending clan merge requests.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (pendingIncomingRequests.size == 1) {
+            showReviewSingleRequestDialog(pendingIncomingRequests.first())
+        } else {
+            val names = pendingIncomingRequests.map { "${it.requesterTreeName} (from ${it.requesterOwnerName})" }.toTypedArray()
+            AlertDialog.Builder(this)
+                .setTitle("Incoming Clan Merge Requests")
+                .setItems(names) { _, which ->
+                    showReviewSingleRequestDialog(pendingIncomingRequests[which])
+                }
+                .setNegativeButton("Close", null)
+                .show()
+        }
+    }
+
+    private fun showReviewSingleRequestDialog(request: ClanMergeRequest) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_review_merge_request, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvReviewRequestTitle)
+        val tvRequester = dialogView.findViewById<TextView>(R.id.tvReviewRequesterInfo)
+        val tvSourceTree = dialogView.findViewById<TextView>(R.id.tvReviewSourceTreeInfo)
+        val tvTargetTree = dialogView.findViewById<TextView>(R.id.tvReviewTargetTreeInfo)
+        val tvTimestamps = dialogView.findViewById<TextView>(R.id.tvReviewTimestamps)
+        val btnReject = dialogView.findViewById<Button>(R.id.btnRejectMergeRequest)
+        val btnApprove = dialogView.findViewById<Button>(R.id.btnApproveMergeRequest)
+        val btnClose = dialogView.findViewById<Button>(R.id.btnCloseReviewDialog)
+
+        tvTitle.text = "${request.requesterTreeName} ➔ ${request.targetTreeName}"
+        tvRequester.text = "Requester: ${request.requesterOwnerName}"
+        tvSourceTree.text = "Requesting Tree: ${request.requesterTreeName}"
+        tvTargetTree.text = "Your Target Tree: ${request.targetTreeName}"
+
+        val expiryHours = maxOf(0L, (request.expiresAt - System.currentTimeMillis()) / (1000 * 60 * 60))
+        tvTimestamps.text = "Status: Pending Approval • Expires in ~${expiryHours}h"
+
+        btnReject.setOnClickListener {
+            btnReject.isEnabled = false
+            btnApprove.isEnabled = false
+            firestoreHelper.updateClanMergeRequestStatus(request.id, ClanMergeRequest.STATUS_REJECTED, onSuccess = {
+                dialog.dismiss()
+                Toast.makeText(this, "Clan merge request declined.", Toast.LENGTH_SHORT).show()
+            }, onFailure = { err ->
+                btnReject.isEnabled = true
+                btnApprove.isEnabled = true
+                Toast.makeText(this, "Failed to decline: ${err.message}", Toast.LENGTH_SHORT).show()
+            })
+        }
+
+        btnApprove.setOnClickListener {
+            btnReject.isEnabled = false
+            btnApprove.isEnabled = false
+            firestoreHelper.updateClanMergeRequestStatus(request.id, ClanMergeRequest.STATUS_APPROVED, onSuccess = {
+                dialog.dismiss()
+                Toast.makeText(this, "✓ Clan merge authorized! The requester can now complete the synthesis.", Toast.LENGTH_LONG).show()
+            }, onFailure = { err ->
+                btnReject.isEnabled = true
+                btnApprove.isEnabled = true
+                Toast.makeText(this, "Failed to approve: ${err.message}", Toast.LENGTH_SHORT).show()
+            })
+        }
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
+    }
+
     private fun loadClanTrees() {
         if (isLoadingClanTrees) return
         isLoadingClanTrees = true
@@ -420,6 +532,17 @@ class MergeBranchesActivity : AppCompatActivity() {
         val btnLookupInviteCode = dialogView.findViewById<Button>(R.id.btnLookupInviteCode)
         val tvInviteCodeResult = dialogView.findViewById<TextView>(R.id.tvInviteCodeResult)
         val etMasterTreeName = dialogView.findViewById<EditText>(R.id.etMasterTreeName)
+
+        val layoutMergeRequestStatus = dialogView.findViewById<LinearLayout>(R.id.layoutMergeRequestStatus)
+        val tvMergeRequestStatus = dialogView.findViewById<TextView>(R.id.tvMergeRequestStatus)
+        val tvMergeRequestSubtitle = dialogView.findViewById<TextView>(R.id.tvMergeRequestSubtitle)
+        val btnSendMergeRequest = dialogView.findViewById<Button>(R.id.btnSendMergeRequest)
+        val btnCancelMergeRequest = dialogView.findViewById<Button>(R.id.btnCancelMergeRequest)
+
+        var activeApprovedRequestId: String? = null
+        var activePendingRequestId: String? = null
+        var dialogRequestRegistration: ListenerRegistration? = null
+        var verifiedExternalTree: FamilyTree? = null
 
         val rgBridgeType = dialogView.findViewById<RadioGroup>(R.id.rgBridgeType)
         val rbBridgeSpouse = dialogView.findViewById<RadioButton>(R.id.rbBridgeSpouse)
@@ -549,64 +672,98 @@ class MergeBranchesActivity : AppCompatActivity() {
             }
         }
 
-        // Toggle Source for Tree 2
-        rgTree2Source.setOnCheckedChangeListener { _, checkedId ->
-            if (checkedId == R.id.rbTree2MyTrees) {
-                spinnerTree2.visibility = View.VISIBLE
-                layoutTree2InviteCode.visibility = View.GONE
-                loadTree2Members()
-            } else {
-                spinnerTree2.visibility = View.GONE
-                layoutTree2InviteCode.visibility = View.VISIBLE
-                if (externalTreeLoaded == null) {
+        fun applyRequestStateInternal(req: ClanMergeRequest?) {
+            val target = verifiedExternalTree
+            layoutMergeRequestStatus.visibility = View.VISIBLE
+            when {
+                req == null || req.isExpired() || req.status == ClanMergeRequest.STATUS_REJECTED || req.status == ClanMergeRequest.STATUS_CANCELLED -> {
+                    externalTreeLoaded = null
+                    activeApprovedRequestId = null
+                    activePendingRequestId = null
                     personsTree2 = emptyList()
-                    spinnerAnchorPerson2.setDarkAdapter(this, listOf("Enter and verify code above"))
-                } else {
+                    spinnerAnchorPerson2.setDarkAdapter(this@MergeBranchesActivity, listOf("🔒 Awaiting Owner Approval"))
+                    btnExecuteSynthesis.isEnabled = false
+
+                    if (req?.status == ClanMergeRequest.STATUS_REJECTED) {
+                        tvMergeRequestStatus.text = "❌ Request was declined by the tree owner."
+                        tvMergeRequestStatus.setTextColor(Color.parseColor("#FF6B6B"))
+                        tvMergeRequestSubtitle.text = "You may send a new request if needed."
+                    } else if (req?.isExpired() == true) {
+                        tvMergeRequestStatus.text = "⏰ Previous request expired."
+                        tvMergeRequestStatus.setTextColor(Color.parseColor("#FF6B6B"))
+                        tvMergeRequestSubtitle.text = "Send a new request to request access."
+                    } else {
+                        tvMergeRequestStatus.text = "🔒 Approval Required: Target tree owner must authorize this merge."
+                        tvMergeRequestStatus.setTextColor(Color.parseColor("#E0A96D"))
+                        tvMergeRequestSubtitle.text = "Tap 'Send Merge Request' below to notify ${target?.ownerName?.ifBlank { "the tree owner" } ?: "the tree owner"}."
+                    }
+                    btnSendMergeRequest.visibility = View.VISIBLE
+                    btnSendMergeRequest.isEnabled = true
+                    btnCancelMergeRequest.visibility = View.GONE
+                }
+                req.status == ClanMergeRequest.STATUS_PENDING -> {
+                    externalTreeLoaded = null
+                    activeApprovedRequestId = null
+                    activePendingRequestId = req.id
+                    personsTree2 = emptyList()
+                    spinnerAnchorPerson2.setDarkAdapter(this@MergeBranchesActivity, listOf("🔒 Awaiting Owner Approval"))
+                    btnExecuteSynthesis.isEnabled = false
+
+                    tvMergeRequestStatus.text = "⏳ Request sent — waiting for the target tree owner's approval."
+                    tvMergeRequestStatus.setTextColor(Color.parseColor("#E0A96D"))
+                    tvMergeRequestSubtitle.text = "The target tree owner must approve this request before synthesis can proceed."
+                    btnSendMergeRequest.visibility = View.GONE
+                    btnCancelMergeRequest.visibility = View.VISIBLE
+                }
+                req.canUnlockSynthesis() -> {
+                    // UNLOCKED CONTINUATION POINT!
+                    externalTreeLoaded = target
+                    activeApprovedRequestId = req.id
+                    activePendingRequestId = null
+
+                    tvMergeRequestStatus.text = "✓ Approved by Owner: Tree B unlocked for synthesis."
+                    tvMergeRequestStatus.setTextColor(Color.parseColor("#4ECCA3"))
+                    tvMergeRequestSubtitle.text = "You may now select anchor members and establish the clan bridge."
+                    btnSendMergeRequest.visibility = View.GONE
+                    btnCancelMergeRequest.visibility = View.GONE
+                    btnExecuteSynthesis.isEnabled = true
+
+                    updateDefaultMasterTreeName()
                     loadTree2Members()
                 }
+                req.status == ClanMergeRequest.STATUS_COMPLETED -> {
+                    externalTreeLoaded = null
+                    activeApprovedRequestId = null
+                    activePendingRequestId = null
+                    personsTree2 = emptyList()
+                    spinnerAnchorPerson2.setDarkAdapter(this@MergeBranchesActivity, listOf("✓ Synthesis Already Completed"))
+                    btnExecuteSynthesis.isEnabled = false
+
+                    tvMergeRequestStatus.text = "✓ Authorization Already Completed."
+                    tvMergeRequestStatus.setTextColor(Color.parseColor("#4ECCA3"))
+                    tvMergeRequestSubtitle.text = "A Master Clan Tree has already been created from this authorization."
+                    btnSendMergeRequest.visibility = View.GONE
+                    btnCancelMergeRequest.visibility = View.GONE
+                }
             }
-            updateDefaultMasterTreeName()
         }
 
-        // Lookup Clan Merge Code
-        btnLookupInviteCode.setOnClickListener {
-            val code = etTree2InviteCode.text.toString().trim().uppercase()
-            if (code.length < 5) {
-                Toast.makeText(this, "Please enter a valid Clan Merge Code.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            btnLookupInviteCode.isEnabled = false
-            btnLookupInviteCode.text = "..."
-
-            firestoreHelper.findTreeByMergeInviteCode(code,
-                onSuccess = { tree ->
-                    btnLookupInviteCode.isEnabled = true
-                    btnLookupInviteCode.text = "Verify"
-                    if (tree == null) {
-                        tvInviteCodeResult.text = "❌ No family tree found with merge code $code."
-                        tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
-                        tvInviteCodeResult.visibility = View.VISIBLE
-                    } else if (tree.id == activeTreeId) {
-                        tvInviteCodeResult.text = "⚠️ This is your own tree's merge code. Please select a different clan tree."
-                        tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
-                        tvInviteCodeResult.visibility = View.VISIBLE
-                    } else {
-                        externalTreeLoaded = tree
-                        tvInviteCodeResult.text = "✓ Verified Clan: ${tree.name} (${tree.memberCount} members)"
-                        tvInviteCodeResult.setTextColor(Color.parseColor("#4ECCA3"))
-                        tvInviteCodeResult.visibility = View.VISIBLE
-                        updateDefaultMasterTreeName()
-                        loadTree2Members()
+        fun listenToDialogRequest(reqId: String) {
+            dialogRequestRegistration?.remove()
+            dialogRequestRegistration = firestoreHelper.listenToClanMergeRequest(reqId) { liveReq ->
+                runOnUiThread {
+                    if (liveReq != null && liveReq.id == reqId) {
+                        applyRequestStateInternal(liveReq)
                     }
-                },
-                onFailure = { err ->
-                    btnLookupInviteCode.isEnabled = true
-                    btnLookupInviteCode.text = "Verify"
-                    tvInviteCodeResult.text = "❌ Error verifying merge code: ${err.message}"
-                    tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
-                    tvInviteCodeResult.visibility = View.VISIBLE
                 }
-            )
+            }
+        }
+
+        fun applyRequestState(req: ClanMergeRequest?) {
+            if (req != null) {
+                listenToDialogRequest(req.id)
+            }
+            applyRequestStateInternal(req)
         }
 
         spinnerTree1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -647,6 +804,11 @@ class MergeBranchesActivity : AppCompatActivity() {
             val masterTreeName = etMasterTreeName.text.toString().trim()
             if (masterTreeName.isBlank()) {
                 Toast.makeText(this, "Please enter a name for the Master Clan Tree.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (!rbTree2MyTrees.isChecked && activeApprovedRequestId == null) {
+                Toast.makeText(this, "Explicit approval from the target tree owner is required before synthesis.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -774,6 +936,8 @@ class MergeBranchesActivity : AppCompatActivity() {
                                  else null
             val partnerOwnerName = if (partnerOwnerId == owner2Id) owner2Name else owner1Name
 
+            val reqIdToComplete = activeApprovedRequestId
+
             // 5. Commit atomic batch write
             firestoreHelper.saveMasterTreeAndMembers(
                 masterTree = masterTree,
@@ -781,6 +945,13 @@ class MergeBranchesActivity : AppCompatActivity() {
                 partnerTreeOwnerId = partnerOwnerId,
                 partnerTreeOwnerName = partnerOwnerName,
                 onSuccess = { createdTree ->
+                    if (reqIdToComplete != null) {
+                        firestoreHelper.updateClanMergeRequestStatus(
+                            requestId = reqIdToComplete,
+                            newStatus = ClanMergeRequest.STATUS_COMPLETED,
+                            masterTreeId = createdTree.id
+                        )
+                    }
                     dialog.dismiss()
                     Toast.makeText(this, "Master Clan Tree synthesized successfully!", Toast.LENGTH_LONG).show()
                     loadClanTrees()
@@ -800,6 +971,12 @@ class MergeBranchesActivity : AppCompatActivity() {
                         .show()
                 },
                 onFailure = { err ->
+                    if (reqIdToComplete != null) {
+                        firestoreHelper.updateClanMergeRequestStatus(
+                            requestId = reqIdToComplete,
+                            newStatus = ClanMergeRequest.STATUS_FAILED
+                        )
+                    }
                     progressBarSynthesis.visibility = View.GONE
                     btnExecuteSynthesis.isEnabled = true
                     btnCancelSynthesis.isEnabled = true
@@ -810,6 +987,11 @@ class MergeBranchesActivity : AppCompatActivity() {
                         .show()
                 }
             )
+        }
+
+        dialog.setOnDismissListener {
+            dialogRequestRegistration?.remove()
+            dialogRequestRegistration = null
         }
 
         dialog.show()

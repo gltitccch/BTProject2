@@ -1,6 +1,7 @@
 package com.example.btproject2.firebase
 
 import com.example.btproject2.models.ActivityRecord
+import com.example.btproject2.models.ClanMergeRequest
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.InviteCodeRecord
 import com.example.btproject2.models.NotificationRecord
@@ -17,6 +18,7 @@ import android.content.Context
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
@@ -546,6 +548,45 @@ class FirestoreHelper {
                 sourceTree1Id = sourceTree1Id,
                 sourceTree2Id = sourceTree2Id,
                 coOwnerIds = coOwnerIds
+            )
+        }
+
+        fun documentToClanMergeRequest(doc: com.google.firebase.firestore.DocumentSnapshot): ClanMergeRequest? {
+            if (!doc.exists()) return null
+            val data = doc.data ?: return doc.toObject(ClanMergeRequest::class.java)?.copy(id = doc.id)
+
+            val id = doc.id
+            val code = (data["code"] as? String)?.trim()?.uppercase() ?: ""
+            val requesterTreeId = (data["requesterTreeId"] as? String) ?: ""
+            val requesterTreeName = (data["requesterTreeName"] as? String) ?: "Requesting Tree"
+            val requesterOwnerId = (data["requesterOwnerId"] as? String) ?: ""
+            val requesterOwnerName = (data["requesterOwnerName"] as? String) ?: "Requester"
+            val targetTreeId = (data["targetTreeId"] as? String) ?: ""
+            val targetTreeName = (data["targetTreeName"] as? String) ?: "Target Tree"
+            val targetOwnerId = (data["targetOwnerId"] as? String) ?: ""
+            val targetOwnerName = (data["targetOwnerName"] as? String) ?: "Owner"
+            val status = (data["status"] as? String) ?: ClanMergeRequest.STATUS_PENDING
+            val createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis()
+            val expiresAt = (data["expiresAt"] as? Number)?.toLong() ?: (createdAt + ClanMergeRequest.DEFAULT_EXPIRY_MILLIS)
+            val updatedAt = (data["updatedAt"] as? Number)?.toLong() ?: createdAt
+            val createdMasterTreeId = (data["createdMasterTreeId"] as? String) ?: ""
+
+            return ClanMergeRequest(
+                id = id,
+                code = code,
+                requesterTreeId = requesterTreeId,
+                requesterTreeName = requesterTreeName,
+                requesterOwnerId = requesterOwnerId,
+                requesterOwnerName = requesterOwnerName,
+                targetTreeId = targetTreeId,
+                targetTreeName = targetTreeName,
+                targetOwnerId = targetOwnerId,
+                targetOwnerName = targetOwnerName,
+                status = status,
+                createdAt = createdAt,
+                expiresAt = expiresAt,
+                updatedAt = updatedAt,
+                createdMasterTreeId = createdMasterTreeId
             )
         }
     }
@@ -2501,6 +2542,213 @@ class FirestoreHelper {
                 }
             }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // CLAN MERGE REQUEST & APPROVAL PIPELINE
+    // ══════════════════════════════════════════════════════════════
+
+    /**
+     * Creates a new pending clan merge request if an active pending one doesn't already exist.
+     * Prevents duplicate pending requests and notifies target tree owner.
+     */
+    fun createClanMergeRequest(
+        request: ClanMergeRequest,
+        onSuccess: (ClanMergeRequest) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (request.requesterTreeId.isBlank() || request.targetTreeId.isBlank() || request.requesterOwnerId.isBlank()) {
+            onFailure(IllegalArgumentException("Tree IDs and Requester ID cannot be blank"))
+            return
+        }
+
+        // Check if an active pending request already exists for this pair
+        db.collection("clan_merge_requests")
+            .whereEqualTo("requesterTreeId", request.requesterTreeId)
+            .whereEqualTo("targetTreeId", request.targetTreeId)
+            .whereEqualTo("requesterOwnerId", request.requesterOwnerId)
+            .whereEqualTo("status", ClanMergeRequest.STATUS_PENDING)
+            .get()
+            .addOnSuccessListener { snap ->
+                val existing = snap.documents.mapNotNull { documentToClanMergeRequest(it) }
+                    .firstOrNull { !it.isExpired() }
+
+                if (existing != null) {
+                    onSuccess(existing)
+                    return@addOnSuccessListener
+                }
+
+                val docRef = db.collection("clan_merge_requests").document()
+                val finalRequest = request.copy(
+                    id = docRef.id,
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis(),
+                    status = ClanMergeRequest.STATUS_PENDING
+                )
+
+                docRef.set(finalRequest)
+                    .addOnSuccessListener {
+                        // Dispatch notification to target tree owner
+                        if (finalRequest.targetOwnerId.isNotBlank()) {
+                            val notif = NotificationRecord(
+                                treeId = finalRequest.targetTreeId,
+                                userId = finalRequest.targetOwnerId,
+                                title = "Clan Merge Request Received",
+                                message = "${finalRequest.requesterOwnerName} requested to merge '${finalRequest.requesterTreeName}' with your tree '${finalRequest.targetTreeName}'.",
+                                type = "CLAN_MERGE_REQUEST",
+                                targetId = finalRequest.id,
+                                timestamp = System.currentTimeMillis()
+                            )
+                            addNotification(notif)
+                        }
+                        CentralTreeSynchronizer.getInstance().notifyClanMergeRequestUpdated(finalRequest)
+                        onSuccess(finalRequest)
+                    }
+                    .addOnFailureListener { onFailure(it) }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Looks up any active (pending or approved but uncompleted) merge request for a requester and target tree.
+     */
+    fun findActiveClanMergeRequest(
+        requesterOwnerId: String,
+        requesterTreeId: String,
+        targetTreeId: String,
+        onSuccess: (ClanMergeRequest?) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (requesterOwnerId.isBlank() || requesterTreeId.isBlank() || targetTreeId.isBlank()) {
+            onSuccess(null)
+            return
+        }
+
+        db.collection("clan_merge_requests")
+            .whereEqualTo("requesterOwnerId", requesterOwnerId)
+            .whereEqualTo("requesterTreeId", requesterTreeId)
+            .whereEqualTo("targetTreeId", targetTreeId)
+            .get()
+            .addOnSuccessListener { snap ->
+                val requests = snap.documents.mapNotNull { documentToClanMergeRequest(it) }
+                    .sortedByDescending { it.createdAt }
+
+                // Prefer approved request if not yet completed/consumed, else pending if not expired
+                val active = requests.firstOrNull { it.canUnlockSynthesis() }
+                    ?: requests.firstOrNull { it.status == ClanMergeRequest.STATUS_PENDING && !it.isExpired() }
+                    ?: requests.firstOrNull()
+
+                onSuccess(active)
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Real-time listener for pending clan merge requests targeted at this owner's trees.
+     */
+    fun listenToPendingClanMergeRequests(
+        ownerId: String,
+        onUpdate: (List<ClanMergeRequest>) -> Unit
+    ): ListenerRegistration {
+        return db.collection("clan_merge_requests")
+            .whereEqualTo("targetOwnerId", ownerId)
+            .whereEqualTo("status", ClanMergeRequest.STATUS_PENDING)
+            .addSnapshotListener { snap, err ->
+                if (err != null || snap == null) {
+                    onUpdate(emptyList())
+                    return@addSnapshotListener
+                }
+                val list = snap.documents.mapNotNull { documentToClanMergeRequest(it) }
+                    .filter { !it.isExpired() }
+                    .sortedByDescending { it.createdAt }
+                onUpdate(list)
+            }
+    }
+
+    /**
+     * Real-time listener for a specific clan merge request.
+     */
+    fun listenToClanMergeRequest(
+        requestId: String,
+        onUpdate: (ClanMergeRequest?) -> Unit
+    ): ListenerRegistration {
+        return db.collection("clan_merge_requests").document(requestId)
+            .addSnapshotListener { snap, err ->
+                if (err != null || snap == null || !snap.exists()) {
+                    onUpdate(null)
+                    return@addSnapshotListener
+                }
+                onUpdate(documentToClanMergeRequest(snap))
+            }
+    }
+
+    /**
+     * Updates the status of a ClanMergeRequest (e.g. APPROVED, REJECTED, CANCELLED, COMPLETED, FAILED).
+     * When completed, stores createdMasterTreeId to prevent duplicate execution.
+     */
+    fun updateClanMergeRequestStatus(
+        requestId: String,
+        newStatus: String,
+        masterTreeId: String = "",
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (requestId.isBlank()) {
+            onFailure(IllegalArgumentException("Request ID cannot be blank"))
+            return
+        }
+
+        val docRef = db.collection("clan_merge_requests").document(requestId)
+        docRef.get().addOnSuccessListener { snap ->
+            val req = documentToClanMergeRequest(snap)
+            val updates = mutableMapOf<String, Any>(
+                "status" to newStatus,
+                "updatedAt" to System.currentTimeMillis()
+            )
+            if (masterTreeId.isNotBlank()) {
+                updates["createdMasterTreeId"] = masterTreeId
+            }
+
+            docRef.update(updates)
+                .addOnSuccessListener {
+                    if (req != null) {
+                        val updatedReq = req.copy(
+                            status = newStatus,
+                            updatedAt = System.currentTimeMillis(),
+                            createdMasterTreeId = if (masterTreeId.isNotBlank()) masterTreeId else req.createdMasterTreeId
+                        )
+
+                        // If approved, notify requester
+                        if (newStatus == ClanMergeRequest.STATUS_APPROVED && req.requesterOwnerId.isNotBlank()) {
+                            val notif = NotificationRecord(
+                                treeId = req.requesterTreeId,
+                                userId = req.requesterOwnerId,
+                                title = "Clan Merge Request Approved",
+                                message = "Your request to merge '${req.requesterTreeName}' with '${req.targetTreeName}' was approved! You can now complete the synthesis in Merged Clan Space.",
+                                type = "CLAN_MERGE_REQUEST",
+                                targetId = requestId,
+                                timestamp = System.currentTimeMillis()
+                            )
+                            addNotification(notif)
+                        } else if (newStatus == ClanMergeRequest.STATUS_REJECTED && req.requesterOwnerId.isNotBlank()) {
+                            val notif = NotificationRecord(
+                                treeId = req.requesterTreeId,
+                                userId = req.requesterOwnerId,
+                                title = "Clan Merge Request Declined",
+                                message = "Your request to merge '${req.requesterTreeName}' with '${req.targetTreeName}' was declined by the tree owner.",
+                                type = "CLAN_MERGE_REQUEST",
+                                targetId = requestId,
+                                timestamp = System.currentTimeMillis()
+                            )
+                            addNotification(notif)
+                        }
+
+                        CentralTreeSynchronizer.getInstance().notifyClanMergeRequestUpdated(updatedReq)
+                    }
+                    onSuccess()
+                }
+                .addOnFailureListener { onFailure(it) }
+        }.addOnFailureListener { onFailure(it) }
     }
 
     fun addTreeMember(

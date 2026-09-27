@@ -182,6 +182,7 @@ class MemberDetailSyncCoordinator(
             }
 
             SyncChangeType.TREE_CREATED -> {}
+            SyncChangeType.CLAN_MERGE_REQUEST_UPDATED -> {}
         }
     }
 

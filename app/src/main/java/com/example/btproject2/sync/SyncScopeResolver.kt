@@ -301,5 +301,20 @@ object SyncScopeResolver {
             affectedFields = setOf("treeCreated")
         )
     }
+
+    /**
+     * Resolves the affected scope when a clan merge request is updated.
+     */
+    fun resolveClanMergeRequestUpdated(treeId: String): AffectedScope {
+        return AffectedScope(
+            treeId = treeId,
+            primaryPersonId = "",
+            relatedPersonIds = emptySet(),
+            affectedScreens = setOf(AffectedScreen.ALL_SCREENS),
+            requiresStructuralRelayout = false,
+            requiresKinshipRecomputation = false,
+            affectedFields = setOf("clanMergeRequest")
+        )
+    }
 }
 

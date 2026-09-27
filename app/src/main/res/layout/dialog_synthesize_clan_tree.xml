@@ -190,6 +190,59 @@
                 android:layout_marginTop="6dp" />
         </LinearLayout>
 
+        <!-- Clan Merge Request Approval Status Container -->
+        <LinearLayout
+            android:id="@+id/layoutMergeRequestStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_input_dark"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvMergeRequestStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔒 Approval Required: Target tree owner must authorize this merge."
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvMergeRequestSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap 'Send Merge Request' below to notify the tree owner."
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btnSendMergeRequest"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="📩 Send Merge Request"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#0A1B12"
+                android:background="@drawable/btn_gold_primary"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnCancelMergeRequest"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="Cancel Request"
+                android:textSize="12sp"
+                android:textColor="#FF6B6B"
+                android:background="@drawable/btn_dark_secondary"
+                android:textAllCaps="false"
+                android:visibility="gone" />
+        </LinearLayout>
+
         <!-- Master Tree Name -->
         <TextView
             android:layout_width="wrap_content"

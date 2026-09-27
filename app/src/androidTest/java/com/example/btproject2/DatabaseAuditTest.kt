@@ -23,6 +23,7 @@ class DatabaseAuditTest {
             val treeId = doc.id
             val treeName = doc.getString("name") ?: "Unnamed Tree"
             val ownerId = doc.getString("ownerId") ?: "No owner"
+            val mergeCode = doc.getString("mergeInviteCode") ?: "NO_CODE"
 
             // 2. Fetch all members belonging to this tree
             val membersSnapshot = Tasks.await(
@@ -46,6 +47,7 @@ class DatabaseAuditTest {
 
             println("--- TREE: '$treeName' (ID: $treeId) ---")
             println("    Owner ID: $ownerId")
+            println("    Merge Code: $mergeCode")
             println("    Total Members: ${membersSnapshot.size()}")
             println("    Parent Links: $totalParentLinks")
             println("    Spouse Links: $totalSpouses")

@@ -56,6 +56,10 @@ enum class SyncChangeType {
     /**
      * 10. A family tree (e.g., Master Clan Tree C or personal tree) is created or synthesized.
      */
-    TREE_CREATED
-}
+    TREE_CREATED,
 
+    /**
+     * 11. A clan merge request was created, approved, rejected, cancelled, completed, or failed.
+     */
+    CLAN_MERGE_REQUEST_UPDATED
+}
