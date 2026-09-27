@@ -2577,3 +2577,46 @@ This file tracks all code changes implemented for each user request.
 - `[MODIFY]` [`RecordsSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/RecordsSyncCoordinator.kt)
 - `[MODIFY]` [`CentralTreeSynchronizerTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/CentralTreeSynchronizerTest.kt)
 - `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+---
+
+## [Request #22] - Global Dark Mode Design System Unification & Card Surface Harmonization
+- **Date**: 2026-09-27
+- **Requested By**: User
+- **User Request**: 
+  > *"fix this. the white doesn't match with dark mode design."*
+  > Followed by confirmed architectural scope:
+  > *"Global Scope: Unify dark mode card drawables (action_card_bg, health_gauge_bg, semantic tokens) across the entire design system and all dashboard/sub-screen cards."*
+
+### Summary of Changes
+1. **Dynamic Theme Card Drawables**:
+   - Replaced hardcoded `#FFFFFF` and `#E2E8F0` in `action_card_bg.xml` with dynamic semantic tokens `@color/card_bg` and `@color/card_border`, enabling cards across `InsightsActivity` and other screens to seamlessly adapt between soft linen in light mode and rich dark forest green (`#122A1D`) in dark mode.
+   - Converted `health_gauge_bg.xml` from hardcoded light-mint `#F0FDF4` to semantic tokens `@color/health_card_bg` (`#132B1E` in dark mode, `#F0FDF4` in light mode) and `@color/health_card_border` (`#1E4530` in dark mode, `#BBF7D0` in light mode).
+   - Replaced hardcoded `#F1EFE8` track in `progress_bar_bg.xml` with `@color/forest_card_light` (`#183626` in dark mode).
+   - Upgraded `note_bg.xml` to use `@color/forest_card_light`, ensuring nested metric tiles and generation rows provide subtle visual depth and elevation contrast inside cards.
+   - Updated `profile_circle_bg.xml` and `bottom_nav_bg.xml` to eliminate hardcoded white ovals and nav backgrounds in dark mode.
+2. **Family Insights (`activity_insights.xml` & `InsightsActivity.kt`) Harmonization**:
+   - Switched generation count badges from `action_card_bg` to `badge_generation_pill.xml` with `@color/mint_text` (`#5EEAD4`), displaying elegant dark green pill badges instead of white squares.
+   - Unified section header uppercase typography (`TREE OVERVIEW`, `GENDER DISTRIBUTION`, `GENERATION BREAKDOWN`, `DATA QUALITY SCORE`) to use `@color/slate_subtle` (`#7A9A88`) for consistent muted contrast.
+   - Updated `tvHealthScore` to `@color/text_primary` (`#FFFFFF`), `tvHealthLabel` to `@color/mint_text`, and `tvTip` to `@color/text_secondary`.
+   - Updated dynamic checklist rows in `InsightsActivity.kt` to use `ContextCompat.getColor(context, R.color.mint_text)` for consistent statuses and `R.color.amber_warm` for biological deductions.
+3. **Legacy Tree View Alignment**:
+   - Replaced hardcoded `@color/white` with `@color/surface` in `activity_tree_view.xml`.
+4. **Verification & Testing**:
+   - Executed `.\gradlew.bat testDebugUnitTest`: All 269 unit tests passed cleanly (`BUILD SUCCESSFUL in 10s`).
+   - Executed `.\gradlew.bat installDebug` and verified on `emulator-5554` with visual screenshot inspection (`insights_fixed.png`).
+
+### Files Modified
+- `[MODIFY]` [`values/colors.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/values/colors.xml)
+- `[MODIFY]` [`values-night/colors.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/values-night/colors.xml)
+- `[MODIFY]` [`action_card_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/action_card_bg.xml)
+- `[MODIFY]` [`health_gauge_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/health_gauge_bg.xml)
+- `[MODIFY]` [`progress_bar_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/progress_bar_bg.xml)
+- `[MODIFY]` [`note_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/note_bg.xml)
+- `[MODIFY]` [`profile_circle_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/profile_circle_bg.xml)
+- `[MODIFY]` [`bottom_nav_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bottom_nav_bg.xml)
+- `[MODIFY]` [`activity_insights.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_insights.xml)
+- `[MODIFY]` [`activity_tree_view.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_tree_view.xml)
+- `[MODIFY]` [`InsightsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/InsightsActivity.kt)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+

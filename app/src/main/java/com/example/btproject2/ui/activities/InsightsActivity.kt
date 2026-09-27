@@ -166,7 +166,7 @@ class InsightsActivity : AppCompatActivity() {
                 val okRow = TextView(this).apply {
                     text = "✓ All recorded relationships are biologically consistent"
                     textSize = 12f
-                    setTextColor(android.graphics.Color.parseColor("#0F6E56"))
+                    setTextColor(androidx.core.content.ContextCompat.getColor(this@InsightsActivity, R.color.mint_text))
                     setPadding(0, 4, 0, 4)
                 }
                 layoutDeductions.addView(okRow)
@@ -175,7 +175,7 @@ class InsightsActivity : AppCompatActivity() {
                     val row = TextView(this).apply {
                         text = "• ${deduction.reason} (-${deduction.points})"
                         textSize = 12f
-                        setTextColor(android.graphics.Color.parseColor("#BA7517"))
+                        setTextColor(androidx.core.content.ContextCompat.getColor(this@InsightsActivity, R.color.amber_warm))
                         setPadding(0, 2, 0, 2)
                     }
                     layoutDeductions.addView(row)

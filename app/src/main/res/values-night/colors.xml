@@ -62,4 +62,8 @@
     <color name="dark_subtext">#7A9A88</color>
     <color name="dark_nav_active">#D4A359</color>
     <color name="dark_nav_inactive">#4A725D</color>
+
+    <!-- Health / Data Quality Card Semantic Tokens (Dark Mode) -->
+    <color name="health_card_bg">#132B1E</color>
+    <color name="health_card_border">#1E4530</color>
 </resources>
