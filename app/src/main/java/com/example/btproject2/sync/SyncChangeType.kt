@@ -51,6 +51,11 @@ enum class SyncChangeType {
     /**
      * 9. A family tree (e.g., Master Clan Tree C or personal tree) is deleted.
      */
-    TREE_DELETED
+    TREE_DELETED,
+
+    /**
+     * 10. A family tree (e.g., Master Clan Tree C or personal tree) is created or synthesized.
+     */
+    TREE_CREATED
 }
 

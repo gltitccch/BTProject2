@@ -75,6 +75,7 @@ class MergeBranchesActivity : AppCompatActivity() {
         override val interestedTreeId: String? = null
         override fun onSyncEvent(event: TreeSyncEvent) {
             if (event.changeType == SyncChangeType.TREE_DELETED ||
+                event.changeType == SyncChangeType.TREE_CREATED ||
                 event.changeType == SyncChangeType.MEMBER_ADDED) {
                 runOnUiThread {
                     clanRefreshHandler.removeCallbacks(clanRefreshRunnable)
@@ -736,6 +737,22 @@ class MergeBranchesActivity : AppCompatActivity() {
                 }
             }
 
+            val selPos1 = spinnerTree1.selectedItemPosition
+            val tree1 = allPersonalTrees.getOrNull(selPos1)
+            val tree2 = if (rbTree2MyTrees.isChecked) {
+                val selPos2 = spinnerTree2.selectedItemPosition
+                allPersonalTrees.getOrNull(selPos2)
+            } else {
+                externalTreeLoaded
+            }
+
+            val owner1Id = tree1?.ownerId?.takeIf { it.isNotBlank() } ?: currentUserId
+            val owner1Name = tree1?.ownerName?.takeIf { it.isNotBlank() } ?: currentUserName
+            val owner2Id = tree2?.ownerId?.takeIf { it.isNotBlank() } ?: ""
+            val owner2Name = tree2?.ownerName?.takeIf { it.isNotBlank() } ?: ""
+
+            val coOwners = listOfNotNull(owner1Id, owner2Id).filter { it.isNotBlank() }.distinct()
+
             // 4. Create Master Tree C record
             val masterTree = FamilyTree(
                 id = masterTreeId,
@@ -745,11 +762,24 @@ class MergeBranchesActivity : AppCompatActivity() {
                 memberCount = clonedList.size,
                 createdAt = System.currentTimeMillis(),
                 treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
-                bridgeDescription = bridgeDesc
+                bridgeDescription = bridgeDesc,
+                sourceTree1Id = tree1?.id ?: "",
+                sourceTree2Id = tree2?.id ?: "",
+                coOwnerIds = coOwners
             )
 
+            // Determine partner tree owner
+            val partnerOwnerId = if (owner2Id.isNotBlank() && owner2Id != currentUserId) owner2Id
+                                 else if (owner1Id.isNotBlank() && owner1Id != currentUserId) owner1Id
+                                 else null
+            val partnerOwnerName = if (partnerOwnerId == owner2Id) owner2Name else owner1Name
+
             // 5. Commit atomic batch write
-            firestoreHelper.saveMasterTreeAndMembers(masterTree, clonedList,
+            firestoreHelper.saveMasterTreeAndMembers(
+                masterTree = masterTree,
+                members = clonedList,
+                partnerTreeOwnerId = partnerOwnerId,
+                partnerTreeOwnerName = partnerOwnerName,
                 onSuccess = { createdTree ->
                     dialog.dismiss()
                     Toast.makeText(this, "Master Clan Tree synthesized successfully!", Toast.LENGTH_LONG).show()

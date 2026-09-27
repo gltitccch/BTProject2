@@ -186,4 +186,58 @@ class MergedClanSpaceAndSynthesisTest {
         assertEquals(1, distinctClanTrees.size)
         assertEquals("clan1", distinctClanTrees.first().id)
     }
+
+    @Test
+    fun testMultiOwnerClanTreeModel_storesSourceTreeIdsAndCoOwners() {
+        val clanTree = FamilyTree(
+            id = "clanC",
+            name = "Malone Family - Smith Family Master Clan Tree",
+            ownerId = "user_malone",
+            ownerName = "Malone",
+            treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
+            sourceTree1Id = "tree_malone",
+            sourceTree2Id = "tree_smith",
+            coOwnerIds = listOf("user_malone", "user_smith")
+        )
+
+        assertEquals("user_malone", clanTree.ownerId)
+        assertEquals(2, clanTree.coOwnerIds.size)
+        assertTrue(clanTree.coOwnerIds.contains("user_malone"))
+        assertTrue(clanTree.coOwnerIds.contains("user_smith"))
+        assertEquals("tree_malone", clanTree.sourceTree1Id)
+        assertEquals("tree_smith", clanTree.sourceTree2Id)
+    }
+
+    @Test
+    fun testDualOwnershipDiscovery_matchesBothFamilies() {
+        val clanTree = FamilyTree(
+            id = "clanC",
+            name = "Malone Family - Smith Family Master Clan Tree",
+            ownerId = "user_malone",
+            ownerName = "Malone",
+            treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
+            sourceTree1Id = "tree_malone",
+            sourceTree2Id = "tree_smith",
+            coOwnerIds = listOf("user_malone", "user_smith")
+        )
+
+        // Malone account perspective
+        val maloneOwnedTrees = listOf(
+            FamilyTree(id = "tree_malone", name = "Malone Family", ownerId = "user_malone", treeType = FamilyTree.TREE_TYPE_PERSONAL)
+        )
+        val maloneClanAccess = clanTree.ownerId == "user_malone" || clanTree.coOwnerIds.contains("user_malone")
+        assertTrue(maloneClanAccess)
+
+        // Smith account perspective (not original ownerId, but in coOwnerIds and sourceTree matches)
+        val smithOwnedTrees = listOf(
+            FamilyTree(id = "tree_smith", name = "Smith Family", ownerId = "user_smith", treeType = FamilyTree.TREE_TYPE_PERSONAL)
+        )
+        val smithPersonalTreeIds = smithOwnedTrees.map { it.id }.toSet()
+        val smithClanAccess = clanTree.ownerId == "user_smith" ||
+                clanTree.coOwnerIds.contains("user_smith") ||
+                clanTree.sourceTree2Id in smithPersonalTreeIds ||
+                clanTree.name.lowercase().contains("smith")
+
+        assertTrue(smithClanAccess)
+    }
 }

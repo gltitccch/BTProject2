@@ -286,5 +286,20 @@ object SyncScopeResolver {
             affectedFields = setOf("treeDeleted")
         )
     }
+
+    /**
+     * Resolves the affected scope when a tree is created or synthesized.
+     */
+    fun resolveTreeCreated(treeId: String): AffectedScope {
+        return AffectedScope(
+            treeId = treeId,
+            primaryPersonId = "",
+            relatedPersonIds = emptySet(),
+            affectedScreens = setOf(AffectedScreen.ALL_SCREENS),
+            requiresStructuralRelayout = true,
+            requiresKinshipRecomputation = true,
+            affectedFields = setOf("treeCreated")
+        )
+    }
 }
 

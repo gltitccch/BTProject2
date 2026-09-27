@@ -3,6 +3,7 @@ package com.example.btproject2.sync
 import android.os.Handler
 import android.os.Looper
 import com.example.btproject2.firebase.FirestoreHelper
+import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.Person
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
@@ -386,6 +387,26 @@ class CentralTreeSynchronizer private constructor() {
         val event = TreeSyncEvent(
             changeType = SyncChangeType.TREE_DELETED,
             treeId = deletedTreeId,
+            scope = scope,
+            primaryPerson = null,
+            affectedPersons = emptyList(),
+            sourceScreenDescription = sourceScreen,
+            isConfirmedSave = true
+        )
+        publishConfirmedEvent(event)
+    }
+
+    /**
+     * 10. A family tree is created (e.g. Master Clan Tree C synthesized or personal tree created).
+     */
+    fun notifyTreeCreated(
+        tree: FamilyTree,
+        sourceScreen: String = ""
+    ) {
+        val scope = SyncScopeResolver.resolveTreeCreated(tree.id)
+        val event = TreeSyncEvent(
+            changeType = SyncChangeType.TREE_CREATED,
+            treeId = tree.id,
             scope = scope,
             primaryPerson = null,
             affectedPersons = emptyList(),

@@ -2660,4 +2660,61 @@ This file tracks all code changes implemented for each user request.
 - `[MODIFY]` [`MergedClanSpaceAndSynthesisTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/MergedClanSpaceAndSynthesisTest.kt)
 - `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
 
+---
+
+## [Request #24] - Multi-Owner Clan Tree Persistence, Dual Visibility & Automatic Repair
+- **Date**: 2026-09-27
+- **Requested By**: User
+- **User Request**: 
+  > *"I found another problem, we merge the family of malone and smith but the problem is the master tree C is only visible on malone account and on smith family account it's nowhere to be found, both of them should have got the master tree C."*
+  > Followed by confirmed architectural scope:
+  > *"Global Scope: Implement multi-owner clan tree persistence in FirestoreHelper (registering both tree owners in tree_members and coOwnerIds), query trees across co-owners globally, trigger real-time CentralTreeSynchronizer notifications, and provide automatic discovery for existing merged trees across both accounts."*
+
+### Root Cause Analysis
+1. **Single-Owner Creation Bias**: When a user synthesized Master Clan Tree C (e.g. Malone), `saveMasterTreeAndMembers()` set `ownerId` solely to the active user performing synthesis and only created an Owner record in `tree_members` for that creator.
+2. **Missing Secondary Tree Owner Linkage**: The partner family's owner (e.g. Smith) was not recorded in `coOwnerIds` or `tree_members`, causing standard Firestore lookups (`ownerId == userId` or `tree_members.userId == userId`) to omit Tree C entirely when Smith logged in.
+3. **Lack of Cross-Family Real-Time Creation Events**: `CentralTreeSynchronizer` lacked a `TREE_CREATED` mutation type to broadcast synthesized tree arrivals to the other party in real time.
+
+### Summary of Changes
+1. **Multi-Owner FamilyTree Model**:
+   - In [`FamilyTree.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/FamilyTree.kt), added `sourceTree1Id`, `sourceTree2Id`, and `coOwnerIds: List<String>` to represent multi-owner clan unions natively.
+2. **Dual-Owner Persistence & Real-Time Sync**:
+   - In [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt):
+     - `documentToFamilyTree`: Parsed `sourceTree1Id`, `sourceTree2Id`, and `coOwnerIds`.
+     - `saveMasterTreeAndMembers`: Accepted `partnerTreeOwnerId` and `partnerTreeOwnerName`, added `TreeMember` documents for BOTH tree owners with `role = "Owner"` and `status = "Approved"`, set `coOwnerIds = listOf(owner1Id, owner2Id)`, and dispatched `CentralTreeSynchronizer.notifyTreeCreated(finalTree)`.
+     - `getUserTrees`: Added `trees.whereArrayContains("coOwnerIds", userId)` to retrieve co-owned clan trees directly across all accounts.
+     - `getMergedClanTrees`: Added an automatic self-repair & auto-discovery pass scanning `treeType == MERGED_CLAN` trees against the user's personal tree IDs, names, and co-owners. Upon matching, it adds the tree to the list and backfills the user into `coOwnerIds` and `tree_members` in the background.
+3. **Central Tree Synchronizer Integration**:
+   - In [`SyncChangeType.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/SyncChangeType.kt), added `TREE_CREATED`.
+   - In [`SyncScopeResolver.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/SyncScopeResolver.kt), added `resolveTreeCreated(treeId: String)`.
+   - In [`CentralTreeSynchronizer.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt), added `notifyTreeCreated(tree: FamilyTree, sourceScreen: String)`.
+   - Updated sync coordinators (`AddMemberSyncCoordinator`, `InteractiveTreeSyncCoordinator`, `MemberDetailSyncCoordinator`, `PedigreeFanChartSyncCoordinator`, `RecordsSyncCoordinator`) to cleanly handle `TREE_CREATED`.
+   - In `MergeBranchesActivity.kt`, updated `mergeSyncListener` to react to `TREE_CREATED`.
+4. **Synthesis Wizard Multi-Owner Extraction**:
+   - In [`MergeBranchesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt), extracted `owner1Id` and `owner2Id` from `tree1` and `tree2` (including invite-code loaded trees) and passed `partnerTreeOwnerId` and `partnerTreeOwnerName` into `saveMasterTreeAndMembers`.
+5. **Unit Tests Added**:
+   - In [`MergedClanSpaceAndSynthesisTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/MergedClanSpaceAndSynthesisTest.kt), added:
+     - `testMultiOwnerClanTreeModel_storesSourceTreeIdsAndCoOwners()`
+     - `testDualOwnershipDiscovery_matchesBothFamilies()`
+6. **Verification & Testing**:
+   - Ran `.\gradlew.bat testDebugUnitTest`: All 272 unit tests passed cleanly (`BUILD SUCCESSFUL in 32s`).
+   - Ran `.\gradlew.bat installDebug` and verified on `emulator-5554` logged in as `Smith Kun`.
+   - Verified that `Malone Family - Smith Family Master Clan Tree` (40 members) was automatically discovered, repaired in Firestore with dual ownership, rendered in Smith's Merged Clan Space, and opened into the Interactive Clan Canvas.
+
+### Files Modified
+- `[MODIFY]` [`FamilyTree.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/FamilyTree.kt)
+- `[MODIFY]` [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt)
+- `[MODIFY]` [`SyncChangeType.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/SyncChangeType.kt)
+- `[MODIFY]` [`SyncScopeResolver.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/SyncScopeResolver.kt)
+- `[MODIFY]` [`CentralTreeSynchronizer.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt)
+- `[MODIFY]` [`AddMemberSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/AddMemberSyncCoordinator.kt)
+- `[MODIFY]` [`InteractiveTreeSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/InteractiveTreeSyncCoordinator.kt)
+- `[MODIFY]` [`MemberDetailSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/MemberDetailSyncCoordinator.kt)
+- `[MODIFY]` [`PedigreeFanChartSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/PedigreeFanChartSyncCoordinator.kt)
+- `[MODIFY]` [`RecordsSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/RecordsSyncCoordinator.kt)
+- `[MODIFY]` [`MergeBranchesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt)
+- `[MODIFY]` [`MergedClanSpaceAndSynthesisTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/MergedClanSpaceAndSynthesisTest.kt)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+
 

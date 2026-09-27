@@ -132,6 +132,8 @@ class InteractiveTreeSyncCoordinator(
                     onTreeUpdated?.invoke(emptyList(), true)
                 }
             }
+
+            SyncChangeType.TREE_CREATED -> {}
         }
     }
 

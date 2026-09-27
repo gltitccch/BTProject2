@@ -180,6 +180,8 @@ class MemberDetailSyncCoordinator(
                     onCurrentPersonDeleted?.invoke(personId)
                 }
             }
+
+            SyncChangeType.TREE_CREATED -> {}
         }
     }
 

@@ -107,6 +107,8 @@ class AddMemberSyncCoordinator(
                     notifyCandidates()
                 }
             }
+
+            SyncChangeType.TREE_CREATED -> {}
         }
     }
 

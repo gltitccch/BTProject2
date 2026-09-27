@@ -15,7 +15,10 @@ data class FamilyTree(
     val createdAt: Long = System.currentTimeMillis(),
     val treeType: String = TREE_TYPE_PERSONAL,
     val bridgeDescription: String = "",
-    val mergeInviteCode: String = ""
+    val mergeInviteCode: String = "",
+    val sourceTree1Id: String = "",
+    val sourceTree2Id: String = "",
+    val coOwnerIds: List<String> = emptyList()
 ) {
     companion object {
         const val TREE_TYPE_PERSONAL = "PERSONAL"

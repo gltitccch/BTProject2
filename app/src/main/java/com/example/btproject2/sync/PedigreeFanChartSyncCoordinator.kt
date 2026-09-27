@@ -147,6 +147,8 @@ class PedigreeFanChartSyncCoordinator(
                     onTreeUpdated?.invoke(emptyList(), event)
                 }
             }
+
+            SyncChangeType.TREE_CREATED -> {}
         }
     }
 

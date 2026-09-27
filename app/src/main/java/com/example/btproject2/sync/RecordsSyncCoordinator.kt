@@ -115,6 +115,8 @@ class RecordsSyncCoordinator(
                     onListUpdated?.invoke(emptyList(), event)
                 }
             }
+
+            SyncChangeType.TREE_CREATED -> {}
         }
     }
 

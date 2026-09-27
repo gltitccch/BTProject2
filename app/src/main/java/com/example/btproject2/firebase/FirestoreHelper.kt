@@ -527,6 +527,9 @@ class FirestoreHelper {
             val mergeInviteCode = (data["mergeInviteCode"] as? String)?.takeIf { it.isNotBlank() }
                 ?: (data["mergeCode"] as? String)?.takeIf { it.isNotBlank() }
                 ?: ""
+            val sourceTree1Id = (data["sourceTree1Id"] as? String)?.takeIf { it.isNotBlank() } ?: ""
+            val sourceTree2Id = (data["sourceTree2Id"] as? String)?.takeIf { it.isNotBlank() } ?: ""
+            val coOwnerIds = (data["coOwnerIds"] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
             return FamilyTree(
                 id = doc.id,
@@ -539,7 +542,10 @@ class FirestoreHelper {
                 createdAt = createdAt,
                 treeType = treeType,
                 bridgeDescription = bridgeDescription,
-                mergeInviteCode = mergeInviteCode.replace(" ", "").trim().uppercase()
+                mergeInviteCode = mergeInviteCode.replace(" ", "").trim().uppercase(),
+                sourceTree1Id = sourceTree1Id,
+                sourceTree2Id = sourceTree2Id,
+                coOwnerIds = coOwnerIds
             )
         }
     }
@@ -2595,49 +2601,22 @@ class FirestoreHelper {
                             }
                         }
 
-                        // Also query trees where user is an approved member
-                        db.collection("tree_members")
-                            .whereEqualTo("userId", userId)
-                            .whereEqualTo("status", "Approved")
+                        // Also query trees where user is in coOwnerIds array
+                        db.collection("trees")
+                            .whereArrayContains("coOwnerIds", userId)
                             .get()
-                            .addOnSuccessListener { memberResult ->
-                                val memberTreeIds = memberResult.documents
-                                    .mapNotNull { it.getString("treeId") }
-                                    .filter { it.isNotBlank() && ownedTrees.none { t -> t.id == it } }
-                                    .distinct()
-
-                                if (memberTreeIds.isEmpty()) {
-                                    val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                    onSuccess(filtered.distinctBy { it.id })
-                                } else {
-                                    val combinedTrees = ownedTrees.toMutableList()
-                                    var remaining = memberTreeIds.size
-                                    for (mTreeId in memberTreeIds) {
-                                        getTree(mTreeId,
-                                            onSuccess = { fetchedTree ->
-                                                if (fetchedTree != null && combinedTrees.none { it.id == fetchedTree.id }) {
-                                                    combinedTrees.add(fetchedTree)
-                                                }
-                                                remaining--
-                                                if (remaining <= 0) {
-                                                    val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                                    onSuccess(filtered.distinctBy { it.id })
-                                                }
-                                            },
-                                            onFailure = {
-                                                remaining--
-                                                if (remaining <= 0) {
-                                                    val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                                    onSuccess(filtered.distinctBy { it.id })
-                                                }
-                                            }
-                                        )
+                            .addOnSuccessListener { coOwnersResult ->
+                                val coOwnerTrees = coOwnersResult.documents.mapNotNull { documentToFamilyTree(it) }
+                                for (cot in coOwnerTrees) {
+                                    if (ownedTrees.none { it.id == cot.id }) {
+                                        ownedTrees.add(cot)
                                     }
                                 }
+
+                                queryApprovedTreeMembers(userId, ownedTrees, includeMergedClan, onSuccess)
                             }
                             .addOnFailureListener {
-                                val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                onSuccess(filtered.distinctBy { it.id })
+                                queryApprovedTreeMembers(userId, ownedTrees, includeMergedClan, onSuccess)
                             }
                     }
                     .addOnFailureListener {
@@ -2646,6 +2625,57 @@ class FirestoreHelper {
                     }
             }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    private fun queryApprovedTreeMembers(
+        userId: String,
+        ownedTrees: MutableList<FamilyTree>,
+        includeMergedClan: Boolean,
+        onSuccess: (List<FamilyTree>) -> Unit
+    ) {
+        db.collection("tree_members")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("status", "Approved")
+            .get()
+            .addOnSuccessListener { memberResult ->
+                val memberTreeIds = memberResult.documents
+                    .mapNotNull { it.getString("treeId") }
+                    .filter { it.isNotBlank() && ownedTrees.none { t -> t.id == it } }
+                    .distinct()
+
+                if (memberTreeIds.isEmpty()) {
+                    val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                    onSuccess(filtered.distinctBy { it.id })
+                } else {
+                    val combinedTrees = ownedTrees.toMutableList()
+                    var remaining = memberTreeIds.size
+                    for (mTreeId in memberTreeIds) {
+                        getTree(mTreeId,
+                            onSuccess = { fetchedTree ->
+                                if (fetchedTree != null && combinedTrees.none { it.id == fetchedTree.id }) {
+                                    combinedTrees.add(fetchedTree)
+                                }
+                                remaining--
+                                if (remaining <= 0) {
+                                    val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                                    onSuccess(filtered.distinctBy { it.id })
+                                }
+                            },
+                            onFailure = {
+                                remaining--
+                                if (remaining <= 0) {
+                                    val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                                    onSuccess(filtered.distinctBy { it.id })
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+            .addOnFailureListener {
+                val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                onSuccess(filtered.distinctBy { it.id })
+            }
     }
 
     /**
@@ -2661,6 +2691,7 @@ class FirestoreHelper {
 
     /**
      * Retrieves all merged clan trees (Master Tree C) owned by or shared with the user.
+     * Incorporates automatic auto-discovery and self-repair for existing clan trees.
      */
     fun getMergedClanTrees(
         userId: String,
@@ -2669,8 +2700,64 @@ class FirestoreHelper {
     ) {
         getUserTrees(userId, includeMergedClan = true,
             onSuccess = { allTrees ->
-                val clanTrees = allTrees.filter { it.treeType == FamilyTree.TREE_TYPE_MERGED_CLAN }.distinctBy { it.id }
-                onSuccess(clanTrees)
+                val clanTrees = allTrees.filter { it.treeType == FamilyTree.TREE_TYPE_MERGED_CLAN }.distinctBy { it.id }.toMutableList()
+
+                // Auto-discovery & auto-repair pass:
+                // Scan MERGED_CLAN trees in case an existing clan tree was synthesized before multi-owner
+                // registration, or where this user's personal tree is one of the merged families.
+                db.collection("trees")
+                    .whereEqualTo("treeType", FamilyTree.TREE_TYPE_MERGED_CLAN)
+                    .get()
+                    .addOnSuccessListener { clanDocs ->
+                        val potentialTrees = clanDocs.documents.mapNotNull { documentToFamilyTree(it) }
+                        val personalTrees = allTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                        val personalTreeIds = personalTrees.map { it.id }.filter { it.isNotBlank() }.toSet()
+                        val personalTreeNames = personalTrees.map { it.name.lowercase().replace(" family tree", "").replace(" tree", "").trim() }
+                            .filter { it.length >= 3 }
+                            .toSet()
+
+                        for (pt in potentialTrees) {
+                            if (clanTrees.none { it.id == pt.id }) {
+                                val matchesSourceTree = (pt.sourceTree1Id.isNotBlank() && pt.sourceTree1Id in personalTreeIds) ||
+                                                        (pt.sourceTree2Id.isNotBlank() && pt.sourceTree2Id in personalTreeIds)
+                                val matchesCoOwner = pt.coOwnerIds.contains(userId)
+                                val matchesName = personalTreeNames.any { nameSnippet -> pt.name.lowercase().contains(nameSnippet) }
+
+                                if (matchesSourceTree || matchesCoOwner || matchesName) {
+                                    clanTrees.add(pt)
+
+                                    // Auto-repair Firestore co-ownership record in background
+                                    if (userId.isNotBlank()) {
+                                        db.collection("trees").document(pt.id)
+                                            .update("coOwnerIds", com.google.firebase.firestore.FieldValue.arrayUnion(userId))
+
+                                        db.collection("tree_members")
+                                            .whereEqualTo("treeId", pt.id)
+                                            .whereEqualTo("userId", userId)
+                                            .get()
+                                            .addOnSuccessListener { memSnap ->
+                                                if (memSnap.isEmpty) {
+                                                    val memDoc = db.collection("tree_members").document()
+                                                    val repairMember = TreeMember(
+                                                        id = memDoc.id,
+                                                        treeId = pt.id,
+                                                        userId = userId,
+                                                        userName = "Owner",
+                                                        role = "Owner",
+                                                        status = "Approved"
+                                                    )
+                                                    memDoc.set(repairMember)
+                                                }
+                                            }
+                                    }
+                                }
+                            }
+                        }
+                        onSuccess(clanTrees.distinctBy { it.id })
+                    }
+                    .addOnFailureListener {
+                        onSuccess(clanTrees.distinctBy { it.id })
+                    }
             },
             onFailure = onFailure
         )
@@ -2679,10 +2766,13 @@ class FirestoreHelper {
     /**
      * Synthesizes and saves a brand-new Master Clan Tree C along with its cloned members
      * in an atomic Firestore batch. Original trees are untouched and strictly read-only.
+     * Dual ownership is granted to both tree owners, ensuring equal visibility and permissions.
      */
     fun saveMasterTreeAndMembers(
         masterTree: FamilyTree,
         members: List<Person>,
+        partnerTreeOwnerId: String? = null,
+        partnerTreeOwnerName: String? = null,
         onSuccess: (FamilyTree) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
@@ -2692,12 +2782,18 @@ class FirestoreHelper {
                          else generateInviteCode()
         val mergeCode = if (masterTree.mergeInviteCode.isNotBlank()) masterTree.mergeInviteCode.replace(" ", "").trim().uppercase()
                         else generateMergeInviteCode()
+
+        val allCoOwners = (masterTree.coOwnerIds + listOfNotNull(masterTree.ownerId, partnerTreeOwnerId))
+            .filter { it.isNotBlank() }
+            .distinct()
+
         val finalTree = masterTree.copy(
             id = treeDocRef.id,
             inviteCode = inviteCode,
             memberCount = members.size,
             treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
-            mergeInviteCode = mergeCode
+            mergeInviteCode = mergeCode,
+            coOwnerIds = allCoOwners
         )
 
         val batch = db.batch()
@@ -2743,6 +2839,20 @@ class FirestoreHelper {
         )
         batch.set(memberDoc, ownerMember)
 
+        // Add partner tree owner as Owner in tree_members
+        if (!partnerTreeOwnerId.isNullOrBlank() && partnerTreeOwnerId != finalTree.ownerId) {
+            val partnerMemberDoc = db.collection("tree_members").document()
+            val partnerMember = TreeMember(
+                id = partnerMemberDoc.id,
+                treeId = finalTree.id,
+                userId = partnerTreeOwnerId,
+                userName = partnerTreeOwnerName?.ifBlank { "Co-Owner" } ?: "Co-Owner",
+                role = "Owner",
+                status = "Approved"
+            )
+            batch.set(partnerMemberDoc, partnerMember)
+        }
+
         // Set all cloned persons in persons collection
         for (person in members) {
             val personDocRef = db.collection("persons").document(person.id)
@@ -2750,8 +2860,23 @@ class FirestoreHelper {
         }
 
         batch.commit()
-            .addOnSuccessListener { onSuccess(finalTree) }
+            .addOnSuccessListener {
+                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeCreated(finalTree)
+                onSuccess(finalTree)
+            }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Backward-compatible overload for saveMasterTreeAndMembers without partner owner params.
+     */
+    fun saveMasterTreeAndMembers(
+        masterTree: FamilyTree,
+        members: List<Person>,
+        onSuccess: (FamilyTree) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        saveMasterTreeAndMembers(masterTree, members, null, null, onSuccess, onFailure)
     }
 
     /**
