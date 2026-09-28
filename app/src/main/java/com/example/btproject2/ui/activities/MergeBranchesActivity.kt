@@ -793,6 +793,153 @@ class MergeBranchesActivity : AppCompatActivity() {
 
         rgBridgeType.setOnCheckedChangeListener { _, _ -> updateSummaryAndValidation() }
 
+        rgTree2Source.setOnCheckedChangeListener { _, checkedId ->
+            if (checkedId == R.id.rbTree2MyTrees) {
+                spinnerTree2.visibility = View.VISIBLE
+                layoutTree2InviteCode.visibility = View.GONE
+                layoutMergeRequestStatus.visibility = View.GONE
+                loadTree2Members()
+                btnExecuteSynthesis.isEnabled = true
+            } else {
+                spinnerTree2.visibility = View.GONE
+                layoutTree2InviteCode.visibility = View.VISIBLE
+                if (verifiedExternalTree != null) {
+                    layoutMergeRequestStatus.visibility = View.VISIBLE
+                    btnExecuteSynthesis.isEnabled = (activeApprovedRequestId != null)
+                } else {
+                    layoutMergeRequestStatus.visibility = View.GONE
+                    personsTree2 = emptyList()
+                    spinnerAnchorPerson2.setDarkAdapter(this@MergeBranchesActivity, listOf("Enter and verify code above"))
+                    btnExecuteSynthesis.isEnabled = false
+                }
+            }
+            updateDefaultMasterTreeName()
+        }
+
+        btnLookupInviteCode.setOnClickListener {
+            val rawCode = etTree2InviteCode.text.toString().trim().uppercase()
+            if (rawCode.length != 6) {
+                tvInviteCodeResult.visibility = View.VISIBLE
+                tvInviteCodeResult.text = "⚠️ Please enter a 6-character clan merge code."
+                tvInviteCodeResult.setTextColor(Color.parseColor("#FFB020"))
+                return@setOnClickListener
+            }
+            if (rawCode == myActiveMergeCode) {
+                tvInviteCodeResult.visibility = View.VISIBLE
+                tvInviteCodeResult.text = "⚠️ This is your own tree's merge code. Please select a different clan tree."
+                tvInviteCodeResult.setTextColor(Color.parseColor("#FFB020"))
+                return@setOnClickListener
+            }
+            btnLookupInviteCode.isEnabled = false
+            tvInviteCodeResult.visibility = View.VISIBLE
+            tvInviteCodeResult.text = "🔍 Looking up clan tree..."
+            tvInviteCodeResult.setTextColor(Color.parseColor("#E0A96D"))
+
+            firestoreHelper.findTreeByMergeInviteCode(rawCode,
+                onSuccess = { tree ->
+                    btnLookupInviteCode.isEnabled = true
+                    if (tree == null) {
+                        tvInviteCodeResult.text = "❌ No family tree found with merge code $rawCode."
+                        tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
+                        verifiedExternalTree = null
+                        layoutMergeRequestStatus.visibility = View.GONE
+                        personsTree2 = emptyList()
+                        spinnerAnchorPerson2.setDarkAdapter(this@MergeBranchesActivity, listOf("Enter and verify code above"))
+                        btnExecuteSynthesis.isEnabled = false
+                    } else {
+                        val selPos1 = spinnerTree1.selectedItemPosition
+                        val myTree = if (selPos1 in allPersonalTrees.indices) allPersonalTrees[selPos1] else allPersonalTrees.firstOrNull()
+                        val myTreeId = myTree?.id.orEmpty()
+
+                        if (tree.id == myTreeId) {
+                            tvInviteCodeResult.text = "⚠️ Tree '${tree.name}' is already selected as Primary Tree A."
+                            tvInviteCodeResult.setTextColor(Color.parseColor("#FFB020"))
+                            verifiedExternalTree = null
+                            layoutMergeRequestStatus.visibility = View.GONE
+                            personsTree2 = emptyList()
+                            spinnerAnchorPerson2.setDarkAdapter(this@MergeBranchesActivity, listOf("Select a different external tree"))
+                            btnExecuteSynthesis.isEnabled = false
+                            return@findTreeByMergeInviteCode
+                        }
+
+                        verifiedExternalTree = tree
+                        tvInviteCodeResult.text = "✓ Clan Tree: ${tree.name} (${tree.memberCount} members)"
+                        tvInviteCodeResult.setTextColor(Color.parseColor("#4ECCA3"))
+                        updateDefaultMasterTreeName()
+
+                        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+
+                        firestoreHelper.findActiveClanMergeRequest(
+                            requesterOwnerId = currentUserId,
+                            requesterTreeId = myTreeId,
+                            targetTreeId = tree.id,
+                            onSuccess = { activeReq ->
+                                applyRequestState(activeReq)
+                            },
+                            onFailure = {
+                                applyRequestState(null)
+                            }
+                        )
+                    }
+                },
+                onFailure = { err ->
+                    btnLookupInviteCode.isEnabled = true
+                    tvInviteCodeResult.text = "❌ Lookup failed: ${err.message}"
+                    tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
+                }
+            )
+        }
+
+        btnSendMergeRequest.setOnClickListener {
+            val target = verifiedExternalTree ?: return@setOnClickListener
+            val selPos1 = spinnerTree1.selectedItemPosition
+            val myTree = if (selPos1 in allPersonalTrees.indices) allPersonalTrees[selPos1] else allPersonalTrees.firstOrNull() ?: return@setOnClickListener
+            val currentUserId = authHelper.getCurrentUserId().orEmpty()
+            val currentUserName = authHelper.getCurrentUser()?.displayName ?: "Owner"
+
+            val newReq = ClanMergeRequest(
+                code = etTree2InviteCode.text.toString().trim().uppercase(),
+                requesterTreeId = myTree.id,
+                requesterTreeName = myTree.name,
+                requesterOwnerId = currentUserId,
+                requesterOwnerName = currentUserName,
+                targetTreeId = target.id,
+                targetTreeName = target.name,
+                targetOwnerId = target.ownerId,
+                targetOwnerName = target.ownerName
+            )
+            btnSendMergeRequest.isEnabled = false
+            firestoreHelper.createClanMergeRequest(newReq,
+                onSuccess = { createdReq ->
+                    Toast.makeText(this@MergeBranchesActivity, "📩 Merge request sent to ${target.ownerName.ifBlank { "tree owner" }}!", Toast.LENGTH_SHORT).show()
+                    applyRequestState(createdReq)
+                },
+                onFailure = { err ->
+                    btnSendMergeRequest.isEnabled = true
+                    Toast.makeText(this@MergeBranchesActivity, "Failed to send request: ${err.message}", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+
+        btnCancelMergeRequest.setOnClickListener {
+            val reqId = activePendingRequestId ?: return@setOnClickListener
+            btnCancelMergeRequest.isEnabled = false
+            firestoreHelper.updateClanMergeRequestStatus(reqId, ClanMergeRequest.STATUS_CANCELLED,
+                onSuccess = {
+                    Toast.makeText(this@MergeBranchesActivity, "Request cancelled.", Toast.LENGTH_SHORT).show()
+                    applyRequestState(null)
+                },
+                onFailure = { err ->
+                    btnCancelMergeRequest.isEnabled = true
+                    Toast.makeText(this@MergeBranchesActivity, "Failed to cancel: ${err.message}", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+
+        dialog.setOnDismissListener {
+            dialogRequestRegistration?.remove()
+        }
+
         // Initial loads
         loadTree1Members()
         loadTree2Members()
