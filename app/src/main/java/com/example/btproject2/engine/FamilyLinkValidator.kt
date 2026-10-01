@@ -191,6 +191,68 @@ object FamilyLinkValidator {
         return null
     }
 
+    /**
+     * Calculates the exact chronological age in completed years.
+     * Uses [referenceDateStr] (e.g. death date if deceased) or current date.
+     */
+    fun calculateAgeYears(birthDateStr: String?, referenceDateStr: String? = null): Int? {
+        val birthCal = parseDateToCalendar(birthDateStr) ?: return null
+        val refCal = if (!referenceDateStr.isNullOrBlank()) {
+            parseDateToCalendar(referenceDateStr) ?: Calendar.getInstance()
+        } else {
+            Calendar.getInstance()
+        }
+        var age = refCal.get(Calendar.YEAR) - birthCal.get(Calendar.YEAR)
+        if (refCal.get(Calendar.DAY_OF_YEAR) < birthCal.get(Calendar.DAY_OF_YEAR)) {
+            age--
+        }
+        return age
+    }
+
+    /**
+     * Validates that lineage roles (PATRIARCH / MATRIARCH) meet minimum age requirements (18+).
+     * Prevents minors or unverified infants from holding founding head-of-family titles.
+     */
+    fun validateLineageRole(person: Person): ValidationResult {
+        val issues = mutableListOf<LinkIssue>()
+        val role = person.lineageRole.trim()
+        if (role.equals("PATRIARCH", ignoreCase = true) || role.equals("MATRIARCH", ignoreCase = true)) {
+            val displayRole = if (role.equals("PATRIARCH", ignoreCase = true)) "Patriarch" else "Matriarch"
+            if (person.birthDate.isBlank()) {
+                issues.add(
+                    LinkIssue(
+                        type = IssueType.FATAL_ERROR,
+                        title = "Birth Date Required for $displayRole",
+                        message = "A member must have a recorded birth date to hold the $displayRole title (must be at least 18 years old).",
+                        field = "birthDate"
+                    )
+                )
+            } else {
+                val age = calculateAgeYears(person.birthDate, person.deathDate.takeIf { !person.isLiving })
+                if (age == null) {
+                    issues.add(
+                        LinkIssue(
+                            type = IssueType.FATAL_ERROR,
+                            title = "Invalid Birth Date for $displayRole",
+                            message = "The birth date format could not be verified to confirm 18+ eligibility for the $displayRole title.",
+                            field = "birthDate"
+                        )
+                    )
+                } else if (age < 18) {
+                    issues.add(
+                        LinkIssue(
+                            type = IssueType.FATAL_ERROR,
+                            title = "Underage $displayRole Not Allowed",
+                            message = "A member must be at least 18 years old to be designated as $displayRole (current age: $age). Youth researchers may hold the Family Member role.",
+                            field = "birthDate"
+                        )
+                    )
+                }
+            }
+        }
+        return ValidationResult(issues)
+    }
+
     data class ParentDeathChronologyResult(
         val isAllowed: Boolean,
         val isPosthumousWarning: Boolean = false,
@@ -1061,6 +1123,9 @@ object FamilyLinkValidator {
                 }
             }
         }
+
+        // 7. Lineage role age validation (18+ requirement for Patriarch / Matriarch)
+        issues.addAll(validateLineageRole(person).issues)
 
         return ValidationResult(issues)
     }

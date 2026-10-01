@@ -108,56 +108,111 @@
             android:layout_marginBottom="6dp" />
 
         <LinearLayout
+            android:id="@+id/layoutFounderPills"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:orientation="horizontal"
-            android:layout_marginBottom="14dp">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="4dp">
 
-            <!-- Patriarch Pill Card -->
             <LinearLayout
-                android:id="@+id/cardPatriarch"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal">
+
+                <!-- Patriarch Pill Card -->
+                <LinearLayout
+                    android:id="@+id/cardPatriarch"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:background="@drawable/badge_pill_gold"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvPatriarchText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👑 Patriarch"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#0A1B12" />
+                </LinearLayout>
+
+                <!-- Matriarch Pill Card -->
+                <LinearLayout
+                    android:id="@+id/cardMatriarch"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:background="@drawable/badge_pill_dark"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvMatriarchText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👑 Matriarch"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvFounderRoleNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="* Birth date (18+) required to establish a Patriarch or Matriarch title."
+                android:textSize="11sp"
+                android:textColor="@color/text_hint"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+
+        <!-- Adaptive Youth / Descendant Role -->
+        <LinearLayout
+            android:id="@+id/layoutYouthRole"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp">
+
+            <LinearLayout
+                android:id="@+id/cardMember"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:background="@drawable/badge_pill_gold"
-                android:clickable="true"
-                android:focusable="true">
+                android:background="@drawable/badge_pill_gold">
 
                 <TextView
-                    android:id="@+id/tvPatriarchText"
+                    android:id="@+id/tvMemberText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="👑 Patriarch"
+                    android:text="🌱 Family Member (Youth / Descendant)"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="#0A1B12" />
             </LinearLayout>
 
-            <!-- Matriarch Pill Card -->
-            <LinearLayout
-                android:id="@+id/cardMatriarch"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:background="@drawable/badge_pill_dark"
-                android:clickable="true"
-                android:focusable="true">
-
-                <TextView
-                    android:id="@+id/tvMatriarchText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="👑 Matriarch"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_secondary" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tvRoleAgeNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Patriarch &amp; Matriarch titles are reserved for family elders (18+). As a youth researcher, you will start as a Family Member. You can crown an elder later!"
+                android:textSize="11sp"
+                android:textColor="@color/accent"
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="2dp" />
         </LinearLayout>
 
         <!-- Gender -->

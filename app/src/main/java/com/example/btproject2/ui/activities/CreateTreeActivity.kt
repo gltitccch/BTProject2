@@ -37,6 +37,8 @@ class CreateTreeActivity : AppCompatActivity() {
     private lateinit var etCreatorName: EditText
     private lateinit var cardPatriarch: LinearLayout
     private lateinit var cardMatriarch: LinearLayout
+    private lateinit var layoutFounderPills: LinearLayout
+    private lateinit var layoutYouthRole: LinearLayout
     private lateinit var tvPatriarchText: TextView
     private lateinit var tvMatriarchText: TextView
     private lateinit var spinnerGender: Spinner
@@ -55,6 +57,8 @@ class CreateTreeActivity : AppCompatActivity() {
         etCreatorName = findViewById(R.id.etCreatorName)
         cardPatriarch = findViewById(R.id.cardPatriarch)
         cardMatriarch = findViewById(R.id.cardMatriarch)
+        layoutFounderPills = findViewById(R.id.layoutFounderPills)
+        layoutYouthRole = findViewById(R.id.layoutYouthRole)
         tvPatriarchText = findViewById(R.id.tvPatriarchText)
         tvMatriarchText = findViewById(R.id.tvMatriarchText)
         spinnerGender = findViewById(R.id.spinnerGender)
@@ -78,10 +82,15 @@ class CreateTreeActivity : AppCompatActivity() {
             updateFounderRoleUI("Matriarch", syncSpinner = true)
         }
 
-        // Gender spinner item selection -> sync role accordingly
+        // Gender spinner item selection -> sync role accordingly (if in adult mode)
         spinnerGender.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (isUpdatingRoleProgrammatically) return
+                if (layoutYouthRole.visibility == View.VISIBLE) {
+                    // Youth mode remains Member regardless of gender
+                    selectedFounderRole = "Member"
+                    return
+                }
                 val targetRole = if (position == 0) "Patriarch" else "Matriarch"
                 updateFounderRoleUI(targetRole, syncSpinner = false)
             }
@@ -105,6 +114,8 @@ class CreateTreeActivity : AppCompatActivity() {
                     etBirthDate.setText(
                         SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(c.time)
                     )
+                    etBirthDate.error = null
+                    checkAndApplyAgeAdaptiveRole(c)
                 },
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
@@ -116,6 +127,27 @@ class CreateTreeActivity : AppCompatActivity() {
 
         btnCreateTree.setOnClickListener {
             handleCreateTree()
+        }
+    }
+
+    private fun checkAndApplyAgeAdaptiveRole(birthCal: Calendar) {
+        val today = Calendar.getInstance()
+        var age = today.get(Calendar.YEAR) - birthCal.get(Calendar.YEAR)
+        if (today.get(Calendar.DAY_OF_YEAR) < birthCal.get(Calendar.DAY_OF_YEAR)) {
+            age--
+        }
+
+        if (age < 18) {
+            // Under 18: Adapt role to Family Member (Youth / Descendant)
+            selectedFounderRole = "Member"
+            layoutFounderPills.visibility = View.GONE
+            layoutYouthRole.visibility = View.VISIBLE
+        } else {
+            // 18 and older: Enable adult founder roles (Patriarch / Matriarch)
+            layoutYouthRole.visibility = View.GONE
+            layoutFounderPills.visibility = View.VISIBLE
+            val targetRole = if (spinnerGender.selectedItemPosition == 1) "Matriarch" else "Patriarch"
+            updateFounderRoleUI(targetRole, syncSpinner = false)
         }
     }
 
@@ -168,6 +200,21 @@ class CreateTreeActivity : AppCompatActivity() {
             Toast.makeText(this, "Please sign in to create a family tree", Toast.LENGTH_SHORT).show()
             return
         }
+
+        // Validate 18+ eligibility for Patriarch and Matriarch
+        if (selectedFounderRole.equals("Patriarch", ignoreCase = true) || selectedFounderRole.equals("Matriarch", ignoreCase = true)) {
+            if (selectedDate.isBlank()) {
+                etBirthDate.error = "Birth date is required for $selectedFounderRole (must be 18+)"
+                Toast.makeText(this, "Please select your birth date to verify 18+ eligibility for $selectedFounderRole.", Toast.LENGTH_LONG).show()
+                return
+            }
+            val age = com.example.btproject2.engine.FamilyLinkValidator.calculateAgeYears(selectedDate)
+            if (age == null || age < 18) {
+                Toast.makeText(this, "A member must be at least 18 years old to be designated as $selectedFounderRole (current age: ${age ?: 0}).", Toast.LENGTH_LONG).show()
+                return
+            }
+        }
+
         val inviteCode = generateInviteCode()
 
         btnCreateTree.isEnabled = false

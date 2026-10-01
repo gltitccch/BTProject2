@@ -258,7 +258,7 @@ object KinshipTitleHelper {
         // 1. Same person or no focal person selected
         if (focal == null || target.id == focal.id) {
             if (focal != null && target.id == focal.id) {
-                if (target.lineageRole.isNotBlank()) {
+                if (target.lineageRole.isNotBlank() && !target.lineageRole.equals("MEMBER", ignoreCase = true)) {
                     val role = target.lineageRole.trim()
                     return role.uppercase() to "Founding $role"
                 }
@@ -515,7 +515,7 @@ object KinshipTitleHelper {
         byId: Map<String, Person> = allMembers.associateBy { it.id },
         childrenOf: Map<String, Set<String>> = emptyMap()
     ): Pair<String, String> {
-        if (target.lineageRole.isNotBlank()) {
+        if (target.lineageRole.isNotBlank() && !target.lineageRole.equals("MEMBER", ignoreCase = true)) {
             val role = target.lineageRole.trim()
             val title = role.uppercase()
             val sub = "Founding $role"
