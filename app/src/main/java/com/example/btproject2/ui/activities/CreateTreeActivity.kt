@@ -1,19 +1,28 @@
 package com.example.btproject2.ui.activities
 
 import android.app.DatePickerDialog
+import android.graphics.Color
 import android.os.Bundle
-import android.widget.*
+import android.view.View
+import android.widget.AdapterView
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.Person
-import com.example.btproject2.utils.setDarkAdapter
 import com.example.btproject2.models.UserProfile
 import com.example.btproject2.sync.CentralTreeSynchronizer
 import com.example.btproject2.utils.TreePreferences
+import com.example.btproject2.utils.setDarkAdapter
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -26,9 +35,16 @@ class CreateTreeActivity : AppCompatActivity() {
 
     private lateinit var etTreeName: EditText
     private lateinit var etCreatorName: EditText
+    private lateinit var cardPatriarch: LinearLayout
+    private lateinit var cardMatriarch: LinearLayout
+    private lateinit var tvPatriarchText: TextView
+    private lateinit var tvMatriarchText: TextView
     private lateinit var spinnerGender: Spinner
     private lateinit var etBirthDate: EditText
     private lateinit var btnCreateTree: Button
+
+    private var selectedFounderRole: String = "Patriarch"
+    private var isUpdatingRoleProgrammatically: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +53,10 @@ class CreateTreeActivity : AppCompatActivity() {
         val btnBack = findViewById<TextView>(R.id.btnBack)
         etTreeName = findViewById(R.id.etTreeName)
         etCreatorName = findViewById(R.id.etCreatorName)
+        cardPatriarch = findViewById(R.id.cardPatriarch)
+        cardMatriarch = findViewById(R.id.cardMatriarch)
+        tvPatriarchText = findViewById(R.id.tvPatriarchText)
+        tvMatriarchText = findViewById(R.id.tvMatriarchText)
         spinnerGender = findViewById(R.id.spinnerGender)
         etBirthDate = findViewById(R.id.etBirthDate)
         btnCreateTree = findViewById(R.id.btnCreateTree)
@@ -44,6 +64,30 @@ class CreateTreeActivity : AppCompatActivity() {
         btnBack.setOnClickListener { finish() }
 
         spinnerGender.setDarkAdapter(this, listOf("Male", "Female"))
+
+        // Set default founder role to Patriarch and sync UI
+        updateFounderRoleUI("Patriarch", syncSpinner = false)
+
+        // Patriarch card click -> sync role & switch spinner to Male
+        cardPatriarch.setOnClickListener {
+            updateFounderRoleUI("Patriarch", syncSpinner = true)
+        }
+
+        // Matriarch card click -> sync role & switch spinner to Female
+        cardMatriarch.setOnClickListener {
+            updateFounderRoleUI("Matriarch", syncSpinner = true)
+        }
+
+        // Gender spinner item selection -> sync role accordingly
+        spinnerGender.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (isUpdatingRoleProgrammatically) return
+                val targetRole = if (position == 0) "Patriarch" else "Matriarch"
+                updateFounderRoleUI(targetRole, syncSpinner = false)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
 
         // Pre-fill name from auth profile if available
         val currentName = authHelper.getCurrentUser()?.displayName
@@ -72,6 +116,35 @@ class CreateTreeActivity : AppCompatActivity() {
 
         btnCreateTree.setOnClickListener {
             handleCreateTree()
+        }
+    }
+
+    private fun updateFounderRoleUI(role: String, syncSpinner: Boolean) {
+        selectedFounderRole = role
+        if (role == "Patriarch") {
+            cardPatriarch.setBackgroundResource(R.drawable.badge_pill_gold)
+            tvPatriarchText.setTextColor(Color.parseColor("#0A1B12"))
+
+            cardMatriarch.setBackgroundResource(R.drawable.badge_pill_dark)
+            tvMatriarchText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+
+            if (syncSpinner && spinnerGender.selectedItemPosition != 0) {
+                isUpdatingRoleProgrammatically = true
+                spinnerGender.setSelection(0)
+                isUpdatingRoleProgrammatically = false
+            }
+        } else {
+            cardMatriarch.setBackgroundResource(R.drawable.badge_pill_gold)
+            tvMatriarchText.setTextColor(Color.parseColor("#0A1B12"))
+
+            cardPatriarch.setBackgroundResource(R.drawable.badge_pill_dark)
+            tvPatriarchText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+
+            if (syncSpinner && spinnerGender.selectedItemPosition != 1) {
+                isUpdatingRoleProgrammatically = true
+                spinnerGender.setSelection(1)
+                isUpdatingRoleProgrammatically = false
+            }
         }
     }
 
@@ -105,7 +178,8 @@ class CreateTreeActivity : AppCompatActivity() {
             ownerId = userId,
             ownerName = creatorName,
             inviteCode = inviteCode,
-            isPrivate = false
+            isPrivate = false,
+            founderRole = selectedFounderRole
         )
 
         firestoreHelper.createTree(newTree,
@@ -128,14 +202,15 @@ class CreateTreeActivity : AppCompatActivity() {
                 val firstName = parts[0]
                 val lastName = if (parts.size > 1) parts[1] else ""
 
-                // Add creator as first person in the tree
+                // Add creator as first person (Patriarch or Matriarch) in the tree
                 val selfPerson = Person(
                     firstName = firstName,
                     lastName = lastName,
                     gender = gender,
                     birthDate = selectedDate,
                     treeId = createdTree.id,
-                    createdBy = userId
+                    createdBy = userId,
+                    lineageRole = selectedFounderRole
                 )
 
                 firestoreHelper.addPerson(selfPerson,
@@ -168,4 +243,3 @@ class CreateTreeActivity : AppCompatActivity() {
         return (1..6).map { chars.random() }.joinToString("")
     }
 }
-

@@ -98,6 +98,68 @@
             android:textColorHint="@color/text_hint"
             android:layout_marginBottom="12dp" />
 
+        <!-- Founder Role in Family -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Founder Role in Family"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:layout_marginBottom="14dp">
+
+            <!-- Patriarch Pill Card -->
+            <LinearLayout
+                android:id="@+id/cardPatriarch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="@drawable/badge_pill_gold"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/tvPatriarchText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👑 Patriarch"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#0A1B12" />
+            </LinearLayout>
+
+            <!-- Matriarch Pill Card -->
+            <LinearLayout
+                android:id="@+id/cardMatriarch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="@drawable/badge_pill_dark"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/tvMatriarchText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👑 Matriarch"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+        </LinearLayout>
+
         <!-- Gender -->
         <TextView
             android:layout_width="wrap_content"

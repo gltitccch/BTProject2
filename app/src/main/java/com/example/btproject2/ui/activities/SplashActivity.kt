@@ -17,8 +17,13 @@ class SplashActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash)
 
         Handler(Looper.getMainLooper()).postDelayed({
-            if (authHelper.getCurrentUser() != null) {
-                startActivity(Intent(this, HomeActivity::class.java))
+            val user = authHelper.getCurrentUser()
+            if (user != null) {
+                if (user.isEmailVerified) {
+                    startActivity(Intent(this, HomeActivity::class.java))
+                } else {
+                    startActivity(Intent(this, VerifyEmailActivity::class.java))
+                }
             } else {
                 startActivity(Intent(this, LoginActivity::class.java))
             }

@@ -32,5 +32,6 @@ data class Person(
     val photoBase64: String = "",
     val documents: List<AttachedDocument> = emptyList(),
     val updatedAt: Long = 0L,
-    val hasTimelineConflict: Boolean = false
+    val hasTimelineConflict: Boolean = false,
+    val lineageRole: String = ""
 )

@@ -61,6 +61,8 @@ class MemberAdapter(
         val effectiveFocal = focalPerson ?: allMembers.firstOrNull() ?: members.firstOrNull()
         val kinship = if (effectiveFocal != null && effectiveFocal.id != person.id && allMembers.isNotEmpty()) {
             com.example.btproject2.engine.KinshipTitleHelper.resolveTitle(person, effectiveFocal, allMembers)
+        } else if (person.lineageRole.isNotBlank()) {
+            person.lineageRole.uppercase()
         } else null
         val kinshipPrefix = if (!kinship.isNullOrEmpty()) "$kinship · " else ""
 

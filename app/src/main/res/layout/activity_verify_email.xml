@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:paddingTop="50dp"
+        android:gravity="center_horizontal">
+
+        <!-- Top navigation bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="32dp">
+
+            <TextView
+                android:id="@+id/btnBackOrLogout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="← Back to Login"
+                android:textSize="14sp"
+                android:textColor="@color/primary"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Mail Icon Container -->
+        <FrameLayout
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/avatar_bg"
+            android:layout_marginBottom="24dp">
+
+            <ImageView
+                android:id="@+id/ivMailIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_mail_verify"
+                android:contentDescription="Verification Email" />
+        </FrameLayout>
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Verify Your Email"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="We sent a verification link to:"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="4dp" />
+
+        <!-- User Email -->
+        <TextView
+            android:id="@+id/tvUserEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="user@example.com"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Explanation card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="To protect your family tree and records, please check your inbox (and spam/junk folder) and click the confirmation link."
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingMultiplier="1.3" />
+        </LinearLayout>
+
+        <!-- Check Status Button (Solid Gold Primary) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCheckVerified"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="I've Verified My Email"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="14dp"
+            android:textAllCaps="false"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Resend Link Button (Outlined Gold Secondary) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResendEmail"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Resend Verification Link"
+            android:textSize="15sp"
+            android:textColor="@color/primary"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1.5dp"
+            app:cornerRadius="14dp"
+            android:textAllCaps="false"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Change Email / Sign Out -->
+        <TextView
+            android:id="@+id/btnChangeEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Entered the wrong email? Sign out"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp" />
+
+    </LinearLayout>
+</ScrollView>

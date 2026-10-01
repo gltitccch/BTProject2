@@ -18,7 +18,9 @@ data class FamilyTree(
     val mergeInviteCode: String = "",
     val sourceTree1Id: String = "",
     val sourceTree2Id: String = "",
-    val coOwnerIds: List<String> = emptyList()
+    val coOwnerIds: List<String> = emptyList(),
+    val founderRole: String = "",
+    val founderPersonId: String = ""
 ) {
     companion object {
         const val TREE_TYPE_PERSONAL = "PERSONAL"

@@ -258,6 +258,10 @@ object KinshipTitleHelper {
         // 1. Same person or no focal person selected
         if (focal == null || target.id == focal.id) {
             if (focal != null && target.id == focal.id) {
+                if (target.lineageRole.isNotBlank()) {
+                    val role = target.lineageRole.trim()
+                    return role.uppercase() to "Founding $role"
+                }
                 return "SELF" to "Current Member"
             }
             // Fallback when focal is null: determine structural position
@@ -511,6 +515,13 @@ object KinshipTitleHelper {
         byId: Map<String, Person> = allMembers.associateBy { it.id },
         childrenOf: Map<String, Set<String>> = emptyMap()
     ): Pair<String, String> {
+        if (target.lineageRole.isNotBlank()) {
+            val role = target.lineageRole.trim()
+            val title = role.uppercase()
+            val sub = "Founding $role"
+            return title to sub
+        }
+
         val hasNoParents = (target.fatherId.isNullOrBlank() || !byId.containsKey(target.fatherId)) &&
                 (target.motherId.isNullOrBlank() || !byId.containsKey(target.motherId))
 

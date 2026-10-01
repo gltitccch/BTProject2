@@ -75,19 +75,36 @@
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="6dp" />
 
-        <EditText
-            android:id="@+id/etPassword"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:hint="Enter your password"
-            android:inputType="textPassword"
-            android:background="@drawable/input_bg_white"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textSize="15sp"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="Enter your password"
+                android:inputType="textPassword"
+                android:background="@drawable/input_bg_white"
+                android:paddingStart="16dp"
+                android:paddingEnd="48dp"
+                android:textSize="15sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint" />
+
+            <ImageView
+                android:id="@+id/btnTogglePassword"
+                android:layout_width="48dp"
+                android:layout_height="52dp"
+                android:layout_gravity="end|center_vertical"
+                android:padding="14dp"
+                android:src="@drawable/ic_visibility_off"
+                android:contentDescription="Show password"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+        </FrameLayout>
 
         <!-- Forgot Password -->
         <TextView

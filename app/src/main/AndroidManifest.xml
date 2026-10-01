@@ -22,6 +22,7 @@
 
         <activity android:name=".ui.activities.LoginActivity" />
         <activity android:name=".ui.activities.RegisterActivity" />
+        <activity android:name=".ui.activities.VerifyEmailActivity" />
         <activity android:name=".ui.activities.ForgotPasswordActivity" />
         <activity android:name=".ui.activities.InteractiveTreeActivity"
             android:exported="false"

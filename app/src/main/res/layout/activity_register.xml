@@ -100,19 +100,36 @@
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="6dp" />
 
-        <EditText
-            android:id="@+id/etPassword"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:hint="Minimum 6 characters"
-            android:inputType="textPassword"
-            android:background="@drawable/input_bg_white"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textSize="15sp"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
-            android:layout_marginBottom="16dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="Minimum 6 characters"
+                android:inputType="textPassword"
+                android:background="@drawable/input_bg_white"
+                android:paddingStart="16dp"
+                android:paddingEnd="48dp"
+                android:textSize="15sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint" />
+
+            <ImageView
+                android:id="@+id/btnTogglePassword"
+                android:layout_width="48dp"
+                android:layout_height="52dp"
+                android:layout_gravity="end|center_vertical"
+                android:padding="14dp"
+                android:src="@drawable/ic_visibility_off"
+                android:contentDescription="Show password"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+        </FrameLayout>
 
         <!-- Confirm Password -->
         <TextView
@@ -124,19 +141,36 @@
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="6dp" />
 
-        <EditText
-            android:id="@+id/etConfirmPassword"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:hint="Re-enter your password"
-            android:inputType="textPassword"
-            android:background="@drawable/input_bg_white"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textSize="15sp"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
-            android:layout_marginBottom="28dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="28dp">
+
+            <EditText
+                android:id="@+id/etConfirmPassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="Re-enter your password"
+                android:inputType="textPassword"
+                android:background="@drawable/input_bg_white"
+                android:paddingStart="16dp"
+                android:paddingEnd="48dp"
+                android:textSize="15sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint" />
+
+            <ImageView
+                android:id="@+id/btnToggleConfirmPassword"
+                android:layout_width="48dp"
+                android:layout_height="52dp"
+                android:layout_gravity="end|center_vertical"
+                android:padding="14dp"
+                android:src="@drawable/ic_visibility_off"
+                android:contentDescription="Show password"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+        </FrameLayout>
 
         <!-- Create Account Button -->
         <Button

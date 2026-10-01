@@ -85,6 +85,37 @@ class AuthHelper {
             .addOnFailureListener { onFailure(it) }
     }
 
+    fun sendEmailVerification(
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val user = auth.currentUser
+        if (user == null) {
+            onFailure(Exception("No authenticated user"))
+            return
+        }
+        user.sendEmailVerification()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun reloadUser(
+        onComplete: (FirebaseUser?) -> Unit
+    ) {
+        val user = auth.currentUser
+        if (user == null) {
+            onComplete(null)
+            return
+        }
+        user.reload().addOnCompleteListener {
+            onComplete(auth.currentUser)
+        }
+    }
+
+    fun isEmailVerified(): Boolean {
+        return auth.currentUser?.isEmailVerified == true
+    }
+
     fun logout() {
         auth.signOut()
     }
