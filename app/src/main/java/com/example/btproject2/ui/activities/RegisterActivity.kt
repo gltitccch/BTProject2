@@ -5,8 +5,10 @@ import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +18,7 @@ import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.UserProfile
 import com.example.btproject2.sync.CentralTreeSynchronizer
+import com.example.btproject2.ui.dialogs.TermsOfServiceBottomSheet
 import com.example.btproject2.utils.RegistrationValidator
 import com.example.btproject2.utils.TreePreferences
 
@@ -23,6 +26,7 @@ class RegisterActivity : AppCompatActivity() {
 
     private val authHelper = AuthHelper()
     private val firestoreHelper = FirestoreHelper()
+    private var isTosAccepted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,10 +39,52 @@ class RegisterActivity : AppCompatActivity() {
         val etConfirmPassword = findViewById<EditText>(R.id.etConfirmPassword)
         val btnTogglePassword = findViewById<ImageView>(R.id.btnTogglePassword)
         val btnToggleConfirmPassword = findViewById<ImageView>(R.id.btnToggleConfirmPassword)
+        val layoutTosContainer = findViewById<LinearLayout>(R.id.layoutTosContainer)
+        val cbTermsOfService = findViewById<CheckBox>(R.id.cbTermsOfService)
+        val tvTermsAgreement = findViewById<TextView>(R.id.tvTermsAgreement)
+        val tvTosHint = findViewById<TextView>(R.id.tvTosHint)
+        val tvTosHeaderBadge = findViewById<TextView>(R.id.tvTosHeaderBadge)
+        val tvTosHeaderSubtitle = findViewById<TextView>(R.id.tvTosHeaderSubtitle)
+        val tvCovenantCheckIcon = findViewById<TextView>(R.id.tvCovenantCheckIcon)
         val btnCreate = findViewById<Button>(R.id.btnCreateAccount)
         val tvGoToLogin = findViewById<TextView>(R.id.tvGoToLogin)
 
         btnBack.setOnClickListener { finish() }
+
+        // Must-Scroll-To-Bottom Terms of Service BottomSheet invocation
+        val openTermsBottomSheet = {
+            TermsOfServiceBottomSheet.newInstance(
+                alreadyAccepted = isTosAccepted,
+                onAccepted = {
+                    isTosAccepted = true
+                    cbTermsOfService.isChecked = true
+
+                    // Update top header status
+                    tvTosHeaderBadge?.text = "✓ Accepted"
+                    tvTosHeaderBadge?.setTextColor(getColor(R.color.mint_text))
+                    tvTosHeaderSubtitle?.text = "All 10 stewardship policies reviewed & accepted."
+                    tvTosHeaderSubtitle?.setTextColor(getColor(R.color.mint_text))
+
+                    // Update right action icon to solid gold plate with dark check
+                    tvCovenantCheckIcon?.text = "✓"
+                    tvCovenantCheckIcon?.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
+                    tvCovenantCheckIcon?.setTextColor(android.graphics.Color.parseColor("#0A1B12"))
+                    tvCovenantCheckIcon?.setBackgroundResource(R.drawable.bg_covenant_box_gold)
+
+                    // Update label and helper text
+                    tvTermsAgreement.text = "Agreed"
+                    tvTermsAgreement.setTextColor(getColor(R.color.text_primary))
+                    tvTosHint.text = "✓ Ready"
+                    tvTosHint.setTextColor(getColor(R.color.mint_text))
+
+                    btnCreate.isEnabled = true
+                    btnCreate.setBackgroundResource(R.drawable.btn_primary_bg)
+                }
+            ).show(supportFragmentManager, TermsOfServiceBottomSheet.TAG)
+        }
+
+        layoutTosContainer.setOnClickListener { openTermsBottomSheet() }
+        tvTermsAgreement.setOnClickListener { openTermsBottomSheet() }
 
         // Setup password show/hide visibility toggles
         setupPasswordToggle(etPassword, btnTogglePassword)
@@ -51,7 +97,12 @@ class RegisterActivity : AppCompatActivity() {
         etConfirmPassword.doOnTextChanged { _, _, _, _ -> etConfirmPassword.error = null }
 
         btnCreate.setOnClickListener {
-            val fullName = etFullName.text.toString().trim()
+            if (!isTosAccepted) {
+                openTermsBottomSheet()
+                return@setOnClickListener
+            }
+
+            val fullName = etFullName.text.toString().trim().replace("\\s+".toRegex(), " ")
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString()
             val confirmPassword = etConfirmPassword.text.toString()
@@ -111,7 +162,8 @@ class RegisterActivity : AppCompatActivity() {
                         displayName = fullName,
                         email = email,
                         role = "user",
-                        currentTreeId = ""
+                        currentTreeId = "",
+                        tosAcceptedAt = System.currentTimeMillis()
                     )
                     firestoreHelper.saveUserProfile(profile,
                         onSuccess = {

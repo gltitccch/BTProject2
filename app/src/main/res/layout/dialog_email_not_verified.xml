@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_shield_dialog"
+    android:padding="20dp"
+    android:gravity="center_horizontal">
+
+    <!-- Top Shield Crest Icon -->
+    <LinearLayout
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:background="@drawable/bg_verify_step_circle">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🛡️"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <!-- Title & Subtitle -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Email Not Verified Yet"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="We are waiting for link confirmation for:"
+        android:textSize="11.5sp"
+        android:textColor="@color/dark_subtext"
+        android:layout_marginTop="3dp" />
+
+    <!-- Target Email Pill -->
+    <TextView
+        android:id="@+id/tvDialogUserEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="user@gmail.com"
+        android:textSize="11.5sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_accent"
+        android:background="@drawable/bg_covenant_badge_pill"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:maxLines="1"
+        android:ellipsize="middle"
+        android:layout_marginTop="6dp" />
+
+    <!-- 3-Item Step Checklist Surface -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/note_bg"
+        android:padding="12dp"
+        android:layout_marginTop="14dp">
+
+        <!-- Step 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:gravity="center"
+                android:text="1"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/bg_verify_step_circle"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Check Inbox &amp; Spam folder"
+                android:textSize="11.5sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- Step 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:gravity="center"
+                android:text="2"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/bg_verify_step_circle"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="If in Spam, tap 'Report Not Spam' to enable link"
+                android:textSize="11sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- Step 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:gravity="center"
+                android:text="3"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/bg_verify_step_circle"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Click the link, then return here to proceed"
+                android:textSize="11sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Real-time Verification Status Banner (Option A: Hidden initially) -->
+    <LinearLayout
+        android:id="@+id/layoutDialogStatusBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_warning_banner"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:layout_marginTop="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvDialogStatusIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚠️"
+            android:textSize="13sp"
+            android:layout_marginEnd="6dp" />
+
+        <TextView
+            android:id="@+id/tvDialogStatusBanner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Still unverified. Please confirm the link in your email and try again."
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/warning" />
+    </LinearLayout>
+
+    <!-- Primary Action: Solid Gold Plated Re-Check Button -->
+    <TextView
+        android:id="@+id/btnDialogCheckStatus"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:gravity="center"
+        android:text="🔄 Check Status Again"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="@color/btn_gold_text"
+        android:background="@drawable/btn_gold_primary"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="14dp" />
+
+    <!-- Secondary Action: Open Email App Button -->
+    <TextView
+        android:id="@+id/btnDialogOpenEmailApp"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:gravity="center"
+        android:text="📬 Open Email App ↗"
+        android:textSize="12.5sp"
+        android:textColor="@color/text_primary"
+        android:background="@drawable/btn_outline_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="8dp" />
+
+    <!-- Dismiss Text Link -->
+    <TextView
+        android:id="@+id/btnDialogDismiss"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dismiss"
+        android:textSize="11sp"
+        android:textColor="@color/dark_subtext"
+        android:gravity="center"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="4dp" />
+
+</LinearLayout>

@@ -28,7 +28,9 @@
         <activity
             android:name=".ui.activities.RegisterActivity"
             android:exported="true" />
-        <activity android:name=".ui.activities.VerifyEmailActivity" />
+        <activity
+            android:name=".ui.activities.VerifyEmailActivity"
+            android:exported="true" />
         <activity android:name=".ui.activities.ForgotPasswordActivity" />
         <activity android:name=".ui.activities.InteractiveTreeActivity"
             android:exported="false"

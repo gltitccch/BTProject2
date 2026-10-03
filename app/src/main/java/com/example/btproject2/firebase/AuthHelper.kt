@@ -119,4 +119,21 @@ class AuthHelper {
     fun logout() {
         auth.signOut()
     }
+
+    /**
+     * Permanently deletes the current Firebase Auth user credentials.
+     */
+    fun deleteCurrentUser(
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val user = auth.currentUser
+        if (user != null) {
+            user.delete()
+                .addOnSuccessListener { onSuccess() }
+                .addOnFailureListener { onFailure(it) }
+        } else {
+            onSuccess()
+        }
+    }
 }

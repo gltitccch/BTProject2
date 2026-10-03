@@ -428,6 +428,124 @@
                     android:paddingTop="2dp"
                     android:paddingBottom="2dp" />
             </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/forest_card_border"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp" />
+
+            <!-- View Terms of Service & Clan Stewardship -->
+            <LinearLayout
+                android:id="@+id/btnViewTermsOfService"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📜"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Terms &amp; Clan Stewardship"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="10-clause covenant &amp; preservation policy"
+                        android:textSize="10.5sp"
+                        android:textColor="@color/dark_subtext"
+                        android:layout_marginTop="1dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="→"
+                    android:textSize="14sp"
+                    android:textColor="@color/dark_subtext" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Section 4: Account Actions & Danger Zone -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ACCOUNT ACTIONS"
+            android:textSize="10.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/danger"
+            android:letterSpacing="0.08"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:id="@+id/btnDeleteAccountProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/btn_danger_subtle"
+            android:padding="13dp"
+            android:layout_marginBottom="16dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🗑️"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Delete Clan Account"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/danger" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Erase credentials &amp; invoke Clan Stewardship"
+                    android:textSize="10.5sp"
+                    android:textColor="@color/dark_subtext"
+                    android:layout_marginTop="1dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/danger" />
         </LinearLayout>
 
         <!-- Primary Action CTA (Done & Close) -->

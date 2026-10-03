@@ -18,19 +18,36 @@ class RegistrationValidationTest {
         assertTrue(RegistrationValidator.validateFullName("") is RegistrationValidator.FieldResult.Invalid)
         assertTrue(RegistrationValidator.validateFullName("   ") is RegistrationValidator.FieldResult.Invalid)
 
-        // Too short (< 2 characters)
-        val shortResult = RegistrationValidator.validateFullName("A")
-        assertTrue(shortResult is RegistrationValidator.FieldResult.Invalid)
-        assertEquals("Full name must be at least 2 characters.", (shortResult as RegistrationValidator.FieldResult.Invalid).errorMessage)
+        // Too short (< 4 characters, e.g. "A", "Re")
+        val shortResult1 = RegistrationValidator.validateFullName("A")
+        assertTrue(shortResult1 is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Full name must be at least 4 characters.", (shortResult1 as RegistrationValidator.FieldResult.Invalid).errorMessage)
+
+        val shortResult2 = RegistrationValidator.validateFullName("Re")
+        assertTrue(shortResult2 is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Full name must be at least 4 characters.", (shortResult2 as RegistrationValidator.FieldResult.Invalid).errorMessage)
+
+        // Single name without last name (e.g. "John")
+        val singleNameResult = RegistrationValidator.validateFullName("John")
+        assertTrue(singleNameResult is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Please enter both your first and last name.", (singleNameResult as RegistrationValidator.FieldResult.Invalid).errorMessage)
+
+        // Parts with fewer than 2 characters (e.g. "R Tan")
+        val initialResult = RegistrationValidator.validateFullName("R Tan")
+        assertTrue(initialResult is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Each name must be at least 2 characters.", (initialResult as RegistrationValidator.FieldResult.Invalid).errorMessage)
 
         // Invalid characters (digits, illegal symbols)
-        val symbolResult = RegistrationValidator.validateFullName("John123")
+        val symbolResult = RegistrationValidator.validateFullName("John123 Doe")
         assertTrue(symbolResult is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Please enter a valid name (letters and spaces only).", (symbolResult as RegistrationValidator.FieldResult.Invalid).errorMessage)
 
         // Valid names
         assertTrue(RegistrationValidator.validateFullName("John Doe") is RegistrationValidator.FieldResult.Valid)
+        assertTrue(RegistrationValidator.validateFullName("Renzy Tan") is RegistrationValidator.FieldResult.Valid)
         assertTrue(RegistrationValidator.validateFullName("Mary-Jane O'Connor") is RegistrationValidator.FieldResult.Valid)
         assertTrue(RegistrationValidator.validateFullName("José Silva") is RegistrationValidator.FieldResult.Valid)
+        assertTrue(RegistrationValidator.validateFullName("Maria Del Carmen") is RegistrationValidator.FieldResult.Valid)
     }
 
     @Test
@@ -123,5 +140,43 @@ class RegistrationValidationTest {
             confirmPassword = "SecretPassword123"
         )
         assertTrue(validForm.isValid)
+    }
+
+    @Test
+    fun testTermsOfServiceValidation() {
+        val unaccepted = RegistrationValidator.validateTermsOfService(false)
+        assertTrue(unaccepted is RegistrationValidator.FieldResult.Invalid)
+        assertEquals(
+            "You must read and agree to the Terms of Service and Clan Stewardship Policy.",
+            (unaccepted as RegistrationValidator.FieldResult.Invalid).errorMessage
+        )
+
+        val accepted = RegistrationValidator.validateTermsOfService(true)
+        assertTrue(accepted is RegistrationValidator.FieldResult.Valid)
+    }
+
+    @Test
+    fun testValidateFormWithTermsOfService() {
+        // Form is invalid if ToS is unaccepted, even if all other fields are valid
+        val formTosUnaccepted = RegistrationValidator.validateForm(
+            fullName = "Juan dela Cruz",
+            email = "juan.delacruz@example.com",
+            password = "SecurePassword2026!",
+            confirmPassword = "SecurePassword2026!",
+            tosAccepted = false
+        )
+        assertFalse(formTosUnaccepted.isValid)
+        assertTrue(formTosUnaccepted.tosResult is RegistrationValidator.FieldResult.Invalid)
+
+        // Form is valid when ToS is accepted
+        val formTosAccepted = RegistrationValidator.validateForm(
+            fullName = "Juan dela Cruz",
+            email = "juan.delacruz@example.com",
+            password = "SecurePassword2026!",
+            confirmPassword = "SecurePassword2026!",
+            tosAccepted = true
+        )
+        assertTrue(formTosAccepted.isValid)
+        assertTrue(formTosAccepted.tosResult is RegistrationValidator.FieldResult.Valid)
     }
 }

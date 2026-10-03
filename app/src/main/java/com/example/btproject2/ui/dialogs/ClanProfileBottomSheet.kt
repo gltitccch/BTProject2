@@ -1,6 +1,7 @@
 package com.example.btproject2.ui.dialogs
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.UserProfile
+import com.example.btproject2.ui.activities.LoginActivity
 import com.example.btproject2.utils.NotificationHelper
 import com.example.btproject2.utils.OnboardingPreferences
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -107,6 +109,8 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         val cardResetPassword = view.findViewById<View>(R.id.cardResetPassword)
         val btnReplayStorybook = view.findViewById<View>(R.id.btnReplayStorybook)
         val btnResetQuest = view.findViewById<View>(R.id.btnResetQuest)
+        val btnViewTerms = view.findViewById<View>(R.id.btnViewTermsOfService)
+        val btnDeleteAccount = view.findViewById<View>(R.id.btnDeleteAccountProfile)
         val btnDone = view.findViewById<TextView>(R.id.btnProfileDone)
 
         // Populate Initial User State
@@ -218,6 +222,84 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
             Toast.makeText(context, "Clan Quest checklist restored to dashboard!", Toast.LENGTH_SHORT).show()
             dismiss()
         }
+
+        // View Terms of Service & Clan Stewardship
+        btnViewTerms?.setOnClickListener {
+            TermsOfServiceBottomSheet.newInstance().show(parentFragmentManager, TermsOfServiceBottomSheet.TAG)
+        }
+
+        // Delete Account & Clan Stewardship
+        btnDeleteAccount?.setOnClickListener {
+            showDeleteAccountConfirmationDialog(user.uid)
+        }
+    }
+
+    private fun showDeleteAccountConfirmationDialog(userId: String) {
+        val context = context ?: return
+        AlertDialog.Builder(context)
+            .setTitle("Delete Clan Account")
+            .setMessage(
+                "Are you sure you want to permanently delete your KinTrace account?\n\n" +
+                "• Your login credentials, email, and personal profile will be completely wiped.\n" +
+                "• Any unshared solo trees you created will be deleted.\n" +
+                "• Shared family trees will remain preserved under Clan Stewardship to safeguard genealogical records for surviving relatives, with authorship attributed to 'Former Clan Contributor'.\n" +
+                "• Any living relatives you added without death records will have their personal details masked as 'Private Living Relative' for privacy protection.\n\n" +
+                "This action is permanent and cannot be undone."
+            )
+            .setPositiveButton("Delete Permanently") { _, _ ->
+                executeAccountDeletion(userId)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun executeAccountDeletion(userId: String) {
+        val context = context ?: return
+        val progressDialog = AlertDialog.Builder(context)
+            .setTitle("Processing Account Deletion")
+            .setMessage("Invoking Clan Stewardship and safely removing personal credentials...")
+            .setCancelable(false)
+            .show()
+
+        firestoreHelper.deleteUserAccount(
+            userId = userId,
+            context = context,
+            onSuccess = {
+                authHelper.deleteCurrentUser(
+                    onSuccess = {
+                        progressDialog.dismiss()
+                        Toast.makeText(context, "Account deleted under Clan Stewardship.", Toast.LENGTH_LONG).show()
+                        dismiss()
+                        val intent = Intent(context, LoginActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        startActivity(intent)
+                        activity?.finish()
+                    },
+                    onFailure = { err ->
+                        progressDialog.dismiss()
+                        AlertDialog.Builder(context)
+                            .setTitle("Security Re-Authentication Required")
+                            .setMessage("Your profile and personal records have been removed under Clan Stewardship. However, Firebase requires recent authentication to permanently delete your login session.\n\nPlease sign out and sign in again to complete account removal:\n${err.message}")
+                            .setPositiveButton("Sign Out") { _, _ ->
+                                authHelper.logout()
+                                dismiss()
+                                val intent = Intent(context, LoginActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
+                                startActivity(intent)
+                                activity?.finish()
+                            }
+                            .setNegativeButton("Dismiss", null)
+                            .show()
+                    }
+                )
+            },
+            onFailure = { err ->
+                progressDialog.dismiss()
+                Toast.makeText(context, "Failed to delete account: ${err.message}", Toast.LENGTH_LONG).show()
+            }
+        )
     }
 
     private fun showDirectChangePasswordDialog() {

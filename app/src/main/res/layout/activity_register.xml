@@ -61,8 +61,8 @@
             android:id="@+id/etFullName"
             android:layout_width="match_parent"
             android:layout_height="52dp"
-            android:hint="Enter your full name"
-            android:inputType="textPersonName"
+            android:hint="First and last name"
+            android:inputType="textPersonName|textCapWords"
             android:background="@drawable/input_bg_white"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
@@ -177,6 +177,218 @@
                 android:focusable="true" />
         </FrameLayout>
 
+        <!-- Terms of Service & Clan Stewardship Executive Card (Compact, Snug, Zero Dead Space) -->
+        <LinearLayout
+            android:id="@+id/layoutTosContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_quick_assist_card"
+            android:padding="12dp"
+            android:layout_marginBottom="20dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <!-- Top Header Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:gravity="center"
+                    android:background="@drawable/circle_dark_action"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🌳"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Terms &amp; Conditions"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvTosHeaderBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tap card to read"
+                            android:textSize="9.5sp"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/bg_covenant_badge_pill"
+                            android:paddingStart="6dp"
+                            android:paddingEnd="6dp"
+                            android:paddingTop="1dp"
+                            android:paddingBottom="1dp"
+                            android:layout_marginStart="6dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvTosHeaderSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Review all 10 policies to unlock registration."
+                        android:textSize="10.5sp"
+                        android:textColor="@color/dark_subtext"
+                        android:layout_marginTop="1dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="❯"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/dark_subtext"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- Subtle Horizontal Divider below header -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/forest_card_border" />
+
+            <!-- 2-Column Split Body -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="8dp">
+
+                <!-- Left Column (Policies List, weight 1.35) -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.35"
+                    android:orientation="vertical"
+                    android:paddingEnd="6dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1. Privacy &amp; Data Usage"
+                        android:textSize="10.5sp"
+                        android:textColor="@color/text_primary"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2. Clan Stewardship License"
+                        android:textSize="10.5sp"
+                        android:textColor="@color/text_primary"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3. Community &amp; Family Code"
+                        android:textSize="10.5sp"
+                        android:textColor="@color/text_primary"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:layout_marginTop="2dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4. Data Security &amp; RA 10173"
+                        android:textSize="10.5sp"
+                        android:textColor="@color/text_primary"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+
+                <!-- Vertical Hairline Divider -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="52dp"
+                    android:background="@color/forest_card_border" />
+
+                <!-- Right Column (Touch target, weight 0.85) -->
+                <LinearLayout
+                    android:id="@+id/layoutCovenantRightAction"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.85"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingStart="6dp">
+
+                    <!-- Check/Scroll Box -->
+                    <TextView
+                        android:id="@+id/tvCovenantCheckIcon"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:gravity="center"
+                        android:text="📜"
+                        android:textSize="12sp"
+                        android:background="@drawable/bg_covenant_box_locked" />
+
+                    <!-- Action Label -->
+                    <TextView
+                        android:id="@+id/tvTermsAgreement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tap to Read"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:gravity="center"
+                        android:layout_marginTop="3dp" />
+
+                    <!-- Helper / Progress text -->
+                    <TextView
+                        android:id="@+id/tvTosHint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="(0/10)"
+                        android:textSize="9sp"
+                        android:textColor="@color/dark_subtext"
+                        android:gravity="center"
+                        android:layout_marginTop="1dp" />
+
+                    <!-- Hidden CheckBox for backward-compatibility -->
+                    <CheckBox
+                        android:id="@+id/cbTermsOfService"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
         <!-- Create Account Button -->
         <Button
             android:id="@+id/btnCreateAccount"
@@ -185,7 +397,8 @@
             android:text="Create Account"
             android:textSize="16sp"
             android:textColor="@color/white"
-            android:background="@drawable/btn_primary_bg"
+            android:background="@drawable/btn_disabled_bg"
+            android:enabled="false"
             android:textAllCaps="false"
             android:layout_marginBottom="20dp" />
 

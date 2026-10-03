@@ -1968,6 +1968,45 @@ flowchart TD
 
 ---
 
+### Proposal 28: Trust, Safety & Clan Stewardship Suite (Scroll-To-Bottom Terms of Service, Academic Orientation Notification & Collaborative Tree Safe Account Deletion Architecture)
+
+#### 28.1 Executive Problem Statement: The Collaborative Deletion Dilemma
+- **The Dilemma**: In a collaborative genealogy app, user accounts and genealogical nodes have intertwined lifecycles. If a user deletes their login account, directly wiping their entered family tree nodes snaps parent-child pointers (`fatherId`, `motherId`, `spouseId`), collapses family branches, and destroys historical records for living relatives and clan co-owners.
+- **The Solution (Clan Stewardship Perpetual License)**:
+  - Users retain ownership of their personal credentials and unshared private trees.
+  - Collaborative family trees transition to **Clan Stewardship**: personal account credentials and email documents are purged, but genealogical graph records remain preserved and are attributed to *"Former Clan Contributor"*.
+  - Living relative records without death dates have their personal identification information masked as *"Private Living Relative"* per the Philippine Data Privacy Act of 2012 (RA 10173).
+  - Unshared solo trees (member count $\le 1$ without co-owners) are completely purged.
+
+#### 28.2 10-Clause Airtight Terms of Service & Clan Stewardship Agreement
+1. **Eligibility & Age Requirement (18+)**: Minimum age threshold ensuring contractual capacity.
+2. **Academic & Educational Research Nature**: KinTrace operates as a non-commercial educational project for genealogical preservation.
+3. **Collaborative Clan Data Stewardship & Perpetual Genealogical License**: Irrevocable license for collective tree continuity even post-account removal.
+4. **Data Privacy & RA 10173 Compliance**: Pseudonymization, living relative privacy safeguards, and strict prohibition on commercial data harvesting.
+5. **Philippine Family Code Compliance**: Adherence to Articles 5, 37, and 38 for legitimate relationship validation.
+6. **Account Security & Verification**: Requirement for valid email verification and individual password integrity.
+7. **Prohibited Conduct & Anti-Vandalism**: Prohibits malicious record tampering, offensive entries, and lineage falsification.
+8. **Ownership Succession in Shared Trees**: Automated promotion of co-owners upon contributor departure.
+9. **Account Termination & Right to Erasure**: Explicit delineation between personal credential erasure and communal tree preservation.
+10. **Disclaimer of Warranties & Governing Law**: "As-Is" warranty disclaimer with Philippine legal jurisdiction.
+
+#### 28.3 The 100% "Must-Scroll-To-Bottom" Gating Architecture
+- **Non-Bypassable Agreement**: The registration checkbox (`cbTermsOfService`) is programmatically locked (`android:clickable="false"`).
+- **BottomSheet Modal with Real-Time Scroll Math**:
+  - `NestedScrollView` scroll listener computes `((scrollY / totalScrollable) * 100)`.
+  - Secondary safety check: `!v.canScrollVertically(1)`.
+  - Smooth progress bar (`pbScrollProgress`) and dynamic badge (`tvScrollBadge`) update from `0%` to `100%`.
+  - Accept button (`btnAcceptTerms`) unlocks only at $\ge 95\%$ or bottom boundary.
+  - On acceptance, the checkbox is automatically checked (`☑`), hint turns green, and `btnCreateAccount` activates.
+  - `tosAcceptedAt` timestamp is recorded into Firestore `UserProfile`.
+
+#### 28.4 Post-Verification Academic & Educational Notification Hub
+- Upon email verification completion in `VerifyEmailActivity`, a priority `"EDUCATIONAL"` notification is dispatched to the user's notification hub.
+- Displays academic graduation cap icon `🎓` and `"ACADEMY"` badge in `NotificationsActivity`.
+- Outlines the academic research purpose and guides the user to explore `KinAcademyActivity`.
+
+---
+
 ## 3. Proposal Ideas Changelog & Expansion Log
 
 | Date | Added By | Summary of Ideas Logged |
@@ -1984,6 +2023,7 @@ flowchart TD
 | **2026-10-03** | System Architecture & Pair Programming | **Executed & Fully Verified Proposal 25 across all 7 Phases**: Built `EducationalContentRepository.kt`, `KinTraceQuickAssistBottomSheet.kt`, `KinAcademyActivity.kt`, wired contextual help across 8 key screens (`HomeActivity`, `FamilyTreeActivity`, `TraceActivity`, `RelationshipReportActivity`, `RelationshipPathActivity`, `AddMemberActivity`, `MergeBranchesActivity`, `PrivacyControlsActivity`, `TreeAuditActivity`, `ExportTreeActivity`). Verified on Android emulator in Light/Dark themes and passed 100% unit tests (`testDebugUnitTest`). |
 | **2026-10-03** | System Architecture Review | **Added Proposal 26: Modern Account Profile & Clan Identity Redesign**: Logged 3 distinct high-craft visual directions (Heritage BottomSheet, Clan Passport Card, Segmented Duo-Hub) with interactive Generative UI preview to modernize the legacy AlertDialog profile interface. |
 | **2026-10-03** | System Architecture Review | **Added Proposal 27: Auth Flow Navigation Modernization**: Clean removal of redundant Login back button (100% form preservation) + 3 tactile redesign options for Create Account back navigation with interactive Generative UI preview. |
+| **2026-10-03** | System Architecture Review | **Added Proposal 28: Trust, Safety & Clan Stewardship Suite**: Complete architectural resolution for the collaborative tree deletion dilemma, 10-clause legally binding covenant, 100% scroll-to-bottom BottomSheet gating, post-verification educational notification hub, and Clan Profile Danger Zone integration. |
 
 *(New proposals and suggestions requested in future interactions will be appended here automatically.)*
 

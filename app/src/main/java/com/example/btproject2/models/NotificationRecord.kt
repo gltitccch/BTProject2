@@ -8,6 +8,7 @@ package com.example.btproject2.models
  * - "RECORDS": Duplicate detection alerts, member added/updated/deleted notices.
  * - "VALIDATION": Data validation errors or relationship conflicts.
  * - "SECURITY": Role changes, privacy setting updates, password resets.
+ * - "EDUCATIONAL": Academic notices, welcome disclosures, KinAcademy guidance.
  */
 data class NotificationRecord(
     val id: String = "",
@@ -15,7 +16,7 @@ data class NotificationRecord(
     val userId: String = "",          // Recipient user ID (or empty for tree-wide broadcast)
     val title: String = "",
     val message: String = "",
-    val type: String = "RECORDS",     // "ACCESS", "RECORDS", "VALIDATION", "SECURITY"
+    val type: String = "RECORDS",     // "ACCESS", "RECORDS", "VALIDATION", "SECURITY", "EDUCATIONAL"
     val isRead: Boolean = false,
     val targetId: String = "",        // Associated memberId, treeId, or traceId
     val timestamp: Long = System.currentTimeMillis()

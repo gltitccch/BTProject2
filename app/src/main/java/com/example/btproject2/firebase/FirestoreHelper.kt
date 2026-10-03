@@ -2088,6 +2088,130 @@ class FirestoreHelper {
             .addOnFailureListener { onFailure(it) }
     }
 
+    /**
+     * Executes the Clan Stewardship & Safe Account Deletion Pipeline:
+     * 1. Erases the user's private profile in `users` collection.
+     * 2. Checks each tree the user owns or belongs to:
+     *    - If solo unshared tree (0 other collaborators, memberCount <= 1):
+     *      safely purges the personal tree using deleteTree(treeId).
+     *    - If collaborative / shared clan tree:
+     *      - Detaches user from tree_members.
+     *      - Updates tree creator to "Former Clan Contributor" if tree.createdBy == userId.
+     *      - Removes userId from owners list if present.
+     *      - Updates persons.createdBy to "Former Clan Contributor" so ancestral nodes
+     *        remain intact without dangling user references.
+     * 3. Clears local preferences and notifies CentralTreeSynchronizer.
+     */
+    fun deleteUserAccount(
+        userId: String,
+        context: Context? = null,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (userId.isBlank()) {
+            onFailure(IllegalArgumentException("User ID cannot be empty"))
+            return
+        }
+
+        // 1. Fetch all trees associated with the user
+        getUserTrees(userId, onSuccess = { trees ->
+            val soloTrees = mutableListOf<FamilyTree>()
+            val sharedTrees = mutableListOf<FamilyTree>()
+
+            for (tree in trees) {
+                if (tree.ownerId == userId && tree.memberCount <= 1 && tree.coOwnerIds.isEmpty()) {
+                    soloTrees.add(tree)
+                } else {
+                    sharedTrees.add(tree)
+                }
+            }
+
+            // Purge solo trees
+            for (solo in soloTrees) {
+                deleteTree(solo.id, context = context, onSuccess = {}, onFailure = {})
+            }
+
+            // Transition shared trees to Clan Stewardship
+            for (shared in sharedTrees) {
+                if (shared.ownerId == userId) {
+                    val nextOwner = shared.coOwnerIds.firstOrNull() ?: "Former Clan Contributor"
+                    val updatedCoOwners = shared.coOwnerIds.filter { it != nextOwner && it != userId }
+                    val updates = mutableMapOf<String, Any>(
+                        "ownerId" to nextOwner,
+                        "ownerName" to if (nextOwner == "Former Clan Contributor") "Former Clan Contributor" else "Clan Co-Owner",
+                        "coOwnerIds" to updatedCoOwners
+                    )
+                    db.collection("trees").document(shared.id).update(updates)
+                } else if (shared.coOwnerIds.contains(userId)) {
+                    val updatedCoOwners = shared.coOwnerIds.filter { it != userId }
+                    db.collection("trees").document(shared.id)
+                        .update("coOwnerIds", updatedCoOwners)
+                }
+                // Detach from tree_members
+                db.collection("tree_members")
+                    .whereEqualTo("treeId", shared.id)
+                    .whereEqualTo("userId", userId)
+                    .get()
+                    .addOnSuccessListener { snaps ->
+                        for (doc in snaps.documents) {
+                            doc.reference.delete()
+                        }
+                    }
+                // Update person records created by this user in shared trees
+                db.collection("persons")
+                    .whereEqualTo("treeId", shared.id)
+                    .whereEqualTo("createdBy", userId)
+                    .get()
+                    .addOnSuccessListener { pSnaps ->
+                        for (pDoc in pSnaps.documents) {
+                            val isLiving = pDoc.getBoolean("isLiving") ?: true
+                            val deathDate = pDoc.getString("deathDate").orEmpty()
+                            val isActuallyLiving = isLiving && deathDate.isBlank()
+
+                            val pUpdates = mutableMapOf<String, Any>(
+                                "createdBy" to "Former Clan Contributor"
+                            )
+                            if (isActuallyLiving) {
+                                pUpdates["isPrivate"] = true
+                                pUpdates["firstName"] = "Private"
+                                pUpdates["lastName"] = "Living Relative"
+                                pUpdates["middleName"] = ""
+                                pUpdates["biography"] = "[Redacted per Clan Stewardship & RA 10173]"
+                            }
+                            pDoc.reference.update(pUpdates)
+                        }
+                    }
+            }
+
+            // 2. Delete user profile record in 'users' collection
+            db.collection("users").document(userId)
+                .delete()
+                .addOnSuccessListener {
+                    if (context != null) {
+                        TreePreferences.clear(context)
+                    }
+                    clearCache()
+                    CentralTreeSynchronizer.getInstance().stopRealtimeListener()
+                    CentralTreeSynchronizer.getInstance().resetForTesting()
+                    onSuccess()
+                }
+                .addOnFailureListener { onFailure(it) }
+
+        }, onFailure = { err ->
+            // If fetching trees fails, still delete the user profile document
+            db.collection("users").document(userId)
+                .delete()
+                .addOnSuccessListener {
+                    if (context != null) {
+                        TreePreferences.clear(context)
+                    }
+                    clearCache()
+                    onSuccess()
+                }
+                .addOnFailureListener { onFailure(err) }
+        })
+    }
+
     fun saveOnboardingState(
         userId: String,
         state: UserOnboardingState,
@@ -3331,30 +3455,50 @@ class FirestoreHelper {
         onSuccess: (List<NotificationRecord>) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
+        if (treeId.isEmpty()) {
+            db.collection("notifications")
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener { result ->
+                    val list = result.mapNotNull { doc ->
+                        doc.toObject(NotificationRecord::class.java)?.copy(id = doc.id)
+                    }.sortedByDescending { it.timestamp }
+                    onSuccess(list)
+                }
+                .addOnFailureListener { onFailure(it) }
+            return
+        }
+
         db.collection("notifications")
             .whereEqualTo("treeId", treeId)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
-            .addOnSuccessListener { result ->
-                val list = result.mapNotNull { doc ->
+            .addOnSuccessListener { treeResult ->
+                val treeList = treeResult.mapNotNull { doc ->
                     doc.toObject(NotificationRecord::class.java)?.copy(id = doc.id)
                 }.filter { it.userId.isEmpty() || it.userId == userId }
-                onSuccess(list)
-            }
-            .addOnFailureListener { err ->
-                // Fallback without orderBy in case composite index is not yet built
+
+                if (userId.isEmpty()) {
+                    onSuccess(treeList.sortedByDescending { it.timestamp })
+                    return@addOnSuccessListener
+                }
+
+                // Also fetch user-specific notifications (like welcome or account alerts)
                 db.collection("notifications")
-                    .whereEqualTo("treeId", treeId)
+                    .whereEqualTo("userId", userId)
+                    .whereEqualTo("treeId", "")
                     .get()
-                    .addOnSuccessListener { result ->
-                        val list = result.mapNotNull { doc ->
+                    .addOnSuccessListener { userResult ->
+                        val userList = userResult.mapNotNull { doc ->
                             doc.toObject(NotificationRecord::class.java)?.copy(id = doc.id)
-                        }.filter { it.userId.isEmpty() || it.userId == userId }
-                         .sortedByDescending { it.timestamp }
-                        onSuccess(list)
+                        }
+                        val combined = (treeList + userList).distinctBy { it.id }.sortedByDescending { it.timestamp }
+                        onSuccess(combined)
                     }
-                    .addOnFailureListener { onFailure(it) }
+                    .addOnFailureListener {
+                        onSuccess(treeList.sortedByDescending { it.timestamp })
+                    }
             }
+            .addOnFailureListener { onFailure(it) }
     }
 
     fun markNotificationAsRead(

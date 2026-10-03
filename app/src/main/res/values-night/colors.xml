@@ -66,4 +66,8 @@
     <!-- Health / Data Quality Card Semantic Tokens (Dark Mode) -->
     <color name="health_card_bg">#132B1E</color>
     <color name="health_card_border">#1E4530</color>
+
+    <!-- Button & Dialog Shield Semantic Tokens (Dark Mode) -->
+    <color name="btn_gold_text">#0A1B12</color>
+    <color name="dialog_shield_border">#80D4A359</color>
 </resources>

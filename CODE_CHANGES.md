@@ -2962,3 +2962,282 @@ To deliver 100% comprehensive educational coverage without risking regression, U
 - `[MODIFY]` [`Proposal IDEAS.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/Proposal%20IDEAS.md)
 - `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
 
+---
+
+## [Request #28] - Trust, Safety & Clan Stewardship Suite (Scroll-To-Accept Terms of Service, Academic Welcome Notification Hub & Collaborative Tree Safe Account Deletion Pipeline)
+- **Date**: 2026-10-03
+- **Requested By**: User
+- **User Request**:
+  > *"i have this idea that i want to implement it's like adding a notification after the account is verified, it's like a notif that states this app is for educational or something? it's just that i have problem that what if the user who join wants to delete their account? would the informations that they enter in my app disappear? but it might destroy the family tree. I need you to brainstorm me and not change anything."*
+  > Followed by requests to add Terms & Conditions with a scroll-to-bottom checkbox that cannot be checked without reading 100%, safe legal proof clauses, phased execution, and global integration confirmation:
+  > *"i like it all but i want to add extra like having a box to check just to confirm that they really read the tos you know where you can't check the box without actually scrolling all the contents?"*
+  > *"yes but i think we need a good and safe proof ToS contents that will help both user and my system like i need you to do an extensive research first on how to create a perfect terms and condition then re run my system or even check the current behavior of my system just to make sure you create a perfect and no hole terms and condition for my app."*
+  > *"proceed"*
+
+### Architectural Concept & Scope
+- **The Core Problem Resolved**:
+  - Addressed the fundamental genealogical dilemma: in collaborative genealogy platforms, personal accounts and relational graph nodes have intertwined lifecycles. Wiping person nodes when an account is deleted breaks parentage pointers (`fatherId`, `motherId`, `spouseId`), destroys tree topology, and snaps generational branches for remaining relatives.
+  - Architected the **Clan Stewardship Model** backed by an airtight 10-clause legal covenant complying with Philippine Data Privacy Act of 2012 (RA 10173) and Family Code Articles 5, 37, and 38.
+  - Personal credentials and unshared solo trees are permanently deleted, while shared trees remain intact under Clan Stewardship with living relatives masked as *"Private Living Relative"* and contributor authorship re-attributed to *"Former Clan Contributor"*.
+- **Scroll-To-Bottom Gating**: Checkbox on registration cannot be checked manually; clicking opens a modern BottomSheet with real-time percentage tracking that unlocks acceptance only upon reaching 100% of the 10 clauses.
+- **Academic Orientation Hub**: Automatic post-verification notification with graduation cap icon (`🎓`) informing users of KinTrace's academic purpose.
+- **Global Integration Standard**: Integrated cleanly through `UserProfile`, `FirestoreHelper`, `AuthHelper`, `RegisterActivity`, `VerifyEmailActivity`, `NotificationsActivity`, and `ClanProfileBottomSheet`.
+
+### Summary of Changes
+
+#### 1. Phase 1: Foundations & TermsOfServiceBottomSheet
+- **`UserProfile.kt`**: Added `val tosAcceptedAt: Long = 0L` to persist the exact legal timestamp of acceptance in Firestore.
+- **`layout_terms_of_service_sheet.xml` & `TermsOfServiceBottomSheet.kt`**:
+  - Implemented slide-up BottomSheet with top drag handle, scroll progress indicator (`pbScrollProgress`), live badge (`tvScrollBadge`), and full 10-clause covenant in `NestedScrollView`.
+  - Added real-time scroll math: `((scrollY / totalScrollable) * 100)` and `!v.canScrollVertically(1)` to unlock `btnAcceptTerms` only upon reaching $\ge 95\%$ or bottom boundary.
+  - Created `btn_disabled_bg.xml` for locked state styling.
+
+#### 2. Phase 2: Registration Screen Gating & Live Verification
+- **`activity_register.xml` & `RegisterActivity.kt`**:
+  - Embedded locked checkbox card (`layoutTosContainer`) with disabled clickability (`android:clickable="false"`).
+  - Tapping container opens `TermsOfServiceBottomSheet`. Upon 100% scroll acceptance, auto-checks `cbTermsOfService`, turns hint to mint green (`✓ Terms of Service & Clan Stewardship accepted.`), enables `btnCreateAccount`, and persists `tosAcceptedAt` to Firestore `UserProfile`.
+  - Verified live on Android emulator: `register_screen_live.png`, `terms_sheet_opened_live.png`, `terms_sheet_scrolled_live.png`, and `register_screen_unlocked_live.png`.
+
+#### 3. Phase 3: Post-Verification Academic & Educational Notification Hub
+- **`NotificationRecord.kt` & `NotificationHelper.kt`**: Added `CATEGORY_EDUCATIONAL = "EDUCATIONAL"` and `createEducationalWelcomeNotification(userId, userEmail)`.
+- **`VerifyEmailActivity.kt`**: In `grantAccessAndGoHome()`, dispatches academic welcome notification upon email verification.
+- **`NotificationAdapter.kt`**: Added `"EDUCATIONAL"` category case rendering `🎓` icon and `"ACADEMY"` badge.
+- **`FirestoreHelper.kt`**: Enhanced `getNotifications` to merge tree-level and user-specific notifications seamlessly.
+- **`NotificationModuleTest.kt`**: Added `testEducationalWelcomeNotification()` verifying notification payload.
+
+#### 4. Phase 4: Central Repository Clan Stewardship & Safe Deletion Pipeline
+- **`AuthHelper.kt`**: Added `deleteCurrentUser(onSuccess, onFailure)` using `auth.currentUser?.delete()`.
+- **`FirestoreHelper.kt`**:
+  - Added `deleteUserAccount(userId, context, onSuccess, onFailure)`:
+    - Purges solo unshared trees (`memberCount <= 1` without co-owners).
+    - Preserves collaborative shared trees: detaches from `tree_members`, updates `ownerId` / `coOwnerIds` with succession promotion, updates `Person` records to `Former Clan Contributor`, and masks living relatives as `Private Living Relative`.
+    - Deletes user profile document in `users` collection.
+    - Clears `TreePreferences`, resets `CentralTreeSynchronizer`, and clears cache.
+
+#### 5. Phase 5: Clan Profile Sheet Integration
+- **`layout_clan_profile_sheet.xml`**:
+  - Added "Terms & Clan Stewardship" (`btnViewTermsOfService`) row under Guides & App Preferences.
+  - Added "ACCOUNT ACTIONS" Danger Zone card with subtle red border and "Delete Clan Account" (`btnDeleteAccountProfile`).
+  - Created `btn_danger_subtle.xml` drawable.
+- **`ClanProfileBottomSheet.kt`**:
+  - Wired `btnViewTerms` to open `TermsOfServiceBottomSheet.newInstance()`.
+  - Wired `btnDeleteAccount` to display Clan Stewardship confirmation dialog.
+  - Implemented `executeAccountDeletion(userId)` routing through `FirestoreHelper.deleteUserAccount()` and `AuthHelper.deleteCurrentUser()`, with graceful handling for re-authentication requirement.
+
+#### 6. Phase 6: Full System Regression Suite & Documentation
+- **`RegistrationValidator.kt` & `RegistrationValidationTest.kt`**:
+  - Added `validateTermsOfService(accepted: Boolean)` and `tosResult` to form validation with backward compatibility.
+  - Added unit tests: `testTermsOfServiceValidation()` and `testValidateFormWithTermsOfService()`.
+- **`ClanStewardshipTest.kt`**:
+  - Created dedicated unit test file verifying `UserProfile` ToS acceptance timestamp, solo vs shared tree classification, living relative privacy redaction, and ownership succession rules.
+- **Verification Execution**:
+  - `.\gradlew.bat testDebugUnitTest`: **BUILD SUCCESSFUL** (25 actionable tasks executed, 0 failures).
+  - `.\gradlew.bat assembleDebug`: **BUILD SUCCESSFUL in 28s** (34 actionable tasks, 0 errors).
+  - `.\gradlew.bat installDebug`: Successfully installed and live-verified on Android Emulator (`Medium_Phone_API_36.1`).
+
+### Files Modified & Created
+- `[NEW]` [`layout_terms_of_service_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_terms_of_service_sheet.xml)
+- `[NEW]` [`TermsOfServiceBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TermsOfServiceBottomSheet.kt)
+- `[NEW]` [`btn_disabled_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/btn_disabled_bg.xml)
+- `[NEW]` [`btn_danger_subtle.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/btn_danger_subtle.xml)
+- `[NEW]` [`ClanStewardshipTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/ClanStewardshipTest.kt)
+- `[MODIFY]` [`UserProfile.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/UserProfile.kt)
+- `[MODIFY]` [`activity_register.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_register.xml)
+- `[MODIFY]` [`RegisterActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RegisterActivity.kt)
+- `[MODIFY]` [`RegistrationValidator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/RegistrationValidator.kt)
+- `[MODIFY]` [`RegistrationValidationTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/RegistrationValidationTest.kt)
+- `[MODIFY]` [`NotificationRecord.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/NotificationRecord.kt)
+- `[MODIFY]` [`NotificationHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/NotificationHelper.kt)
+- `[MODIFY]` [`VerifyEmailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/VerifyEmailActivity.kt)
+- `[MODIFY]` [`NotificationAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/NotificationAdapter.kt)
+- `[MODIFY]` [`NotificationModuleTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/NotificationModuleTest.kt)
+- `[MODIFY]` [`AuthHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/AuthHelper.kt)
+- `[MODIFY]` [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt)
+- `[MODIFY]` [`layout_clan_profile_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_clan_profile_sheet.xml)
+- `[MODIFY]` [`ClanProfileBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/ClanProfileBottomSheet.kt)
+- `[MODIFY]` [`Proposal IDEAS.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/Proposal%20IDEAS.md)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+---
+
+## [Request #29] - Terms of Service UI Visual Polish: Uniform Card Alignment & Gold-Plated Acceptance Button
+- **Date**: 2026-10-04
+- **Requested By**: User
+- **User Request**:
+  > *"we need to the 'i have read & agree to the terms' it should be with gold plated just to highlight it and also the text inside the rectangle i guess? is kinda out of place and not uniform. Give me your suggestion on how to improve it visually."*
+  > *"i think we need to add this and remove the verified and on third image i currently like the inside of it but i just want to make the 'i have read & agree to the terms' with gold plated"*
+- **Architectural Scope**: **Local Scope** (Confirmed by user: applied strictly to `RegisterActivity` and `TermsOfServiceBottomSheet`).
+
+### Summary of Changes
+1. **Executive 2-Column Compact Covenant Card (`activity_register.xml`)**:
+   - Refactored `layoutTosContainer` into an executive 2-column layout scaled for mobile devices (~115dp total height).
+   - Top Header: Tree Emblem (🌳) inside circle action background, "Terms & Conditions" title, "Tap card to read" pill badge (`bg_covenant_badge_pill.xml`), subtitle instruction, and navigation chevron (`❯`).
+   - Left Column: Compact list of the 4 policy pillars:
+     1. Privacy & Data Usage
+     2. Clan Stewardship License
+     3. Community & Family Code
+     4. Data Security & RA 10173
+   - Hairline Divider: 1dp vertical separator (`forest_card_border`).
+   - Right Column: Centered interactive touch area featuring the 30dp x 30dp box (`bg_covenant_box_locked.xml` with scroll icon `📜` -> transforms to `bg_covenant_box_gold.xml` with dark check `✓`), "Tap to Read" label -> "Agreed", and status "(0/10)" -> "✓ Ready".
+   - Completely omitted the "VERIFIED 10/10" pill badge per user instruction to ensure a clean, uncluttered layout.
+2. **Gold-Plated Acceptance Button (`layout_terms_of_service_sheet.xml` & `TermsOfServiceBottomSheet.kt`)**:
+   - Refactored `btnAcceptTerms` to `<TextView>` with `android:gravity="center"` to guarantee custom drawable rendering without theme `MaterialButton` background tint stripping.
+   - Maintained locked state (`@drawable/btn_disabled_bg`, `white` text, disabled click) while reading.
+   - Upon completing the 10-clause scroll (progress >= 95% or bottom reach), dynamically transitions to solid gold plating (`@drawable/btn_gold_primary`) with high-contrast obsidian dark text (`#0A1B12`), displaying `"✓ I Have Read & Agree to the Terms"`.
+   - Added support for `alreadyAccepted: Boolean` so reopening the terms agreement from registration or settings immediately presents the unlocked gold CTA.
+3. **State Transition Engine (`RegisterActivity.kt`)**:
+   - Wired `layoutTosContainer` to launch `TermsOfServiceBottomSheet`.
+   - Upon acceptance callback:
+     - Updates header badge to `"✓ Accepted"` in mint green.
+     - Updates header subtitle to `"All 10 stewardship policies reviewed & accepted."` in mint green.
+     - Sets right icon box to solid gold with checkmark (`✓`), text to `"Agreed"`, and hint to `"✓ Ready"`.
+     - Enables `btnCreateAccount` with active gold theme (`btn_primary_bg`).
+4. **Verification**:
+   - `.\gradlew.bat testDebugUnitTest`: **BUILD SUCCESSFUL in 16s** (25 actionable tasks, 0 errors).
+   - `.\gradlew.bat assembleDebug`: **BUILD SUCCESSFUL in 8s** (34 actionable tasks, 0 errors).
+   - Visual verification on Android Emulator (`Medium_Phone_API_36.1`): Live tested initial locked state, 100% scroll unlock with gold button, and real-time transition to the accepted compact card state.
+
+### Files Modified & Created
+- `[NEW]` [`bg_covenant_box_locked.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_covenant_box_locked.xml)
+- `[NEW]` [`bg_covenant_box_gold.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_covenant_box_gold.xml)
+- `[NEW]` [`bg_covenant_badge_pill.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_covenant_badge_pill.xml)
+- `[MODIFY]` [`activity_register.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_register.xml)
+- `[MODIFY]` [`layout_terms_of_service_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_terms_of_service_sheet.xml)
+- `[MODIFY]` [`TermsOfServiceBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TermsOfServiceBottomSheet.kt)
+- `[MODIFY]` [`RegisterActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RegisterActivity.kt)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+---
+
+## [Request #30] - Redesign "Email Not Verified Yet" Dialog: Option 2 "KinTrace Shield" Centered Modal
+- **Date**: 2026-10-04
+- **Requested By**: User
+- **User Request**:
+  > *"and also i want to redesign this, like give me a 3 suggestion for this with visual example"*
+  > *"i like option 2"*
+  > *"proceed"*
+- **Architectural Scope**: **Local Scope** (Confirmed by user: applied strictly to `VerifyEmailActivity`).
+
+### Summary of Changes
+1. **Custom Dialog Theme & Drawables**:
+   - Created [`bg_shield_dialog.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_shield_dialog.xml): 20dp rounded surface with dark forest fill (`#122A1D`) and subtle gold border (`#80D4A359`).
+2. **Dialog Layout (`dialog_email_not_verified.xml`)**:
+   - Created custom centered modal layout with:
+     - Top Shield Crest Icon (`🛡️`) in action circle.
+     - Bold title: "Email Not Verified Yet" + subtitle.
+     - Dynamic target email monospace pill (`tvDialogUserEmail`) in gold accent.
+     - 3-step numbered checklist surface (`Check Inbox & Spam`, `Tap 'Report Not Spam' to enable link`, `Click the link & return here`).
+     - Primary Action: Solid gold plate button (`btnDialogCheckStatus`) styled with `@drawable/btn_gold_primary` and dark `#0A1B12` text.
+     - Secondary Action: `btnDialogOpenEmailApp` styled with `@drawable/btn_outline_bg`.
+     - Dismiss link at the bottom.
+3. **Controller Logic in [`VerifyEmailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/VerifyEmailActivity.kt)**:
+   - Replaced generic `AlertDialog.Builder` with `showEmailNotVerifiedDialog(email)`.
+   - Wired `btnDialogCheckStatus` to dismiss and immediately re-trigger `checkEmailVerificationStatus()`.
+   - Wired `btnDialogOpenEmailApp` to launch Android email intent (`Intent.CATEGORY_APP_EMAIL`) with graceful fallback to `mailto:` intent.
+4. **Verification**:
+   - `.\gradlew.bat testDebugUnitTest`: **BUILD SUCCESSFUL in 49s** (25 actionable tasks, 0 failures).
+   - `.\gradlew.bat assembleDebug`: **BUILD SUCCESSFUL in 33s** (34 actionable tasks, 0 errors).
+   - Live emulator verification on `Medium_Phone_API_36.1`: Verified dialog inflation, email pill population, gold status button re-check, and visual harmony with KinTrace design tokens.
+
+### Files Modified & Created
+- `[NEW]` [`bg_shield_dialog.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_shield_dialog.xml)
+- `[NEW]` [`dialog_email_not_verified.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_email_not_verified.xml)
+- `[MODIFY]` [`VerifyEmailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/VerifyEmailActivity.kt)
+- `[MODIFY]` [`AndroidManifest.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/AndroidManifest.xml)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+---
+
+## [Request #31] - Verification Dialog Option A (In-Dialog Loading & Real-Time Status) & Light Mode Theme Adaptivity Fix
+- **Date**: 2026-10-04
+- **Requested By**: User
+- **User Request**:
+  > *"okay, there's a missing when i click check status again it just looks like this for a sec it should have like maybe a second loading just to check if it's already verified. I need suggestion first don't change anything"*
+  > *"i like option A and also i want to add this to fix it, the image is on light mode as you can see."*
+- **Architectural Scope**: **Local Scope** (Confirmed by user: applied strictly to `VerifyEmailActivity`, `dialog_email_not_verified.xml`, and associated drawables/color tokens).
+
+### Summary of Changes
+1. **Option A: In-Dialog Verification Check & Real-time State Feedback**:
+   - Updated `showEmailNotVerifiedDialog` in [`VerifyEmailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/VerifyEmailActivity.kt):
+     - When tapping `"Check Status Again"`, the dialog **stays open** instead of flickering or dismissing.
+     - The button immediately switches to disabled loading state: `"⏳ Checking Firebase..."`.
+     - Enforces a minimum smooth duration of ~1.2 seconds before state transition.
+     - If still unverified: Reveals inline status banner `layoutDialogStatusBanner` (`⚠️ Still unverified. Please confirm the link in your email and try again.`) and restores button to `"🔄 Check Status Again"`.
+     - If verified: Shows `"✅ Verified!"` with confirmation banner, pauses 600ms, dismisses cleanly, and navigates to `HomeActivity`.
+   - Also added smooth ~1.2s delay to main screen's `checkEmailVerificationStatus()`.
+
+2. **Light Mode High-Contrast Typography & Surface Fixes**:
+   - **Semantic Color Tokens**: Added `<color name="btn_gold_text">#FFFFFF</color>` and `<color name="dialog_shield_border">#D2D9CE</color>` in `values/colors.xml`, and `<color name="btn_gold_text">#0A1B12</color>` and `<color name="dialog_shield_border">#80D4A359</color>` in `values-night/colors.xml`.
+   - **Primary Action Contrast**: Set `btnDialogCheckStatus` `android:textColor="@color/btn_gold_text"`. In Light Mode, text is pure bold white (`#FFFFFF`) on dark amber (`#B45309`), eliminating illegible dark-on-dark contrast.
+   - **Secondary Button Fix**: Updated [`btn_outline_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/btn_outline_bg.xml) from hardcoded `#162E21` dark-green solid to theme-adaptive `@color/card_bg` with `@color/card_border` outline and ripple. "📬 Open Email App ↗" now renders as a crisp light linen button with dark slate text in Light Mode.
+   - **Email Badge Pill Fix**: Updated [`bg_covenant_badge_pill.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_covenant_badge_pill.xml) from hardcoded `#1A2D22` solid to `@color/mint_pill_bg` and `@color/mint_badge_border`. In Light Mode, the email pill renders as a warm golden pill with amber text.
+   - **Checklist Inset Panel**: Replaced `@drawable/card_bg` with `@drawable/note_bg` (`@color/forest_card_light`) and step number circles with `@drawable/bg_verify_step_circle`.
+   - **Warning Banner Drawable**: Created [`bg_warning_banner.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_warning_banner.xml) using semantic `@color/warning_bg` and `@color/warning`.
+
+3. **Verification**:
+   - `.\gradlew.bat testDebugUnitTest`: **BUILD SUCCESSFUL in 32s** (25 actionable tasks, 0 failures).
+   - `.\gradlew.bat assembleDebug`: **BUILD SUCCESSFUL in 18s** (34 actionable tasks, 0 errors).
+   - Live emulator verification on `Medium_Phone_API_36.1`:
+     - Verified Light Mode: Email pill, checklist surface, solid white text on amber button, outlined email button, loading state `"⏳ Checking Firebase..."`, and warning banner.
+     - Verified Dark Mode: Shield crest, emerald pill, metallic gold button with dark forest text, elevated checklist, loading state, and dark amber warning banner.
+
+### Files Modified & Created
+- `[NEW]` [`bg_warning_banner.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_warning_banner.xml)
+- `[MODIFY]` [`values/colors.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/values/colors.xml)
+- `[MODIFY]` [`values-night/colors.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/values-night/colors.xml)
+- `[MODIFY]` [`bg_shield_dialog.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_shield_dialog.xml)
+- `[MODIFY]` [`bg_covenant_badge_pill.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_covenant_badge_pill.xml)
+- `[MODIFY]` [`btn_outline_bg.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/btn_outline_bg.xml)
+- `[MODIFY]` [`dialog_email_not_verified.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_email_not_verified.xml)
+- `[MODIFY]` [`VerifyEmailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/VerifyEmailActivity.kt)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+---
+
+## [Request #32] - Preventive Full Name Validation: First & Last Name Requirement (Create Account)
+- **Date**: 2026-10-04
+- **Requested By**: User
+- **User Request**:
+  > *"we have another problem on create account full name as you can see on image that i attached i manage to create account even if i just put "RE" as full name we should have preventive measure for something like this"*
+- **Architectural Scope**: **Local Scope** (Confirmed by user: applied strictly to account registration in `RegisterActivity` & `RegistrationValidator`).
+
+### Summary of Changes
+1. **Preventive Full Name Validation Logic ([`RegistrationValidator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/RegistrationValidator.kt))**:
+   - Replaced permissive length check (`trimmed.length < 2`) with robust multi-rule preventive validation:
+     - **Empty check**: Reject blank/whitespace inputs (`"Full name is required."`).
+     - **Minimum character cap**: Reject inputs with fewer than 4 characters total, preventing dummy single syllables like `"Re"` (`"Full name must be at least 4 characters."`).
+     - **First and Last Name requirement**: Requires at least 2 distinct word parts separated by a space (`"Please enter both your first and last name."`). Rejects single names like `"John"` or `"Doe"`.
+     - **Per-part minimum length**: Requires each name part to have at least 2 characters (`"Each name must be at least 2 characters."`). Rejects initials like `"R Tan"` or `"Tan R"`.
+     - **Valid characters**: Allows Unicode letters, accents, hyphens, and apostrophes (`"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$"`).
+2. **Form Layout & UX Refinements ([`activity_register.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_register.xml))**:
+   - Updated `etFullName` hint from `"Enter your full name"` to `"First and last name"` to guide the user proactively.
+   - Added `android:inputType="textPersonName|textCapWords"` so standard keyboards automatically capitalize each name part.
+3. **Controller Whitespace Normalization ([`RegisterActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RegisterActivity.kt))**:
+   - Collapses duplicate whitespace sequences (`\\s+` to `" "`) to ensure clean names in Firebase Auth and Firestore UserProfile.
+4. **Unit Test Suite ([`RegistrationValidationTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/RegistrationValidationTest.kt))**:
+   - Added exhaustive boundary tests:
+     - Rejection of `"A"` and `"Re"` (`"Full name must be at least 4 characters."`).
+     - Rejection of single name `"John"` (`"Please enter both your first and last name."`).
+     - Rejection of initial `"R Tan"` (`"Each name must be at least 2 characters."`).
+     - Rejection of numbers/symbols `"John123 Doe"`.
+     - Acceptance of valid multi-part names (`"Renzy Tan"`, `"John Doe"`, `"Mary-Jane O'Connor"`, `"José Silva"`, `"Maria Del Carmen"`).
+5. **Verification**:
+   - `.\gradlew.bat testDebugUnitTest`: **BUILD SUCCESSFUL in 26s** (25 actionable tasks, 0 failures).
+   - `.\gradlew.bat assembleDebug`: **BUILD SUCCESSFUL in 4s** (34 actionable tasks, 0 errors).
+   - Live emulator verification on `Medium_Phone_API_36.1`:
+     - Tested `"Re"`: Blocked with `"Full name must be at least 4 characters."` popup error.
+     - Tested `"John"`: Blocked with `"Please enter both your first and last name."` popup error.
+     - Tested `"John Doe"`: Error cleared immediately, submission allowed.
+
+### Files Modified & Created
+- `[MODIFY]` [`RegistrationValidator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/RegistrationValidator.kt)
+- `[MODIFY]` [`RegistrationValidationTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/RegistrationValidationTest.kt)
+- `[MODIFY]` [`activity_register.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_register.xml)
+- `[MODIFY]` [`RegisterActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RegisterActivity.kt)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+
+
+
+
+

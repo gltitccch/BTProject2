@@ -48,6 +48,10 @@ class NotificationAdapter(
                 holder.tvIcon.text = "⚠️"
                 holder.tvCategory.text = "VALIDATION"
             }
+            "EDUCATIONAL" -> {
+                holder.tvIcon.text = "🎓"
+                holder.tvCategory.text = "ACADEMY"
+            }
             else -> {
                 holder.tvIcon.text = "📜"
                 holder.tvCategory.text = "RECORDS"

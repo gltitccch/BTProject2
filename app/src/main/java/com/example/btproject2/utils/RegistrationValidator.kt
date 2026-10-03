@@ -41,23 +41,36 @@ object RegistrationValidator {
         val fullNameResult: FieldResult,
         val emailResult: FieldResult,
         val passwordResult: FieldResult,
-        val confirmPasswordResult: FieldResult
+        val confirmPasswordResult: FieldResult,
+        val tosResult: FieldResult = FieldResult.Valid
     ) {
         val isValid: Boolean
             get() = fullNameResult is FieldResult.Valid &&
                     emailResult is FieldResult.Valid &&
                     passwordResult is FieldResult.Valid &&
-                    confirmPasswordResult is FieldResult.Valid
+                    confirmPasswordResult is FieldResult.Valid &&
+                    tosResult is FieldResult.Valid
     }
 
     fun validateFullName(fullName: String): FieldResult {
-        val trimmed = fullName.trim()
-        return when {
-            trimmed.isEmpty() -> FieldResult.Invalid("Full name is required.")
-            trimmed.length < 2 -> FieldResult.Invalid("Full name must be at least 2 characters.")
-            !NAME_PATTERN.matcher(trimmed).matches() -> FieldResult.Invalid("Please enter a valid name (letters and spaces only).")
-            else -> FieldResult.Valid
+        val trimmed = fullName.trim().replace("\\s+".toRegex(), " ")
+        if (trimmed.isEmpty()) {
+            return FieldResult.Invalid("Full name is required.")
         }
+        if (trimmed.length < 4) {
+            return FieldResult.Invalid("Full name must be at least 4 characters.")
+        }
+        if (!NAME_PATTERN.matcher(trimmed).matches()) {
+            return FieldResult.Invalid("Please enter a valid name (letters and spaces only).")
+        }
+        val parts = trimmed.split(" ").filter { it.isNotBlank() }
+        if (parts.size < 2) {
+            return FieldResult.Invalid("Please enter both your first and last name.")
+        }
+        if (parts.any { it.length < 2 }) {
+            return FieldResult.Invalid("Each name must be at least 2 characters.")
+        }
+        return FieldResult.Valid
     }
 
     fun validateEmail(email: String): FieldResult {
@@ -91,17 +104,27 @@ object RegistrationValidator {
         }
     }
 
+    fun validateTermsOfService(accepted: Boolean): FieldResult {
+        return if (accepted) {
+            FieldResult.Valid
+        } else {
+            FieldResult.Invalid("You must read and agree to the Terms of Service and Clan Stewardship Policy.")
+        }
+    }
+
     fun validateForm(
         fullName: String,
         email: String,
         password: String,
-        confirmPassword: String
+        confirmPassword: String,
+        tosAccepted: Boolean = true
     ): RegistrationValidationResult {
         return RegistrationValidationResult(
             fullNameResult = validateFullName(fullName),
             emailResult = validateEmail(email),
             passwordResult = validatePassword(password),
-            confirmPasswordResult = validateConfirmPassword(password, confirmPassword)
+            confirmPasswordResult = validateConfirmPassword(password, confirmPassword),
+            tosResult = validateTermsOfService(tosAccepted)
         )
     }
 }

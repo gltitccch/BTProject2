@@ -6,6 +6,7 @@ data class UserProfile(
     val email: String = "",
     val role: String = "user", // "user", "admin"
     val currentTreeId: String = "",
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val tosAcceptedAt: Long = 0L
 )
 

@@ -215,5 +215,29 @@ class NotificationModuleTest {
         assertEquals("renzy@example.com", recoveryNotif.userId)
         assertTrue(recoveryNotif.message.contains("renzy@example.com"))
     }
+
+    @Test
+    fun testEducationalWelcomeNotification() {
+        val notif = NotificationHelper.createEducationalWelcomeNotification(
+            userId = "user_new_123",
+            userEmail = "newbie@example.com"
+        )
+
+        assertEquals("user_new_123", notif.userId)
+        assertEquals(NotificationHelper.CATEGORY_EDUCATIONAL, notif.type)
+        assertTrue(notif.title.contains("Academic & Heritage Notice"))
+        assertTrue(notif.message.contains("Family Code"))
+        assertTrue(notif.message.contains("KinAcademy"))
+        assertFalse(notif.isRead)
+
+        // Verify filtering with EDUCATIONAL category
+        val list = listOf(
+            notif,
+            NotificationRecord(id = "sec1", type = NotificationHelper.CATEGORY_SECURITY)
+        )
+        val filtered = NotificationHelper.filterNotifications(list, NotificationHelper.CATEGORY_EDUCATIONAL)
+        assertEquals(1, filtered.size)
+        assertEquals(notif.id, filtered[0].id)
+    }
 }
 

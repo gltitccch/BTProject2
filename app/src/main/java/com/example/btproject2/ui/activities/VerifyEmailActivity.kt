@@ -1,14 +1,24 @@
 package com.example.btproject2.ui.activities
 
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
@@ -82,26 +92,22 @@ class VerifyEmailActivity : AppCompatActivity() {
         btnCheckVerified.isEnabled = false
         btnCheckVerified.text = "Checking status..."
 
+        val startTime = System.currentTimeMillis()
         authHelper.reloadUser { user ->
-            runOnUiThread {
-                if (isFinishing || isDestroyed) return@runOnUiThread
+            val elapsed = System.currentTimeMillis() - startTime
+            val remainingDelay = (1200L - elapsed).coerceAtLeast(0L)
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (isFinishing || isDestroyed) return@postDelayed
                 btnCheckVerified.isEnabled = true
                 btnCheckVerified.text = "I've Verified My Email"
 
                 if (user != null && user.isEmailVerified) {
                     grantAccessAndGoHome()
                 } else {
-                    AlertDialog.Builder(this)
-                        .setTitle("Email Not Verified Yet")
-                        .setMessage("We haven't received confirmation for ${tvUserEmail.text} yet.\n\n" +
-                                "1. Please check your Inbox and Spam/Junk folder.\n" +
-                                "2. If the email arrived in Spam, Gmail disables links: tap \"Report not spam\" (or \"Looks safe\") to make the link clickable.\n" +
-                                "3. Alternatively, open the email link on a web browser or computer.\n" +
-                                "4. After clicking the link, tap \"I've Verified My Email\" again.")
-                        .setPositiveButton("OK") { d, _ -> d.dismiss() }
-                        .show()
+                    showEmailNotVerifiedDialog(tvUserEmail.text.toString())
                 }
-            }
+            }, remainingDelay)
         }
     }
 
@@ -144,6 +150,17 @@ class VerifyEmailActivity : AppCompatActivity() {
 
     private fun grantAccessAndGoHome() {
         Toast.makeText(this, "Email verified successfully! Welcome to KinTrace.", Toast.LENGTH_SHORT).show()
+
+        // Dispatch official Academic & Educational Welcome Notification (DFD Store D7)
+        val currentUser = authHelper.getCurrentUser()
+        if (currentUser != null) {
+            val eduNotif = com.example.btproject2.utils.NotificationHelper.createEducationalWelcomeNotification(
+                userId = currentUser.uid,
+                userEmail = currentUser.email.orEmpty()
+            )
+            FirestoreHelper().addNotification(eduNotif)
+        }
+
         TreePreferences.clear(this)
         FirestoreHelper.clearCache()
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
@@ -170,4 +187,92 @@ class VerifyEmailActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
+    private fun showEmailNotVerifiedDialog(email: String) {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_email_not_verified)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.88).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        val tvDialogUserEmail = dialog.findViewById<TextView>(R.id.tvDialogUserEmail)
+        val layoutDialogStatusBanner = dialog.findViewById<LinearLayout>(R.id.layoutDialogStatusBanner)
+        val tvDialogStatusIcon = dialog.findViewById<TextView>(R.id.tvDialogStatusIcon)
+        val tvDialogStatusBanner = dialog.findViewById<TextView>(R.id.tvDialogStatusBanner)
+        val btnDialogCheckStatus = dialog.findViewById<TextView>(R.id.btnDialogCheckStatus)
+        val btnDialogOpenEmailApp = dialog.findViewById<TextView>(R.id.btnDialogOpenEmailApp)
+        val btnDialogDismiss = dialog.findViewById<TextView>(R.id.btnDialogDismiss)
+
+        tvDialogUserEmail?.text = email
+
+        btnDialogCheckStatus?.setOnClickListener {
+            // Option A: In-dialog loading state without dismissing
+            layoutDialogStatusBanner?.visibility = View.GONE
+            btnDialogCheckStatus.isEnabled = false
+            btnDialogCheckStatus.text = "⏳ Checking Firebase..."
+
+            val startTime = System.currentTimeMillis()
+            authHelper.reloadUser { user ->
+                val elapsed = System.currentTimeMillis() - startTime
+                val remainingDelay = (1200L - elapsed).coerceAtLeast(0L)
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    if (isFinishing || isDestroyed || !dialog.isShowing) return@postDelayed
+
+                    if (user != null && user.isEmailVerified) {
+                        btnDialogCheckStatus.text = "✅ Verified!"
+                        layoutDialogStatusBanner?.visibility = View.VISIBLE
+                        tvDialogStatusIcon?.text = "✅"
+                        tvDialogStatusBanner?.text = "Email confirmed! Redirecting to KinTrace..."
+                        tvDialogStatusBanner?.setTextColor(ContextCompat.getColor(this@VerifyEmailActivity, R.color.mint_text))
+
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            if (!isFinishing && !isDestroyed && dialog.isShowing) {
+                                dialog.dismiss()
+                            }
+                            grantAccessAndGoHome()
+                        }, 600L)
+                    } else {
+                        btnDialogCheckStatus.isEnabled = true
+                        btnDialogCheckStatus.text = "🔄 Check Status Again"
+                        layoutDialogStatusBanner?.visibility = View.VISIBLE
+                        tvDialogStatusIcon?.text = "⚠️"
+                        tvDialogStatusBanner?.text = "Still unverified. Please confirm the link in your email and try again."
+                        tvDialogStatusBanner?.setTextColor(ContextCompat.getColor(this@VerifyEmailActivity, R.color.warning))
+                    }
+                }, remainingDelay)
+            }
+        }
+
+        btnDialogOpenEmailApp?.setOnClickListener {
+            dialog.dismiss()
+            openDefaultEmailApp()
+        }
+
+        btnDialogDismiss?.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun openDefaultEmailApp() {
+        try {
+            val intent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_APP_EMAIL)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (_: Exception) {
+            try {
+                val mailtoIntent = Intent(Intent.ACTION_VIEW, Uri.parse("mailto:"))
+                startActivity(mailtoIntent)
+            } catch (_: Exception) {
+                Toast.makeText(this, "Please open your email application manually.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 }
+

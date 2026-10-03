@@ -22,6 +22,24 @@ object NotificationHelper {
     const val CATEGORY_RECORDS = "RECORDS"
     const val CATEGORY_VALIDATION = "VALIDATION"
     const val CATEGORY_SECURITY = "SECURITY"
+    const val CATEGORY_EDUCATIONAL = "EDUCATIONAL"
+
+    /**
+     * Creates an official Academic & Educational Welcome Notification upon email verification.
+     */
+    fun createEducationalWelcomeNotification(userId: String, userEmail: String): NotificationRecord {
+        return NotificationRecord(
+            id = "notif_edu_${System.currentTimeMillis()}",
+            treeId = "",
+            userId = userId,
+            title = "🎓 Welcome to KinTrace • Academic & Heritage Notice",
+            message = "Welcome to KinTrace! This platform is dedicated to genealogical research, family heritage preservation, and the academic study of kinship ties and legal consanguinity (under the Philippine Family Code). Data contributed helps piece together your clan's living history. Tap KinAcademy on your dashboard anytime to explore kinship lessons, legal guardrails, and our Kamag-anak Dictionary.",
+            type = CATEGORY_EDUCATIONAL,
+            isRead = false,
+            targetId = "",
+            timestamp = System.currentTimeMillis()
+        )
+    }
 
     /**
      * Filters notification records by category (8.f).
