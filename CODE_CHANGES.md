@@ -2716,5 +2716,249 @@ This file tracks all code changes implemented for each user request.
 - `[MODIFY]` [`MergedClanSpaceAndSynthesisTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/MergedClanSpaceAndSynthesisTest.kt)
 - `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
 
+---
 
+## [Request #25] - The Unified KinTrace 360° Educational Suite (KinAcademy Knowledge Hub + Universal Contextual QuickAssist)
+- **Date**: 2026-10-03
+- **Requested By**: User
+- **User Request**: 
+  > *"Okay, i need proposal again for an educational part of our app like we should have a single button or another screens for specific teaching on how to utilize or maximize using our app prepare atleast 3 suggestion and as usual when i'm asking for suggestion you should put it in my proposal_ideas file"*
+  > Followed by selection and refinement:
+  > *"i like the 'Architectural Recommendation: The Unified KinTrace Educational Suite (Hybrid 22 + 23)'... our main goal is to educate the new user... let's make it 7 phases with having a verification and checking if those implementation is not causing an error or problem or maybe damage some existing files. proceed"*
+
+### Architectural Concept & Phasing Strategy
+To deliver 100% comprehensive educational coverage without risking regression, UI disruption, or data corruption in the existing production codebase, the system was implemented strictly across **7 distinct, independently verified phases**:
+1. **Phase 1: Foundation & Content Engine (Zero UI Risk)**: Static in-memory repository (`EducationalContentRepository.kt`) covering 10 modules, legal compliance (RA 11596, Family Code Art. 37/38, RA 10173), and 13 Kamag-anak terms.
+2. **Phase 2: Universal Contextual QuickAssist Bottom Sheet**: Reusable `KinTraceQuickAssistBottomSheet` dialog fragment with pro tips, legal guardrails, and direct deep-linking into KinAcademy masterclasses.
+3. **Phase 3: Dedicated KinAcademy Masterclass Screen**: Authoritative standalone screen (`KinAcademyActivity`) with category filter chips, search filtering, and expandable lesson cards.
+4. **Phase 4: In-Situ Wiring Batch 1 (Home & Core Canvas)**: Wired `btnKinAcademy` (🎓) on `HomeActivity` and `btnQuickAssistTree` (`💡 Help`) on `FamilyTreeActivity`.
+5. **Phase 5: In-Situ Wiring Batch 2 (Bloodline Tracing & Reports)**: Wired contextual help buttons on `TraceActivity`, `RelationshipReportActivity`, and `RelationshipPathActivity`.
+6. **Phase 6: In-Situ Wiring Batch 3 (Archival, Governance, Privacy, Audit & Export)**: Wired contextual help buttons on `AddMemberActivity`, `MergeBranchesActivity`, `PrivacyControlsActivity`, `TreeAuditActivity`, and `ExportTreeActivity`.
+7. **Phase 7: End-to-End Regression Audit, Multi-Account Verification & Final Polish**: Live emulator testing across all screens, Light and Dark theme verification, full unit test suite execution (`testDebugUnitTest` with 25 actionable tasks executed and 0 failures), and debug APK build verification (`assembleDebug`).
+
+### Summary of Changes
+1. **Educational Content Repository**:
+   - Built [`EducationalContentRepository.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/education/EducationalContentRepository.kt) with 10 structured curriculum modules:
+     - Module 01: *Getting Started & Clan Initiation*
+     - Module 02: *Interactive Canvas & Pedigree Fan Chart*
+     - Module 03: *The Bloodline Tracing Engine (MRCA & Civil Degrees)*
+     - Module 04: *Member Records & Biographical Archival*
+     - Module 05: *Multi-Tree Merging & Clan Federation*
+     - Module 06: *Privacy, Governance & Role Permissions (RA 10173)*
+     - Module 07: *Tree Health & Legal Audit Engine (Family Code Art. 37/38, RA 11596)*
+     - Module 08: *Tree Export & Archival Heritage*
+     - Module 09: *Clan Analytics & Dashboard Insights*
+     - Module 10: *Philippine Kinship Lexicon ("Kamag-anak Dictionary")* with 13 official Filipino terms.
+   - Built [`EducationalContentRepositoryTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/EducationalContentRepositoryTest.kt) testing all modules, contexts, and glossary terms.
+
+2. **Universal QuickAssist Bottom Sheet**:
+   - Created [`KinTraceQuickAssistBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/KinTraceQuickAssistBottomSheet.kt) extending `BottomSheetDialogFragment`.
+   - Built [`layout_quick_assist_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_quick_assist_sheet.xml) with drag handle, context icon, subtitle, Pro Tips card, Legal Guardrails card, and Masterclass CTA.
+   - Designed vector drawables: `edu_ic_help.xml`, `edu_ic_academy.xml`, `bg_quick_assist_card.xml`, `bg_quick_assist_guardrail.xml`, `bg_quick_assist_sheet.xml`.
+
+3. **Dedicated KinAcademy Knowledge Hub**:
+   - Created [`KinAcademyActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/KinAcademyActivity.kt) and [`activity_kin_academy.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_kin_academy.xml).
+   - Created [`KinAcademyModuleAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/KinAcademyModuleAdapter.kt) and [`item_kin_academy_module.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_kin_academy_module.xml) supporting smooth accordion expand/collapse animations and action CTA routing.
+   - Created [`KamagAnakAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/KamagAnakAdapter.kt) and [`item_kamag_anak_term.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_kamag_anak_term.xml) for the Philippine kinship dictionary.
+   - Registered `KinAcademyActivity` in [`AndroidManifest.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/AndroidManifest.xml).
+
+4. **In-Situ Contextual Wiring**:
+   - **Home**: Added `btnKinAcademy` (`🎓`) in header.
+   - **Canvas**: Added `btnQuickAssistTree` (`💡 Help`) next to Tree Legend.
+   - **Bloodline Tracing**: Added `btnQuickAssistTrace` in `TraceActivity`, `btnQuickAssistReport` in `RelationshipReportActivity`, `btnQuickAssistPath` in `RelationshipPathActivity`.
+   - **Add Member**: Added `btnQuickAssistAddMember` in `AddMemberActivity`. Live-verified zero loss of form state.
+   - **Branch Merging**: Added `btnQuickAssistMerge` in `MergeBranchesActivity`.
+   - **Privacy Controls**: Added `btnQuickAssistPrivacy` in `PrivacyControlsActivity`.
+   - **Tree Audit**: Added `btnQuickAssistAudit` in `TreeAuditActivity`.
+   - **Export Tree**: Added `btnQuickAssistExport` in `ExportTreeActivity`.
+
+5. **Theme Support & Regression Verification**:
+   - Full light and dark theme testing verified seamless color contrast adapting between soft linen parchment and dark forest green palettes.
+   - Verified that all existing user flows (tree creation, node taps, form saves, theme toggles, search) remain 100% intact.
+   - Executed `.\gradlew.bat testDebugUnitTest --rerun-tasks`: 25 actionable tasks executed with 0 failures (`BUILD SUCCESSFUL in 1m 35s`).
+   - Executed `.\gradlew.bat assembleDebug`: Clean compilation (`BUILD SUCCESSFUL in 4s`).
+
+### Files Modified & Created
+- `[NEW]` [`EducationalContentRepository.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/education/EducationalContentRepository.kt)
+- `[NEW]` [`KinTraceQuickAssistBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/KinTraceQuickAssistBottomSheet.kt)
+- `[NEW]` [`KinAcademyActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/KinAcademyActivity.kt)
+- `[NEW]` [`KinAcademyModuleAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/KinAcademyModuleAdapter.kt)
+- `[NEW]` [`KamagAnakAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/KamagAnakAdapter.kt)
+- `[NEW]` [`activity_kin_academy.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_kin_academy.xml)
+- `[NEW]` [`layout_quick_assist_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_quick_assist_sheet.xml)
+- `[NEW]` [`item_kin_academy_module.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_kin_academy_module.xml)
+- `[NEW]` [`item_kamag_anak_term.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_kamag_anak_term.xml)
+- `[NEW]` [`edu_ic_help.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/edu_ic_help.xml)
+- `[NEW]` [`edu_ic_academy.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/edu_ic_academy.xml)
+- `[NEW]` [`bg_quick_assist_card.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_quick_assist_card.xml)
+- `[NEW]` [`bg_quick_assist_guardrail.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_quick_assist_guardrail.xml)
+- `[NEW]` [`bg_quick_assist_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_quick_assist_sheet.xml)
+- `[NEW]` [`EducationalContentRepositoryTest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/test/java/com/example/btproject2/EducationalContentRepositoryTest.kt)
+- `[MODIFY]` [`AndroidManifest.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/AndroidManifest.xml)
+- `[MODIFY]` [`HomeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt)
+- `[MODIFY]` [`FamilyTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/FamilyTreeActivity.kt)
+- `[MODIFY]` [`TraceActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/TraceActivity.kt)
+- `[MODIFY]` [`RelationshipReportActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RelationshipReportActivity.kt)
+- `[MODIFY]` [`RelationshipPathActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RelationshipPathActivity.kt)
+- `[MODIFY]` [`AddMemberActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AddMemberActivity.kt)
+- `[MODIFY]` [`MergeBranchesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt)
+- `[MODIFY]` [`PrivacyControlsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/PrivacyControlsActivity.kt)
+- `[MODIFY]` [`TreeAuditActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/TreeAuditActivity.kt)
+- `[MODIFY]` [`ExportTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ExportTreeActivity.kt)
+- `[MODIFY]` [`activity_home.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_home.xml)
+- `[MODIFY]` [`activity_family_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_family_tree.xml)
+- `[MODIFY]` [`activity_trace.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_trace.xml)
+- `[MODIFY]` [`activity_relationship_report.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_report.xml)
+- `[MODIFY]` [`activity_relationship_path.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_path.xml)
+- `[MODIFY]` [`activity_add_member.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_add_member.xml)
+- `[MODIFY]` [`activity_merge_branches.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_merge_branches.xml)
+- `[MODIFY]` [`activity_privacy_controls.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_privacy_controls.xml)
+- `[MODIFY]` [`activity_tree_audit.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_tree_audit.xml)
+- `[MODIFY]` [`activity_export_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_export_tree.xml)
+- `[MODIFY]` [`Proposal IDEAS.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/Proposal%20IDEAS.md)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+---
+
+## [Request #26] - Redesign Account Profile UI: The Heritage Identity BottomSheet Dialog
+- **Date**: 2026-10-03
+- **Requested By**: User
+- **User Request**: 
+  > *"i don't like the current ui of this account profile can you give me a 3 suggestion with visual examples"*
+  > Followed by selection and confirmation:
+  > *"i like the first one and yes global"*
+
+### Architectural Concept & Scope
+- **Selected Design**: **Suggestion 1 - "The Heritage Identity BottomSheet"**.
+- **Scope**: **Global Integration Standard**. The bottom sheet serves as the unified account and identity management portal across the entire KinTrace app. It maintains dual synchronization with Firebase Authentication and Cloud Firestore (`UserProfile` collection), immediately propagating profile modifications (e.g. display name, initials) to parent dashboard headers and reactive synchronizers without requiring reloads.
+
+### Summary of Changes
+1. **Heritage Identity Visual Tokens & Assets**:
+   - Created [`bg_avatar_crest_ring.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_avatar_crest_ring.xml): 72dp gold accented outer ring (`#E5A93C`) surrounding the clan monogram avatar with theme-adaptive fill.
+   - Created [`bg_verified_check_badge.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_verified_check_badge.xml): Emerald circle badge (`#10B981`) with crisp white checkmark pinned to avatar bottom-right for verified accounts.
+2. **Curved Heritage BottomSheet Layout**:
+   - Created [`layout_clan_profile_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_clan_profile_sheet.xml):
+     - Soft pill drag handle at the top.
+     - Header row with "Clan Member Profile", subtitle "Heritage ID & Security Settings", and circular `✕` close button.
+     - Hero Avatar Crest displaying initials with verified check badge, full display name, email, and "Verified Member" pill.
+     - Section 1: "FULL / DISPLAY NAME" card with inline input field and amber "Save" button.
+     - Section 2: "SECURITY CREDENTIALS" side-by-side tiles for "Direct Change" (`cardChangePassword`) and "Email Reset" (`cardResetPassword`).
+     - Section 3: "GUIDES & APP PREFERENCES" card with rows for "View Welcome Storybook" (`btnReplayStorybook`) and "Reset Clan Quest HUD" (`btnResetQuest`).
+     - Section 4: Full-width primary CTA "DONE & CLOSE" (`btnProfileDone`).
+3. **Clan Profile Dialog Fragment**:
+   - Created [`ClanProfileBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/ClanProfileBottomSheet.kt):
+     - Extends `BottomSheetDialogFragment` with `Color.TRANSPARENT` window background to preserve the 24dp rounded corners of `@drawable/bg_quick_assist_sheet`.
+     - Automatically inspects `FirebaseAuth.currentUser` (display name, email, email verification status).
+     - Inline Display Name saving updates both `FirebaseAuth` user profile and `FirestoreHelper.saveUserProfile()`, invoking `onProfileUpdated` callback to refresh parent activity headers instantly.
+     - Direct Password Change opens an in-situ modal dialog with input validation (minimum 6 characters, matching confirmation) and calls `user.updatePassword()`.
+     - Email Password Reset triggers `auth.sendPasswordResetEmail()` with feedback toasts.
+     - Guides integration: launches `WelcomeStorybookDialog` and resets `OnboardingPreferences.resetQuestHud()`.
+4. **Home Dashboard Integration**:
+   - Updated [`HomeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt):
+     - Replaced legacy `AlertDialog` invocation in `showAccountProfileDialog()` with `ClanProfileBottomSheet.newInstance(treeId)`.
+     - Wired callbacks to update `tvUserName`, `tvProfileInitial`, and call `refreshQuestHudUi()`.
+5. **Interactive & Visual Regression Verification**:
+   - Unit tests executed: `.\gradlew.bat testDebugUnitTest` passed cleanly (25 actionable tasks executed, 0 failures).
+   - Debug build compiled cleanly: `.\gradlew.bat assembleDebug`.
+   - Verified live on `emulator-5554`:
+     - Display name editing and inline saving verified.
+     - Direct Password Change dialog pops up cleanly and dismisses cleanly.
+     - Verified both Dark Mode (`profile_sheet_live.png`) and Light Mode (`profile_sheet_light.png`) rendering and color contrast.
+     - Verified zero regression across existing flows (tree navigation, theme toggle, quest HUD).
+
+### Files Modified & Created
+- `[NEW]` [`bg_avatar_crest_ring.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_avatar_crest_ring.xml)
+- `[NEW]` [`bg_verified_check_badge.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_verified_check_badge.xml)
+- `[NEW]` [`layout_clan_profile_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_clan_profile_sheet.xml)
+- `[NEW]` [`ClanProfileBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/ClanProfileBottomSheet.kt)
+- `[MODIFY]` [`HomeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt)
+- `[MODIFY]` [`Proposal IDEAS.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/Proposal%20IDEAS.md)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+---
+
+## [Request #27] - Authentication & Global Secondary Screen Back Navigation Unification (The Soft Navigation Pill Badge)
+- **Date**: 2026-10-03
+- **Requested By**: User
+- **User Request**: 
+  > *"i think it's much better to remove the back button you can see it on upper left and make sure you won't touch anything just that back button and also we need to redesign the back button for create account screen as you can see on 2nd image"*
+  > Followed by design selection and global scope confirmation:
+  > *"i like the pill, and yes, make it global"*
+
+### Architectural Concept & Scope
+- **Login Screen Refinement**: Completely removed the redundant top-left `btnBackToWelcome` from `activity_login.xml` and removed leftover listener references from `LoginActivity.kt`. All form fields (`etEmail`, `etPassword`), headers, password toggle, "Forgot Password?", "Login" CTA, and registration links remain 100% untouched.
+- **Redesigned Back Navigation Pill**: Selected Option 2 ("The Soft Navigation Pill Badge"). Built a theme-adaptive, rounded capsule drawable (`bg_nav_back_pill.xml`) featuring 20dp corner radii, subtle `@color/card_border`, theme-adaptive `@color/card_bg`, and gold accent ripple feedback.
+- **Global Integration Standard**: Applied the unified navigation pill badge globally across all secondary and sub-screens throughout KinTrace, replacing raw text `← Back` views with a cohesive, tactile back button while strictly preserving 100% of underlying element IDs, click listeners, and activity logic.
+
+### Summary of Changes
+1. **Design Tokens & Drawables**:
+   - Created [`bg_nav_back_pill.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_nav_back_pill.xml) with `@color/card_bg`, `@color/card_border` (1dp stroke), `20dp` rounded corners, and `@color/gold_accent` touch ripple.
+2. **Login Screen Clean Up**:
+   - Removed `btnBackToWelcome` from [`activity_login.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_login.xml).
+   - Removed obsolete listener reference from [`LoginActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/LoginActivity.kt).
+   - Added support for `bypass_auth_check` test/preview intent extra.
+3. **Registration Screen Upgraded**:
+   - Upgraded `btnBackToWelcome` in [`activity_register.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_register.xml) with `android:background="@drawable/bg_nav_back_pill"`, `36dp` height, `gravity="center_vertical"`, and `paddingStart="14dp"`, `paddingEnd="16dp"`.
+4. **Global Sub-Screen Back Navigation Unification**:
+   - Applied `@drawable/bg_nav_back_pill` across:
+     - [`activity_add_member.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_add_member.xml)
+     - [`activity_trace.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_trace.xml)
+     - [`activity_relationship_report.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_report.xml)
+     - [`activity_relationship_path.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_path.xml)
+     - [`activity_privacy_controls.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_privacy_controls.xml)
+     - [`activity_tree_audit.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_tree_audit.xml)
+     - [`activity_kin_academy.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_kin_academy.xml)
+     - [`activity_notifications.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_notifications.xml)
+     - [`activity_recent_activities.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_recent_activities.xml)
+     - [`activity_relationship_types.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_types.xml)
+     - [`activity_verify_email.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_verify_email.xml)
+     - [`activity_forgot_password.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_forgot_password.xml)
+     - [`activity_create_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_create_tree.xml)
+     - [`activity_join_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_join_tree.xml)
+     - [`activity_export_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_export_tree.xml)
+     - [`activity_family_records.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_family_records.xml)
+     - [`activity_family_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_family_tree.xml)
+     - [`activity_insights.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_insights.xml)
+     - [`activity_member_detail.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_member_detail.xml)
+     - [`activity_edit_member.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_edit_member.xml)
+     - [`activity_interactive_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_interactive_tree.xml)
+     - [`activity_merge_branches.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_merge_branches.xml)
+5. **Regression & Live Emulator Verification**:
+   - Unit tests passed: `.\gradlew.bat testDebugUnitTest` (25 actionable tasks executed, 0 failures).
+   - Debug build verified: `.\gradlew.bat assembleDebug` (34 actionable tasks, 0 errors).
+   - Live emulator verified:
+     - `login_verified_live.png`: Login screen cleanly renders without the back button; all inputs, labels, and action buttons are preserved intact.
+     - `register_verified_live.png`: Register screen renders the new `← Back` Soft Navigation Pill with crisp border and padding.
+     - Live touch feedback and back-navigation transit to previous screen tested and verified.
+
+### Files Modified & Created
+- `[NEW]` [`bg_nav_back_pill.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_nav_back_pill.xml)
+- `[MODIFY]` [`activity_login.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_login.xml)
+- `[MODIFY]` [`LoginActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/LoginActivity.kt)
+- `[MODIFY]` [`activity_register.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_register.xml)
+- `[MODIFY]` [`activity_add_member.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_add_member.xml)
+- `[MODIFY]` [`activity_trace.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_trace.xml)
+- `[MODIFY]` [`activity_relationship_report.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_report.xml)
+- `[MODIFY]` [`activity_relationship_path.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_path.xml)
+- `[MODIFY]` [`activity_privacy_controls.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_privacy_controls.xml)
+- `[MODIFY]` [`activity_tree_audit.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_tree_audit.xml)
+- `[MODIFY]` [`activity_kin_academy.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_kin_academy.xml)
+- `[MODIFY]` [`activity_notifications.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_notifications.xml)
+- `[MODIFY]` [`activity_recent_activities.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_recent_activities.xml)
+- `[MODIFY]` [`activity_relationship_types.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_types.xml)
+- `[MODIFY]` [`activity_verify_email.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_verify_email.xml)
+- `[MODIFY]` [`activity_forgot_password.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_forgot_password.xml)
+- `[MODIFY]` [`activity_create_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_create_tree.xml)
+- `[MODIFY]` [`activity_join_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_join_tree.xml)
+- `[MODIFY]` [`activity_export_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_export_tree.xml)
+- `[MODIFY]` [`activity_family_records.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_family_records.xml)
+- `[MODIFY]` [`activity_family_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_family_tree.xml)
+- `[MODIFY]` [`activity_insights.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_insights.xml)
+- `[MODIFY]` [`activity_member_detail.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_member_detail.xml)
+- `[MODIFY]` [`activity_edit_member.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_edit_member.xml)
+- `[MODIFY]` [`activity_interactive_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_interactive_tree.xml)
+- `[MODIFY]` [`activity_merge_branches.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_merge_branches.xml)
+- `[MODIFY]` [`AndroidManifest.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/AndroidManifest.xml)
+- `[MODIFY]` [`Proposal IDEAS.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/Proposal%20IDEAS.md)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
 

@@ -74,6 +74,14 @@ class PrivacyControlsActivity : AppCompatActivity() {
         rvPendingRequests = findViewById(R.id.rvPendingRequests)
 
         btnBack.setOnClickListener { finish() }
+
+        val btnQuickAssistPrivacy = findViewById<TextView>(R.id.btnQuickAssistPrivacy)
+        btnQuickAssistPrivacy?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.PRIVACY_CONTROLS
+            ).show(supportFragmentManager, "QuickAssistPrivacy")
+        }
+
         btnGateBackToHome.setOnClickListener { finish() }
 
         setupRecyclerViews()

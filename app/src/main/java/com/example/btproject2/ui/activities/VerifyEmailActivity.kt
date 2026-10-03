@@ -93,7 +93,11 @@ class VerifyEmailActivity : AppCompatActivity() {
                 } else {
                     AlertDialog.Builder(this)
                         .setTitle("Email Not Verified Yet")
-                        .setMessage("We haven't received confirmation for ${tvUserEmail.text} yet.\n\nPlease check your inbox and spam folder, click the verification link, and then tap this button again.")
+                        .setMessage("We haven't received confirmation for ${tvUserEmail.text} yet.\n\n" +
+                                "1. Please check your Inbox and Spam/Junk folder.\n" +
+                                "2. If the email arrived in Spam, Gmail disables links: tap \"Report not spam\" (or \"Looks safe\") to make the link clickable.\n" +
+                                "3. Alternatively, open the email link on a web browser or computer.\n" +
+                                "4. After clicking the link, tap \"I've Verified My Email\" again.")
                         .setPositiveButton("OK") { d, _ -> d.dismiss() }
                         .show()
                 }

@@ -94,4 +94,29 @@
         android:clickable="true"
         android:focusable="true" />
 
+    <!-- Onboarding & Tutorial Actions -->
+    <TextView
+        android:id="@+id/btnDialogReplayStorybook"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📖 View Welcome Storybook →"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:paddingTop="4dp"
+        android:paddingBottom="6dp"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <TextView
+        android:id="@+id/btnDialogResetQuest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🌱 Reset Clan Quest Checklist →"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
+        android:clickable="true"
+        android:focusable="true" />
+
 </LinearLayout>

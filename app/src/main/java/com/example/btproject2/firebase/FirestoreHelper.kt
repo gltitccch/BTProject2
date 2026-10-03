@@ -9,6 +9,7 @@ import com.example.btproject2.models.Person
 import com.example.btproject2.models.PrivacySettings
 import com.example.btproject2.models.TreeMember
 import com.example.btproject2.models.UserProfile
+import com.example.btproject2.models.UserOnboardingState
 import com.example.btproject2.service.FamilyRelationshipService
 import com.example.btproject2.service.FamilyRelationshipService.ParentRole
 import com.example.btproject2.service.FamilyRelationshipService.ProposedRelationshipType
@@ -2083,6 +2084,36 @@ class FirestoreHelper {
         db.collection("users").document(userId).get()
             .addOnSuccessListener { doc ->
                 onSuccess(doc.toObject(UserProfile::class.java))
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun saveOnboardingState(
+        userId: String,
+        state: UserOnboardingState,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (userId.isEmpty()) return
+        db.collection("users").document(userId)
+            .set(mapOf("onboardingState" to state), SetOptions.merge())
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun getOnboardingState(
+        userId: String,
+        onSuccess: (UserOnboardingState?) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (userId.isEmpty()) {
+            onSuccess(null)
+            return
+        }
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { doc ->
+                val state = doc.get("onboardingState", UserOnboardingState::class.java)
+                onSuccess(state)
             }
             .addOnFailureListener { onFailure(it) }
     }

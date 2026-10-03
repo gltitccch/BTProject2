@@ -68,6 +68,13 @@ class ExportTreeActivity : AppCompatActivity() {
 
         btnBack.setOnClickListener { finish() }
 
+        val btnQuickAssistExport = findViewById<TextView>(R.id.btnQuickAssistExport)
+        btnQuickAssistExport?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.EXPORT_TREE
+            ).show(supportFragmentManager, "QuickAssistExport")
+        }
+
         // Format selection
         cardPdf.setOnClickListener    { selectFormat("PDF",    cardPdf) }
         cardPng.setOnClickListener    { selectFormat("PNG",    cardPng) }

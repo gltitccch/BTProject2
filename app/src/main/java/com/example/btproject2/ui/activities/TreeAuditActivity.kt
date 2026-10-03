@@ -90,6 +90,12 @@ class TreeAuditActivity : AppCompatActivity() {
         btnBack.setOnClickListener { finish() }
         btnRescan.setOnClickListener { runTreeAudit() }
 
+        findViewById<TextView>(R.id.btnQuickAssistAudit)?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.TREE_AUDIT
+            ).show(supportFragmentManager, "QuickAssistAudit")
+        }
+
         chipFilterAll.setOnClickListener {
             currentFilter = "ALL"
             updateFilterChipUI()

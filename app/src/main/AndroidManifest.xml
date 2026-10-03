@@ -18,10 +18,16 @@
         android:label="Bloodline Tracer"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
         android:theme="@style/Theme.BTProject2">
 
-        <activity android:name=".ui.activities.LoginActivity" />
-        <activity android:name=".ui.activities.RegisterActivity" />
+        <activity
+            android:name=".ui.activities.LoginActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activities.RegisterActivity"
+            android:exported="true" />
         <activity android:name=".ui.activities.VerifyEmailActivity" />
         <activity android:name=".ui.activities.ForgotPasswordActivity" />
         <activity android:name=".ui.activities.InteractiveTreeActivity"
@@ -65,6 +71,9 @@
         <activity android:name=".ui.activities.RelationshipReportActivity"
             android:exported="false"
             android:label="Relationship Report" />
+        <activity android:name=".ui.activities.KinAcademyActivity"
+            android:exported="true"
+            android:label="KinAcademy" />
 
         <!-- FileProvider for secure PDF export and sharing -->
         <provider

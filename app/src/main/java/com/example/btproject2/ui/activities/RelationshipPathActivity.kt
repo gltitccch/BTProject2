@@ -37,6 +37,13 @@ class RelationshipPathActivity : AppCompatActivity() {
 
         btnBack.setOnClickListener { finish() }
 
+        val btnQuickAssistPath = findViewById<TextView>(R.id.btnQuickAssistPath)
+        btnQuickAssistPath?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.TRACE
+            ).show(supportFragmentManager, "QuickAssistPath")
+        }
+
         val personAId = intent.getStringExtra("personAId") ?: return
         val personBId = intent.getStringExtra("personBId") ?: return
         treeId = intent.getStringExtra("TREE_ID")

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_quick_assist_card"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <!-- Card Header Row (Always Visible) -->
+    <LinearLayout
+        android:id="@+id/layoutModuleHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:gravity="center"
+            android:background="@drawable/circle_dark_action"
+            android:layout_marginEnd="12dp">
+
+            <TextView
+                android:id="@+id/tvModuleEmoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌱"
+                android:textSize="22sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvModuleNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="MODULE 01"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"
+                    android:textColor="@color/gold_accent"
+                    android:layout_marginEnd="6dp" />
+
+                <TextView
+                    android:id="@+id/tvModuleCategoryBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FOUNDATIONS"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/dark_subtext"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvModuleTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Getting Started &amp; Clan Initiation"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/tvModuleTagline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Planting your tree and onboarding milestones"
+                android:textSize="11.5sp"
+                android:textColor="@color/dark_subtext"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvChevronIndicator"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:text="▼"
+            android:textSize="11sp"
+            android:textColor="@color/gold_accent" />
+    </LinearLayout>
+
+    <!-- Expandable Content Container (Toggled via Header Tap) -->
+    <LinearLayout
+        android:id="@+id/layoutExpandableBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="14dp"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/forest_card_border"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tvModuleSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Module executive summary text..."
+            android:textSize="13sp"
+            android:lineSpacingExtra="3dp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Detailed Subsections Container -->
+        <LinearLayout
+            android:id="@+id/layoutSectionsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="14dp" />
+
+        <!-- "Try It Now" Action Shortcut -->
+        <TextView
+            android:id="@+id/btnModuleActionShortcut"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center"
+            android:text="Try It Now →"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/forest_bg"
+            android:background="@drawable/btn_gold_primary"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</LinearLayout>

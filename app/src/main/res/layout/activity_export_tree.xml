@@ -27,16 +27,15 @@
             <TextView
                 android:id="@+id/btnBack"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="← Back"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_nav_back_pill"
+                android:gravity="center_vertical"
                 android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="6dp"
-                android:paddingBottom="6dp"
+                android:paddingEnd="14dp"
+                android:text="← Back"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
                 android:clickable="true"
                 android:focusable="true" />
 
@@ -59,6 +58,23 @@
                 android:paddingEnd="12dp"
                 android:paddingTop="6dp"
                 android:paddingBottom="6dp" />
+
+            <TextView
+                android:id="@+id/btnQuickAssistExport"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💡 Help"
+                android:textSize="11.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginStart="8dp"
+                android:clickable="true"
+                android:focusable="true" />
         </LinearLayout>
 
         <TextView

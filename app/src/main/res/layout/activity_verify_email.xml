@@ -1,50 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:overScrollMode="never"
+    tools:context=".ui.activities.VerifyEmailActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="32dp"
-        android:paddingTop="50dp"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="36dp"
         android:gravity="center_horizontal">
 
-        <!-- Top navigation bar -->
+        <!-- Top Navigation Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="32dp">
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
 
             <TextView
                 android:id="@+id/btnBackOrLogout"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_nav_back_pill"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
                 android:text="← Back to Login"
-                android:textSize="14sp"
+                android:textSize="12sp"
+                android:textStyle="bold"
                 android:textColor="@color/primary"
                 android:clickable="true"
                 android:focusable="true" />
         </LinearLayout>
 
-        <!-- Mail Icon Container -->
+        <!-- Hero Icon Badge -->
         <FrameLayout
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:background="@drawable/avatar_bg"
-            android:layout_marginBottom="24dp">
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:background="@drawable/bg_verify_hero_badge"
+            android:layout_marginBottom="20dp">
 
             <ImageView
                 android:id="@+id/ivMailIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_mail_verify"
+                app:tint="@color/primary"
                 android:contentDescription="Verification Email" />
         </FrameLayout>
 
@@ -56,73 +67,234 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="6dp" />
 
         <!-- Subtitle -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="We sent a verification link to:"
+            android:text="We sent a verification link to"
             android:textSize="14sp"
             android:textColor="@color/text_secondary"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="10dp" />
 
-        <!-- User Email -->
-        <TextView
-            android:id="@+id/tvUserEmail"
+        <!-- User Email Pill -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="user@example.com"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary"
-            android:layout_marginBottom="20dp" />
-
-        <!-- Explanation card -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:layout_marginBottom="32dp">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_verify_email_pill"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="8dp"
+            android:layout_marginBottom="24dp">
 
             <TextView
+                android:id="@+id/tvUserEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="To protect your family tree and records, please check your inbox (and spam/junk folder) and click the confirmation link."
-                android:textSize="13sp"
-                android:textColor="@color/text_secondary"
-                android:lineSpacingMultiplier="1.3" />
+                android:text="user@example.com"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary" />
         </LinearLayout>
 
-        <!-- Check Status Button (Solid Gold Primary) -->
+        <!-- Modern Heritage Guidance Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="1dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/border"
+            app:cardBackgroundColor="@color/card_bg"
+            android:layout_marginBottom="28dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Step 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="top"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:gravity="center"
+                        android:background="@drawable/bg_verify_step_circle"
+                        android:text="1"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        android:layout_marginEnd="12dp"
+                        android:layout_marginTop="1dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Check your inbox"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="2dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tap the confirmation link in the email sent by KinTrace."
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingMultiplier="1.2" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider line -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/border"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Step 2 (Mobile spam tip) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="top"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:gravity="center"
+                        android:background="@drawable/bg_verify_step_circle"
+                        android:text="2"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        android:layout_marginEnd="12dp"
+                        android:layout_marginTop="1dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Can't tap the link on mobile?"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="2dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="If it landed in Spam, Gmail disables links. Tap 'Report not spam' to activate it, or open the link on a computer."
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingMultiplier="1.2" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider line -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/border"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Step 3 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="top">
+
+                    <TextView
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:gravity="center"
+                        android:background="@drawable/bg_verify_step_circle"
+                        android:text="3"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        android:layout_marginEnd="12dp"
+                        android:layout_marginTop="1dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Return &amp; access your tree"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="2dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Once verified, tap the button below to start building your family records."
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingMultiplier="1.2" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Check Status Button (Solid Warm Gold Primary) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCheckVerified"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:text="I've Verified My Email"
-            android:textSize="16sp"
+            android:textSize="15sp"
+            android:textStyle="bold"
             android:textColor="@color/white"
             app:backgroundTint="@color/primary"
             app:cornerRadius="14dp"
             android:textAllCaps="false"
-            android:layout_marginBottom="14dp" />
+            android:layout_marginBottom="12dp" />
 
-        <!-- Resend Link Button (Outlined Gold Secondary) -->
+        <!-- Resend Link Button (Outlined Warm Gold Secondary) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnResendEmail"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:text="Resend Verification Link"
-            android:textSize="15sp"
+            android:textSize="14sp"
             android:textColor="@color/primary"
             app:strokeColor="@color/primary"
             app:strokeWidth="1.5dp"
             app:cornerRadius="14dp"
             android:textAllCaps="false"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="20dp" />
 
         <!-- Change Email / Sign Out -->
         <TextView
@@ -134,6 +306,7 @@
             android:textColor="@color/text_secondary"
             android:clickable="true"
             android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp" />
 
     </LinearLayout>

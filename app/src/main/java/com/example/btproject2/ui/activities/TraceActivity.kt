@@ -53,6 +53,14 @@ class TraceActivity : AppCompatActivity() {
         val resultContainer = findViewById<LinearLayout>(R.id.resultContainer)
 
         btnBack.setOnClickListener { finish() }
+
+        val btnQuickAssistTrace = findViewById<TextView>(R.id.btnQuickAssistTrace)
+        btnQuickAssistTrace?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.TRACE
+            ).show(supportFragmentManager, "QuickAssistTrace")
+        }
+
         resultContainer.visibility = View.GONE
 
         loadFamilyMembers(spinnerA, spinnerB)

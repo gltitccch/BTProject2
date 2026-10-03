@@ -14,18 +14,51 @@
         android:paddingEnd="20dp"
         android:paddingBottom="32dp">
 
-        <!-- Back Button -->
-        <TextView
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
+        <!-- Header Navigation Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="← Back"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/gold_accent"
-            android:layout_marginBottom="16dp"
-            android:clickable="true"
-            android:focusable="true" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <!-- Back Navigation Pill -->
+            <TextView
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_nav_back_pill"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:text="← Back"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/btnQuickAssistTrace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💡 Help"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
 
         <!-- Screen Title & Description -->
         <TextView
@@ -120,7 +153,7 @@
         </LinearLayout>
 
         <!-- Trace Action Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTrace"
             android:layout_width="match_parent"
             android:layout_height="52dp"
@@ -374,7 +407,7 @@
             </LinearLayout>
 
             <!-- Action Buttons -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnViewFullReport"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -386,7 +419,7 @@
                 android:textAllCaps="false"
                 android:layout_marginBottom="10dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnViewPath"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -398,7 +431,7 @@
                 android:textAllCaps="false"
                 android:layout_marginBottom="8dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnHighlightOnTree"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -410,7 +443,7 @@
                 android:textAllCaps="false"
                 android:layout_marginBottom="8dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLearnMore"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -422,7 +455,7 @@
                 android:textAllCaps="false"
                 android:layout_marginBottom="8dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTraceAgain"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"

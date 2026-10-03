@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/forest_bg">
+    android:background="@color/forest_bg"
+    tools:context=".ui.activities.HomeActivity">
 
     <!-- Scrollable Main Content -->
     <ScrollView
@@ -78,6 +80,24 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text=" 👋"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <!-- KinAcademy Hub Entry Button -->
+                <LinearLayout
+                    android:id="@+id/btnKinAcademy"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:background="@drawable/circle_dark_action"
+                    android:layout_marginEnd="10dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎓"
                         android:textSize="18sp" />
                 </LinearLayout>
 
@@ -485,6 +505,14 @@
                 <TextView android:id="@+id/btnSeeAllInsights" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
                 <TextView android:id="@+id/tvTreeRolePill" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
             </LinearLayout>
+
+            <!-- ── CLAN BUILDER QUEST HUD (PHASE 2 ONBOARDING) ── -->
+            <include
+                android:id="@+id/cardQuestHud"
+                layout="@layout/layout_clan_quest_hud"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
 
             <!-- ── EMPTY STATE ── -->
             <LinearLayout
@@ -909,9 +937,9 @@
                 </LinearLayout>
 
                 <!-- Hidden compatibility references for secondary buttons -->
-                <LinearLayout android:id="@+id/btnCreateTree" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-                <LinearLayout android:id="@+id/btnJoinTree" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-                <LinearLayout android:id="@+id/cardInsightsBanner" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone">
+                <LinearLayout android:id="@+id/btnCreateTree" android:layout_width="0dp" android:layout_height="0dp" android:orientation="horizontal" android:visibility="gone" />
+                <LinearLayout android:id="@+id/btnJoinTree" android:layout_width="0dp" android:layout_height="0dp" android:orientation="horizontal" android:visibility="gone" />
+                <LinearLayout android:id="@+id/cardInsightsBanner" android:layout_width="0dp" android:layout_height="0dp" android:orientation="horizontal" android:visibility="gone">
                     <TextView android:id="@+id/tvInsightsBannerSub" android:layout_width="0dp" android:layout_height="0dp" />
                 </LinearLayout>
 

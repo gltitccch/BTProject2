@@ -175,6 +175,13 @@ class FamilyTreeActivity : AppCompatActivity() {
         val btnTreeLegend = findViewById<TextView>(R.id.btnTreeLegend)
         btnTreeLegend?.setOnClickListener { showTreeLegendDialog() }
 
+        val btnQuickAssistTree = findViewById<TextView>(R.id.btnQuickAssistTree)
+        btnQuickAssistTree?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.CANVAS
+            ).show(supportFragmentManager, "QuickAssistCanvas")
+        }
+
         val btnExportTree = findViewById<TextView>(R.id.btnExportTree)
         btnExportTree?.setOnClickListener {
             val intent = Intent(this, ExportTreeActivity::class.java).apply {

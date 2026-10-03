@@ -15,6 +15,7 @@ import com.example.btproject2.models.TreeMember
 import com.example.btproject2.models.UserProfile
 import com.example.btproject2.sync.CentralTreeSynchronizer
 import com.example.btproject2.utils.NotificationHelper
+import com.example.btproject2.utils.OnboardingPreferences
 import com.example.btproject2.utils.TreePreferences
 
 class JoinTreeActivity : AppCompatActivity() {
@@ -230,6 +231,10 @@ class JoinTreeActivity : AppCompatActivity() {
             // Requirement 11: Set active tree in preferences and clear stale cache
             TreePreferences.setActiveTree(this, treeId, treeName)
             FirestoreHelper.setCachedPersons(emptyList())
+
+            // Mark Phase 2 Milestone 1 (Roots) as achieved
+            OnboardingPreferences.setMilestoneRoots(this, true, userId)
+            firestoreHelper.saveOnboardingState(userId, OnboardingPreferences.getOnboardingState(this, userId))
 
             // Update user profile currentTreeId
             val profile = UserProfile(

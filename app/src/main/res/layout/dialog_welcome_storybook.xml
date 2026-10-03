@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:strokeWidth="1.5dp"
+    app:strokeColor="@color/border"
+    app:cardBackgroundColor="@color/card_bg"
+    tools:theme="@style/Theme.BTProject2"
+    tools:context=".ui.dialogs.WelcomeStoryDialogFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="KinTrace 🌿"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pamana: Your Family Legacy"
+                    android:textSize="11sp"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btnStoryClose"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="✕"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+        </RelativeLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/border" />
+
+        <!-- ViewPager2 for Slides -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/vpWelcomeStory"
+            android:layout_width="match_parent"
+            android:layout_height="440dp" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/border" />
+
+        <!-- Footer / Navigation Controls -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- Back Button -->
+            <Button
+                android:id="@+id/btnStoryPrev"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="‹ Back"
+                android:textColor="@color/text_secondary"
+                android:visibility="invisible" />
+
+            <!-- Page Indicator Dots -->
+            <LinearLayout
+                android:id="@+id/layoutStoryDots"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvDot1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="●"
+                    android:textSize="18sp"
+                    android:textColor="@color/primary"
+                    android:padding="4dp" />
+
+                <TextView
+                    android:id="@+id/tvDot2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="○"
+                    android:textSize="18sp"
+                    android:textColor="@color/text_hint"
+                    android:padding="4dp" />
+
+                <TextView
+                    android:id="@+id/tvDot3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="○"
+                    android:textSize="18sp"
+                    android:textColor="@color/text_hint"
+                    android:padding="4dp" />
+            </LinearLayout>
+
+            <!-- Next / Finish Button -->
+            <Button
+                android:id="@+id/btnStoryNext"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="Next ›"
+                android:textSize="13sp"
+                app:cornerRadius="20dp"
+                android:backgroundTint="@color/primary"
+                android:textColor="@color/white" />
+        </RelativeLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

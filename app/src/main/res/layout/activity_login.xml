@@ -11,17 +11,6 @@
         android:padding="32dp"
         android:paddingTop="60dp">
 
-        <!-- Back -->
-        <TextView
-            android:id="@+id/btnBackToWelcome"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="← Back"
-            android:textSize="14sp"
-            android:textColor="@color/primary"
-            android:layout_marginBottom="24dp"
-            android:clickable="true"
-            android:focusable="true" />
 
         <!-- Header -->
         <TextView

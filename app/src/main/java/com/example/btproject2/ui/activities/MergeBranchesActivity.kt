@@ -128,6 +128,13 @@ class MergeBranchesActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
 
+        val btnQuickAssistMerge = findViewById<TextView>(R.id.btnQuickAssistMerge)
+        btnQuickAssistMerge?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.MERGE_BRANCHES
+            ).show(supportFragmentManager, "QuickAssistMerge")
+        }
+
         tvSubtitle = findViewById(R.id.tvSubtitle)
         tvMergeRoleBadge = findViewById(R.id.tvMergeRoleBadge)
         layoutViewerBanner = findViewById(R.id.layoutViewerBanner)

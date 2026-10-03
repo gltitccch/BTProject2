@@ -21,6 +21,7 @@ import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.Person
 import com.example.btproject2.models.UserProfile
 import com.example.btproject2.sync.CentralTreeSynchronizer
+import com.example.btproject2.utils.OnboardingPreferences
 import com.example.btproject2.utils.TreePreferences
 import com.example.btproject2.utils.setDarkAdapter
 import java.text.SimpleDateFormat
@@ -234,6 +235,10 @@ class CreateTreeActivity : AppCompatActivity() {
                 // Immediately establish active tree preferences and isolate cache
                 TreePreferences.setActiveTree(this, createdTree.id, createdTree.name)
                 FirestoreHelper.setCachedPersons(emptyList())
+
+                // Mark Phase 2 Milestone 1 (Roots) as achieved
+                OnboardingPreferences.setMilestoneRoots(this, true, userId)
+                firestoreHelper.saveOnboardingState(userId, OnboardingPreferences.getOnboardingState(this, userId))
 
                 // Update user profile currentTreeId immediately
                 val profile = UserProfile(

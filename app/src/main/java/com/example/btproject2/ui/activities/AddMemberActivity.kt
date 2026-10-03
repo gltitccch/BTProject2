@@ -194,6 +194,13 @@ class AddMemberActivity : AppCompatActivity() {
 
         btnBack.setOnClickListener { finish() }
 
+        val btnQuickAssistAddMember = findViewById<TextView>(R.id.btnQuickAssistAddMember)
+        btnQuickAssistAddMember?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.ADD_MEMBER
+            ).show(supportFragmentManager, "QuickAssistAddMember")
+        }
+
         val currentUserId = authHelper.getCurrentUserId() ?: ""
         firestoreHelper.getTree(treeId,
             onSuccess = { tree ->

@@ -21,8 +21,9 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val bypassAuthCheck = intent.getBooleanExtra("bypass_auth_check", false)
         val currentUser = authHelper.getCurrentUser()
-        if (currentUser != null) {
+        if (currentUser != null && !bypassAuthCheck) {
             if (currentUser.isEmailVerified) {
                 goToHome()
             } else {
@@ -34,15 +35,12 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_login)
 
-        val btnBack = findViewById<TextView>(R.id.btnBackToWelcome)
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnTogglePassword = findViewById<ImageView>(R.id.btnTogglePassword)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val btnRegister = findViewById<TextView>(R.id.btnRegister)
         val btnForgotPassword = findViewById<TextView>(R.id.btnForgotPassword)
-
-        btnBack.setOnClickListener { finish() }
 
         // Setup password show/hide visibility toggle
         setupPasswordToggle(etPassword, btnTogglePassword)

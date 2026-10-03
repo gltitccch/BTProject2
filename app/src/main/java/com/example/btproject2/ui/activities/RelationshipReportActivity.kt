@@ -54,6 +54,12 @@ class RelationshipReportActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.btnExportPdf)?.setOnClickListener { generateAndOpenPdf() }
         findViewById<TextView>(R.id.btnSavePrintPdfBottom)?.setOnClickListener { generateAndOpenPdf() }
 
+        findViewById<TextView>(R.id.btnQuickAssistReport)?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.RELATIONSHIP_REPORT
+            ).show(supportFragmentManager, "QuickAssistReport")
+        }
+
         findViewById<TextView>(R.id.btnOpenVisualPath)?.setOnClickListener {
             val intent = Intent(this, RelationshipPathActivity::class.java).apply {
                 putExtra("personAId", personAId)

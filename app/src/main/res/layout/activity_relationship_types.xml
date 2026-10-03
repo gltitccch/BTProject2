@@ -14,15 +14,19 @@
         android:paddingEnd="20dp"
         android:paddingBottom="36dp">
 
-        <!-- Back Button -->
+        <!-- Back Navigation Pill -->
         <TextView
             android:id="@+id/btnBack"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_nav_back_pill"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp"
             android:text="← Back"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textStyle="bold"
-            android:textColor="@color/gold_accent"
+            android:textColor="@color/primary"
             android:layout_marginBottom="16dp"
             android:clickable="true"
             android:focusable="true" />

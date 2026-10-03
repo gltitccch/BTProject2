@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_quick_assist_card"
+    android:padding="14dp"
+    android:layout_marginBottom="10dp">
+
+    <!-- Top Row: Filipino Term & English Equivalent -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <TextView
+            android:id="@+id/tvTermTagalog"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pinsan Buo"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent" />
+
+        <TextView
+            android:id="@+id/tvTermEnglish"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="First Cousin"
+            android:textSize="12sp"
+            android:textStyle="italic"
+            android:textColor="@color/dark_subtext" />
+    </LinearLayout>
+
+    <!-- Badges Row: Civil Degree & Legal Classification -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/tvTermCivilDegree"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4th Degree Collateral"
+            android:textSize="10.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tvTermLegal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Art. 38 Family Code"
+            android:textSize="10.5sp"
+            android:textColor="@color/gold_accent"
+            android:background="@drawable/bg_quick_assist_guardrail"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp" />
+    </LinearLayout>
+
+    <!-- Definition Text -->
+    <TextView
+        android:id="@+id/tvTermDefinition"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="The child of one's aunt or uncle. Shares a set of common grandparents."
+        android:textSize="12.5sp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Practical Example -->
+    <TextView
+        android:id="@+id/tvTermExample"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Example: Your mother's brother's daughter is your Pinsan Buo."
+        android:textSize="11.5sp"
+        android:textColor="@color/dark_subtext" />
+
+</LinearLayout>

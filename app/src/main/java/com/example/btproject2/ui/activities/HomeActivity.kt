@@ -26,6 +26,12 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import com.example.btproject2.utils.ThemePreferences
+import com.example.btproject2.ui.dialogs.WelcomeStoryDialogFragment
+import com.example.btproject2.ui.dialogs.ClanProfileBottomSheet
+import com.example.btproject2.utils.OnboardingPreferences
+import com.example.btproject2.models.UserOnboardingState
+import android.widget.ProgressBar
+import androidx.core.content.ContextCompat
 
 class HomeActivity : AppCompatActivity() {
 
@@ -95,6 +101,7 @@ class HomeActivity : AppCompatActivity() {
             }
             runOnUiThread {
                 debounceReloadTree()
+                refreshQuestHudUi()
             }
         }
 
@@ -163,6 +170,8 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
         findViewById<View>(R.id.btnViewTreeHero)?.setOnClickListener {
+            OnboardingPreferences.setMilestoneCanvasInspected(this, true)
+            refreshQuestHudUi()
             val intent = Intent(this, FamilyTreeActivity::class.java).apply {
                 if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
             }
@@ -176,6 +185,12 @@ class HomeActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.btnNotificationBell)?.setOnClickListener {
             val intent = Intent(this, NotificationsActivity::class.java).apply {
+                if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
+            }
+            startActivity(intent)
+        }
+        findViewById<View>(R.id.btnKinAcademy)?.setOnClickListener {
+            val intent = Intent(this, KinAcademyActivity::class.java).apply {
                 if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
             }
             startActivity(intent)
@@ -265,6 +280,8 @@ class HomeActivity : AppCompatActivity() {
         }
 
         cardViewTree.setOnClickListener {
+            OnboardingPreferences.setMilestoneCanvasInspected(this, true)
+            refreshQuestHudUi()
             val intent = Intent(this, FamilyTreeActivity::class.java).apply {
                 if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
             }
@@ -313,10 +330,24 @@ class HomeActivity : AppCompatActivity() {
             resolveAndLoadTree()
         }
         findViewById<View>(R.id.navTree)?.setOnClickListener {
-            val intent = Intent(this, FamilyTreeActivity::class.java).apply {
-                if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
+            if (treeId.isNotEmpty() || userOwnedTrees.isNotEmpty()) {
+                OnboardingPreferences.setMilestoneCanvasInspected(this, true)
+                val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                if (currentUserId.isNotEmpty()) {
+                    firestoreHelper.saveOnboardingState(
+                        currentUserId,
+                        OnboardingPreferences.getOnboardingState(this)
+                    )
+                }
+                refreshQuestHudUi()
+                val intent = Intent(this, FamilyTreeActivity::class.java).apply {
+                    if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
+                }
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Please create or join a family tree first.", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, CreateTreeActivity::class.java))
             }
-            startActivity(intent)
         }
         findViewById<View>(R.id.navTrace)?.setOnClickListener {
             val intent = Intent(this, TraceActivity::class.java).apply {
@@ -345,6 +376,7 @@ class HomeActivity : AppCompatActivity() {
                 .show()
         }
 
+        setupQuestHud()
         resolveAndLoadTree()
     }
 
@@ -355,6 +387,7 @@ class HomeActivity : AppCompatActivity() {
         val isDark = ThemePreferences.isDarkTheme(this)
         tvThemeToggleIcon?.text = if (isDark) "☀️" else "🌙"
 
+        refreshQuestHudUi()
         resolveAndLoadTree()
     }
 
@@ -418,6 +451,31 @@ class HomeActivity : AppCompatActivity() {
                 }
             }
         )
+
+        firestoreHelper.getOnboardingState(currentUserId,
+            onSuccess = { cloudState ->
+                if (cloudState != null) {
+                    val local = OnboardingPreferences.getOnboardingState(this, currentUserId)
+                    var changed = false
+                    if (cloudState.isQuestDismissed && !local.isQuestDismissed) {
+                        OnboardingPreferences.setQuestDismissed(this, true, currentUserId)
+                        changed = true
+                    }
+                    if (cloudState.questCanvasInspected && !local.questCanvasInspected && (userOwnedTrees.isNotEmpty() || treeId.isNotEmpty())) {
+                        OnboardingPreferences.setMilestoneCanvasInspected(this, true, currentUserId)
+                        changed = true
+                    }
+                    if (cloudState.questCodeShared && !local.questCodeShared && (userOwnedTrees.isNotEmpty() || treeId.isNotEmpty())) {
+                        OnboardingPreferences.setMilestoneCodeShared(this, true, currentUserId)
+                        changed = true
+                    }
+                    if (changed) {
+                        runOnUiThread { refreshQuestHudUi() }
+                    }
+                }
+            },
+            onFailure = {}
+        )
     }
 
     private fun showNoTreeEmptyState() {
@@ -427,6 +485,13 @@ class HomeActivity : AppCompatActivity() {
             layoutPopulatedState.visibility = View.GONE
             layoutEmptyState.visibility = View.VISIBLE
             findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  Family Tree"
+
+            // Phase 1 Onboarding: Show 3-slide welcome story modal for new user without trees
+            WelcomeStoryDialogFragment.showIfNotSeen(this@HomeActivity)
+
+            // In Phase 1 (No trees yet), Milestone 1 (Roots) is NOT completed
+            OnboardingPreferences.setMilestoneRoots(this@HomeActivity, false)
+            refreshQuestHudUi(0)
         }
     }
 
@@ -483,6 +548,16 @@ class HomeActivity : AppCompatActivity() {
                 val activePersons = persons.filter { it.id !in recentlyDeletedIds }
                 FirestoreHelper.setCachedPersons(activePersons)
                 tvMemberCount.text = activePersons.size.toString()
+                
+                // In Phase 2, Milestone 1 (Roots) is confirmed established
+                OnboardingPreferences.setMilestoneRoots(this@HomeActivity, true)
+
+                if (activePersons.size >= 2) {
+                    OnboardingPreferences.setMilestoneTwoMembers(this@HomeActivity, true)
+                } else {
+                    OnboardingPreferences.setMilestoneTwoMembers(this@HomeActivity, false)
+                }
+                refreshQuestHudUi(activePersons.size)
 
                 val genCount = calculateGenerations(activePersons)
                 findViewById<TextView?>(R.id.tvGenerationCountLarge)?.text = genCount.toString()
@@ -747,84 +822,18 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun showAccountProfileDialog() {
-        val user = authHelper.getCurrentUser() ?: return
-        val currentName = user.displayName?.takeIf { it.isNotBlank() }
-            ?: user.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() }
-            ?: "User"
-
-        val view = layoutInflater.inflate(R.layout.dialog_account_profile, null)
-        val tvDialogAvatar = view.findViewById<TextView>(R.id.tvDialogAvatar)
-        val tvDialogEmail = view.findViewById<TextView>(R.id.tvDialogEmail)
-        val etDisplayName = view.findViewById<EditText>(R.id.etDialogDisplayName)
-        val btnChangePassword = view.findViewById<TextView?>(R.id.btnDialogChangePassword)
-        val btnResetPassword = view.findViewById<TextView>(R.id.btnDialogResetPassword)
-
-        tvDialogAvatar.text = currentName.first().uppercase()
-        tvDialogEmail.text = user.email ?: ""
-        etDisplayName.setText(currentName)
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(view)
-            .setPositiveButton("Save Changes", null)
-            .setNegativeButton("Close", null)
-            .create()
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val newName = etDisplayName.text.toString().trim()
-                if (newName.isEmpty()) {
-                    Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-                authHelper.updateDisplayName(newName,
-                    onSuccess = {
-                        val profile = UserProfile(
-                            id = user.uid,
-                            displayName = newName,
-                            email = user.email ?: "",
-                            currentTreeId = treeId
-                        )
-                        firestoreHelper.saveUserProfile(profile, onSuccess = {}, onFailure = {})
-                        tvUserName.text = newName
-                        tvProfileInitial.text = newName.first().uppercase()
-                        Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                    },
-                    onFailure = {
-                        Toast.makeText(this, "Failed to update profile: ${it.message}", Toast.LENGTH_SHORT).show()
-                    }
-                )
-            }
+        val sheet = ClanProfileBottomSheet.newInstance(treeId)
+        sheet.onProfileUpdated = { newName ->
+            tvUserName.text = newName
+            tvProfileInitial.text = newName.first().uppercase()
         }
-
-        btnChangePassword?.setOnClickListener {
+        sheet.onQuestResetRequested = {
+            refreshQuestHudUi()
+        }
+        sheet.onRequestChangePassword = {
             showChangePasswordDialog()
         }
-
-        btnResetPassword.setOnClickListener {
-            val email = user.email ?: return@setOnClickListener
-            AlertDialog.Builder(this)
-                .setTitle("Send Password Reset Link")
-                .setMessage("A reset link will be sent to $email.\n\n⚠️ Note: Automated emails may arrive in your Spam / Junk folder. If found in Junk, please tap 'Report not spam'.")
-                .setPositiveButton("Send Email") { _, _ ->
-                    authHelper.sendPasswordResetEmail(email,
-                        onSuccess = {
-                            AlertDialog.Builder(this)
-                                .setTitle("Email Sent")
-                                .setMessage("Password reset email sent to $email.\n\nPlease check your Inbox and Spam / Junk folder.")
-                                .setPositiveButton("OK", null)
-                                .show()
-                        },
-                        onFailure = {
-                            Toast.makeText(this, "Failed to send reset email: ${it.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
-        }
-
-        dialog.show()
+        sheet.show(supportFragmentManager, ClanProfileBottomSheet.TAG)
     }
 
     private fun showChangePasswordDialog() {
@@ -878,5 +887,236 @@ class HomeActivity : AppCompatActivity() {
         }
 
         dialog.show()
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // CLAN BUILDER QUEST HUD (PHASE 2 ONBOARDING)
+    // ══════════════════════════════════════════════════════════════
+
+    private fun setupQuestHud() {
+        val cardQuestHud = findViewById<View?>(R.id.cardQuestHud) ?: return
+        val btnToggleCollapse = findViewById<TextView?>(R.id.btnToggleQuestCollapse)
+        val btnRootsAction = findViewById<Button?>(R.id.btnQuestRootsAction)
+        val btnAddMember = findViewById<Button?>(R.id.btnQuestAddMember)
+        val btnOpenCanvas = findViewById<Button?>(R.id.btnQuestOpenCanvas)
+        val btnShareCode = findViewById<Button?>(R.id.btnQuestShareCode)
+        val btnDismiss = findViewById<Button?>(R.id.btnDismissQuest)
+
+        btnToggleCollapse?.setOnClickListener {
+            val currentState = OnboardingPreferences.getOnboardingState(this)
+            val newCollapsed = !currentState.isQuestCollapsed
+            OnboardingPreferences.setQuestCollapsed(this, newCollapsed)
+            refreshQuestHudUi()
+        }
+
+        btnRootsAction?.setOnClickListener {
+            if (userOwnedTrees.isEmpty() && treeId.isEmpty()) {
+                startActivity(Intent(this, CreateTreeActivity::class.java))
+            } else {
+                OnboardingPreferences.setMilestoneRoots(this, true)
+                refreshQuestHudUi()
+            }
+        }
+
+        btnAddMember?.setOnClickListener {
+            if (treeId.isEmpty()) {
+                Toast.makeText(this, "Create or join a family tree first to add relatives.", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, CreateTreeActivity::class.java))
+            } else {
+                val intent = Intent(this, AddMemberActivity::class.java).apply {
+                    putExtra("TREE_ID", treeId)
+                }
+                startActivity(intent)
+            }
+        }
+
+        btnOpenCanvas?.setOnClickListener {
+            if (treeId.isEmpty() && userOwnedTrees.isEmpty()) {
+                Toast.makeText(this, "Create or join a family tree first to inspect the canvas.", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, CreateTreeActivity::class.java))
+            } else {
+                OnboardingPreferences.setMilestoneCanvasInspected(this, true)
+                val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                if (currentUserId.isNotEmpty()) {
+                    firestoreHelper.saveOnboardingState(
+                        currentUserId,
+                        OnboardingPreferences.getOnboardingState(this)
+                    )
+                }
+                refreshQuestHudUi()
+                val intent = Intent(this, FamilyTreeActivity::class.java).apply {
+                    if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
+                }
+                startActivity(intent)
+            }
+        }
+
+        btnShareCode?.setOnClickListener {
+            shareOrCopyTreeInviteCode()
+        }
+
+        btnDismiss?.setOnClickListener {
+            OnboardingPreferences.setQuestDismissed(this, true)
+            val currentUserId = authHelper.getCurrentUserId().orEmpty()
+            if (currentUserId.isNotEmpty()) {
+                firestoreHelper.saveOnboardingState(
+                    currentUserId,
+                    OnboardingPreferences.getOnboardingState(this)
+                )
+            }
+            cardQuestHud.visibility = View.GONE
+            Toast.makeText(this, "Clan Quest completed and archived!", Toast.LENGTH_SHORT).show()
+        }
+
+        refreshQuestHudUi()
+    }
+
+    private fun refreshQuestHudUi(memberCount: Int? = null) {
+        val cardQuestHud = findViewById<View?>(R.id.cardQuestHud) ?: return
+        if (OnboardingPreferences.isQuestDismissed(this)) {
+            cardQuestHud.visibility = View.GONE
+            return
+        }
+        cardQuestHud.visibility = View.VISIBLE
+
+        val state = OnboardingPreferences.getOnboardingState(this)
+
+        val hasTree = userOwnedTrees.isNotEmpty() || treeId.isNotEmpty()
+        if (hasTree && !state.questRootsCompleted) {
+            state.questRootsCompleted = true
+            OnboardingPreferences.setMilestoneRoots(this, true)
+        } else if (!hasTree && state.questRootsCompleted) {
+            state.questRootsCompleted = false
+            OnboardingPreferences.setMilestoneRoots(this, false)
+        }
+
+        if (memberCount != null) {
+            if (memberCount >= 2 && !state.questTwoMembersCompleted) {
+                state.questTwoMembersCompleted = true
+                OnboardingPreferences.setMilestoneTwoMembers(this, true)
+            } else if (memberCount < 2 && state.questTwoMembersCompleted) {
+                state.questTwoMembersCompleted = false
+                OnboardingPreferences.setMilestoneTwoMembers(this, false)
+            }
+        }
+
+        val percent = state.getProgressPercentage()
+
+        val tvPercent = findViewById<TextView?>(R.id.tvQuestPercent)
+        val progressBar = findViewById<ProgressBar?>(R.id.progressQuestBar)
+        val layoutBody = findViewById<View?>(R.id.layoutQuestBody)
+        val btnToggleCollapse = findViewById<TextView?>(R.id.btnToggleQuestCollapse)
+        val layoutCelebration = findViewById<View?>(R.id.layoutQuestCelebration)
+
+        tvPercent?.text = "$percent%"
+        progressBar?.progress = percent
+
+        if (state.isQuestCollapsed) {
+            layoutBody?.visibility = View.GONE
+            btnToggleCollapse?.text = "▲ Show"
+        } else {
+            layoutBody?.visibility = View.VISIBLE
+            btnToggleCollapse?.text = "▼ Hide"
+        }
+
+        // Milestone 1: Roots
+        val tvM1Check = findViewById<TextView?>(R.id.tvMilestone1Check)
+        val btnM1Action = findViewById<Button?>(R.id.btnQuestRootsAction)
+        if (state.questRootsCompleted) {
+            tvM1Check?.text = "✓"
+            tvM1Check?.setTextColor(ContextCompat.getColor(this, R.color.primary))
+            btnM1Action?.visibility = View.GONE
+        } else {
+            tvM1Check?.text = "○"
+            tvM1Check?.setTextColor(ContextCompat.getColor(this, R.color.text_hint))
+            btnM1Action?.visibility = View.VISIBLE
+        }
+
+        // Milestone 2: 2 Relatives
+        val tvM2Check = findViewById<TextView?>(R.id.tvMilestone2Check)
+        val tvM2Title = findViewById<TextView?>(R.id.tvMilestone2Title)
+        val btnM2Action = findViewById<Button?>(R.id.btnQuestAddMember)
+        val count = memberCount ?: if (state.questTwoMembersCompleted) 2 else 0
+        if (state.questTwoMembersCompleted) {
+            tvM2Check?.text = "✓"
+            tvM2Check?.setTextColor(ContextCompat.getColor(this, R.color.primary))
+            tvM2Title?.text = "2. Add 2 Immediate Relatives (2/2)"
+            btnM2Action?.visibility = View.GONE
+        } else {
+            tvM2Check?.text = "○"
+            tvM2Check?.setTextColor(ContextCompat.getColor(this, R.color.text_hint))
+            tvM2Title?.text = "2. Add 2 Immediate Relatives ($count/2)"
+            btnM2Action?.visibility = View.VISIBLE
+        }
+
+        // Milestone 3: Canvas
+        val tvM3Check = findViewById<TextView?>(R.id.tvMilestone3Check)
+        val btnM3Action = findViewById<Button?>(R.id.btnQuestOpenCanvas)
+        if (state.questCanvasInspected) {
+            tvM3Check?.text = "✓"
+            tvM3Check?.setTextColor(ContextCompat.getColor(this, R.color.primary))
+            btnM3Action?.visibility = View.GONE
+        } else {
+            tvM3Check?.text = "○"
+            tvM3Check?.setTextColor(ContextCompat.getColor(this, R.color.text_hint))
+            btnM3Action?.visibility = View.VISIBLE
+        }
+
+        // Milestone 4: Share Code
+        val tvM4Check = findViewById<TextView?>(R.id.tvMilestone4Check)
+        val btnM4Action = findViewById<Button?>(R.id.btnQuestShareCode)
+        if (state.questCodeShared) {
+            tvM4Check?.text = "✓"
+            tvM4Check?.setTextColor(ContextCompat.getColor(this, R.color.primary))
+            btnM4Action?.visibility = View.GONE
+        } else {
+            tvM4Check?.text = "○"
+            tvM4Check?.setTextColor(ContextCompat.getColor(this, R.color.text_hint))
+            btnM4Action?.visibility = View.VISIBLE
+        }
+
+        // 100% Celebration Banner
+        if (state.isAllCompleted()) {
+            layoutCelebration?.visibility = View.VISIBLE
+        } else {
+            layoutCelebration?.visibility = View.GONE
+        }
+    }
+
+    private fun shareOrCopyTreeInviteCode() {
+        val currentTree = userOwnedTrees.firstOrNull { it.id == treeId }
+            ?: userOwnedTrees.firstOrNull()
+        val code = currentTree?.inviteCode.orEmpty()
+        if (code.isNotEmpty()) {
+            val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = android.content.ClipData.newPlainText("Clan Invite Code", code)
+            clipboard.setPrimaryClip(clip)
+
+            OnboardingPreferences.setMilestoneCodeShared(this, true)
+            val currentUserId = authHelper.getCurrentUserId().orEmpty()
+            if (currentUserId.isNotEmpty()) {
+                firestoreHelper.saveOnboardingState(
+                    currentUserId,
+                    OnboardingPreferences.getOnboardingState(this)
+                )
+            }
+            refreshQuestHudUi()
+
+            AlertDialog.Builder(this)
+                .setTitle("Clan Invite Code: $code")
+                .setMessage("Your 6-character clan code has been copied to your clipboard!\n\nShare this code with family members so they can join your tree.")
+                .setPositiveButton("Share via App...") { _, _ ->
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_SUBJECT, "Join our KinTrace family tree")
+                        putExtra(Intent.EXTRA_TEXT, "Join our family tree on KinTrace using our clan invite code: $code")
+                    }
+                    startActivity(Intent.createChooser(shareIntent, "Share Clan Code"))
+                }
+                .setNegativeButton("Done", null)
+                .show()
+        } else {
+            Toast.makeText(this, "Create or select a family tree first to share its invite code.", Toast.LENGTH_SHORT).show()
+        }
     }
 }

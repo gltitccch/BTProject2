@@ -36,4 +36,16 @@ When a global scope is confirmed:
   3. Push to `origin master` (`https://github.com/gltitccch/BTProject2.git`).
   4. Report the push status and remote commit hash to the user.
 
+---
+
+## Mandatory Post-Change Re-Run & Regression Verification Standard
+
+For every single change, addition, or feature increment made in the codebase, you must always strictly execute a complete re-run and verification check across everything involved in that update before concluding the step:
+1. **Full Test Suite Execution**: Immediately run all unit tests (`.\gradlew.bat testDebugUnitTest`) to verify that no existing functions, validations, models, or sync listeners were accidentally deleted, altered, or broken.
+2. **Build & Compilation Sanity**: Confirm that the Android debug build compiles cleanly without syntax errors, missing resource IDs, or unresolved symbols.
+3. **Involved Module Audit**: Explicitly inspect and verify all touched and interconnected screens/components (e.g., `HomeActivity`, layout XML files, view IDs, click listeners, Firestore queries, and `CentralTreeSynchronizer` events) to guarantee that:
+   - No existing button IDs, XML elements, or click listeners were deleted, renamed, or overridden.
+   - All existing user journeys (tree creation/selection, member viewing/editing, theme toggle, logout, bottom navigation) remain 100% intact.
+4. **Transparent Verification Reporting**: Always report the test execution results, the build status, and the exact list of verified components to the user after every change.
+
 
