@@ -3236,6 +3236,70 @@ To deliver 100% comprehensive educational coverage without risking regression, U
 - `[MODIFY]` [`RegisterActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RegisterActivity.kt)
 - `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
 
+---
+
+## [Request #33] - Login Interface Redesign: Keystone Sovereign, Unified Canvas, Official DNA Tree Crest & Sign-In Header
+- **Date**: 2026-10-04
+- **Requested By**: User
+- **User Request**:
+  > *"i need 3 suggestion for re design of this interface. no need to modify anything i just need suggestion and also a visual example"*
+  > *"i like the option 2 but without the kintrace portal and also try to improve it but overall, i like it. so for now give me a re design version for option 2"*
+  > *"tbh i like this design but maybe you can improve this? instead of shield"* (uploaded official golden KinTrace DNA Tree image)
+  > *"i like option 1 but let's remove the text from below i'm referring with the image that i attached and make it a quote instead. But give me 10 quotes first"*
+  > *"i like this one 'A family tree can wither if nobody tends to the stories of its roots.' "*
+  > *"proceed, but remove the word archive on kintrace lineage archive"*
+  > *"i don't like the upper part how about we just cover all of it and also remove the gold plated edges on sides. But you need to show me a visual image example."*
+  > *"i mean like this logo is enlarge in the background but make it stylish give me 3 suggestion examples"*
+  > *"make it more high quality and also it feels out of place give me new 5 suggestions"*
+  > *"i like option 1 but instead of secured archived it should be sign-in and then proceed"*
+- **Architectural Scope**: **Local Scope** (Confirmed by user: confined strictly to `activity_login.xml` and associated styling drawables; zero changes to backend Firestore or sync engines).
+
+### Summary of Changes
+1. **Keystone Sovereign Layout Architecture ([`activity_login.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_login.xml))**:
+   - Eliminated the split two-tone hero banner and all gold-plated side arc strokes/horns (`bg_login_hero.xml`) that felt out of place on the edges.
+   - Applied a unified, harmonious canvas background (`@color/background`) across the entire screen.
+   - Built a centered, elegant typography header:
+     - Wordmark: `KINTRACE` (13sp bold, tracked in gold) & `Family Tree & Lineage` (10.5sp in secondary green).
+     - Heading: `Welcome Back` (24sp bold) & `Sign in to explore your family bloodline.` (13sp).
+2. **Integrated Keystone Medallion with Official Golden DNA Tree Emblem**:
+   - Created [`bg_keystone_medallion.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_keystone_medallion.xml) (16dp rounded keystone with 2dp `gold_accent` border and `card_bg` solid fill).
+   - Nestled the 48x48dp keystone medallion directly onto the top center border of the floating card (`elevation="8dp"`).
+   - Embedded the transparent, vector-grade official golden DNA Tree emblem [`ic_kintrace_tree_gold.png`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/ic_kintrace_tree_gold.png).
+3. **Elevated Floating Form Card & Subtitle Header**:
+   - Structured the card using [`bg_login_card.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_login_card.xml) with 20dp corners, 4dp elevation, and generous 36dp top clearance for the overlapping medallion.
+   - Updated the subtitle header row:
+     - Left: `ACCOUNT` (bold `gold_accent`, 11sp, tracked).
+     - Right: Replaced `"Secured Archive"` with `"Sign-In"` (11sp in `text_hint`), exactly as commanded by the user.
+   - Inputs with dedicated leading visual icons:
+     - `✉️` for Email (`etEmail`) with `bg_login_input_field.xml`
+     - `🔒` for Password (`etPassword`) with eye visibility toggle (`btnTogglePassword`)
+   - Gold primary action button (`btnLogin`, `"Sign In to KinTrace ➔"`) with high-contrast text (`btn_gold_text`).
+   - Forgot Password link (`btnForgotPassword`) and Create Account prompt (`btnRegister`).
+4. **Curated Lineage Quote Anchor**:
+   - Centered with a subtle 28dp gold divider bar at the bottom:
+     *“A family tree can wither if nobody tends to the stories of its roots.”*
+     — **KinTrace Lineage** (strictly omitting "Archive" as requested).
+5. **Post-Change Verification**:
+   - `.\gradlew.bat assembleDebug`: **BUILD SUCCESSFUL** (34 actionable tasks, 0 errors).
+   - `.\gradlew.bat testDebugUnitTest`: **BUILD SUCCESSFUL** (25 actionable tasks, 0 failures).
+   - Live emulator verification on `Medium_Phone_API_36.1`:
+     - **Dark Mode verified live**: Flawless deep forest canvas, glowing keystone medallion, crisp input fields, and centered roots quote.
+     - **Light Mode verified live**: Warm linen canvas, pearl elevated card, rich amber cognac button and keystone border.
+     - **Form validation verified live**: Empty email triggers `"Email address is required."` error popup.
+     - **Navigation verified live**: `btnRegister` cleanly navigates to `RegisterActivity`; `btnForgotPassword` cleanly navigates to `ForgotPasswordActivity`.
+
+### Files Modified & Created
+- `[MODIFY]` [`activity_login.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_login.xml)
+- `[MODIFY]` [`colors.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/values/colors.xml)
+- `[MODIFY]` [`values-night/colors.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/values-night/colors.xml)
+- `[NEW]` [`bg_keystone_medallion.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_keystone_medallion.xml)
+- `[NEW]` [`bg_login_card.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_login_card.xml)
+- `[NEW]` [`bg_login_input_field.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/bg_login_input_field.xml)
+- `[NEW]` [`ic_kintrace_tree_gold.png`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/ic_kintrace_tree_gold.png)
+- `[MODIFY]` [`CODE_CHANGES.md`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/CODE_CHANGES.md)
+
+
+
 
 
 

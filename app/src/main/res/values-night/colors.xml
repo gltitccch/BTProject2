@@ -70,4 +70,9 @@
     <!-- Button & Dialog Shield Semantic Tokens (Dark Mode) -->
     <color name="btn_gold_text">#0A1B12</color>
     <color name="dialog_shield_border">#80D4A359</color>
+
+    <!-- Login Redesign Tokens (Dark Mode) -->
+    <color name="login_hero_bg">#07170E</color>
+    <color name="login_hero_border">#D4A359</color>
+    <color name="login_input_bg">#183626</color>
 </resources>
