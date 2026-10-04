@@ -44,6 +44,7 @@ class MergeBranchesActivity : AppCompatActivity() {
     private val firestoreHelper = FirestoreHelper()
     private val authHelper = AuthHelper()
     private val marriageEngine = MarriageValidationEngine(minimumSpouseAge = 18)
+    private val mergeSimulationEngine = com.example.btproject2.engine.MergeSimulationEngine()
 
     private var activeTreeId = ""
     private var allPersonalTrees: List<FamilyTree> = emptyList()
@@ -555,6 +556,7 @@ class MergeBranchesActivity : AppCompatActivity() {
         val rbBridgeSpouse = dialogView.findViewById<RadioButton>(R.id.rbBridgeSpouse)
         val rbBridgeParentChild = dialogView.findViewById<RadioButton>(R.id.rbBridgeParentChild)
         val rbBridgeSharedAncestor = dialogView.findViewById<RadioButton>(R.id.rbBridgeSharedAncestor)
+        val rbBridgeSibling = dialogView.findViewById<RadioButton>(R.id.rbBridgeSibling)
 
         val tvAnchor1Label = dialogView.findViewById<TextView>(R.id.tvAnchor1Label)
         val spinnerAnchorPerson1 = dialogView.findViewById<Spinner>(R.id.spinnerAnchorPerson1)
@@ -583,6 +585,12 @@ class MergeBranchesActivity : AppCompatActivity() {
         var personsTree2 = listOf<Person>()
         var externalTreeLoaded: FamilyTree? = null
 
+        fun formatCandidateLabel(p: Person): String {
+            val isMarried = p.maritalStatus.equals("Married", ignoreCase = true) || !p.spouseId.isNullOrEmpty()
+            val badge = if (isMarried) " [Married]" else ""
+            return "${p.firstName} ${p.lastName}$badge"
+        }
+
         fun updateDefaultMasterTreeName() {
             val t1Name = spinnerTree1.selectedItem?.toString().orEmpty()
             val t2Name = if (rbTree2MyTrees.isChecked) {
@@ -608,18 +616,39 @@ class MergeBranchesActivity : AppCompatActivity() {
             val idx1 = spinnerAnchorPerson1.selectedItemPosition
             val idx2 = spinnerAnchorPerson2.selectedItemPosition
 
-            if (idx1 >= 0 && idx2 >= 0 && idx1 < personsTree1.size && idx2 < personsTree2.size) {
+            if (idx1 in personsTree1.indices && idx2 in personsTree2.indices) {
                 val p1 = personsTree1[idx1]
                 val p2 = personsTree2[idx2]
 
-                if (rbBridgeSpouse.isChecked) {
-                    val combinedMap = (personsTree1 + personsTree2).associateBy { it.id }
-                    val result = marriageEngine.validateSpouseConnection(p1.id, p2.id, combinedMap)
-                    if (!result.isAllowed) {
-                        layoutValidationWarning.visibility = View.VISIBLE
-                        tvValidationWarningText.text = "⚠️ Spousal impediment: ${result.reason}"
-                    }
+                val mode = when {
+                    rbBridgeSpouse.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
+                    rbBridgeParentChild.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.PARENT_CHILD
+                    rbBridgeSharedAncestor.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SHARED_ANCESTOR
+                    rbBridgeSibling?.isChecked == true -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SIBLING_LINEAGE
+                    else -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
                 }
+
+                val config = com.example.btproject2.engine.MergeSimulationEngine.BridgeConfig(
+                    mode = mode,
+                    personAId = p1.id,
+                    personBId = p2.id
+                )
+
+                val simResult = mergeSimulationEngine.simulate(personsTree1, personsTree2, config)
+
+                if (!simResult.isSafe) {
+                    layoutValidationWarning.visibility = View.VISIBLE
+                    tvValidationWarningText.text = "⚠️ ${simResult.blockReason ?: "Genealogical conflict detected"}"
+                    btnExecuteSynthesis.isEnabled = false
+                    btnExecuteSynthesis.alpha = 0.5f
+                } else {
+                    layoutValidationWarning.visibility = View.GONE
+                    btnExecuteSynthesis.isEnabled = true
+                    btnExecuteSynthesis.alpha = 1.0f
+                }
+            } else {
+                btnExecuteSynthesis.isEnabled = false
+                btnExecuteSynthesis.alpha = 0.5f
             }
         }
 
@@ -631,7 +660,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                 firestoreHelper.getPersonsByTree(selectedTree.id,
                     onSuccess = { list ->
                         personsTree1 = list
-                        val names = list.map { "${it.firstName} ${it.lastName}" }
+                        val names = list.map { formatCandidateLabel(it) }
                         spinnerAnchorPerson1.setDarkAdapter(this, if (names.isEmpty()) listOf("No members recorded") else names)
                         updateSummaryAndValidation()
                     },
@@ -652,7 +681,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     firestoreHelper.getPersonsByTree(selectedTree.id,
                         onSuccess = { list ->
                             personsTree2 = list
-                            val names = list.map { "${it.firstName} ${it.lastName}" }
+                            val names = list.map { formatCandidateLabel(it) }
                             spinnerAnchorPerson2.setDarkAdapter(this, if (names.isEmpty()) listOf("No members recorded") else names)
                             updateSummaryAndValidation()
                         },
@@ -667,7 +696,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                 firestoreHelper.getPersonsByTree(externalTreeLoaded!!.id,
                     onSuccess = { list ->
                         personsTree2 = list
-                        val names = list.map { "${it.firstName} ${it.lastName}" }
+                        val names = list.map { formatCandidateLabel(it) }
                         spinnerAnchorPerson2.setDarkAdapter(this, if (names.isEmpty()) listOf("No members recorded") else names)
                         updateSummaryAndValidation()
                     },
@@ -987,71 +1016,39 @@ class MergeBranchesActivity : AppCompatActivity() {
             progressBarSynthesis.visibility = View.VISIBLE
 
             // =========================================================================
-            // ZERO-RISK SYNTHESIS ENGINE: DEEP CLONING WITH ID REMAPPING
+            // ZERO-RISK SYNTHESIS ENGINE: PRE-FLIGHT SIMULATION & VERIFIED PERSISTENCE
             // =========================================================================
+            val mode = when {
+                rbBridgeSpouse.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
+                rbBridgeParentChild.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.PARENT_CHILD
+                rbBridgeSharedAncestor.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SHARED_ANCESTOR
+                rbBridgeSibling?.isChecked == true -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SIBLING_LINEAGE
+                else -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
+            }
+
             val masterTreeId = UUID.randomUUID().toString()
             val currentUserId = authHelper.getCurrentUserId().orEmpty()
             val currentUserName = authHelper.getCurrentUser()?.displayName ?: "Owner"
 
-            // 1. Build UUID translation dictionary
-            val idMap = mutableMapOf<String, String>()
-            for (p in personsTree1 + personsTree2) {
-                idMap[p.id] = UUID.randomUUID().toString()
+            val config = com.example.btproject2.engine.MergeSimulationEngine.BridgeConfig(
+                mode = mode,
+                personAId = anchor1.id,
+                personBId = anchor2.id,
+                masterTreeId = masterTreeId,
+                currentUserId = currentUserId
+            )
+
+            val simResult = mergeSimulationEngine.simulate(personsTree1, personsTree2, config)
+            if (!simResult.isSafe) {
+                progressBarSynthesis.visibility = View.GONE
+                btnExecuteSynthesis.isEnabled = true
+                btnCancelSynthesis.isEnabled = true
+                Toast.makeText(this, "Cannot synthesize: ${simResult.blockReason}", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
             }
 
-            // 2. Clone members into Tree C
-            val clonedList = mutableListOf<Person>()
-            fun clonePerson(p: Person): Person {
-                return p.copy(
-                    id = idMap[p.id]!!,
-                    treeId = masterTreeId,
-                    fatherId = idMap[p.fatherId] ?: p.fatherId,
-                    motherId = idMap[p.motherId] ?: p.motherId,
-                    spouseId = idMap[p.spouseId] ?: p.spouseId,
-                    createdBy = currentUserId,
-                    createdAt = System.currentTimeMillis()
-                )
-            }
-
-            for (p in personsTree1) clonedList.add(clonePerson(p))
-            for (p in personsTree2) clonedList.add(clonePerson(p))
-
-            // 3. Apply Anchor Bridge via immutable copies
-            val idxA = clonedList.indexOfFirst { it.id == idMap[anchor1.id] }
-            val idxB = clonedList.indexOfFirst { it.id == idMap[anchor2.id] }
-            var bridgeDesc = ""
-
-            if (idxA != -1 && idxB != -1) {
-                val clonedA = clonedList[idxA]
-                val clonedB = clonedList[idxB]
-
-                when {
-                    rbBridgeSpouse.isChecked -> {
-                        clonedList[idxA] = clonedA.copy(spouseId = clonedB.id)
-                        clonedList[idxB] = clonedB.copy(spouseId = clonedA.id)
-                        bridgeDesc = "💍 ${clonedA.firstName} ${clonedA.lastName} married to ${clonedB.firstName} ${clonedB.lastName}"
-                    }
-                    rbBridgeParentChild.isChecked -> {
-                        if (clonedA.gender.equals("Female", ignoreCase = true)) {
-                            clonedList[idxB] = clonedB.copy(motherId = clonedA.id)
-                        } else {
-                            clonedList[idxB] = clonedB.copy(fatherId = clonedA.id)
-                        }
-                        bridgeDesc = "👶 ${clonedA.firstName} ${clonedA.lastName} is Parent of ${clonedB.firstName} ${clonedB.lastName}"
-                    }
-                    rbBridgeSharedAncestor.isChecked -> {
-                        for (i in clonedList.indices) {
-                            var item = clonedList[i]
-                            if (item.fatherId == clonedB.id) item = item.copy(fatherId = clonedA.id)
-                            if (item.motherId == clonedB.id) item = item.copy(motherId = clonedA.id)
-                            if (item.spouseId == clonedB.id) item = item.copy(spouseId = clonedA.id)
-                            clonedList[i] = item
-                        }
-                        clonedList.removeAt(idxB)
-                        bridgeDesc = "👥 Shared Ancestor: ${clonedA.firstName} ${clonedA.lastName}"
-                    }
-                }
-            }
+            val clonedList = simResult.simulatedMembers.toMutableList()
+            val bridgeDesc = simResult.bridgeDescription
 
             val selPos1 = spinnerTree1.selectedItemPosition
             val tree1 = allPersonalTrees.getOrNull(selPos1)

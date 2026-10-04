@@ -308,6 +308,14 @@
                 android:text="👥 Shared Ancestor (Same relative exists in both trees)"
                 android:textSize="12sp"
                 android:textColor="@color/text_primary" />
+
+            <RadioButton
+                android:id="@+id/rbBridgeSibling"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="👥 Sibling &amp; Lineage Bridge (In-laws linked as siblings / shared ancestors)"
+                android:textSize="12sp"
+                android:textColor="@color/text_primary" />
         </RadioGroup>
 
         <!-- Member Pickers -->
