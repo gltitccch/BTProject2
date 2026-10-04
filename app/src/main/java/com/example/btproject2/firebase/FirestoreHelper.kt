@@ -120,13 +120,13 @@ class FirestoreHelper {
             val pendingLocal = inMemoryPersonsCache.orEmpty().filter { it.id.trim().lowercase() !in serverIds }
             val combined = (mergedServer + pendingLocal).distinctBy { it.id.trim().lowercase() }
 
-            // Reciprocal spouse normalization across all persons
+            // Reciprocal spouse normalization across all persons (tree-scoped)
             val byId = combined.associateBy { it.id.trim().lowercase() }.toMutableMap()
             combined.forEach { p ->
                 val sId = p.spouseId?.trim()?.lowercase()
                 if (!sId.isNullOrEmpty()) {
                     val partner = byId[sId]
-                    if (partner != null) {
+                    if (partner != null && (partner.treeId.isEmpty() || p.treeId.isEmpty() || partner.treeId == p.treeId)) {
                         var updatedPartner = partner
                         var partnerChanged = false
                         if (partner.spouseId.isNullOrEmpty() || !com.example.btproject2.engine.FamilyLinkValidator.isSameId(partner.spouseId, p.id)) {
@@ -150,7 +150,10 @@ class FirestoreHelper {
 
             combined.forEach { p ->
                 val pId = p.id.trim().lowercase()
-                val partnerPointingToMe = byId.values.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, p.id) }
+                val partnerPointingToMe = byId.values.find {
+                    (it.treeId.isEmpty() || p.treeId.isEmpty() || it.treeId == p.treeId) &&
+                    com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, p.id)
+                }
                 if (partnerPointingToMe != null) {
                     val current = byId[pId] ?: p
                     if (current.spouseId.isNullOrEmpty() || current.maritalStatus != "Married") {
@@ -177,12 +180,18 @@ class FirestoreHelper {
                 return f.contains(t) || l.contains(t) || full.contains(t)
             }
 
-            val claraList = byId.values.filter { matchesName(it, "clara") }
-            val renzyList = byId.values.filter { matchesName(it, "renzy") }
-            val pedroList = byId.values.filter { matchesName(it, "pedro") }
-            val luzList = byId.values.filter { matchesName(it, "luz") }
-            val ghillainList = byId.values.filter { matchesName(it, "ghillain") }
-            val joseList = byId.values.filter { matchesName(it, "jose") }
+            fun isBugarinLineage(p: Person): Boolean {
+                return p.lastName.trim().equals("Bugarin", ignoreCase = true)
+            }
+
+            // Strictly scope Bugarin legacy lineage repairs to Bugarin surname and matching treeId
+            val bugarinPersons = byId.values.filter { isBugarinLineage(it) }
+            val claraList = bugarinPersons.filter { matchesName(it, "clara") }
+            val renzyList = bugarinPersons.filter { matchesName(it, "renzy") }
+            val pedroList = bugarinPersons.filter { matchesName(it, "pedro") }
+            val luzList = bugarinPersons.filter { matchesName(it, "luz") }
+            val ghillainList = bugarinPersons.filter { matchesName(it, "ghillain") }
+            val joseList = bugarinPersons.filter { matchesName(it, "jose") }
 
             val primaryClara = claraList.firstOrNull()
             val primaryPedro = pedroList.firstOrNull()
@@ -191,22 +200,19 @@ class FirestoreHelper {
 
             // 1. Enforce that Renzy is Clara's BROTHER (siblings sharing father Jose, NOT Clara's child)
             if (primaryClara != null) {
-                renzyList.forEach { renzy ->
+                renzyList.filter { it.treeId == primaryClara.treeId }.forEach { renzy ->
                     val curr = byId[renzy.id.trim().lowercase()] ?: renzy
                     var changed = false
                     var fixed = curr
-                    // Disconnect Clara as Renzy's mother if erroneously linked in historical database
                     if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixed.motherId, primaryClara.id)) {
                         fixed = fixed.copy(motherId = null, motherRelationshipType = "")
                         changed = true
                     }
-                    // Disconnect Pedro as Renzy's father (Pedro is brother-in-law, husband of Clara)
                     if (primaryPedro != null && com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixed.fatherId, primaryPedro.id)) {
                         fixed = fixed.copy(fatherId = null, fatherRelationshipType = "")
                         changed = true
                     }
-                    // If Jose is in tree, Jose is father of Renzy and Clara
-                    if (primaryJose != null && fixed.fatherId.isNullOrBlank()) {
+                    if (primaryJose != null && fixed.fatherId.isNullOrBlank() && primaryJose.treeId == fixed.treeId) {
                         fixed = fixed.copy(fatherId = primaryJose.id, fatherRelationshipType = "Biological")
                         changed = true
                     }
@@ -216,8 +222,7 @@ class FirestoreHelper {
                     }
                 }
 
-                // If Jose is in tree, Jose is father of Clara
-                if (primaryJose != null) {
+                if (primaryJose != null && primaryJose.treeId == primaryClara.treeId) {
                     val currClara = byId[primaryClara.id.trim().lowercase()] ?: primaryClara
                     if (currClara.fatherId.isNullOrBlank() || (primaryPedro != null && com.example.btproject2.engine.FamilyLinkValidator.isSameId(currClara.fatherId, primaryPedro.id))) {
                         byId[primaryClara.id.trim().lowercase()] = currClara.copy(fatherId = primaryJose.id, fatherRelationshipType = "Biological")
@@ -226,9 +231,9 @@ class FirestoreHelper {
                 }
             }
 
-            // Ensure Clara is recorded as Luz's biological mother & Pedro as father (if unlinked and not parent of Clara/Pedro)
+            // Ensure Clara is recorded as Luz's biological mother & Pedro as father
             if (primaryClara != null) {
-                luzList.forEach { luz ->
+                luzList.filter { it.treeId == primaryClara.treeId }.forEach { luz ->
                     val curr = byId[luz.id.trim().lowercase()] ?: luz
                     val isParentOfClaraOrPedro = com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryClara.fatherId, curr.id) ||
                             com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryClara.motherId, curr.id) ||
@@ -240,7 +245,7 @@ class FirestoreHelper {
                             fixed = fixed.copy(motherId = primaryClara.id, motherRelationshipType = "Biological")
                             changed = true
                         }
-                        if (primaryPedro != null && fixed.fatherId.isNullOrBlank()) {
+                        if (primaryPedro != null && fixed.fatherId.isNullOrBlank() && primaryPedro.treeId == fixed.treeId) {
                             fixed = fixed.copy(fatherId = primaryPedro.id, fatherRelationshipType = "Biological")
                             changed = true
                         }
@@ -252,10 +257,10 @@ class FirestoreHelper {
                 }
             }
 
-            // Disconnect any inverted child-parent loop on Clara & Pedro's parents (e.g. Jose registered as parent)
+            // Disconnect any inverted child-parent loop on Clara & Pedro's parents
             byId.values.forEach { p ->
-                val isParentOfClara = primaryClara != null && (com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryClara.fatherId, p.id) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryClara.motherId, p.id))
-                val isParentOfPedro = primaryPedro != null && (com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryPedro.fatherId, p.id) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryPedro.motherId, p.id))
+                val isParentOfClara = primaryClara != null && primaryClara.treeId == p.treeId && (com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryClara.fatherId, p.id) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryClara.motherId, p.id))
+                val isParentOfPedro = primaryPedro != null && primaryPedro.treeId == p.treeId && (com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryPedro.fatherId, p.id) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(primaryPedro.motherId, p.id))
                 if (isParentOfClara || isParentOfPedro) {
                     var fixed = p
                     var changed = false
@@ -274,9 +279,9 @@ class FirestoreHelper {
                 }
             }
 
-            // Disconnect illegal sibling marriage between Jose and Luz (sharing Clara/Pedro)
+            // Disconnect illegal sibling marriage between Jose and Luz
             if (primaryJose != null) {
-                luzList.forEach { luz ->
+                luzList.filter { it.treeId == primaryJose.treeId }.forEach { luz ->
                     val currLuz = byId[luz.id.trim().lowercase()] ?: luz
                     val currJose = byId[primaryJose.id.trim().lowercase()] ?: primaryJose
                     val isMarriedToJose = com.example.btproject2.engine.FamilyLinkValidator.isSameId(currLuz.spouseId, currJose.id) ||
@@ -291,7 +296,7 @@ class FirestoreHelper {
             }
 
             // Ensure Pedro & Clara are mutual spouses
-            if (primaryPedro != null && primaryClara != null) {
+            if (primaryPedro != null && primaryClara != null && primaryPedro.treeId == primaryClara.treeId) {
                 val currPedro = byId[primaryPedro.id.trim().lowercase()] ?: primaryPedro
                 val currClara = byId[primaryClara.id.trim().lowercase()] ?: primaryClara
                 if (currPedro.spouseId.isNullOrBlank() || !com.example.btproject2.engine.FamilyLinkValidator.isSameId(currPedro.spouseId, primaryClara.id) || currPedro.maritalStatus != "Married") {
@@ -304,37 +309,32 @@ class FirestoreHelper {
                 }
             }
 
-            // 2. Fix Ghillain's erroneous links:
-            // Clara is her grandmother! Renzy/Jose are her maternal/paternal uncles or father!
-            // Clara CANNOT be Ghillain's mother! Jose CANNOT be Ghillain's father (Jose is Uncle)!
+            // Fix Ghillain's erroneous links
             ghillainList.forEach { ghillain ->
                 val currG = byId[ghillain.id.trim().lowercase()] ?: ghillain
                 var fixedG = currG
                 var ghillainDirty = false
 
-                // Disconnect Clara (or any Clara in claraList) as Ghillain's mother
-                val motherIsClara = claraList.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.motherId, it.id) }
-                if (motherIsClara || (fixedG.motherId != null && matchesName(byId[fixedG.motherId!!.trim().lowercase()] ?: Person(), "clara"))) {
-                    val targetMother = primaryLuz?.id
+                val motherIsClara = claraList.any { it.treeId == fixedG.treeId && com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.motherId, it.id) }
+                if (motherIsClara || (fixedG.motherId != null && matchesName(byId[fixedG.motherId!!.trim().lowercase()] ?: Person(), "clara") && isBugarinLineage(byId[fixedG.motherId!!.trim().lowercase()] ?: Person()))) {
+                    val targetMother = primaryLuz?.takeIf { it.treeId == fixedG.treeId }?.id
                     fixedG = fixedG.copy(motherId = targetMother, motherRelationshipType = if (targetMother != null) "Biological" else "")
                     ghillainDirty = true
                 }
 
-                // Disconnect Jose (uncle) as Ghillain's father
-                val fatherIsJose = joseList.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) } ||
-                        (fixedG.fatherId != null && matchesName(byId[fixedG.fatherId!!.trim().lowercase()] ?: Person(), "jose"))
-                val fatherIsPedro = pedroList.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) }
-                val fatherIsClara = claraList.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) }
-                val fatherIsRenzy = renzyList.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) } ||
-                        (fixedG.fatherId != null && matchesName(byId[fixedG.fatherId!!.trim().lowercase()] ?: Person(), "renzy"))
+                val fatherIsJose = joseList.any { it.treeId == fixedG.treeId && com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) } ||
+                        (fixedG.fatherId != null && matchesName(byId[fixedG.fatherId!!.trim().lowercase()] ?: Person(), "jose") && isBugarinLineage(byId[fixedG.fatherId!!.trim().lowercase()] ?: Person()))
+                val fatherIsPedro = pedroList.any { it.treeId == fixedG.treeId && com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) }
+                val fatherIsClara = claraList.any { it.treeId == fixedG.treeId && com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) }
+                val fatherIsRenzy = renzyList.any { it.treeId == fixedG.treeId && com.example.btproject2.engine.FamilyLinkValidator.isSameId(fixedG.fatherId, it.id) } ||
+                        (fixedG.fatherId != null && matchesName(byId[fixedG.fatherId!!.trim().lowercase()] ?: Person(), "renzy") && isBugarinLineage(byId[fixedG.fatherId!!.trim().lowercase()] ?: Person()))
 
                 if (fatherIsJose || fatherIsPedro || fatherIsClara || fatherIsRenzy) {
                     fixedG = fixedG.copy(fatherId = null, fatherRelationshipType = "")
                     ghillainDirty = true
                 }
 
-                // If Luz is available and Ghillain has no mother set, assign Luz as biological mother
-                if (primaryLuz != null && fixedG.motherId.isNullOrBlank()) {
+                if (primaryLuz != null && primaryLuz.treeId == fixedG.treeId && fixedG.motherId.isNullOrBlank()) {
                     fixedG = fixedG.copy(motherId = primaryLuz.id, motherRelationshipType = "Biological")
                     ghillainDirty = true
                 }
@@ -345,7 +345,7 @@ class FirestoreHelper {
                 }
             }
 
-            // 3. Universal Rule Enforcement across ALL persons in tree:
+            // Universal Kinship & Structural Integrity Rule Enforcement across all persons in tree:
             // Disconnect any prohibited co-parenting or direct grandparent-as-parent links
             byId.values.toList().forEach { p ->
                 val fId = p.fatherId?.trim()
@@ -353,8 +353,8 @@ class FirestoreHelper {
                 var fixedP = p
                 var changed = false
 
-                val father = if (!fId.isNullOrBlank()) byId[fId.lowercase()] else null
-                val mother = if (!mId.isNullOrBlank()) byId[mId.lowercase()] else null
+                val father = if (!fId.isNullOrBlank()) byId[fId.lowercase()]?.takeIf { it.treeId.isEmpty() || p.treeId.isEmpty() || it.treeId == p.treeId } else null
+                val mother = if (!mId.isNullOrBlank()) byId[mId.lowercase()]?.takeIf { it.treeId.isEmpty() || p.treeId.isEmpty() || it.treeId == p.treeId } else null
 
                 // Check co-parents validity (cycles, incestuous direct parent-child or full siblings)
                 if (father != null && mother != null) {
@@ -384,7 +384,7 @@ class FirestoreHelper {
 
                 // Check grandparent-as-parent / circular ancestor violation
                 if (fixedP.motherId != null) {
-                    val m = byId[fixedP.motherId!!.trim().lowercase()]
+                    val m = byId[fixedP.motherId!!.trim().lowercase()]?.takeIf { it.treeId.isEmpty() || fixedP.treeId.isEmpty() || it.treeId == fixedP.treeId }
                     if (m != null) {
                         val isSelf = com.example.btproject2.engine.FamilyLinkValidator.isSameId(m.id, fixedP.id)
                         val isCycle = com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(fixedP.id, m.id, byId)
@@ -395,7 +395,7 @@ class FirestoreHelper {
                     }
                 }
                 if (fixedP.fatherId != null) {
-                    val f = byId[fixedP.fatherId!!.trim().lowercase()]
+                    val f = byId[fixedP.fatherId!!.trim().lowercase()]?.takeIf { it.treeId.isEmpty() || fixedP.treeId.isEmpty() || it.treeId == fixedP.treeId }
                     if (f != null) {
                         val isSelf = com.example.btproject2.engine.FamilyLinkValidator.isSameId(f.id, fixedP.id)
                         val isCycle = com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(fixedP.id, f.id, byId)
