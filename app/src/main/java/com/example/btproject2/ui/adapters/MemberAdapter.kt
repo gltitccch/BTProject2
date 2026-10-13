@@ -14,14 +14,24 @@ class MemberAdapter(
     private val onItemClick: (Person) -> Unit,
     private val onEditClick: (Person) -> Unit,
     private val onDeleteClick: (Person) -> Unit = {},
-    private val onAddChildClick: (Person) -> Unit = {}
+    private val onAddChildClick: (Person) -> Unit = {},
+    var isViewer: Boolean = false,
+    var treePrivacy: com.example.btproject2.models.PrivacySettings = com.example.btproject2.models.PrivacySettings()
 ) : RecyclerView.Adapter<MemberAdapter.MemberViewHolder>() {
 
     private val avatarColors = listOf(
         "#1D9E75", "#185FA5", "#BA7517", "#993556",
         "#7F77DD", "#D85A30", "#0F6E56", "#534AB7"
     )
-    private val parsedAvatarColors = avatarColors.map { Color.parseColor(it) }
+    private val parsedAvatarColors by lazy {
+        avatarColors.map {
+            try {
+                Color.parseColor(it)
+            } catch (_: Throwable) {
+                0
+            }
+        }
+    }
 
     class MemberViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvAvatar: TextView = view.findViewById(R.id.tvAvatar)
@@ -48,8 +58,11 @@ class MemberAdapter(
         val initials = "${person.firstName.firstOrNull() ?: ""}${person.lastName.firstOrNull() ?: ""}"
         holder.tvAvatar.text = initials.uppercase()
 
+        val shouldHideDeceased = isViewer && treePrivacy.hideDeceasedStatus
+        val shouldHideBirth = isViewer && treePrivacy.hideBirthDates
+
         // Set avatar color and name based on living status
-        if (!person.isLiving) {
+        if (!person.isLiving && !shouldHideDeceased) {
             holder.tvAvatar.background?.setTint(android.graphics.Color.parseColor("#475569"))
             holder.tvMemberName.text = "${person.firstName} ${person.lastName} 🕊️"
         } else {
@@ -66,22 +79,35 @@ class MemberAdapter(
         } else null
         val kinshipPrefix = if (!kinship.isNullOrEmpty()) "$kinship · " else ""
 
-        // Set info
+        // Set info with Direction 1 Subtle Shield privacy masking
         val info = buildString {
             append(kinshipPrefix)
             append(person.gender)
-            if (person.birthDate.isNotEmpty()) {
+            if (shouldHideBirth) {
+                append(" · 🔒 Hidden by Owner")
+            } else if (person.birthDate.isNotEmpty()) {
                 append(" · ")
                 append(person.birthDate)
             }
-            if (!person.isLiving) {
+            if (!person.isLiving && !shouldHideDeceased) {
                 append(" · 🕊️ Deceased")
-                if (person.deathDate.isNotEmpty()) {
+                if (person.deathDate.isNotEmpty() && !shouldHideBirth) {
                     append(" (d. ${person.deathDate})")
                 }
             }
         }
         holder.tvMemberInfo.text = info
+
+        // Role-gate action buttons for Viewers
+        if (isViewer) {
+            holder.btnAddChild.visibility = View.GONE
+            holder.btnEdit.visibility = View.GONE
+            holder.btnDelete.visibility = View.GONE
+        } else {
+            holder.btnAddChild.visibility = View.VISIBLE
+            holder.btnEdit.visibility = View.VISIBLE
+            holder.btnDelete.visibility = View.VISIBLE
+        }
 
         // Row opens member detail
         holder.itemView.setOnClickListener { onItemClick(person) }
@@ -98,10 +124,18 @@ class MemberAdapter(
 
     override fun getItemCount() = members.size
 
-    fun updateList(newMembers: List<Person>, all: List<Person> = allMembers, focal: Person? = focalPerson) {
+    fun updateList(
+        newMembers: List<Person>,
+        all: List<Person> = allMembers,
+        focal: Person? = focalPerson,
+        viewerMode: Boolean = isViewer,
+        privacy: com.example.btproject2.models.PrivacySettings = treePrivacy
+    ) {
         members = newMembers
         if (all.isNotEmpty()) allMembers = all
         focalPerson = focal
+        isViewer = viewerMode
+        treePrivacy = privacy
         notifyDataSetChanged()
     }
 }

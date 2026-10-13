@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path name="reports_cache" path="reports/" />
+    <cache-path name="apk_cache" path="." />
     <external-cache-path name="reports_external_cache" path="reports/" />
+    <external-cache-path name="apk_external_cache" path="." />
     <external-files-path name="reports_external_files" path="reports/" />
     <files-path name="reports_files" path="reports/" />
     <files-path name="all_internal_files" path="." />

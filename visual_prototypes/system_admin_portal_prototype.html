@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KinTrace Admin Citadel — 4-Tab Mission Control Prototype</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .serif-brand { font-family: 'Cinzel', serif; }
+    .mono-code { font-family: 'JetBrains Mono', monospace; }
+    .gold-gradient {
+      background: linear-gradient(135deg, #F4E08B 0%, #D4AF37 50%, #B89628 100%);
+    }
+    .gold-subtle {
+      background: linear-gradient(135deg, rgba(244, 224, 139, 0.12) 0%, rgba(212, 175, 55, 0.06) 100%);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #1B3D2B;
+      border-radius: 4px;
+    }
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+    .pulse-dot {
+      animation: pulseSoft 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-[#050B07] text-slate-100 p-4 md:p-8 antialiased flex flex-col items-center min-h-screen">
+
+  <!-- Top Hero Header -->
+  <div class="max-w-4xl w-full text-center mb-6">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0F261B] border border-[#D4AF37]/35 text-xs text-[#F4E08B] font-bold mb-3 shadow-lg shadow-black/40">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+      <span>KinTrace Capstone Architecture • 4-Tab Citadel Model</span>
+    </div>
+    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white serif-brand">
+      KinTrace <span class="text-[#ECC876]">System Admin Citadel</span>
+    </h1>
+    <p class="text-xs md:text-sm text-[#8EA394] mt-1.5 max-w-2xl mx-auto leading-relaxed">
+      Full interactive simulation of the 4 core administrative departments: <strong>Infrastructure Telemetry & Quota Gauges</strong>, <strong>Scoped In-App Broadcaster</strong>, <strong>Freemium 50-Cap Upgrade & Pass Desk</strong>, and the <strong>Disaster Recovery & Defense Sandbox Vault</strong>.
+    </p>
+  </div>
+
+  <!-- Main Split Layout: Phone Mockup (Left) + Operations Console (Right) -->
+  <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start justify-center">
+
+    <!-- Phone Canvas (Col 1-7) -->
+    <div class="lg:col-span-7 flex justify-center">
+      <div class="w-[370px] h-[780px] rounded-[48px] p-3 shadow-2xl bg-[#091710] border-4 border-[#163825] relative flex flex-col overflow-hidden shadow-black">
+        
+        <!-- Screen Canvas -->
+        <div id="screen" class="w-full h-full rounded-[40px] overflow-hidden flex flex-col relative bg-[#060D09]">
+          
+          <!-- Status Bar -->
+          <div class="px-6 pt-3 pb-1 flex justify-between items-center text-[11px] text-[#8EA394] font-semibold select-none bg-[#091710]">
+            <span>9:41</span>
+            <div class="flex items-center gap-1.5">
+              <span>5G 📶</span>
+              <span class="text-emerald-400 font-bold">100%</span>
+            </div>
+          </div>
+
+          <!-- Top Admin Bar -->
+          <div class="px-4 py-2.5 flex items-center justify-between bg-gradient-to-b from-[#0C2016] to-[#07130D] border-b border-[#1E4530]">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🛡️</span>
+              <div>
+                <h2 class="text-xs font-bold text-[#F4E08B] serif-brand tracking-wide">Admin Citadel</h2>
+                <div class="text-[9.5px] text-[#8EA394]">Super Admin: <span class="text-white font-semibold">admin@kintrace.ph</span></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#102D1E] border border-emerald-500/30 text-[10px] text-emerald-300 font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
+              <span>Telemetry 🟢</span>
+            </div>
+          </div>
+
+          <!-- Reactive Client Banner Simulation (In-App Top Notice) -->
+          <div id="liveBanner" class="mx-3 mt-2.5 p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-[11px] flex items-start gap-2 shadow-lg transition-all duration-300">
+            <span id="bannerIcon" class="text-sm">⚠️</span>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <span id="bannerTitle" class="font-bold text-[11.5px] text-amber-300">PSA Sync Maintenance Tonight</span>
+                <span id="bannerScopeBadge" class="text-[8.5px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">Tree Owners</span>
+              </div>
+              <div id="bannerBody" class="text-[10px] text-amber-100/90 leading-tight mt-0.5">KinTrace tree sync services will undergo maintenance from 11:00 PM to 1:00 AM PHT.</div>
+              <div id="bannerTime" class="text-[9px] text-amber-300/80 mt-1 font-semibold flex items-center justify-between">
+                <span>⏱️ 23:00 - 01:00 PHT</span>
+                <span id="bannerAutoRetractText" class="text-[8.5px] opacity-75">Auto-expires in 2h</span>
+              </div>
+            </div>
+            <button onclick="dismissBanner()" class="text-amber-400 hover:text-white text-xs px-1 font-bold">✕</button>
+          </div>
+
+          <!-- 4 CITADEL NAVIGATION TABS (The 4 Departments) -->
+          <div class="px-2.5 pt-2.5">
+            <div class="grid grid-cols-4 gap-1 bg-[#091710] p-1 rounded-xl border border-[#D4AF37]/25 text-[9.5px]">
+              <button onclick="setTab('telemetry')" id="btnTab1" class="py-1.5 font-bold rounded-lg bg-[#143322] text-[#F4E08B] shadow text-center truncate">
+                📊 Telemetry
+              </button>
+              <button onclick="setTab('broadcaster')" id="btnTab2" class="py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg text-center truncate">
+                📢 Broadcast
+              </button>
+              <button onclick="setTab('upgrades')" id="btnTab3" class="py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg text-center truncate">
+                👑 Quota (<span id="upgradeCountBadge">2</span>)
+              </button>
+              <button onclick="setTab('recovery')" id="btnTab4" class="py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg text-center truncate">
+                🛠️ Ops Desk
+              </button>
+            </div>
+          </div>
+
+          <!-- Scrollable Department Content Container -->
+          <div class="flex-1 overflow-y-auto p-3 space-y-3 custom-scroll">
+
+            <!-- ═════════════════════════════════════════════════════════════ -->
+            <!-- TAB 1: TELEMETRY, HEALTH & GHOST TREE PRUNER                   -->
+            <!-- ═════════════════════════════════════════════════════════════ -->
+            <div id="tab1Content" class="space-y-2.5">
+              
+              <!-- 4 Primary Metrics -->
+              <div class="grid grid-cols-2 gap-2">
+                <div class="p-2.5 rounded-2xl bg-gradient-to-br from-[#0F261B] to-[#08160F] border border-[#D4AF37]/20 relative overflow-hidden">
+                  <div class="text-[9px] uppercase font-bold text-[#8EA394]">Registered Accounts</div>
+                  <div id="statUsers" class="text-lg font-bold text-white serif-brand mt-0.5 flex items-baseline gap-1.5">
+                    128 <span class="text-[9px] text-emerald-400 font-sans">▲ +14%</span>
+                  </div>
+                  <div class="text-[8.5px] text-[#8EA394]">Firebase Auth active</div>
+                </div>
+
+                <div class="p-2.5 rounded-2xl bg-gradient-to-br from-[#0F261B] to-[#08160F] border border-[#D4AF37]/20 relative overflow-hidden">
+                  <div class="text-[9px] uppercase font-bold text-[#8EA394]">Active Clan Trees</div>
+                  <div id="statTrees" class="text-lg font-bold text-white serif-brand mt-0.5 flex items-baseline gap-1.5">
+                    42 <span class="text-[9px] text-emerald-400 font-sans">● 100% Sync</span>
+                  </div>
+                  <div class="text-[8.5px] text-[#8EA394]">CentralTreeSync Bus</div>
+                </div>
+
+                <div class="p-2.5 rounded-2xl bg-gradient-to-br from-[#0F261B] to-[#08160F] border border-[#D4AF37]/20 relative overflow-hidden">
+                  <div class="text-[9px] uppercase font-bold text-[#8EA394]">Encoded Members</div>
+                  <div id="statMembers" class="text-lg font-bold text-white serif-brand mt-0.5 flex items-baseline gap-1.5">
+                    1,840 <span class="text-[9px] text-emerald-400 font-sans">▲ +320</span>
+                  </div>
+                  <div class="text-[8.5px] text-[#8EA394]">Avg 43.8 / clan</div>
+                </div>
+
+                <div class="p-2.5 rounded-2xl bg-gradient-to-br from-[#0F261B] to-[#08160F] border border-[#D4AF37]/20 relative overflow-hidden">
+                  <div class="text-[9px] uppercase font-bold text-[#8EA394]">Validation Health</div>
+                  <div class="text-lg font-bold text-white serif-brand mt-0.5 flex items-baseline gap-1.5">
+                    99.9% <span class="text-[9px] text-emerald-400 font-sans">🟢 Optimal</span>
+                  </div>
+                  <div class="text-[8.5px] text-[#8EA394]">0 DAG cycles detected</div>
+                </div>
+              </div>
+
+              <!-- CLOUD QUOTA & STORAGE GAUGE (NEW) -->
+              <div class="p-3 rounded-2xl bg-[#0C1F15] border border-[#1E4530] space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold text-[#F4E08B] uppercase tracking-wider">☁️ Firestore Free-Tier Quota Monitor</span>
+                  <span class="text-[9px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">Within Quota</span>
+                </div>
+
+                <!-- Read Operations -->
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[9.5px]">
+                    <span class="text-[#8EA394]">Daily Document Reads:</span>
+                    <span id="readsLabel" class="text-white font-mono font-bold">34,200 / 50,000 (68.4%)</span>
+                  </div>
+                  <div class="w-full h-1.5 rounded-full bg-[#07130D] overflow-hidden">
+                    <div id="readsBar" class="h-full bg-gradient-to-r from-emerald-400 to-amber-400 w-[68%] transition-all duration-500"></div>
+                  </div>
+                </div>
+
+                <!-- Storage Volume -->
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[9.5px]">
+                    <span class="text-[#8EA394]">Cloud Storage Volume:</span>
+                    <span id="storageLabel" class="text-white font-mono font-bold">214 MB / 1,024 MB (20.9%)</span>
+                  </div>
+                  <div class="w-full h-1.5 rounded-full bg-[#07130D] overflow-hidden">
+                    <div id="storageBar" class="h-full bg-emerald-400 w-[21%] transition-all duration-500"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INACTIVE / GHOST TREE PRUNER (NEW) -->
+              <div id="ghostPrunerCard" class="p-3 rounded-2xl bg-[#0D2117] border border-amber-500/30 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm">🧹</span>
+                    <span class="text-xs font-bold text-amber-300">Ghost / Inactive Tree Pruner</span>
+                  </div>
+                  <span id="ghostBadge" class="text-[9px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">3 Ghost Trees</span>
+                </div>
+                <p class="text-[10px] text-[#8EA394] leading-relaxed">
+                  Identified 3 abandoned trees with 0 members created &gt;14 days ago. Pruning frees document metadata and improves query response times.
+                </p>
+                <div id="ghostList" class="space-y-1 text-[9.5px] mono-code text-slate-300 bg-[#07140D] p-2 rounded-xl border border-white/5">
+                  <div class="flex justify-between"><span>• empty_tree_901 (0 members)</span><span class="text-amber-400">18d ago</span></div>
+                  <div class="flex justify-between"><span>• test_tree_404 (0 members)</span><span class="text-amber-400">22d ago</span></div>
+                  <div class="flex justify-between"><span>• abandoned_clan_88 (1 member)</span><span class="text-amber-400">75d dormant</span></div>
+                </div>
+                <button onclick="pruneGhostTrees()" id="btnPruneGhost" class="w-full py-1.5 rounded-xl font-bold text-xs bg-amber-500/20 border border-amber-400/50 text-amber-200 hover:bg-amber-500/30 active:scale-95 transition-all">
+                  🧹 Prune 3 Ghost Trees & Reclaim Quota
+                </button>
+              </div>
+
+            </div>
+
+            <!-- ═════════════════════════════════════════════════════════════ -->
+            <!-- TAB 2: PUSH BROADCASTER WITH SCOPES & AUTO-EXPIRATION          -->
+            <!-- ═════════════════════════════════════════════════════════════ -->
+            <div id="tab2Content" class="hidden space-y-2.5">
+              <div class="p-3.5 rounded-2xl bg-[#0D2117] border border-[#D4AF37]/25 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-[#F4E08B] serif-brand">📢 Scoped In-App Notice Engine</h3>
+                  <span class="text-[8.5px] text-[#8EA394] uppercase font-bold">FR-11 Broadcaster</span>
+                </div>
+
+                <!-- Severity Picker -->
+                <div>
+                  <label class="block text-[9px] font-bold text-[#8EA394] uppercase mb-1">Severity Level</label>
+                  <div class="grid grid-cols-3 gap-1">
+                    <button onclick="setSeverity('info')" id="sevInfo" class="py-1 text-[9.5px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]">ℹ️ Info</button>
+                    <button onclick="setSeverity('warning')" id="sevWarning" class="py-1 text-[9.5px] font-bold rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-300">⚠️ Scheduled</button>
+                    <button onclick="setSeverity('lockdown')" id="sevLockdown" class="py-1 text-[9.5px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]">🚨 Lockdown</button>
+                  </div>
+                </div>
+
+                <!-- AUDIENCE SCOPE TOGGLE (NEW) -->
+                <div>
+                  <label class="block text-[9px] font-bold text-[#8EA394] uppercase mb-1">Target Audience Scope</label>
+                  <div class="grid grid-cols-3 gap-1">
+                    <button onclick="setScope('ALL')" id="scopeAll" class="py-1 text-[9px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]">🌐 All Users</button>
+                    <button onclick="setScope('OWNERS')" id="scopeOwners" class="py-1 text-[9px] font-bold rounded-lg border border-[#D4AF37]/50 bg-[#D4AF37]/20 text-[#F4E08B]">👑 Tree Owners</button>
+                    <button onclick="setScope('CAPPED')" id="scopeCapped" class="py-1 text-[9px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]">⚠️ Capped (50)</button>
+                  </div>
+                </div>
+
+                <!-- Title Input -->
+                <div>
+                  <label class="block text-[9px] font-bold text-[#8EA394] uppercase mb-1">Announcement Title</label>
+                  <input id="inputTitle" type="text" value="PSA Sync Maintenance Tonight" class="w-full bg-[#06110B] border border-[#1E4530] rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-[#D4AF37] outline-none" />
+                </div>
+
+                <!-- Description Input -->
+                <div>
+                  <label class="block text-[9px] font-bold text-[#8EA394] uppercase mb-1">Notice Description</label>
+                  <textarea id="inputBody" rows="2" class="w-full bg-[#06110B] border border-[#1E4530] rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-[#D4AF37] outline-none resize-none">KinTrace tree sync services will undergo maintenance from 11:00 PM to 1:00 AM PHT.</textarea>
+                </div>
+
+                <!-- AUTO-EXPIRATION WINDOW (NEW) -->
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[9px] font-bold text-[#8EA394] uppercase mb-1">Scheduled Window</label>
+                    <input id="inputTime" type="text" value="23:00 - 01:00 PHT" class="w-full bg-[#06110B] border border-[#1E4530] rounded-xl px-2 py-1 text-xs text-white focus:border-[#D4AF37] outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-[9px] font-bold text-[#8EA394] uppercase mb-1">Auto-Expiration</label>
+                    <select id="selectExpiry" class="w-full bg-[#06110B] border border-[#1E4530] rounded-xl px-2 py-1 text-xs text-white focus:border-[#D4AF37] outline-none">
+                      <option value="2h" selected>Auto-retract in 2 hours</option>
+                      <option value="30m">Auto-retract in 30 mins</option>
+                      <option value="6h">Auto-retract in 6 hours</option>
+                      <option value="manual">Until Manually Retracted</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Dispatch Button -->
+                <button onclick="dispatchBroadcastAction()" class="w-full py-2.5 rounded-xl font-bold text-xs text-[#06110A] gold-gradient shadow-lg shadow-[#D4AF37]/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+                  <span>🚀 Dispatch Scoped In-App Notice</span>
+                </button>
+
+                <!-- Retract Button -->
+                <button onclick="retractBroadcastAction()" class="w-full py-1.5 rounded-xl font-semibold text-[11px] text-red-300 bg-red-500/15 border border-red-500/30 hover:bg-red-500/25 transition-all">
+                  ✕ Retract / Clear Active Alert
+                </button>
+              </div>
+            </div>
+
+            <!-- ═════════════════════════════════════════════════════════════ -->
+            <!-- TAB 3: QUOTA & UPGRADE QUEUE + REUNION PASS GENERATOR          -->
+            <!-- ═════════════════════════════════════════════════════════════ -->
+            <div id="tab3Content" class="hidden space-y-2.5">
+              <div class="text-[9.5px] text-[#8EA394] uppercase font-bold px-1">Freemium 50-Member Cap Review Desk</div>
+
+              <!-- Card 1: Malone -->
+              <div id="upgradeCard1" class="p-3 rounded-2xl bg-[#0D2117] border border-[#D4AF37]/25 space-y-2">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h4 class="text-xs font-bold text-white">Malone Family Clan Tree</h4>
+                    <div class="text-[9.5px] text-[#8EA394]">Owner: gendums5@gmail.com</div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-[9px]">50/50 Capped</span>
+                </div>
+                <p class="text-[10px] text-[#B4CFC0] leading-relaxed">
+                  Reached free-tier quota. Requesting expansion to add 4th generation grandchildren.
+                </p>
+                <div class="flex gap-1.5 pt-1">
+                  <button onclick="resolveUpgrade('upgradeCard1', 'Malone Family', true)" class="flex-1 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-[10px] active:scale-95 transition-all">
+                    ✓ Approve Unlimited
+                  </button>
+                  <button onclick="resolveUpgrade('upgradeCard1', 'Malone Family', false)" class="px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[10px]">
+                    ✕ Decline
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card 2: Santos -->
+              <div id="upgradeCard2" class="p-3 rounded-2xl bg-[#0D2117] border border-[#D4AF37]/25 space-y-2">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h4 class="text-xs font-bold text-white">Santos-Reyes Heritage</h4>
+                    <div class="text-[9.5px] text-[#8EA394]">Owner: clan.santos@gmail.com</div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-[9px]">50/50 Capped</span>
+                </div>
+                <p class="text-[10px] text-[#B4CFC0] leading-relaxed">
+                  Provincial clan reunion approaching. Requesting temporary expansion for branch fusion.
+                </p>
+                <div class="flex gap-1.5 pt-1">
+                  <button onclick="resolveUpgrade('upgradeCard2', 'Santos-Reyes', true)" class="flex-1 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-[10px] active:scale-95 transition-all">
+                    ✓ Approve Unlimited
+                  </button>
+                  <button onclick="resolveUpgrade('upgradeCard2', 'Santos-Reyes', false)" class="px-2.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[10px]">
+                    ✕ Decline
+                  </button>
+                </div>
+              </div>
+
+              <!-- 1-MONTH REUNION PASS GENERATOR (NEW) -->
+              <div class="p-3 rounded-2xl bg-gradient-to-br from-[#12281D] to-[#0A1810] border border-[#D4AF37]/30 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm">🎟️</span>
+                    <span class="text-xs font-bold text-[#F4E08B]">1-Month Reunion Pass Desk</span>
+                  </div>
+                  <span class="text-[8.5px] bg-[#D4AF37]/20 text-[#F4E08B] px-1.5 py-0.5 rounded font-bold">Promo Licensing</span>
+                </div>
+                <p class="text-[10px] text-[#8EA394] leading-relaxed">
+                  Generate promotional temporary access codes granting 30 days of unlimited member additions for clan gatherings without permanent overhead.
+                </p>
+                <div id="passVoucherContainer" class="hidden p-2 rounded-xl bg-[#06110B] border border-[#D4AF37] text-center space-y-1">
+                  <div class="text-[9px] uppercase font-bold text-[#8EA394]">30-Day Unlimited Access Key</div>
+                  <div id="voucherCodeText" class="text-xs font-mono font-bold text-[#F4E08B] tracking-wider select-all">REUNION-2026-9B4F</div>
+                  <div class="text-[8.5px] text-emerald-400">Valid for 30 days upon redemption by Tree Owner</div>
+                </div>
+                <button onclick="generateReunionPassAction()" class="w-full py-1.5 rounded-xl font-bold text-xs bg-[#D4AF37]/20 border border-[#D4AF37]/60 text-[#F4E08B] hover:bg-[#D4AF37]/30 active:scale-95 transition-all">
+                  🎟️ Generate 1-Month Reunion Pass (Code)
+                </button>
+              </div>
+
+            </div>
+
+            <!-- ═════════════════════════════════════════════════════════════ -->
+            <!-- TAB 4: OPS & RECOVERY DESK (DEFENSE RESILIENCE SUITE)          -->
+            <!-- ═════════════════════════════════════════════════════════════ -->
+            <div id="tab4Content" class="hidden space-y-2.5">
+              <div class="text-[9.5px] text-[#8EA394] uppercase font-bold px-1">Disaster Recovery & Defense Operations</div>
+
+              <!-- 4A: SOFT-DELETE NODE RECOVERY -->
+              <div id="nodeRecoveryCard" class="p-3 rounded-2xl bg-[#0E1F26] border border-cyan-500/30 space-y-2">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <div class="flex items-center gap-1">
+                      <span class="text-xs">🚨</span>
+                      <h4 class="text-xs font-bold text-cyan-300">Soft-Delete Node Recovery</h4>
+                    </div>
+                    <div class="text-[9.5px] text-slate-400">Flagged: <span class="text-white font-semibold">isDeleted: true</span></div>
+                  </div>
+                  <span class="text-[8.5px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded font-bold">1 Snipped Node</span>
+                </div>
+                <p class="text-[10px] text-slate-300 leading-relaxed">
+                  <strong>Patriarch: Juan Dela Cruz</strong> (<code>node_jdc_1945</code>). Accidentally deleted 2h ago by Editor 'Karl' (snapped 3 biological child links).
+                </p>
+                <button onclick="restoreDeletedNodeAction()" id="btnRestoreNode" class="w-full py-1.5 rounded-xl font-bold text-xs bg-cyan-500/20 border border-cyan-400/60 text-cyan-200 hover:bg-cyan-500/30 active:scale-95 transition-all">
+                  🌿 Restore Node & Heal Graph Pointers
+                </button>
+              </div>
+
+              <!-- 4B: MERGE COLLISION ESCALATION DESK -->
+              <div id="collisionCard" class="p-3 rounded-2xl bg-[#1C1824] border border-purple-500/30 space-y-2">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <div class="flex items-center gap-1">
+                      <span class="text-xs">⚖️</span>
+                      <h4 class="text-xs font-bold text-purple-300">Merge Collision Escalation</h4>
+                    </div>
+                    <div class="text-[9.5px] text-slate-400">Target Person: <span class="text-white font-semibold">Maria Santos</span></div>
+                  </div>
+                  <span class="text-[8.5px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-bold">Vital Conflict</span>
+                </div>
+                <div class="text-[9.5px] space-y-1 bg-[#09070E] p-2 rounded-xl border border-white/5 mono-code">
+                  <div class="text-amber-300">• Branch A (Manila): b. 1945-06-12 · Manila, PH</div>
+                  <div class="text-rose-300">• Branch B (Iloilo): b. 1948-09-20 · Iloilo, PH</div>
+                </div>
+                <button onclick="resolveMergeConflictAction()" id="btnResolveConflict" class="w-full py-1.5 rounded-xl font-bold text-xs bg-purple-500/20 border border-purple-400/60 text-purple-200 hover:bg-purple-500/30 active:scale-95 transition-all">
+                  ⚖️ Resolve & Force-Merge (Canonical: PSA Manila)
+                </button>
+              </div>
+
+              <!-- 4C: DEFENSE DEMO SANDBOX VAULT -->
+              <div class="p-3 rounded-2xl bg-[#0F2418] border border-emerald-500/30 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-emerald-300">⚡ Defense Presentation Sandbox</span>
+                  <span class="text-[8.5px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold">1-Tap Live Tools</span>
+                </div>
+                <p class="text-[10px] text-[#8EA394]">
+                  Simulate populating sample trees or resetting client storage to demonstrate resilience before defense panelists:
+                </p>
+                <div class="grid grid-cols-2 gap-1.5">
+                  <button onclick="seedBenchmarkClanAction()" class="py-1.5 rounded-xl font-bold text-[10px] bg-emerald-500/20 border border-emerald-400 text-emerald-300 hover:bg-emerald-500/30 active:scale-95 transition-all text-center">
+                    ⚡ Seed 4-Gen Clan (24 Nodes)
+                  </button>
+                  <button onclick="resetDemoStateAction()" class="py-1.5 rounded-xl font-bold text-[10px] bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 active:scale-95 transition-all text-center">
+                    🔄 Flush & Reset Demo State
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Bottom Security Watermark -->
+          <div class="p-2 text-center text-[9px] text-[#8EA394]/70 bg-[#091710] border-t border-[#163625]">
+            KinTrace Enterprise Core • Gated by UserProfile.role == "admin"
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Testing & Simulation Console (Right Sidebar, Col 8-12) -->
+    <div class="lg:col-span-5 space-y-4">
+      
+      <!-- Testing Card -->
+      <div class="p-5 rounded-3xl bg-[#0C1E14] border border-[#D4AF37]/35 space-y-3.5 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[#1E4530] pb-2.5">
+          <h3 class="text-sm font-bold text-[#F4E08B] serif-brand">🎮 Citadel Testing Shortcuts</h3>
+          <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">Active Sandbox</span>
+        </div>
+        
+        <p class="text-xs text-[#8EA394] leading-relaxed">
+          Trigger any administrative action below to watch the live phone interface and audit ledger update in real time:
+        </p>
+
+        <div class="space-y-2">
+          <button onclick="pruneGhostTrees()" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-amber-500/30 hover:border-amber-400 text-amber-200 text-xs font-semibold flex items-center justify-between transition-all">
+            <span>🧹 Test Ghost Tree Pruning</span>
+            <span class="text-[9.5px] bg-amber-500/20 px-2 py-0.5 rounded">Prune</span>
+          </button>
+
+          <button onclick="restoreDeletedNodeAction()" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-cyan-500/30 hover:border-cyan-400 text-cyan-200 text-xs font-semibold flex items-center justify-between transition-all">
+            <span>🌿 Test Soft-Delete Node Recovery</span>
+            <span class="text-[9.5px] bg-cyan-500/20 px-2 py-0.5 rounded">Restore</span>
+          </button>
+
+          <button onclick="resolveMergeConflictAction()" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-purple-500/30 hover:border-purple-400 text-purple-200 text-xs font-semibold flex items-center justify-between transition-all">
+            <span>⚖️ Test Merge Conflict Force-Merge</span>
+            <span class="text-[9.5px] bg-purple-500/20 px-2 py-0.5 rounded">Resolve</span>
+          </button>
+
+          <button onclick="generateReunionPassAction()" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-[#D4AF37]/40 hover:border-[#D4AF37] text-[#F4E08B] text-xs font-semibold flex items-center justify-between transition-all">
+            <span>🎟️ Test 1-Month Reunion Pass Generation</span>
+            <span class="text-[9.5px] bg-[#D4AF37]/20 px-2 py-0.5 rounded">Pass</span>
+          </button>
+
+          <button onclick="seedBenchmarkClanAction()" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-emerald-500/40 hover:border-emerald-400 text-emerald-200 text-xs font-semibold flex items-center justify-between transition-all">
+            <span>⚡ Test Seeding 4-Gen Clan (24 Nodes)</span>
+            <span class="text-[9.5px] bg-emerald-500/20 px-2 py-0.5 rounded">+24 Nodes</span>
+          </button>
+
+          <button onclick="retractBroadcastAction()" class="w-full text-left p-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-[#8EA394] text-xs font-medium flex items-center justify-between transition-all">
+            <span>✕ Retract / Clear Active Broadcast</span>
+            <span class="text-[9.5px] opacity-75">Clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- IMMUTABLE ADMIN AUDIT TRAIL TABLE (admin_audit_logs) -->
+      <div class="p-5 rounded-3xl bg-[#0C1E14] border border-[#1E4530] space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-white uppercase tracking-wider">📜 Immutable Admin Audit Trail</h3>
+          <span class="text-[9px] font-mono text-emerald-400">admin_audit_logs</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[10px]">
+            <thead>
+              <tr class="text-[#8EA394] border-b border-white/10">
+                <th class="py-1">Time</th>
+                <th class="py-1">Action</th>
+                <th class="py-1">Admin</th>
+                <th class="py-1 text-right">Hash</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody" class="divide-y divide-white/5 text-slate-300 font-mono">
+              <tr>
+                <td class="py-1 text-slate-400">18:20</td>
+                <td class="text-amber-300 font-sans font-bold">CITADEL_INITIALIZED</td>
+                <td>admin@kintrace.ph</td>
+                <td class="text-right text-emerald-400 font-bold">#4a9b</td>
+              </tr>
+              <tr>
+                <td class="py-1 text-slate-400">18:15</td>
+                <td class="text-emerald-300 font-sans font-bold">SYNC_HEALTH_PASS</td>
+                <td>cron_heartbeat</td>
+                <td class="text-right text-emerald-400 font-bold">#18fe</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let activeTab = 'telemetry';
+    let activeSeverity = 'warning';
+    let activeScope = 'OWNERS';
+    let currentUsers = 128;
+    let currentTrees = 42;
+    let currentMembers = 1840;
+    let pendingUpgrades = 2;
+
+    function setTab(tab) {
+      activeTab = tab;
+      document.getElementById('tab1Content').classList.toggle('hidden', tab !== 'telemetry');
+      document.getElementById('tab2Content').classList.toggle('hidden', tab !== 'broadcaster');
+      document.getElementById('tab3Content').classList.toggle('hidden', tab !== 'upgrades');
+      document.getElementById('tab4Content').classList.toggle('hidden', tab !== 'recovery');
+
+      const b1 = document.getElementById('btnTab1');
+      const b2 = document.getElementById('btnTab2');
+      const b3 = document.getElementById('btnTab3');
+      const b4 = document.getElementById('btnTab4');
+
+      const activeClass = 'py-1.5 font-bold rounded-lg bg-[#143322] text-[#F4E08B] shadow text-center truncate';
+      const inactiveClass = 'py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg text-center truncate';
+
+      b1.className = tab === 'telemetry' ? activeClass : inactiveClass;
+      b2.className = tab === 'broadcaster' ? activeClass : inactiveClass;
+      b3.className = tab === 'upgrades' ? activeClass : inactiveClass;
+      b4.className = tab === 'recovery' ? activeClass : inactiveClass;
+    }
+
+    function setSeverity(sev) {
+      activeSeverity = sev;
+      const bInfo = document.getElementById('sevInfo');
+      const bWarn = document.getElementById('sevWarning');
+      const bLock = document.getElementById('sevLockdown');
+
+      bInfo.className = sev === 'info' ? 'py-1 text-[9.5px] font-bold rounded-lg border border-blue-500/50 bg-blue-500/20 text-blue-300' : 'py-1 text-[9.5px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+      bWarn.className = sev === 'warning' ? 'py-1 text-[9.5px] font-bold rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-300' : 'py-1 text-[9.5px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+      bLock.className = sev === 'lockdown' ? 'py-1 text-[9.5px] font-bold rounded-lg border border-red-500/50 bg-red-500/20 text-red-300' : 'py-1 text-[9.5px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+    }
+
+    function setScope(scope) {
+      activeScope = scope;
+      const bAll = document.getElementById('scopeAll');
+      const bOwn = document.getElementById('scopeOwners');
+      const bCap = document.getElementById('scopeCapped');
+
+      bAll.className = scope === 'ALL' ? 'py-1 text-[9px] font-bold rounded-lg border border-emerald-500/50 bg-emerald-500/20 text-emerald-300' : 'py-1 text-[9px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+      bOwn.className = scope === 'OWNERS' ? 'py-1 text-[9px] font-bold rounded-lg border border-[#D4AF37]/50 bg-[#D4AF37]/20 text-[#F4E08B]' : 'py-1 text-[9px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+      bCap.className = scope === 'CAPPED' ? 'py-1 text-[9px] font-bold rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-300' : 'py-1 text-[9px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+    }
+
+    function dispatchBroadcastAction() {
+      const title = document.getElementById('inputTitle').value;
+      const body = document.getElementById('inputBody').value;
+      const time = document.getElementById('inputTime').value;
+      const expiry = document.getElementById('selectExpiry').value;
+
+      const banner = document.getElementById('liveBanner');
+      banner.classList.remove('hidden');
+
+      if (activeSeverity === 'info') {
+        banner.className = 'mx-3 mt-2.5 p-2.5 rounded-xl bg-blue-500/15 border border-blue-500/40 text-blue-200 text-[11px] flex items-start gap-2 shadow-lg transition-all';
+        document.getElementById('bannerIcon').innerText = 'ℹ️';
+      } else if (activeSeverity === 'lockdown') {
+        banner.className = 'mx-3 mt-2.5 p-2.5 rounded-xl bg-red-500/20 border border-red-500/50 text-red-200 text-[11px] flex items-start gap-2 shadow-lg transition-all';
+        document.getElementById('bannerIcon').innerText = '🚨';
+      } else {
+        banner.className = 'mx-3 mt-2.5 p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-[11px] flex items-start gap-2 shadow-lg transition-all';
+        document.getElementById('bannerIcon').innerText = '⚠️';
+      }
+
+      document.getElementById('bannerTitle').innerText = title;
+      document.getElementById('bannerBody').innerText = body;
+      document.getElementById('bannerTime').innerText = `⏱️ ${time}`;
+      document.getElementById('bannerScopeBadge').innerText = activeScope === 'ALL' ? 'Global' : (activeScope === 'OWNERS' ? 'Tree Owners' : 'Capped Clans');
+      document.getElementById('bannerAutoRetractText').innerText = `Expires in ${expiry}`;
+
+      addAuditLog(`BROADCAST_PUBLISHED (${activeSeverity.toUpperCase()}, Scope: ${activeScope})`);
+      alert(`🚀 Broadcast Published!\nScope: ${activeScope}\nSeverity: ${activeSeverity.toUpperCase()}\nTitle: ${title}`);
+    }
+
+    function retractBroadcastAction() {
+      document.getElementById('liveBanner').classList.add('hidden');
+      addAuditLog('BROADCAST_RETRACTED (Super Admin)');
+      alert('✕ Active maintenance notice retracted from all client sessions.');
+    }
+
+    function dismissBanner() {
+      document.getElementById('liveBanner').classList.add('hidden');
+    }
+
+    function pruneGhostTrees() {
+      currentTrees = 39;
+      document.getElementById('statTrees').innerHTML = `39 <span class="text-[9px] text-emerald-400 font-sans">● 100% Sync</span>`;
+      document.getElementById('ghostBadge').innerText = '0 Ghost Trees';
+      document.getElementById('ghostBadge').className = 'text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold';
+      document.getElementById('ghostList').innerHTML = `<div class="text-emerald-400 font-sans py-1 text-center font-bold">✓ 3 Ghost Trees Purged • 1.2 MB Storage Reclaimed</div>`;
+      document.getElementById('btnPruneGhost').disabled = true;
+      document.getElementById('btnPruneGhost').innerText = '✓ All Ghost Trees Pruned';
+      document.getElementById('btnPruneGhost').className = 'w-full py-1.5 rounded-xl font-bold text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 cursor-not-allowed';
+
+      document.getElementById('storageLabel').innerText = '212.8 MB / 1,024 MB (20.7%)';
+      addAuditLog('GHOST_TREES_PRUNED (3 trees purged, 1.2 MB reclaimed)');
+      alert('🧹 3 Ghost Trees successfully pruned! Active tree count updated to 39.');
+    }
+
+    function resolveUpgrade(cardId, name, approved) {
+      const card = document.getElementById(cardId);
+      if (approved) {
+        card.innerHTML = `<div class="p-2.5 text-center text-[10.5px] font-bold text-emerald-400 bg-emerald-500/10 rounded-xl border border-emerald-500/20">✓ ${name} upgraded to Unlimited Premium! Owner notified.</div>`;
+        addAuditLog(`UPGRADE_APPROVED (${name})`);
+      } else {
+        card.innerHTML = `<div class="p-2.5 text-center text-[10.5px] font-semibold text-slate-400 bg-white/5 rounded-xl">✕ ${name} request declined.</div>`;
+        addAuditLog(`UPGRADE_DECLINED (${name})`);
+      }
+      pendingUpgrades = Math.max(0, pendingUpgrades - 1);
+      document.getElementById('upgradeCountBadge').innerText = pendingUpgrades;
+    }
+
+    function generateReunionPassAction() {
+      const randomHex = Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+      const code = `REUNION-2026-${randomHex}`;
+      document.getElementById('voucherCodeText').innerText = code;
+      document.getElementById('passVoucherContainer').classList.remove('hidden');
+      addAuditLog(`PROMO_PASS_GENERATED (Code: ${code})`);
+      alert(`🎟️ 1-Month Reunion Pass Generated!\nKey: ${code}\nValid for 30 days.`);
+    }
+
+    function restoreDeletedNodeAction() {
+      currentMembers += 1;
+      document.getElementById('statMembers').innerHTML = `${currentMembers} <span class="text-[9px] text-emerald-400 font-sans">▲ +1 Restored</span>`;
+      const card = document.getElementById('nodeRecoveryCard');
+      card.className = 'p-3 rounded-2xl bg-[#0F261B] border border-emerald-500/40 space-y-1.5';
+      card.innerHTML = `
+        <div class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+          <span>✓</span> <span>Juan Dela Cruz Restored Successfully</span>
+        </div>
+        <p class="text-[10px] text-[#8EA394]">
+          Node re-attached to parent pointers. 3 biological child links healed in the tree graph.
+        </p>
+      `;
+      addAuditLog('NODE_RESTORED_GRAPH_HEALED (Juan Dela Cruz, node_jdc_1945)');
+      alert('🌿 Node Juan Dela Cruz restored! 3 biological child links healed.');
+    }
+
+    function resolveMergeConflictAction() {
+      const card = document.getElementById('collisionCard');
+      card.className = 'p-3 rounded-2xl bg-[#0F261B] border border-emerald-500/40 space-y-1.5';
+      card.innerHTML = `
+        <div class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+          <span>✓</span> <span>Merge Conflict Resolved</span>
+        </div>
+        <p class="text-[10px] text-[#8EA394]">
+          Canonical record adopted (b. 1945-06-12 · Manila, PH). Both branches merged cleanly.
+        </p>
+      `;
+      addAuditLog('MERGE_COLLISION_RESOLVED (Maria Santos, canonical: Manila 1945)');
+      alert('⚖️ Branch collision resolved! Canonical birthdate adopted and branches unified.');
+    }
+
+    function seedBenchmarkClanAction() {
+      currentMembers += 24;
+      currentTrees += 1;
+      document.getElementById('statMembers').innerHTML = `${currentMembers} <span class="text-[9px] text-emerald-400 font-sans">▲ +24 Seeded</span>`;
+      document.getElementById('statTrees').innerHTML = `${currentTrees} <span class="text-[9px] text-emerald-400 font-sans">● 100% Sync</span>`;
+      addAuditLog('BENCHMARK_CLAN_SEEDED (24 nodes, 4 generations)');
+      alert('⚡ Benchmark clan seeded! Added 24 members and 1 family tree.');
+    }
+
+    function resetDemoStateAction() {
+      currentUsers = 128;
+      currentTrees = 42;
+      currentMembers = 1840;
+      pendingUpgrades = 2;
+
+      document.getElementById('statUsers').innerHTML = `128 <span class="text-[9px] text-emerald-400 font-sans">▲ +14%</span>`;
+      document.getElementById('statTrees').innerHTML = `42 <span class="text-[9px] text-emerald-400 font-sans">● 100% Sync</span>`;
+      document.getElementById('statMembers').innerHTML = `1,840 <span class="text-[9px] text-emerald-400 font-sans">▲ +320</span>`;
+      document.getElementById('upgradeCountBadge').innerText = '2';
+      document.getElementById('passVoucherContainer').classList.add('hidden');
+
+      addAuditLog('DEMO_STATE_RESET (Clean Proposal Baseline)');
+      alert('🔄 Demo sandbox state reset to clean proposal baseline.');
+    }
+
+    function addAuditLog(action) {
+      const tbody = document.getElementById('auditTableBody');
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const randomHex = Math.floor(Math.random() * 0xFFFF).toString(16).padStart(4, '0');
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-1 text-slate-400">${timeStr}</td>
+        <td class="text-[#F4E08B] font-sans font-bold text-[9px]">${action}</td>
+        <td class="text-slate-300">admin@kintrace.ph</td>
+        <td class="text-right text-emerald-400 font-bold">#${randomHex}</td>
+      `;
+      tbody.prepend(tr);
+    }
+  </script>
+</body>
+</html>

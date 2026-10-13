@@ -13,10 +13,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
+import com.example.btproject2.firebase.FirestoreHelper
+import com.example.btproject2.models.UserProfile
 
 class LoginActivity : AppCompatActivity() {
 
     private val authHelper = AuthHelper()
+    private val firestoreHelper = FirestoreHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +27,11 @@ class LoginActivity : AppCompatActivity() {
         val bypassAuthCheck = intent.getBooleanExtra("bypass_auth_check", false)
         val currentUser = authHelper.getCurrentUser()
         if (currentUser != null && !bypassAuthCheck) {
-            if (currentUser.isEmailVerified) {
+            if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(currentUser.email)) {
+                goToHome()
+                return
+            }
+            if (currentUser.isEmailVerified || com.example.btproject2.models.DemoAccountRepository.isDemoEmail(currentUser.email)) {
                 goToHome()
             } else {
                 startActivity(Intent(this, VerifyEmailActivity::class.java))
@@ -79,7 +86,9 @@ class LoginActivity : AppCompatActivity() {
                     com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
                     com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
 
-                    if (user.isEmailVerified) {
+                    if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(user.email) ||
+                        user.isEmailVerified ||
+                        com.example.btproject2.models.DemoAccountRepository.isDemoEmail(user.email)) {
                         goToHome()
                     } else {
                         val intent = Intent(this, VerifyEmailActivity::class.java).apply {
@@ -100,6 +109,73 @@ class LoginActivity : AppCompatActivity() {
         btnRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
+
+        val btnDemoDock = findViewById<android.view.View>(R.id.btnDemoDock)
+        btnDemoDock?.setOnClickListener {
+            val bottomSheet = com.example.btproject2.ui.dialogs.DemoVaultBottomSheet.newInstance { account ->
+                performDemoLogin(account, etEmail, etPassword, btnLogin)
+            }
+            bottomSheet.show(supportFragmentManager, com.example.btproject2.ui.dialogs.DemoVaultBottomSheet.TAG)
+        }
+    }
+
+    private fun performDemoLogin(
+        account: com.example.btproject2.models.DemoAccount,
+        etEmail: EditText,
+        etPassword: EditText,
+        btnLogin: Button
+    ) {
+        etEmail.setText(account.email)
+        etPassword.setText(account.password)
+        etEmail.error = null
+        etPassword.error = null
+
+        btnLogin.isEnabled = false
+        btnLogin.text = "Signing in as ${account.name}..."
+
+        authHelper.login(account.email, account.password,
+            onSuccess = { _ ->
+                com.example.btproject2.utils.TreePreferences.clear(this)
+                com.example.btproject2.firebase.FirestoreHelper.clearCache()
+                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
+                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
+
+                goToHome()
+            },
+            onFailure = { error ->
+                if (account.id.equals("system_admin", ignoreCase = true)) {
+                    authHelper.register(account.email, account.password,
+                        onSuccess = { createdUser ->
+                            com.example.btproject2.utils.TreePreferences.clear(this)
+                            com.example.btproject2.firebase.FirestoreHelper.clearCache()
+                            com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
+                            com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
+
+                            val profile = UserProfile(
+                                id = createdUser.uid,
+                                displayName = account.name,
+                                email = account.email,
+                                role = "ADMIN"
+                            )
+                            firestoreHelper.saveUserProfile(profile, onSuccess = {
+                                goToHome()
+                            }, onFailure = {
+                                goToHome()
+                            })
+                        },
+                        onFailure = { regErr ->
+                            btnLogin.isEnabled = true
+                            btnLogin.text = "Sign In to KinTrace ➔"
+                            showMessage("Demo Sign-In Failed", regErr.message ?: error.message ?: "Could not authenticate demo account.")
+                        }
+                    )
+                } else {
+                    btnLogin.isEnabled = true
+                    btnLogin.text = "Sign In to KinTrace ➔"
+                    showMessage("Demo Sign-In Failed", error.message ?: "Could not authenticate demo account.")
+                }
+            }
+        )
     }
 
     private fun setupPasswordToggle(editText: EditText, toggleButton: ImageView) {
@@ -120,7 +196,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun goToHome() {
-        startActivity(Intent(this, HomeActivity::class.java))
+        val user = authHelper.getCurrentUser()
+        if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(user?.email)) {
+            startActivity(Intent(this, AdminPortalActivity::class.java))
+        } else {
+            startActivity(Intent(this, HomeActivity::class.java))
+        }
         finish()
     }
 

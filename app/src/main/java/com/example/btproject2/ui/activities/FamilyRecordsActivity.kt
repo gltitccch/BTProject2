@@ -18,14 +18,23 @@ import com.example.btproject2.ui.adapters.MemberAdapter
 
 import android.view.View
 import android.widget.ProgressBar
+import com.example.btproject2.firebase.AuthHelper
+import com.example.btproject2.models.PrivacySettings
 import com.example.btproject2.sync.RecordsSyncCoordinator
+import com.example.btproject2.ui.dialogs.ActionRestrictedDialog
 
 class FamilyRecordsActivity : AppCompatActivity() {
 
     private val firestoreHelper = FirestoreHelper()
+    private val authHelper = AuthHelper()
     private var treeId = ""
     private var allMembers = listOf<Person>()
     private val recentlyDeletedIds = mutableSetOf<String>()
+    private var isOwner: Boolean = true
+    private var isViewer: Boolean = false
+    private var currentTreeName: String = "Family Tree"
+    private var treePrivacy: PrivacySettings = PrivacySettings()
+
     private lateinit var adapter: MemberAdapter
     private lateinit var tvMemberCount: TextView
     private lateinit var etSearch: EditText
@@ -33,6 +42,7 @@ class FamilyRecordsActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var layoutEmptyRecords: View
     private lateinit var tvEmptySubtitle: TextView
+    private lateinit var btnEmptyAddMember: TextView
     private var isFirstLaunch = true
 
     internal val syncCoordinator by lazy {
@@ -113,12 +123,20 @@ class FamilyRecordsActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progressBar)
         layoutEmptyRecords = findViewById(R.id.layoutEmptyRecords)
         tvEmptySubtitle = findViewById(R.id.tvEmptySubtitle)
-        val btnEmptyAddMember = findViewById<TextView>(R.id.btnEmptyAddMember)
+        btnEmptyAddMember = findViewById(R.id.btnEmptyAddMember)
 
         // FIX: back button now calls finish() to return to the previous screen
         btnBack.setOnClickListener { finish() }
 
         btnEmptyAddMember.setOnClickListener {
+            if (isViewer) {
+                ActionRestrictedDialog.newInstance(
+                    treeId = treeId,
+                    treeName = currentTreeName,
+                    actionAttempted = "Add Family Member"
+                ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                return@setOnClickListener
+            }
             val intent = Intent(this, AddMemberActivity::class.java).apply {
                 putExtra("TREE_ID", treeId)
                 putExtra("treeId", treeId)
@@ -128,27 +146,53 @@ class FamilyRecordsActivity : AppCompatActivity() {
 
         adapter = MemberAdapter(
             members = emptyList(),
+            isViewer = isViewer,
+            treePrivacy = treePrivacy,
             onItemClick = { person ->
                 val intent = Intent(this, MemberDetailActivity::class.java).apply {
                     putExtra("personId", person.id)
                     putExtra("TREE_ID", treeId)
                     putExtra("treeId", treeId)
+                    putExtra("isViewer", isViewer)
                 }
                 memberDetailLauncher.launch(intent)
             },
             onEditClick = { person ->
-                val intent = Intent(this, EditMemberActivity::class.java).apply {
-                    putExtra("personId", person.id)
-                    putExtra("TREE_ID", treeId)
-                    putExtra("treeId", treeId)
+                if (isViewer) {
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Edit Member Record"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                } else {
+                    val intent = Intent(this, EditMemberActivity::class.java).apply {
+                        putExtra("personId", person.id)
+                        putExtra("TREE_ID", treeId)
+                        putExtra("treeId", treeId)
+                        putExtra("isViewer", isViewer)
+                    }
+                    editMemberLauncher.launch(intent)
                 }
-                editMemberLauncher.launch(intent)
             },
             onDeleteClick = { person ->
-                confirmDeletePerson(person)
+                if (isViewer) {
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Delete Member Record"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                } else {
+                    confirmDeletePerson(person)
+                }
             },
             onAddChildClick = { person ->
-                if (!person.spouseId.isNullOrBlank()) {
+                if (isViewer) {
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Add Child Connection"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                } else if (!person.spouseId.isNullOrBlank()) {
                     com.example.btproject2.utils.AddChildBiologicalParentDialogHelper.showIdentifyOtherParentDialog(
                         context = this,
                         parent = person,
@@ -178,6 +222,8 @@ class FamilyRecordsActivity : AppCompatActivity() {
         rvMembers.setItemViewCacheSize(25)
         rvMembers.adapter = adapter
 
+        loadTreeRoleAndPrivacy()
+
         // 0ms instant render from memory cache if available
         val cached = FirestoreHelper.getCachedPersons(treeId)
         if (!cached.isNullOrEmpty()) {
@@ -202,12 +248,63 @@ class FamilyRecordsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        loadTreeRoleAndPrivacy()
         if (isFirstLaunch) {
             isFirstLaunch = false
             return
         }
         // Background refresh without blanking UI
         loadMembers(showLoading = false)
+    }
+
+    private fun loadTreeRoleAndPrivacy() {
+        if (treeId.isBlank()) return
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        firestoreHelper.getTree(treeId,
+            onSuccess = { tree ->
+                currentTreeName = tree?.name ?: "Family Tree"
+                val ownerMatch = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                if (ownerMatch) {
+                    isOwner = true
+                    isViewer = false
+                    applyRoleGating()
+                } else {
+                    firestoreHelper.getUserMembership(currentUserId, treeId,
+                        onSuccess = { member ->
+                            isOwner = false
+                            isViewer = !member?.role.equals("Editor", ignoreCase = true)
+                            applyRoleGating()
+                        },
+                        onFailure = {
+                            isOwner = false
+                            isViewer = true
+                            applyRoleGating()
+                        }
+                    )
+                }
+            },
+            onFailure = {
+                applyRoleGating()
+            }
+        )
+
+        firestoreHelper.getPrivacySettings(treeId,
+            onSuccess = { settings ->
+                treePrivacy = settings
+                applyRoleGating()
+            },
+            onFailure = {}
+        )
+    }
+
+    private fun applyRoleGating() {
+        runOnUiThread {
+            if (isFinishing || isDestroyed) return@runOnUiThread
+            btnEmptyAddMember.visibility = if (isViewer) View.GONE else View.VISIBLE
+            adapter.isViewer = isViewer
+            adapter.treePrivacy = treePrivacy
+            applyFilter(etSearch.text?.toString().orEmpty())
+        }
     }
 
     private fun applyFilter(rawQuery: String) {
@@ -226,7 +323,7 @@ class FamilyRecordsActivity : AppCompatActivity() {
             matched
         }
 
-        adapter.updateList(filtered, all = allMembers)
+        adapter.updateList(filtered, all = allMembers, viewerMode = isViewer, privacy = treePrivacy)
 
         if (filtered.isEmpty()) {
             rvMembers.visibility = View.GONE

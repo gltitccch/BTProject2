@@ -39,6 +39,21 @@
                 android:clickable="true"
                 android:focusable="true" />
 
+            <TextView
+                android:id="@+id/tvInteractiveTreeRoleBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="★ Owner • Full access"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginStart="8dp" />
+
             <View
                 android:layout_width="0dp"
                 android:layout_height="1dp"
@@ -197,6 +212,37 @@
                     android:focusable="true" />
             </LinearLayout>
         </HorizontalScrollView>
+    </LinearLayout>
+
+    <!-- Viewer Read-Only Browse Pill (Figure 15 / Figure 16) -->
+    <LinearLayout
+        android:id="@+id/layoutInteractiveViewerBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/forest_card"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔒  "
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvInteractiveViewerBannerText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Browse only • no editing"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/mint_text" />
     </LinearLayout>
 
     <!-- Canvas Frame with Floating Controls Overlay -->

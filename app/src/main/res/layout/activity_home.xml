@@ -27,126 +27,245 @@
             android:paddingBottom="24dp">
 
             <!-- ── Top Header Section ── -->
-            <TextView
-                android:id="@+id/tvHeaderDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WEDNESDAY, SEP 23"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.08"
-                android:textColor="@color/dark_subtext"
-                android:layout_marginBottom="4dp" />
-
-            <!-- User Greeting & Header Actions Row -->
+            <!-- ── Design 5A: Twin-Pod Dual Islands (Split Micro-Pods) ── -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="18dp">
+                android:layout_marginBottom="12dp">
 
+                <!-- Left Pod: User Identity Island -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="44dp"
                     android:layout_weight="1"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginEnd="14dp">
-
-                    <TextView
-                        android:id="@+id/tvGreeting"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Hi, "
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
-
-                    <TextView
-                        android:id="@+id/tvUserName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:maxWidth="235dp"
-                        android:text="Optismiclemon15"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/gold_accent"
-                        android:singleLine="true"
-                        android:maxLines="1"
-                        android:ellipsize="end" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=" 👋"
-                        android:textSize="18sp" />
-                </LinearLayout>
-
-                <!-- KinAcademy Hub Entry Button -->
-                <LinearLayout
-                    android:id="@+id/btnKinAcademy"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:background="@drawable/circle_dark_action"
+                    android:background="@drawable/bg_island_pod_left"
+                    android:paddingStart="5dp"
+                    android:paddingEnd="12dp"
                     android:layout_marginEnd="10dp"
-                    android:clickable="true"
-                    android:focusable="true">
+                    android:elevation="1dp">
 
-                    <TextView
+                    <!-- Profile Avatar Squircle with Live Online Status Dot -->
+                    <FrameLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🎓"
-                        android:textSize="18sp" />
+                        android:layout_marginEnd="8dp">
+
+                        <TextView
+                            android:id="@+id/tvProfileInitial"
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:gravity="center"
+                            android:text="A"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"
+                            android:fontFamily="@font/font_display_sora"
+                            android:background="@drawable/bg_avatar_squircle"
+                            android:clickable="true"
+                            android:focusable="true" />
+
+                        <!-- Live Cloud Sync Status Indicator Dot -->
+                        <View
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:layout_gravity="bottom|end"
+                            android:background="@drawable/bg_live_presence_dot" />
+                    </FrameLayout>
+
+                    <!-- User Identity & Date Column -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tvHeaderDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TUESDAY, OCT 13"
+                            android:textSize="9sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.06"
+                            android:textColor="@color/dark_subtext"
+                            android:fontFamily="@font/font_mono_jetbrains"
+                            android:singleLine="true"
+                            android:ellipsize="end" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/tvGreeting"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Hi, "
+                                android:textSize="13.5sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:fontFamily="@font/font_display_sora" />
+
+                            <TextView
+                                android:id="@+id/tvUserName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:maxWidth="130dp"
+                                android:text="Augustine Russell"
+                                android:textSize="13.5sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/gold_accent"
+                                android:fontFamily="@font/font_display_sora"
+                                android:singleLine="true"
+                                android:maxLines="1"
+                                android:ellipsize="end" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
 
-                <!-- Notification Bell Button -->
-                <FrameLayout
+                <!-- Right Pod: Utility Dock Island -->
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="10dp">
+                    android:layout_height="44dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_island_pod_right"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:elevation="1dp">
 
+                    <!-- KinAcademy Hub Entry Button -->
                     <LinearLayout
-                        android:id="@+id/btnNotificationBell"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:id="@+id/btnKinAcademy"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:gravity="center"
-                        android:background="@drawable/circle_dark_action"
+                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:clickable="true"
                         android:focusable="true">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🔔"
-                            android:textSize="17sp" />
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_academy_mortarboard"
+                            android:contentDescription="KinAcademy Hub" />
                     </LinearLayout>
 
+                    <!-- Subtle Vertical Divider inside Island -->
                     <View
-                        android:id="@+id/viewNotifBadge"
-                        android:layout_width="9dp"
-                        android:layout_height="9dp"
-                        android:layout_gravity="top|end"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginEnd="2dp"
-                        android:background="@drawable/badge_pill_gold"
-                        android:visibility="gone" />
-                </FrameLayout>
+                        android:layout_width="1dp"
+                        android:layout_height="14dp"
+                        android:background="@color/forest_card_border"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="2dp" />
 
-                <!-- Profile Avatar Circle -->
+                    <!-- Notification Bell Button -->
+                    <FrameLayout
+                        android:layout_width="32dp"
+                        android:layout_height="32dp">
+
+                        <LinearLayout
+                            android:id="@+id/btnNotificationBell"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:src="@drawable/ic_header_notification_bell"
+                                android:contentDescription="Notification Alerts" />
+                        </LinearLayout>
+
+                        <!-- Unread Red Indicator Dot -->
+                        <View
+                            android:id="@+id/viewNotifBadge"
+                            android:layout_width="7dp"
+                            android:layout_height="7dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginEnd="5dp"
+                            android:background="@drawable/badge_pill_gold"
+                            android:visibility="gone" />
+                    </FrameLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ── System Announcement & Maintenance Notice (FR-11) ── -->
+            <LinearLayout
+                android:id="@+id/cardMaintenanceBanner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_danger_card_preserved"
+                android:padding="14dp"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvNoticeSeverityBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/badge_pill_dark"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        android:text="⚠️ SYSTEM ADVISORY"
+                        android:textColor="@color/warning"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/btnDismissNoticeBanner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="4dp"
+                        android:text="✕"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
                 <TextView
-                    android:id="@+id/tvProfileInitial"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="O"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/gold_accent"
-                    android:background="@drawable/circle_dark_action"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    android:id="@+id/tvNoticeHeadline"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Scheduled Cloud Optimization"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvNoticeBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Tree branch merging will be temporarily paused for cloud indexing."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11.5sp" />
             </LinearLayout>
 
             <!-- ── Hero Heritage Card (Figure 6 Bespoke Dark Design) ── -->
@@ -242,6 +361,7 @@
                         android:textSize="40sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
+                        android:fontFamily="@font/font_display_sora"
                         android:layout_marginEnd="10dp" />
 
                     <TextView
@@ -251,6 +371,7 @@
                         android:textSize="24sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
+                        android:fontFamily="@font/font_display_sora"
                         android:layout_marginBottom="4dp" />
                 </LinearLayout>
 

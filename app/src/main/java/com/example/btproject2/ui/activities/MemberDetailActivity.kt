@@ -28,6 +28,7 @@ import com.example.btproject2.service.FamilyRelationshipService
 import com.example.btproject2.service.FamilyRelationshipService.ParentRole
 import com.example.btproject2.service.FamilyRelationshipService.ProposedRelationshipType
 import com.example.btproject2.sync.MemberDetailSyncCoordinator
+import com.example.btproject2.ui.dialogs.ActionRestrictedDialog
 import java.util.Calendar
 import java.util.Locale
 
@@ -39,6 +40,7 @@ class MemberDetailActivity : AppCompatActivity() {
     private val timelineGen     = TimelineGenerator()
     private val familyService   = FamilyRelationshipService()
     private var treeId          = ""
+    private var currentTreeName = "Family Tree"
 
     private var isOwner: Boolean = true
     private var isViewer: Boolean = false
@@ -630,17 +632,36 @@ class MemberDetailActivity : AppCompatActivity() {
             tvLivingBadge.visibility = View.GONE
         } else {
             tvLivingBadge.visibility = View.VISIBLE
-            if (person.isLiving) {
-                tvLivingBadge.text = "Living ✎"
-                tvLivingBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+            if (isViewer) {
+                if (person.isLiving) {
+                    tvLivingBadge.text = "Living"
+                    tvLivingBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+                } else {
+                    tvLivingBadge.text = "🕊️ Deceased"
+                    tvLivingBadge.setTextColor(android.graphics.Color.parseColor("#94A3B8"))
+                }
+                tvLivingBadge.isClickable = true
+                tvLivingBadge.isFocusable = true
+                tvLivingBadge.setOnClickListener {
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Modify Vital Status"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                }
             } else {
-                tvLivingBadge.text = "🕊️ Deceased ✎"
-                tvLivingBadge.setTextColor(android.graphics.Color.parseColor("#94A3B8"))
-            }
-            tvLivingBadge.isClickable = true
-            tvLivingBadge.isFocusable = true
-            tvLivingBadge.setOnClickListener {
-                showQuickVitalStatusDialog(person)
+                if (person.isLiving) {
+                    tvLivingBadge.text = "Living ✎"
+                    tvLivingBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+                } else {
+                    tvLivingBadge.text = "🕊️ Deceased ✎"
+                    tvLivingBadge.setTextColor(android.graphics.Color.parseColor("#94A3B8"))
+                }
+                tvLivingBadge.isClickable = true
+                tvLivingBadge.isFocusable = true
+                tvLivingBadge.setOnClickListener {
+                    showQuickVitalStatusDialog(person)
+                }
             }
         }
 
@@ -712,14 +733,14 @@ class MemberDetailActivity : AppCompatActivity() {
         if (father != null) {
             tvFatherName.text = "${father.firstName} ${father.lastName}"
         } else {
-            tvFatherName.text = "Tap to assign"
+            tvFatherName.text = if (isViewer) "Not recorded" else "Tap to assign"
         }
 
         rowMother.visibility = View.VISIBLE
         if (mother != null) {
             tvMotherName.text = "${mother.firstName} ${mother.lastName}"
         } else {
-            tvMotherName.text = "Tap to assign"
+            tvMotherName.text = if (isViewer) "Not recorded" else "Tap to assign"
         }
 
         if (father != null && mother != null) {
@@ -1766,6 +1787,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val currentUserId = authHelper.getCurrentUserId() ?: ""
         firestoreHelper.getTree(treeId,
             onSuccess = { tree ->
+                currentTreeName = tree?.name ?: "Family Tree"
                 isOwner = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
                 firestoreHelper.getUserMembership(currentUserId, treeId,
                     onSuccess = { member ->
@@ -1800,26 +1822,36 @@ class MemberDetailActivity : AppCompatActivity() {
             btnDeleteMember.visibility = View.GONE
             btnTopDeleteMember.visibility = View.GONE
             btnTopEditMember.visibility = View.GONE
-            val onRestrictedClick = View.OnClickListener {
-                val currentUserId = authHelper.getCurrentUserId().orEmpty()
-                val notif = NotificationHelper.createPermissionRestrictedNotification(
+            btnAddChildDirect.visibility = View.GONE
+            btnLinkChildExisting.visibility = View.GONE
+            btnDetailChangePhoto.visibility = View.GONE
+            btnDetailAttachDoc.visibility = View.GONE
+
+            val onRestrictedClick: (String) -> Unit = { actionName ->
+                ActionRestrictedDialog.newInstance(
                     treeId = treeId,
-                    userId = currentUserId,
-                    actionAttempted = "Edit Member Details/Relationships",
-                    currentRole = "Viewer"
-                )
-                firestoreHelper.addNotification(notif)
-                Toast.makeText(this, "Permission restricted: Viewers have read-only access", Toast.LENGTH_SHORT).show()
+                    treeName = currentTreeName,
+                    actionAttempted = actionName
+                ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
             }
-            rowSpouse.setOnClickListener(onRestrictedClick)
-            rowChildren.setOnClickListener(onRestrictedClick)
-            rowMarriageDate.setOnClickListener(onRestrictedClick)
+            rowFather.setOnClickListener { onRestrictedClick("Modify Father Connection") }
+            rowMother.setOnClickListener { onRestrictedClick("Modify Mother Connection") }
+            rowSpouse.setOnClickListener { onRestrictedClick("Modify Spouse Connection") }
+            rowChildren.setOnClickListener { onRestrictedClick("Add or Modify Children") }
+            rowMarriageDate.setOnClickListener { onRestrictedClick("Modify Marriage Date") }
         } else {
             btnEdit.visibility = View.VISIBLE
             btnAutoGenerate.visibility = View.VISIBLE
             btnDeleteMember.visibility = View.VISIBLE
             btnTopDeleteMember.visibility = View.VISIBLE
             btnTopEditMember.visibility = View.VISIBLE
+            btnAddChildDirect.visibility = View.VISIBLE
+            btnLinkChildExisting.visibility = View.VISIBLE
+            btnDetailChangePhoto.visibility = View.VISIBLE
+            btnDetailAttachDoc.visibility = View.VISIBLE
+
+            rowFather.setOnClickListener { currentPerson?.let { showFatherPicker(it) } }
+            rowMother.setOnClickListener { currentPerson?.let { showMotherPicker(it) } }
             rowSpouse.setOnClickListener { currentPerson?.let { showSpousePicker(it) } }
             rowChildren.setOnClickListener { currentPerson?.let { showChildrenPicker(it) } }
             rowMarriageDate.setOnClickListener { currentPerson?.let { showMarriageDatePicker(it) } }

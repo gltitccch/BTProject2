@@ -12,6 +12,7 @@ import android.view.*
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import com.example.btproject2.R
 import com.example.btproject2.engine.KinshipTitleHelper
 import com.example.btproject2.firebase.FirestoreHelper
@@ -27,6 +28,7 @@ import com.example.btproject2.sync.SyncEventListener
 import com.example.btproject2.sync.TreeSyncEvent
 import com.example.btproject2.utils.DocumentHelper
 import com.example.btproject2.utils.setDarkAdapter
+import com.example.btproject2.ui.dialogs.ActionRestrictedDialog
 import com.example.btproject2.utils.ThemePreferences
 import kotlin.math.abs
 import kotlin.math.min
@@ -50,6 +52,15 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     private val authHelper = com.example.btproject2.firebase.AuthHelper()
     internal lateinit var treeView: FamilyTreeView
     private var treeId = ""
+
+    private var isOwner: Boolean = true
+    private var isEditor: Boolean = false
+    private var isViewer: Boolean = false
+    private var currentTreeName: String = "Family Tree"
+    private var treePrivacy: com.example.btproject2.models.PrivacySettings = com.example.btproject2.models.PrivacySettings()
+    private var tvInteractiveTreeRoleBadge: TextView? = null
+    private var layoutInteractiveViewerBanner: View? = null
+    private var btnConnectBranchesShortcut: View? = null
 
     internal var allPersonsList: List<Person> = emptyList()
     internal var currentMode = "MAIN" // "MAIN", "PEDIGREE", "TRACE_HIGHLIGHT"
@@ -133,9 +144,13 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
 
-        findViewById<TextView>(R.id.btnConnectBranchesShortcut)?.setOnClickListener {
+        btnConnectBranchesShortcut = findViewById(R.id.btnConnectBranchesShortcut)
+        btnConnectBranchesShortcut?.setOnClickListener {
             startActivity(Intent(this, MergeBranchesActivity::class.java))
         }
+        tvInteractiveTreeRoleBadge = findViewById(R.id.tvInteractiveTreeRoleBadge)
+        layoutInteractiveViewerBanner = findViewById(R.id.layoutInteractiveViewerBanner)
+        loadRoleAndApplyPermissions(treeId)
 
         findViewById<TextView>(R.id.btnExportTreeShortcut)?.setOnClickListener {
             val intent = Intent(this, ExportTreeActivity::class.java).apply {
@@ -195,16 +210,39 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 showMemberProfileDialog(personId)
             },
             onAddChild = { parentId ->
-                promptAddChildChoices(parentId)
+                if (isViewer) {
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Add Child"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                } else {
+                    promptAddChildChoices(parentId)
+                }
             },
             onAddFirst = {
-                val intent = Intent(this, AddMemberActivity::class.java).apply {
-                    putExtra("TREE_ID", treeId)
+                if (isViewer) {
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Add Member"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                } else {
+                    val intent = Intent(this, AddMemberActivity::class.java).apply {
+                        putExtra("TREE_ID", treeId)
+                    }
+                    startActivity(intent)
                 }
-                startActivity(intent)
             },
             onAddAncestor = { childId, isFather ->
-                val child = allPersonsList.find { it.id == childId }
+                if (isViewer) {
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Add Ancestor"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                } else {
+                    val child = allPersonsList.find { it.id == childId }
                 if (child != null) {
                     val existingParents = com.example.btproject2.engine.FamilyLinkValidator.getExistingParentsInfo(child, allPersonsList)
                     val hasSlotFilled = if (isFather) existingParents.father != null else existingParents.mother != null
@@ -233,7 +271,8 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 }
                 startActivity(intent)
             }
-        )
+        }
+    )
 
         container.addView(
             treeView,
@@ -549,11 +588,87 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                         showMemberProfileDialog(activeId)
                     }
                 }
+                loadRoleAndApplyPermissions(effectiveTreeId)
             },
             onFailure = {
                 Toast.makeText(this, "Failed to load tree", Toast.LENGTH_SHORT).show()
             }
         )
+    }
+
+    private fun loadRoleAndApplyPermissions(targetTreeId: String = treeId) {
+        val effectiveTreeId = targetTreeId.ifBlank {
+            com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+        }
+        val currentUserId = authHelper.getCurrentUserId() ?: ""
+        if (effectiveTreeId.isBlank()) return
+
+        firestoreHelper.getTree(effectiveTreeId,
+            onSuccess = { tree ->
+                currentTreeName = tree?.name ?: "Family Tree"
+                val ownerMatch = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                if (ownerMatch) {
+                    isOwner = true
+                    isEditor = false
+                    isViewer = false
+                    applyRolePermissionsToUI()
+                } else {
+                    firestoreHelper.getUserMembership(currentUserId, effectiveTreeId,
+                        onSuccess = { member ->
+                            val role = member?.role ?: "Viewer"
+                            isOwner = false
+                            isEditor = role.equals("Editor", ignoreCase = true)
+                            isViewer = !isEditor
+                            applyRolePermissionsToUI()
+                        },
+                        onFailure = {
+                            isOwner = false
+                            isEditor = false
+                            isViewer = true
+                            applyRolePermissionsToUI()
+                        }
+                    )
+                }
+            },
+            onFailure = {
+                isOwner = true
+                isEditor = false
+                isViewer = false
+                applyRolePermissionsToUI()
+            }
+        )
+
+        firestoreHelper.getPrivacySettings(effectiveTreeId,
+            onSuccess = { settings ->
+                treePrivacy = settings
+                if (::treeView.isInitialized) {
+                    treeView.treePrivacy = settings
+                    treeView.invalidate()
+                }
+            },
+            onFailure = {}
+        )
+    }
+
+    private fun applyRolePermissionsToUI() {
+        if (isOwner) {
+            tvInteractiveTreeRoleBadge?.text = "★ Owner • Full access"
+            layoutInteractiveViewerBanner?.visibility = View.GONE
+            btnConnectBranchesShortcut?.visibility = View.VISIBLE
+        } else if (isEditor) {
+            tvInteractiveTreeRoleBadge?.text = "✎ Editor - Edit access"
+            layoutInteractiveViewerBanner?.visibility = View.GONE
+            btnConnectBranchesShortcut?.visibility = View.GONE
+        } else {
+            tvInteractiveTreeRoleBadge?.text = "Viewer • Read-only access"
+            layoutInteractiveViewerBanner?.visibility = View.VISIBLE
+            btnConnectBranchesShortcut?.visibility = View.GONE
+        }
+        if (::treeView.isInitialized) {
+            treeView.isViewerMode = isViewer
+            treeView.treePrivacy = treePrivacy
+            treeView.invalidate()
+        }
     }
 
     private fun checkForTreeConflicts(persons: List<Person>) {
@@ -673,23 +788,34 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         val spouseObj = allPersonsList.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, person.spouseId) }
             ?: allPersonsList.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, person.id) }
 
-        tvKinshipBadge?.text = if (!person.isLiving) "🕊️ $kinshipTitle" else kinshipTitle
-        val livingStr = if (person.isLiving) "Living" else "🕊️ Deceased"
+        val shouldHideBirth = !isOwner && treePrivacy.hideBirthDates
+        val shouldHideDeceased = !isOwner && treePrivacy.hideDeceasedStatus
+
+        tvKinshipBadge?.text = if (!person.isLiving && !shouldHideDeceased) "🕊️ $kinshipTitle" else kinshipTitle
+        val livingStr = if (!shouldHideDeceased) {
+            if (person.isLiving) "Living" else "🕊️ Deceased"
+        } else ""
         val effectiveCivilStatus = if (spouseObj != null) "Married" else person.maritalStatus.ifEmpty { "Single" }
-        tvSubtitle.text = "$kinshipSubtitle · $effectiveCivilStatus · $livingStr"
-        if (!person.isLiving) {
+        tvSubtitle.text = if (livingStr.isNotEmpty()) {
+            "$kinshipSubtitle · $effectiveCivilStatus · $livingStr"
+        } else {
+            "$kinshipSubtitle · $effectiveCivilStatus"
+        }
+        if (!person.isLiving && !shouldHideDeceased) {
             tvSubtitle.setTextColor(android.graphics.Color.parseColor("#94A3B8"))
         } else {
             tvSubtitle.setTextColor(resources.getColor(R.color.mint_text, null))
         }
 
         val btnToggleVital = dialogView.findViewById<TextView?>(R.id.btnProfileToggleVitalStatus)
-        btnToggleVital?.text = if (person.isLiving) "🕊️ Mark as Deceased" else "🌱 Mark as Living"
-        btnToggleVital?.setOnClickListener {
-            showQuickVitalStatusDialog(person)
-        }
-        tvSubtitle.setOnClickListener {
-            showQuickVitalStatusDialog(person)
+        if (shouldHideDeceased || isViewer) {
+            btnToggleVital?.visibility = View.GONE
+        } else {
+            btnToggleVital?.visibility = View.VISIBLE
+            btnToggleVital?.text = if (person.isLiving) "🕊️ Mark as Deceased" else "🌱 Mark as Living"
+            btnToggleVital?.setOnClickListener {
+                showQuickVitalStatusDialog(person)
+            }
         }
 
         btnSetAsFocal?.text = "🎯 View Kinship Relative to ${person.firstName}"
@@ -702,14 +828,29 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             dialog.dismiss()
         }
 
-        val ageStr = DocumentHelper.calculateAge(person.birthDate, person.deathDate, person.isLiving)
-        tvAgeBadge.text = ageStr.ifEmpty { "Age N/A" }
+        // Direction 1 Subtle Shield: Age & Sex Badges
+        if (shouldHideBirth) {
+            tvAgeBadge.text = "🔒 Private"
+            tvAgeBadge.setTextColor(android.graphics.Color.parseColor("#D4AF37"))
+        } else {
+            val ageStr = DocumentHelper.calculateAge(person.birthDate, person.deathDate, person.isLiving)
+            tvAgeBadge.text = ageStr.ifEmpty { "Age N/A" }
+            tvAgeBadge.setTextColor(resources.getColor(R.color.gold_accent, null))
+        }
         tvSexBadge.text = "${person.gender} ${if (person.gender.lowercase() == "female") "♀" else "♂"}"
 
-        // Vital details
-        val bDate = person.birthDate.ifEmpty { "Unknown" }
-        val bPlace = if (person.birthPlace.isNotEmpty()) " · ${person.birthPlace}" else ""
-        tvBirth.text = "$bDate$bPlace"
+        // Vital details: Direction 1 Subtle Shield
+        if (shouldHideBirth) {
+            tvBirth.text = "🔒 Hidden by Owner"
+            tvBirth.setTextColor(android.graphics.Color.parseColor("#A0B2A8"))
+            tvBirth.setTypeface(null, android.graphics.Typeface.ITALIC)
+        } else {
+            val bDate = person.birthDate.ifEmpty { "Unknown" }
+            val bPlace = if (person.birthPlace.isNotEmpty()) " · ${person.birthPlace}" else ""
+            tvBirth.text = "$bDate$bPlace"
+            tvBirth.setTextColor(resources.getColor(R.color.text_primary, null))
+            tvBirth.setTypeface(null, android.graphics.Typeface.NORMAL)
+        }
 
         val fObj = com.example.btproject2.engine.FamilyLinkValidator.findPersonInList(person.fatherId, allPersonsList)
         val mObj = com.example.btproject2.engine.FamilyLinkValidator.findPersonInList(person.motherId, allPersonsList)
@@ -729,39 +870,75 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         // Documents & Verification Badge
         renderProfileDocuments(person, layoutDocsContainer, tvNoDocs, tvVerificationBadge)
 
-        btnAttachDoc.setOnClickListener {
-            activeProfilePersonId = person.id
-            documentPickerLauncher.launch("*/*")
-        }
+        val btnAddSpouse = dialogView.findViewById<TextView?>(R.id.btnProfileAddSpouse)
+        val rowProfileSpouse = dialogView.findViewById<View?>(R.id.rowProfileSpouse)
+        val rowProfileParents = dialogView.findViewById<View?>(R.id.rowProfileParents)
 
-        val btnAddSpouse = dialogView.findViewById<TextView>(R.id.btnProfileAddSpouse)
-        val rowProfileSpouse = dialogView.findViewById<View>(R.id.rowProfileSpouse)
-
-        // Actions
-        btnClose.setOnClickListener { dialog.dismiss() }
-
-        btnAddChild.setOnClickListener {
-            dialog.dismiss()
-            promptAddChildChoices(person.id)
-        }
-
-        btnAddSpouse?.setOnClickListener {
-            dialog.dismiss()
-            promptAddSpouse(person)
-        }
-
-        rowProfileSpouse?.setOnClickListener {
-            dialog.dismiss()
-            promptAddSpouse(person)
-        }
-
-        btnEdit.setOnClickListener {
-            dialog.dismiss()
-            val intent = Intent(this, EditMemberActivity::class.java).apply {
-                putExtra("personId", person.id)
-                putExtra("TREE_ID", treeId)
+        if (isViewer) {
+            btnChangePhoto.visibility = View.GONE
+            btnAttachDoc.visibility = View.GONE
+            btnEdit.visibility = View.GONE
+            btnAddChild.visibility = View.GONE
+            btnAddSpouse?.visibility = View.GONE
+            btnToggleVital?.visibility = View.GONE
+            tvSubtitle.setOnClickListener {
+                dialog.dismiss()
+                ActionRestrictedDialog.newInstance(
+                    treeId = treeId,
+                    treeName = currentTreeName,
+                    actionAttempted = "Modify Vital Status"
+                ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
             }
-            startActivity(intent)
+            rowProfileSpouse?.setOnClickListener {
+                dialog.dismiss()
+                ActionRestrictedDialog.newInstance(
+                    treeId = treeId,
+                    treeName = currentTreeName,
+                    actionAttempted = "Modify Spouse Connection"
+                ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+            }
+            rowProfileParents?.setOnClickListener {
+                dialog.dismiss()
+                ActionRestrictedDialog.newInstance(
+                    treeId = treeId,
+                    treeName = currentTreeName,
+                    actionAttempted = "Modify Parent Connection"
+                ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+            }
+        } else {
+            tvSubtitle.setOnClickListener {
+                showQuickVitalStatusDialog(person)
+            }
+            btnChangePhoto.visibility = View.VISIBLE
+            btnAttachDoc.visibility = View.VISIBLE
+            btnEdit.visibility = View.VISIBLE
+            btnAddChild.visibility = View.VISIBLE
+            btnAddSpouse?.visibility = View.VISIBLE
+            btnAttachDoc.setOnClickListener {
+                activeProfilePersonId = person.id
+                documentPickerLauncher.launch("*/*")
+            }
+            btnAddChild.setOnClickListener {
+                dialog.dismiss()
+                promptAddChildChoices(person.id)
+            }
+            btnAddSpouse?.setOnClickListener {
+                dialog.dismiss()
+                promptAddSpouse(person)
+            }
+            rowProfileSpouse?.setOnClickListener {
+                dialog.dismiss()
+                promptAddSpouse(person)
+            }
+            btnEdit.setOnClickListener {
+                dialog.dismiss()
+                val intent = Intent(this, EditMemberActivity::class.java).apply {
+                    putExtra("personId", person.id)
+                    putExtra("TREE_ID", treeId)
+                    putExtra("isViewer", isViewer)
+                }
+                startActivity(intent)
+            }
         }
 
         btnFullDetail.setOnClickListener {
@@ -769,6 +946,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             val intent = Intent(this, MemberDetailActivity::class.java).apply {
                 putExtra("personId", person.id)
                 putExtra("TREE_ID", treeId)
+                putExtra("isViewer", isViewer)
             }
             startActivity(intent)
         }
@@ -1228,6 +1406,8 @@ class FamilyTreeView @JvmOverloads constructor(
 ) : View(context) {
 
     var isExportMode: Boolean = false
+    var isViewerMode: Boolean = false
+    var treePrivacy: com.example.btproject2.models.PrivacySettings = com.example.btproject2.models.PrivacySettings()
 
     private val CARD_W      = 150f
     private val CARD_H      = 172f
@@ -1242,6 +1422,14 @@ class FamilyTreeView @JvmOverloads constructor(
     private val SLOT_H       = 130f
     private val MARGIN       = 120f
     private val ADD_BTN_R    = 14f
+
+    // ── Choice 7: Minimalist Executive Typefaces ──────────────────
+    private val tfSoraBold: Typeface = ResourcesCompat.getFont(context, R.font.sora_bold) ?: Typeface.DEFAULT_BOLD
+    private val tfSoraSemiBold: Typeface = ResourcesCompat.getFont(context, R.font.sora_semibold) ?: Typeface.DEFAULT_BOLD
+    private val tfInterRegular: Typeface = ResourcesCompat.getFont(context, R.font.inter_regular) ?: Typeface.DEFAULT
+    private val tfInterMedium: Typeface = ResourcesCompat.getFont(context, R.font.inter_medium) ?: Typeface.DEFAULT
+    private val tfInterBold: Typeface = ResourcesCompat.getFont(context, R.font.inter_bold) ?: Typeface.DEFAULT_BOLD
+    private val tfJetBrainsMono: Typeface = ResourcesCompat.getFont(context, R.font.jetbrains_mono_medium) ?: Typeface.MONOSPACE
 
     // ── Paints ───────────────────────────────────────────────────
     private val pMale     = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#0F6E56") }
@@ -1316,7 +1504,7 @@ class FamilyTreeView @JvmOverloads constructor(
         color = Color.parseColor("#D4A359"); style = Paint.Style.STROKE; strokeWidth = 1.5f
     }
     private val pMaritalPillText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#F5D77F"); textSize = 13f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD
+        color = Color.parseColor("#F5D77F"); textSize = 13f; textAlign = Paint.Align.CENTER; typeface = tfSoraBold
     }
 
     // Node Drop Shadow Paint
@@ -1338,7 +1526,7 @@ class FamilyTreeView @JvmOverloads constructor(
         color = Color.parseColor("#F5D77F")
         textSize = 11f
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT_BOLD
+        typeface = tfInterBold
     }
 
     // Dashed circle and connector for empty/unadded ancestor slots
@@ -1366,37 +1554,37 @@ class FamilyTreeView @JvmOverloads constructor(
         pathEffect = DashPathEffect(floatArrayOf(8f, 8f), 0f)
     }
     private val pDashedText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#A3B899"); textSize = 22f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD
+        color = Color.parseColor("#A3B899"); textSize = 22f; textAlign = Paint.Align.CENTER; typeface = tfSoraBold
     }
     private val pDashedLabel = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#7A9A88"); textSize = 20f; textAlign = Paint.Align.CENTER
+        color = Color.parseColor("#7A9A88"); textSize = 20f; textAlign = Paint.Align.CENTER; typeface = tfInterMedium
     }
 
     private val pInitials = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE; textSize = 26f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD
+        color = Color.WHITE; textSize = 26f; textAlign = Paint.Align.CENTER; typeface = tfSoraBold
     }
     private val pFirstName = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE; textSize = 16f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD
+        color = Color.WHITE; textSize = 16f; textAlign = Paint.Align.CENTER; typeface = tfSoraBold
     }
     private val pLastName = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#A3B899"); textSize = 14f; textAlign = Paint.Align.CENTER
+        color = Color.parseColor("#A3B899"); textSize = 14f; textAlign = Paint.Align.CENTER; typeface = tfInterMedium
     }
     private val pYear = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#7A9A88"); textSize = 12f; textAlign = Paint.Align.CENTER
+        color = Color.parseColor("#7A9A88"); textSize = 12f; textAlign = Paint.Align.CENTER; typeface = tfJetBrainsMono
     }
     private val pMrcaBadge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#D4A359"); textSize = 12f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD
+        color = Color.parseColor("#D4A359"); textSize = 12f; textAlign = Paint.Align.CENTER; typeface = tfInterBold
     }
 
     // Role Badges for Bloodline Tracing
     private val pPersonABadge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#D4A359"); textSize = 11f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD
+        color = Color.parseColor("#D4A359"); textSize = 11f; textAlign = Paint.Align.CENTER; typeface = tfInterBold
     }
     private val pPersonBBadge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#4ECCA3"); textSize = 11f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD
+        color = Color.parseColor("#4ECCA3"); textSize = 11f; textAlign = Paint.Align.CENTER; typeface = tfInterBold
     }
     private val pBloodlineBadge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#F5D77F"); textSize = 11f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD
+        color = Color.parseColor("#F5D77F"); textSize = 11f; textAlign = Paint.Align.CENTER; typeface = tfInterBold
     }
     private val pGoldPathGlow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#44D4A359")
@@ -1894,17 +2082,22 @@ class FamilyTreeView @JvmOverloads constructor(
             val first = TextUtils.ellipsize(p.firstName, tempPaintFirst, maxTextWidth, TextUtils.TruncateAt.END).toString()
             val last = TextUtils.ellipsize(p.lastName, tempPaintLast, maxTextWidth, TextUtils.TruncateAt.END).toString()
 
-            val yr = p.birthDate.take(4)
-            val dYr = if (!p.isLiving) {
+            val shouldHideBirth = isViewerMode && treePrivacy.hideBirthDates
+            val shouldHideDeceased = isViewerMode && treePrivacy.hideDeceasedStatus
+
+            val yr = if (shouldHideBirth) "" else p.birthDate.take(4)
+            val dYr = if (!p.isLiving && !shouldHideDeceased) {
                 val d = p.deathDate.take(4)
                 if (d.isNotEmpty()) "-$d" else "🕊️"
             } else ""
-            val yrStr = if (yr.isNotEmpty()) {
+            val yrStr = if (shouldHideBirth) {
+                if (dYr.isNotEmpty()) dYr else "🔒"
+            } else if (yr.isNotEmpty()) {
                 if (dYr.isNotEmpty()) "$yr $dYr" else "b. $yr"
             } else dYr
 
             val rawTitle = allTitles[p.id] ?: KinshipTitleHelper.resolveTitle(p, focalPerson, allPersons)
-            val titleWithIcon = if (!p.isLiving) "🕊️ $rawTitle" else rawTitle
+            val titleWithIcon = if (!p.isLiving && !shouldHideDeceased) "🕊️ $rawTitle" else rawTitle
             val title = TextUtils.ellipsize(titleWithIcon, tempPaintTitle, titleBarWidth, TextUtils.TruncateAt.END).toString()
 
             val initials = "${p.firstName.firstOrNull() ?: ""}${p.lastName.firstOrNull() ?: ""}".uppercase()
@@ -2516,10 +2709,14 @@ class FamilyTreeView @JvmOverloads constructor(
         // Empty state
         if (allPersons.isEmpty()) {
             canvas.drawText("🌳  No members yet", width / 2f, height / 2f - 30f, pEmpty)
-            canvas.drawText("Tap + to add your first member", width / 2f, height / 2f + 20f, pEmptySub)
-            val fx = width - 80f; val fy = height - 80f
-            canvas.drawCircle(fx, fy, 50f, pFab)
-            canvas.drawText("+", fx, fy + 18f, pFabIcon)
+            if (isViewerMode) {
+                canvas.drawText("Browse only · No editing permissions", width / 2f, height / 2f + 20f, pEmptySub)
+            } else {
+                canvas.drawText("Tap + to add your first member", width / 2f, height / 2f + 20f, pEmptySub)
+                val fx = width - 80f; val fy = height - 80f
+                canvas.drawCircle(fx, fy, 50f, pFab)
+                canvas.drawText("+", fx, fy + 18f, pFabIcon)
+            }
             return
         }
 
@@ -2979,9 +3176,11 @@ class FamilyTreeView @JvmOverloads constructor(
 
     private fun handleTap(screenX: Float, screenY: Float) {
         if (allPersons.isEmpty()) {
-            val fx = width - 80f; val fy = height - 80f
-            val dx = screenX - fx; val dy = screenY - fy
-            if (sqrt(dx * dx + dy * dy) <= 50f) { onAddFirst() }
+            if (!isViewerMode) {
+                val fx = width - 80f; val fy = height - 80f
+                val dx = screenX - fx; val dy = screenY - fy
+                if (sqrt(dx * dx + dy * dy) <= 50f) { onAddFirst() }
+            }
             return
         }
 

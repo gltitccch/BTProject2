@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KinTrace Proposal 31: The Federated Ops Center - Visual Interactive Prototype</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .serif-brand { font-family: 'Cinzel', serif; }
+    .gold-gradient {
+      background: linear-gradient(135deg, #F4E08B 0%, #D4AF37 50%, #B89628 100%);
+    }
+  </style>
+</head>
+<body class="bg-[#050B07] text-slate-100 p-4 md:p-8 antialiased flex flex-col items-center min-h-screen">
+
+  <!-- Top Hero & Context -->
+  <div class="max-w-4xl w-full text-center mb-6">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1A1828] border border-indigo-400/30 text-xs text-indigo-300 font-bold mb-3 shadow-lg shadow-black/40">
+      <span>🏛️ Enterprise Governance & RA 10173 Audit Security</span>
+    </div>
+    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white serif-brand">
+      Proposal 31: <span class="text-[#ECC876]">The Federated Ops Center</span>
+    </h1>
+    <p class="text-xs md:text-sm text-[#8EA394] mt-1.5 max-w-2xl mx-auto leading-relaxed">
+      Engineered for large-scale institutional genealogy and rigorous compliance with the <strong>Philippine Data Privacy Act (RA 10173)</strong>. Features timed maintenance countdown windows, automated cross-tree anomaly detection, and an <strong>immutable append-only audit trail (<code>admin_audit_logs</code>)</strong>.
+    </p>
+  </div>
+
+  <!-- Main Split Layout: Phone Mockup + Control Console -->
+  <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start justify-center">
+
+    <!-- Phone Frame (7 Cols) -->
+    <div class="lg:col-span-7 flex justify-center">
+      <div class="w-[360px] h-[760px] rounded-[46px] p-3 shadow-2xl bg-[#091710] border-4 border-[#163825] relative flex flex-col overflow-hidden shadow-black">
+        
+        <!-- Screen Canvas -->
+        <div id="screen" class="w-full h-full rounded-[38px] overflow-hidden flex flex-col relative bg-[#060D09]">
+          
+          <!-- Status Bar -->
+          <div class="px-6 pt-3 pb-1 flex justify-between items-center text-[11px] text-[#8EA394] font-semibold select-none bg-[#091710]">
+            <span>9:41</span>
+            <div class="flex items-center gap-1.5">
+              <span>📶</span>
+              <span class="text-emerald-400">100%</span>
+            </div>
+          </div>
+
+          <!-- Top App Bar -->
+          <div class="px-4 py-2.5 flex items-center justify-between bg-gradient-to-b from-[#121E28] to-[#07130D] border-b border-[#1E3A45]">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🏛️</span>
+              <div>
+                <h2 class="text-xs font-bold text-indigo-300 serif-brand tracking-wide">Federated Ops Hub</h2>
+                <div class="text-[9.5px] text-[#8EA394]">Role: <span id="currentRoleText" class="text-white font-bold">super_admin</span></div>
+              </div>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-[9.5px] text-indigo-300 font-bold">
+              RA 10173 Compliant
+            </span>
+          </div>
+
+          <!-- Timed Maintenance Lifecycle Card -->
+          <div class="mx-3 mt-3 p-3 rounded-2xl bg-gradient-to-r from-[#182333] to-[#0E1724] border border-indigo-400/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-200">
+                <span>⏱️ Timed Maintenance Lifecycle</span>
+              </div>
+              <span id="lifecycleBadge" class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-[9px]">
+                SCHEDULED
+              </span>
+            </div>
+
+            <!-- Countdown Bar -->
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[10px] text-slate-300 font-medium">Scheduled Window:</span>
+              <span id="countdownTimer" class="font-mono text-[#F4E08B] font-bold text-xs">01h 45m 12s</span>
+            </div>
+
+            <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div id="countdownProgress" class="h-full bg-gradient-to-r from-amber-400 to-[#D4AF37] w-2/3"></div>
+            </div>
+
+            <div class="flex gap-1.5 pt-1">
+              <button onclick="advanceLifecycle('SCHEDULED')" class="flex-1 py-1 rounded-lg bg-white/5 border border-white/10 text-[9.5px] font-semibold text-slate-300 hover:text-white">1. Scheduled</button>
+              <button onclick="advanceLifecycle('LOCKDOWN')" class="flex-1 py-1 rounded-lg bg-red-500/15 border border-red-500/30 text-[9.5px] font-semibold text-red-300 hover:bg-red-500/25">2. Lockdown</button>
+              <button onclick="advanceLifecycle('RESOLVED')" class="flex-1 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-semibold text-emerald-300 hover:bg-emerald-500/25">3. Resolved</button>
+            </div>
+          </div>
+
+          <!-- Scrollable Content -->
+          <div class="flex-1 overflow-y-auto p-3 space-y-3">
+            
+            <!-- Enterprise Database Anomaly Radar -->
+            <div class="p-3.5 rounded-2xl bg-[#0C1E14] border border-[#1E4530] space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold text-[#F4E08B] serif-brand">📡 Database Anomaly Radar</h3>
+                <span class="text-[9px] text-emerald-400 font-bold">Auto-Scan Active</span>
+              </div>
+
+              <div class="space-y-1.5 text-[11px]">
+                <div class="flex items-center justify-between p-1.5 rounded-lg bg-[#07140D] border border-white/5">
+                  <span class="text-[#8EA394]">Tree Cycle Loop Violations (DAG):</span>
+                  <span class="text-emerald-400 font-bold">0 Detected ✓</span>
+                </div>
+                <div class="flex items-center justify-between p-1.5 rounded-lg bg-[#07140D] border border-white/5">
+                  <span class="text-[#8EA394]">Bigamous / Active Spouse Duplicates:</span>
+                  <span class="text-emerald-400 font-bold">0 Detected ✓</span>
+                </div>
+                <div class="flex items-center justify-between p-1.5 rounded-lg bg-[#07140D] border border-white/5">
+                  <span class="text-[#8EA394]">Trees at 50-Member Freemium Cap:</span>
+                  <span class="text-amber-400 font-bold">2 Trees (Pending)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Immutable Audit Trail Table (admin_audit_logs) -->
+            <div class="p-3.5 rounded-2xl bg-[#0D1C24] border border-indigo-400/20 space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold text-indigo-300 serif-brand">📜 Immutable Audit Trail</h3>
+                <span class="text-[9px] text-[#8EA394] font-mono">admin_audit_logs</span>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-[9.5px]">
+                  <thead>
+                    <tr class="text-[#8EA394] border-b border-white/10">
+                      <th class="py-1">Time</th>
+                      <th class="py-1">Action</th>
+                      <th class="py-1">Admin</th>
+                      <th class="py-1 text-right">Hash</th>
+                    </tr>
+                  </thead>
+                  <tbody id="auditTableBody" class="divide-y divide-white/5 text-slate-300 font-mono">
+                    <tr>
+                      <td class="py-1 text-slate-400">17:05</td>
+                      <td class="text-amber-300 font-sans">BROADCAST_PUBLISHED</td>
+                      <td>admin@kintrace.ph</td>
+                      <td class="text-right text-emerald-400 font-bold">#4a9b</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1 text-slate-400">16:42</td>
+                      <td class="text-emerald-300 font-sans">UPGRADE_APPROVED</td>
+                      <td>admin@kintrace.ph</td>
+                      <td class="text-right text-emerald-400 font-bold">#9f21</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1 text-slate-400">14:10</td>
+                      <td class="text-blue-300 font-sans">AUDIT_ROUTINE_PASS</td>
+                      <td>cron_engine</td>
+                      <td class="text-right text-emerald-400 font-bold">#18be</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Security Watermark -->
+          <div class="p-2 text-center text-[9px] text-[#8EA394]/60 bg-[#091710] border-t border-[#163625]">
+            KinTrace Enterprise Governance Engine • Cryptographically Verified Ledger
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Testing & Simulation Console (5 Cols) -->
+    <div class="lg:col-span-5 space-y-4">
+      
+      <!-- Testing Card -->
+      <div class="p-5 rounded-3xl bg-[#0C1E14] border border-[#D4AF37]/30 space-y-3.5 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[#1E4530] pb-2.5">
+          <h3 class="text-sm font-bold text-[#F4E08B] serif-brand">🎮 Enterprise Controls</h3>
+          <span class="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-400/30">Governance</span>
+        </div>
+        
+        <p class="text-xs text-[#8EA394] leading-relaxed">
+          Test advancing the maintenance lifecycle stages and appending new immutable audit log events to the ledger:
+        </p>
+
+        <div class="space-y-2">
+          <button onclick="advanceLifecycle('SCHEDULED')" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-amber-500/30 text-amber-200 text-xs font-semibold flex items-center justify-between">
+            <span>⏱️ 1. Set to 'SCHEDULED' (Countdown Advisory)</span>
+            <span class="text-[9.5px]">Step 1</span>
+          </button>
+          <button onclick="advanceLifecycle('LOCKDOWN')" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-red-500/30 text-red-200 text-xs font-semibold flex items-center justify-between">
+            <span>🚨 2. Set to 'LOCKDOWN' (Database Freeze)</span>
+            <span class="text-[9.5px]">Step 2</span>
+          </button>
+          <button onclick="advanceLifecycle('RESOLVED')" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-emerald-500/30 text-emerald-200 text-xs font-semibold flex items-center justify-between">
+            <span>✅ 3. Set to 'RESOLVED' (Auto-Archive)</span>
+            <span class="text-[9.5px]">Step 3</span>
+          </button>
+          <button onclick="logCustomAudit('TREE_LIMIT_EXTENDED')" class="w-full py-2.5 rounded-xl font-bold text-xs text-[#06110A] gold-gradient shadow-md flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+            <span>📜 Simulate Admin Audit Log Write</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Highlights Card -->
+      <div class="p-5 rounded-3xl bg-[#0C1E14] border border-[#1E4530] space-y-2.5">
+        <h3 class="text-xs font-bold text-white uppercase tracking-wider">🔒 Security & Privacy Highlights</h3>
+        <p class="text-xs text-[#B4CFC0] leading-relaxed">
+          <strong>Full Audit Trail:</strong> Ensures every system alteration, tree upgrade, or broadcast retraction is immutably logged for defense scrutiny and thesis review.
+        </p>
+        <p class="text-xs text-[#8EA394] leading-relaxed">
+          <strong>RA 10173 Alignment:</strong> Fulfills data accountability mandates under Philippine law by tracing exactly who performed what administrative operation.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function advanceLifecycle(stage) {
+      const badge = document.getElementById('lifecycleBadge');
+      const timer = document.getElementById('countdownTimer');
+      const progress = document.getElementById('countdownProgress');
+
+      if (stage === 'SCHEDULED') {
+        badge.className = 'px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-[9px]';
+        badge.innerText = 'SCHEDULED';
+        timer.innerText = '01h 45m 12s';
+        progress.className = 'h-full bg-gradient-to-r from-amber-400 to-[#D4AF37] w-2/3';
+        logCustomAudit('LIFECYCLE_STAGE_SCHEDULED');
+      } else if (stage === 'LOCKDOWN') {
+        badge.className = 'px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/50 text-red-300 font-bold text-[9px]';
+        badge.innerText = 'ACTIVE_LOCKDOWN';
+        timer.innerText = '🚨 IN PROGRESS';
+        progress.className = 'h-full bg-red-500 w-full animate-pulse';
+        logCustomAudit('LIFECYCLE_STAGE_LOCKDOWN');
+      } else if (stage === 'RESOLVED') {
+        badge.className = 'px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-[9px]';
+        badge.innerText = 'RESOLVED';
+        timer.innerText = '✓ Completed';
+        progress.className = 'h-full bg-emerald-400 w-full';
+        logCustomAudit('LIFECYCLE_STAGE_RESOLVED');
+      }
+    }
+
+    function logCustomAudit(action) {
+      const tbody = document.getElementById('auditTableBody');
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const randomHex = Math.floor(Math.random() * 0xFFFF).toString(16).padStart(4, '0');
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="py-1 text-slate-400">${timeStr}</td>
+        <td class="text-indigo-300 font-sans">${action}</td>
+        <td>admin@kintrace.ph</td>
+        <td class="text-right text-emerald-400 font-bold">#${randomHex}</td>
+      `;
+      tbody.prepend(tr);
+    }
+  </script>
+</body>
+</html>

@@ -34,6 +34,7 @@ class FamilyTreeActivity : AppCompatActivity() {
 
     private var allPersons: List<Person> = emptyList()
     private var isFanChartLoaded = false
+    private var isViewer = false
 
     internal val syncCoordinator by lazy {
         PedigreeFanChartSyncCoordinator(
@@ -118,7 +119,8 @@ class FamilyTreeActivity : AppCompatActivity() {
             onSuccess = { tree ->
                 val isOwner = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
                 if (isOwner) {
-                    tvTreeRoleBadge.text = "★ Owner"
+                    isViewer = false
+                    tvTreeRoleBadge.text = "★ Owner • Full access"
                     layoutViewerBanner.visibility = android.view.View.GONE
                 } else {
                     firestoreHelper.getUserMembership(currentUserId, treeId,
@@ -126,24 +128,28 @@ class FamilyTreeActivity : AppCompatActivity() {
                             val role = member?.role ?: "Viewer"
                             when (role.lowercase()) {
                                 "editor" -> {
-                                    tvTreeRoleBadge.text = "✏ Editor"
+                                    isViewer = false
+                                    tvTreeRoleBadge.text = "✎ Editor - Edit access"
                                     layoutViewerBanner.visibility = android.view.View.GONE
                                 }
                                 else -> {
-                                    tvTreeRoleBadge.text = "👁 Viewer"
+                                    isViewer = true
+                                    tvTreeRoleBadge.text = "Viewer • Read-only access"
                                     layoutViewerBanner.visibility = android.view.View.VISIBLE
                                 }
                             }
                         },
                         onFailure = {
-                            tvTreeRoleBadge.text = "👁 Viewer"
+                            isViewer = true
+                            tvTreeRoleBadge.text = "Viewer • Read-only access"
                             layoutViewerBanner.visibility = android.view.View.VISIBLE
                         }
                     )
                 }
             },
             onFailure = {
-                tvTreeRoleBadge.text = "★ Owner"
+                isViewer = false
+                tvTreeRoleBadge.text = "★ Owner • Full access"
                 layoutViewerBanner.visibility = android.view.View.GONE
             }
         )
@@ -153,6 +159,7 @@ class FamilyTreeActivity : AppCompatActivity() {
             val intent = Intent(this, MemberDetailActivity::class.java).apply {
                 putExtra("personId", person.id)
                 putExtra("TREE_ID", treeId)
+                putExtra("isViewer", isViewer)
             }
             memberDetailLauncher.launch(intent)
         }

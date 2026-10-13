@@ -19,7 +19,9 @@ class SplashActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             val user = authHelper.getCurrentUser()
             if (user != null) {
-                if (user.isEmailVerified) {
+                if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(user.email)) {
+                    startActivity(Intent(this, AdminPortalActivity::class.java))
+                } else if (user.isEmailVerified || com.example.btproject2.models.DemoAccountRepository.isDemoEmail(user.email)) {
                     startActivity(Intent(this, HomeActivity::class.java))
                 } else {
                     startActivity(Intent(this, VerifyEmailActivity::class.java))

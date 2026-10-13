@@ -37,6 +37,10 @@
 | **25** | **The Unified KinTrace 360° Educational Suite (KinAcademy Hub + Universal QuickAssist)** | Complete Educational Suite | **✅ Completed (7/7 Phases Verified)** | Comprehensive 360° educational system: 10-module Masterclass Hub + searchable Kamag-anak Lexicon + universal in-situ `(?)` QuickAssist sheet covering all 10 app modules |
 | **26** | **Account Profile & Clan Identity Redesign** | UI / UX Modernization | **✅ Completed (Globally Integrated)** | Modern BottomSheet overhaul with Gold Crest Avatar, verified badge, grouped credential cards, and responsive headers |
 | **27** | **Auth Flow Navigation Modernization (Login Header Clean & Register Back Redesign)** | Auth UI / UX Refinement | **Phase 2 / Immediate Execution** | Removal of redundant Login back button (100% preservation of auth forms) + 3 modern redesign styles for Create Account back navigation |
+| **28** | **Trust, Safety & Clan Stewardship Suite** | Trust & Legal Compliance | **Phase 2 / Immediate Execution** | Non-bypassable scroll-to-bottom Terms of Service BottomSheet + Clan Stewardship Perpetual License for safe tree preservation upon account deletion |
+| **29** | **The Central Command Citadel (System Admin Portal & Push Broadcaster)** | Super Admin & Operations (FR-11) | **Phase 2 / Immediate Capstone** | Standalone `AdminPortalActivity` with 3-tab operations matrix (Telemetry, Maintenance Broadcaster, Upgrade Approver) + reactive push banner bus |
+| **30** | **The Sovereign HUD Overlay (In-Situ Admin Floating Dashboard & Drawer)** | Live In-Situ Control (FR-11) | **Phase 2 / Capstone Option** | Floating Sovereign Crest FAB popping `AdminCommandBottomSheet` with quick telemetry ticker, rapid broadcast presets, and in-place tree health auditor |
+| **31** | **The Federated Ops Center (Enterprise Governance, Broadcast Windows & Audit Trail)** | Enterprise Governance (FR-11) | **Phase 2 / Capstone Option** | Multi-level RBAC (`super_admin`, `moderator`), timed maintenance countdown windows (`UPCOMING` → `ACTIVE` → `RESOLVED`), and immutable Firestore audit logs (`admin_audit_logs`) |
 
 ---
 
@@ -2007,6 +2011,119 @@ flowchart TD
 
 ---
 
+### Proposal 29: The Central Command Citadel (Dedicated Full-Screen Admin Portal & Global Push Banner Bus)
+
+#### 29.1 Concept & Functional Specification (FR-11, Figures 19 & 20)
+- **Primary Purpose**: Provides a dedicated, sovereign administrative operations headquarters (`AdminPortalActivity.kt`) exclusively accessible to system administrators (`UserProfile.role == "admin"`), fulfilling thesis requirement **FR-11** and Figures 19 & 20.
+- **Architectural Separation of Concerns**: Normal genealogical users never load, see, or execute administrative code. Administrative functionality is completely partitioned into a standalone activity, ensuring zero performance impact and zero visual pollution for regular family tree builders.
+- **Access Gating & Defense Convenience**:
+  - Gated via `UserProfile.role == "admin"`: Unauthorized users attempting to launch the activity are immediately finished with an access denial toast.
+  - Profile Sheet Entry: Pinned `"🛡️ System Admin Portal"` card inside `ClanProfileBottomSheet` when logged into an admin account.
+  - 1-Tap Defense Presentation: A dedicated `System Administrator` account (e.g. `admin@kintrace.ph` / `Super Admin`) added to `DemoAccountRepository.kt`, enabling defense panelists to evaluate the admin portal instantly with a single tap.
+
+#### 29.2 The 3-Tab Operational Citadel Architecture
+`AdminPortalActivity` is organized into three intuitive, heritage-styled operational tabs:
+
+```
+┌────────────────────────────────────────────────────────┐
+│  🛡️ KINTRACE SYSTEM ADMIN PORTAL                       │
+│  Super Admin: admin@kintrace.ph • Online Heartbeat 🟢   │
+├────────────────────┬──────────────────┬────────────────┤
+│  📊 Live Telemetry │ 📢 Broadcaster   │ 👑 Clan Upgrades│
+└────────────────────┴──────────────────┴────────────────┘
+```
+
+1. **Tab 1: Live Telemetry & System Insights (Figure 20)**:
+   - **User Count Metric Tile**: Total registered accounts in Firestore with 7-day trend indicator.
+   - **Tree Registry Tile**: Total initialized clan trees and average tree member count.
+   - **Genealogical Records Volume**: Total encoded persons across all trees in the database.
+   - **Sync Heartbeat Status**: Real-time Firestore connectivity indicator and active listeners counter.
+2. **Tab 2: Global Maintenance Alert Broadcaster (FR-11, Figure 19)**:
+   - **Announcement Composer**: Admins compose system-wide announcements with customizable fields:
+     - `Title` (e.g. *"Scheduled Server Maintenance"*)
+     - `Message Body` (e.g. *"KinTrace sync services will undergo maintenance from 11:00 PM to 1:00 AM PHT."*)
+     - `Severity`: Low (`INFO` - Blue/Emerald), Medium (`WARNING` - Gold/Amber), Critical (`LOCKDOWN` - Crimson).
+     - `Scheduled Time Window`: Optional time string indicating maintenance duration.
+   - **Instant Broadcast Dispatcher**: Writes to `system_announcements/active` in Firestore. Active app sessions instantly pick up the change through real-time listeners.
+   - **Broadcast History & Retract**: Admins can edit or immediately cancel/retract active broadcasts with one tap (`[Retract Broadcast]`).
+3. **Tab 3: Freemium Clan Expansion Queue (Scope Pages 14, 21-22)**:
+   - **Pending Requests Roster**: Displays inbound clan capacity upgrade requests from tree owners who reached the 50-member free tier limit.
+   - **Request Dossier**: Shows tree name, owner email, current member count, and requested capacity.
+   - **One-Tap Actions**: `[✓ Approve Expansion]` (sets `isPremium = true`, unlocks tree beyond 50 members, and dispatches real-time approval notification to the owner) or `[✕ Decline]`.
+
+#### 29.3 Reactive In-App Banner Bus (`HomeActivity` & App Shell)
+- A lightweight Firestore snapshot listener (`SystemAlertCoordinator`) in `HomeActivity` subscribes to `system_announcements/active`.
+- **Display Modes**:
+  - `INFO` / `WARNING`: Renders an amber heritage banner card directly above the Clan Overview in `HomeActivity` with an alert icon, message, and dismissible `✕` button (dismissed state persisted in `SharedPreferences`).
+  - `CRITICAL_LOCKDOWN`: Displays a non-dismissible modal alert overlay, temporarily locking write actions during database migrations to guarantee data integrity.
+
+---
+
+### Proposal 30: The Sovereign HUD Overlay (In-Situ Admin Floating Dashboard & Slide-Over Drawer)
+
+#### 30.1 Concept & Behavioral Flow
+- **Primary Purpose**: An in-situ, floating control HUD designed for live demonstrations and active app auditing. Instead of navigating away to a separate full-screen portal, administrators retain an omnipresent, floating gold crown/shield medallion (`Admin HUD`) on the screen margin.
+- **Interactive Experience**:
+  - Tapping the floating HUD smoothly expands a slide-over modal drawer (`AdminCommandBottomSheet.kt`).
+  - Allows the admin to inspect app analytics, trigger broadcasts, and review tree integrity *while actively browsing any family tree or canvas*.
+
+#### 30.2 Key HUD Capabilities
+1. **Rapid Telemetry Ticker**: Compact, scrollable chip strip displaying live server ping, total user volume, and Firestore write rates.
+2. **One-Tap Broadcast Quick Presets**:
+   - `"PSA System Sync Patch"` (Presets common maintenance templates with 1 tap).
+   - `"Routine Server Upgrade in 15 mins"` (Pre-fills standard countdown).
+   - `"All Systems Operational"` (Clears all alerts and confirms green status).
+3. **In-Situ Broadcast Simulator**:
+   - Admin can toggle `"Preview Mode"`: renders the maintenance banner locally on their device screen first, allowing visual verification of text formatting and contrast before pushing to production users.
+4. **Clan Inspection Lens**:
+   - View topological validation health scores of whatever tree is currently selected without altering its genealogical nodes.
+
+---
+
+### Proposal 31: The Federated Ops Center (Enterprise Governance, Broadcast Windows & Immutable Audit Trail)
+
+#### 31.1 Concept & Multi-Tier Governance
+- **Primary Purpose**: Enterprise-grade operations architecture tailored for university-wide, institutional, or large archival deployments. Introduces multi-tier role delegation, scheduled countdown lifecycles, and tamper-evident audit logging in compliance with the Philippine Data Privacy Act (RA 10173).
+- **Multi-Tier Admin Hierarchy**:
+  - `super_admin`: Full authority to broadcast alerts, approve premium upgrades, and grant/revoke administrative privileges.
+  - `clan_moderator`: Read-only access to system health analytics and tree audit reports, with the ability to propose (but not publish) announcements.
+
+#### 31.2 Core Architectural Features
+1. **Lifecycle Broadcast Windows**:
+   - Announcements transition through an automated 3-phase lifecycle:
+     - `SCHEDULED` (Upcoming advisory banner: *"Maintenance scheduled in 3 hours"*).
+     - `ACTIVE_LOCKDOWN` (Real-time maintenance in progress; app switches to read-only offline cache).
+     - `RESOLVED` (Auto-dismissed or marked completed with resolution notes).
+2. **Global Anomaly Radar**:
+   - Background analyzer that runs topological scans across all registered trees, aggregating orphaned members, isolated branches, and marriage rule violations into an administrative diagnostic view.
+3. **Immutable Audit Trail (`admin_audit_logs`)**:
+   - Every administrative mutation (announcement broadcast, retract, upgrade approval, role change) creates an append-only log record in Firestore containing:
+     - `adminEmail`, `actionType`, `timestamp`, `targetId`, and serialized `payloadDiff`.
+   - Prevents unauthorized tampering and provides a complete audit history for academic defense.
+
+---
+
+### Proposal 32: Comparative Synthesis & Recommended Implementation Blueprint
+
+#### 32.1 Multi-Dimensional Comparative Matrix
+
+| Evaluation Criteria | Proposal 29: Command Citadel | Proposal 30: Sovereign HUD | Proposal 31: Federated Ops Center |
+| :--- | :--- | :--- | :--- |
+| **Thesis Fidelity (FR-11, Fig 19/20)** | **100% Exact Match** | 85% (Drawer format) | 95% (Includes enterprise extras) |
+| **Zero-Regression Risk** | **Zero (100% Isolated)** | Low (Overlay on views) | Very Low (Isolated activity) |
+| **Defense Presentation Impact** | **Highest (Clean 3-Tab UI)** | High (Dynamic floating tool) | High (Audit log depth) |
+| **1-Tap Demo Integration** | **Instant (Admin Demo Account)**| Instant (Admin Demo Account)| Instant (Super Admin Persona) |
+| **Implementation Complexity** | **Low-Medium (Clean Architecture)**| Medium (Window manager / HUD)| High (Lifecycle states & RBAC) |
+| **Maintenance Banner Experience**| **Reactive Top Card / Lock Modal**| Collapsible Ticker Bar | 3-Phase Timed Countdown Window |
+
+#### 32.2 Authoritative Hybrid Recommendation: "The Citadel + Live Push Bus"
+To deliver the highest thesis compliance, absolute zero regression, and maximum presentation polish during capstone defense:
+1. **Adopt Proposal 29 as the Primary Interface**: Build `AdminPortalActivity.kt` with the 3 dedicated operational tabs (Live Telemetry, Maintenance Broadcaster, and Clan Upgrade Queue). This gives panelists an unmistakable, executive dashboard directly matching Figure 19 and Figure 20.
+2. **Incorporate Proposal 29's Reactive Push Bus**: Wire a lightweight snapshot listener in `HomeActivity` that displays an amber/gold Heritage Maintenance Banner when an active broadcast is published.
+3. **Incorporate Proposal 31's Lightweight Audit Trail**: When an admin broadcasts an announcement or approves an upgrade, record a simple entry to `admin_audit_logs` in Firestore to demonstrate enterprise security and compliance.
+
+---
+
 ## 3. Proposal Ideas Changelog & Expansion Log
 
 | Date | Added By | Summary of Ideas Logged |
@@ -2024,6 +2141,7 @@ flowchart TD
 | **2026-10-03** | System Architecture Review | **Added Proposal 26: Modern Account Profile & Clan Identity Redesign**: Logged 3 distinct high-craft visual directions (Heritage BottomSheet, Clan Passport Card, Segmented Duo-Hub) with interactive Generative UI preview to modernize the legacy AlertDialog profile interface. |
 | **2026-10-03** | System Architecture Review | **Added Proposal 27: Auth Flow Navigation Modernization**: Clean removal of redundant Login back button (100% form preservation) + 3 tactile redesign options for Create Account back navigation with interactive Generative UI preview. |
 | **2026-10-03** | System Architecture Review | **Added Proposal 28: Trust, Safety & Clan Stewardship Suite**: Complete architectural resolution for the collaborative tree deletion dilemma, 10-clause legally binding covenant, 100% scroll-to-bottom BottomSheet gating, post-verification educational notification hub, and Clan Profile Danger Zone integration. |
+| **2026-10-13** | System Architecture Review | **Added Proposals 29 through 32: System Admin Portal & Maintenance Broadcaster Suite (FR-11, Figures 19 & 20)**: Added Proposal 29 (The Central Command Citadel: Dedicated 3-Tab Activity & Push Banner Bus), Proposal 30 (The Sovereign HUD Overlay: Floating Console & Slide-Over Drawer), Proposal 31 (The Federated Ops Center: Enterprise Governance, Timed Windows & Immutable Audit Trail), and Proposal 32 (Comparative Synthesis & Hybrid Recommendation). |
 
 *(New proposals and suggestions requested in future interactions will be appended here automatically.)*
 

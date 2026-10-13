@@ -17,6 +17,7 @@ import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.Person
+import com.example.btproject2.ui.dialogs.ActionRestrictedDialog
 import com.example.btproject2.utils.NotificationHelper
 import com.example.btproject2.utils.TreePreferences
 import com.example.btproject2.utils.setDarkAdapter
@@ -40,6 +41,8 @@ class EditMemberActivity : AppCompatActivity() {
     private var selectedBirthDate = ""
     private var selectedDeathDate = ""
     private var isSaving = false
+    private var isViewer = false
+    private var currentTreeName = "Family Tree"
 
     private lateinit var etFirstName: EditText
     private lateinit var etMiddleName: EditText
@@ -71,6 +74,15 @@ class EditMemberActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        val passedIsViewer = intent.getBooleanExtra("isViewer", false)
+        if (passedIsViewer) {
+            isViewer = true
+            interceptViewerAccess()
+            return
+        }
+
+        checkViewerPermissions()
 
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
 
@@ -158,6 +170,10 @@ class EditMemberActivity : AppCompatActivity() {
         loadMemberData()
 
         btnSave.setOnClickListener {
+            if (isViewer) {
+                interceptViewerAccess()
+                return@setOnClickListener
+            }
             if (isSaving) return@setOnClickListener
 
             val firstName = etFirstName.text.toString().trim()
@@ -736,6 +752,48 @@ class EditMemberActivity : AppCompatActivity() {
             .setMessage(message)
             .setPositiveButton("OK", null)
             .show()
+    }
+
+    private fun interceptViewerAccess() {
+        val effectiveTree = intent.getStringExtra("TREE_ID")
+            ?: intent.getStringExtra("treeId")
+            ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+        val dialog = ActionRestrictedDialog.newInstance(
+            treeId = effectiveTree,
+            treeName = currentTreeName,
+            actionAttempted = "Edit Member Record"
+        )
+        dialog.onDismissAction = {
+            if (!isFinishing) finish()
+        }
+        dialog.show(supportFragmentManager, ActionRestrictedDialog.TAG)
+    }
+
+    private fun checkViewerPermissions() {
+        val effectiveTree = intent.getStringExtra("TREE_ID")
+            ?: intent.getStringExtra("treeId")
+            ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        if (effectiveTree.isBlank() || currentUserId.isBlank()) return
+
+        firestoreHelper.getTree(effectiveTree,
+            onSuccess = { tree ->
+                currentTreeName = tree?.name ?: "Family Tree"
+                val isOwner = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                if (!isOwner) {
+                    firestoreHelper.getUserMembership(currentUserId, effectiveTree,
+                        onSuccess = { member ->
+                            if (member?.role.equals("Viewer", ignoreCase = true)) {
+                                isViewer = true
+                                interceptViewerAccess()
+                            }
+                        },
+                        onFailure = {}
+                    )
+                }
+            },
+            onFailure = {}
+        )
     }
 }
 

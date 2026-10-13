@@ -17,3 +17,6 @@ local.properties
 .obsidian/
 *.apk
 *.zip
+
+~$*.pptx
+~$*.ppt

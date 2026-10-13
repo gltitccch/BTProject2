@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_quick_assist_sheet"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="24dp">
+
+    <!-- Top Drag Handle Bar -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/badge_pill_dark" />
+
+    <!-- Header Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:gravity="center"
+            android:background="@drawable/bg_danger_card_erased"
+            android:layout_marginEnd="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DANGER ZONE • PERMANENT"
+                android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/danger"
+                android:background="@drawable/bg_danger_badge"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:layout_marginBottom="3dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete Clan Account"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Subtitle Notice -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Account removal is permanent and irreversible. KinTrace automatically invokes Clan Stewardship to safeguard collaborative genealogy for your relatives:"
+        android:textSize="11.5sp"
+        android:textColor="@color/dark_subtext"
+        android:lineSpacingExtra="2dp"
+        android:layout_marginBottom="14dp" />
+
+    <!-- Dual Impact Breakdown Cards -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:layout_marginBottom="12dp">
+
+        <!-- Card 1: What is Erased -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/bg_danger_card_erased"
+            android:padding="12dp"
+            android:layout_marginEnd="6dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="❌ What's Erased"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/danger"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• Login credentials\n• User profile record\n• Unshared solo trees"
+                android:textSize="10.5sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingExtra="3dp" />
+        </LinearLayout>
+
+        <!-- Card 2: What is Preserved (Clan Stewardship) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/bg_danger_card_preserved"
+            android:padding="12dp"
+            android:layout_marginStart="6dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏛️ Preserved for Clan"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• Shared family trees\n• Living relatives masked\n• Former Contributor tag"
+                android:textSize="10.5sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingExtra="3dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- RA 10173 Privacy Compliance Micro-Chip -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/badge_pill_dark"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🛡️"
+            android:textSize="12sp"
+            android:layout_marginEnd="6dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Living relatives protected under RA 10173 (Data Privacy Act)."
+            android:textSize="10sp"
+            android:textColor="@color/dark_subtext" />
+    </LinearLayout>
+
+    <!-- Slide-To-Delete Slider Header -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="SLIDE THUMB ALL THE WAY TO CONFIRM"
+        android:textSize="9.5sp"
+        android:textStyle="bold"
+        android:textColor="@color/danger"
+        android:letterSpacing="0.06"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Tactile Slider Track Container -->
+    <FrameLayout
+        android:id="@+id/layoutSliderTrack"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_danger_slider_track"
+        android:layout_marginBottom="14dp">
+
+        <!-- Dynamic Fill -->
+        <View
+            android:id="@+id/viewSliderFill"
+            android:layout_width="52dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_danger_slider_fill" />
+
+        <!-- Centered Background Hint -->
+        <TextView
+            android:id="@+id/tvSliderHint"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="SLIDE TO PERMANENTLY DELETE ❯❯"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/danger"
+            android:letterSpacing="0.06" />
+
+        <!-- Draggable Thumb Button -->
+        <FrameLayout
+            android:id="@+id/viewSliderThumb"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_danger_slider_thumb"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="❯"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <!-- Safe Action: Keep My Account -->
+    <TextView
+        android:id="@+id/btnCancelDangerZone"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/btn_dark_secondary"
+        android:text="KEEP MY ACCOUNT &amp; CANCEL"
+        android:textSize="12.5sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:letterSpacing="0.06"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

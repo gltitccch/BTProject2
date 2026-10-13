@@ -7,5 +7,18 @@
         <item name="android:windowBackground">@color/forest_bg</item>
         <item name="android:statusBarColor">@color/forest_bg</item>
         <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Global Base Typeface (Inter) -->
+        <item name="fontFamily">@font/font_body_inter</item>
+        <item name="android:fontFamily">@font/font_body_inter</item>
+
+        <!-- Material Components Standard Text Appearances -->
+        <item name="textAppearanceHeadline1">@style/TextAppearance.KinTrace.Display.Large</item>
+        <item name="textAppearanceHeadline2">@style/TextAppearance.KinTrace.Display.Medium</item>
+        <item name="textAppearanceHeadline6">@style/TextAppearance.KinTrace.Headline</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.KinTrace.Subtitle</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.KinTrace.Body</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.KinTrace.Body.Secondary</item>
+        <item name="textAppearanceButton">@style/TextAppearance.KinTrace.Button</item>
     </style>
 </resources>

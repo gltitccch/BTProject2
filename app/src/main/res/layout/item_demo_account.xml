@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardDemoItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_demo_card"
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:layout_marginBottom="10dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Avatar Medallion with Emoji -->
+    <FrameLayout
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_demo_medallion">
+
+        <TextView
+            android:id="@+id/tvDemoEmoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="👑"
+            android:textSize="20sp" />
+    </FrameLayout>
+
+    <!-- Persona Details -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="14dp">
+
+        <!-- Name + Role Pill Row -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvDemoName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Augustine Russell"
+                android:textSize="14.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tvDemoBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PATRIARCH"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/bg_demo_role_badge"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Tree Summary Stats -->
+        <TextView
+            android:id="@+id/tvDemoSummary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20 Members • 4 Generations • 44 Records"
+            android:textSize="11.5sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="3dp" />
+
+    </LinearLayout>
+
+    <!-- 1-Tap Action Pill -->
+    <TextView
+        android:id="@+id/tvDemoAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1-Tap ➔"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_accent"
+        android:layout_marginStart="8dp" />
+
+</LinearLayout>

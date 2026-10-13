@@ -1,10 +1,13 @@
 package com.example.btproject2.firebase
 
 import com.example.btproject2.models.ActivityRecord
+import com.example.btproject2.models.AdminAuditLog
 import com.example.btproject2.models.ClanMergeRequest
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.InviteCodeRecord
 import com.example.btproject2.models.NotificationRecord
+import com.example.btproject2.models.ReunionPassRecord
+import com.example.btproject2.models.SystemAnnouncement
 import com.example.btproject2.models.Person
 import com.example.btproject2.models.PrivacySettings
 import com.example.btproject2.models.TreeMember
@@ -3766,6 +3769,149 @@ class FirestoreHelper {
                 )
                 onSuccess(bulkReport)
             }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    // =========================================================================
+    // SYSTEM ADMIN PORTAL & MAINTENANCE ENGINE (FR-11)
+    // =========================================================================
+
+    fun publishSystemAnnouncement(
+        announcement: SystemAnnouncement,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        db.collection("system_announcements")
+            .document("active_broadcast")
+            .set(announcement)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun retractSystemAnnouncement(
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val retracted = SystemAnnouncement(
+            id = "active_broadcast",
+            isActive = false,
+            title = "",
+            message = ""
+        )
+        db.collection("system_announcements")
+            .document("active_broadcast")
+            .set(retracted)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun listenToActiveSystemAnnouncement(
+        onUpdate: (SystemAnnouncement?) -> Unit
+    ): ListenerRegistration {
+        return db.collection("system_announcements")
+            .document("active_broadcast")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null || !snapshot.exists()) {
+                    onUpdate(null)
+                    return@addSnapshotListener
+                }
+                val parsed = snapshot.toObject(SystemAnnouncement::class.java)
+                val activeFlag = snapshot.getBoolean("isActive") ?: snapshot.getBoolean("active") ?: parsed?.isActive ?: false
+                val announcement = parsed?.copy(isActive = activeFlag)
+                if (announcement != null && announcement.isActive) {
+                    onUpdate(announcement)
+                } else {
+                    onUpdate(null)
+                }
+            }
+    }
+
+    fun logAdminAuditAction(
+        log: AdminAuditLog,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val docId = if (log.id.isNotBlank()) log.id else "AUDIT_${System.currentTimeMillis()}"
+        val record = log.copy(id = docId)
+        db.collection("admin_audit_logs")
+            .document(docId)
+            .set(record)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun saveReunionPass(
+        pass: ReunionPassRecord,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val docId = if (pass.code.isNotBlank()) pass.code else "PASS_${System.currentTimeMillis()}"
+        val record = pass.copy(code = docId)
+        db.collection("reunion_passes")
+            .document(docId)
+            .set(record)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    data class PlatformTelemetry(
+        val totalAccounts: Long = 0,
+        val totalClans: Long = 0,
+        val totalNodes: Long = 0,
+        val isOnline: Boolean = true
+    )
+
+    fun fetchLivePlatformTelemetry(
+        onResult: (PlatformTelemetry) -> Unit
+    ) {
+        val usersTask = db.collection("users").count().get(com.google.firebase.firestore.AggregateSource.SERVER)
+        val treesTask = db.collection("trees").count().get(com.google.firebase.firestore.AggregateSource.SERVER)
+        val personsTask = db.collection("persons").count().get(com.google.firebase.firestore.AggregateSource.SERVER)
+
+        Tasks.whenAllComplete(usersTask, treesTask, personsTask).addOnCompleteListener {
+            val accountsCount = if (usersTask.isSuccessful) usersTask.result?.count ?: 0L else 0L
+            val clansCount = if (treesTask.isSuccessful) treesTask.result?.count ?: 0L else 0L
+            val nodesCount = if (personsTask.isSuccessful) personsTask.result?.count ?: 0L else 0L
+            val isOnline = usersTask.isSuccessful || treesTask.isSuccessful || personsTask.isSuccessful
+
+            onResult(
+                PlatformTelemetry(
+                    totalAccounts = accountsCount,
+                    totalClans = clansCount,
+                    totalNodes = nodesCount,
+                    isOnline = isOnline
+                )
+            )
+        }
+    }
+
+    fun fetchLatestAppVersion(
+        onSuccess: (com.example.btproject2.models.AppVersionConfig?) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        db.collection("system_config")
+            .document("app_version")
+            .get()
+            .addOnSuccessListener { doc ->
+                if (doc != null && doc.exists()) {
+                    val config = doc.toObject(com.example.btproject2.models.AppVersionConfig::class.java)
+                    onSuccess(config)
+                } else {
+                    onSuccess(null)
+                }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun publishAppVersion(
+        config: com.example.btproject2.models.AppVersionConfig,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        db.collection("system_config")
+            .document("app_version")
+            .set(config)
+            .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }
     }
 }

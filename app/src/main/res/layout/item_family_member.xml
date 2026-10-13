@@ -18,6 +18,7 @@
         android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@color/gold_accent"
+        android:fontFamily="@font/font_display_sora"
         android:background="@drawable/avatar_circle_dark"
         android:layout_marginEnd="12dp" />
 
@@ -35,7 +36,8 @@
             android:text="Juan dela Cruz"
             android:textSize="15sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary" />
+            android:textColor="@color/text_primary"
+            android:fontFamily="@font/font_display_sora" />
 
         <TextView
             android:id="@+id/tvMemberInfo"

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KinTrace Proposal 29: The Central Command Citadel - Visual Interactive Prototype</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cinzel:wght@600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .serif-brand { font-family: 'Cinzel', serif; }
+    .gold-gradient {
+      background: linear-gradient(135deg, #F4E08B 0%, #D4AF37 50%, #B89628 100%);
+    }
+    .emerald-gradient {
+      background: linear-gradient(145deg, #0E2419 0%, #060D09 100%);
+    }
+  </style>
+</head>
+<body class="bg-[#050B07] text-slate-100 p-4 md:p-8 antialiased flex flex-col items-center min-h-screen">
+
+  <!-- Top Hero & Context -->
+  <div class="max-w-4xl w-full text-center mb-6">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0F261B] border border-[#D4AF37]/30 text-xs text-[#F4E08B] font-bold mb-3 shadow-lg shadow-black/40">
+      <span>🛡️ Thesis FR-11 Exact Specification</span>
+    </div>
+    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white serif-brand">
+      Proposal 29: <span class="text-[#ECC876]">The Central Command Citadel</span>
+    </h1>
+    <p class="text-xs md:text-sm text-[#8EA394] mt-1.5 max-w-2xl mx-auto leading-relaxed">
+      A dedicated, sovereign full-screen administrative portal (<code>AdminPortalActivity.kt</code>). Accessible exclusively to authorized administrators (<code>role == "admin"</code>). Partitions telemetry, broadcasting, and clan capacity reviews away from regular users for <strong>100% zero regression</strong>.
+    </p>
+  </div>
+
+  <!-- Main Split Layout: Phone Mockup + Live Control Dashboard -->
+  <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start justify-center">
+
+    <!-- Phone Frame (7 Cols) -->
+    <div class="lg:col-span-7 flex justify-center">
+      <div class="w-[360px] h-[760px] rounded-[46px] p-3 shadow-2xl bg-[#091710] border-4 border-[#163825] relative flex flex-col overflow-hidden shadow-black">
+        
+        <!-- Screen Canvas -->
+        <div id="screen" class="w-full h-full rounded-[38px] overflow-hidden flex flex-col relative bg-[#060D09]">
+          
+          <!-- Status Bar -->
+          <div class="px-6 pt-3 pb-1 flex justify-between items-center text-[11px] text-[#8EA394] font-semibold select-none bg-[#091710]">
+            <span>9:41</span>
+            <div class="flex items-center gap-1.5">
+              <span>📶</span>
+              <span class="text-emerald-400">100%</span>
+            </div>
+          </div>
+
+          <!-- Top Admin Bar -->
+          <div class="px-4 py-2.5 flex items-center justify-between bg-gradient-to-b from-[#0C2016] to-[#07130D] border-b border-[#1E4530]">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🛡️</span>
+              <div>
+                <h2 class="text-xs font-bold text-[#F4E08B] serif-brand tracking-wide">Admin Citadel</h2>
+                <div class="text-[9.5px] text-[#8EA394]">admin@kintrace.ph</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#102D1E] border border-emerald-500/30 text-[10px] text-emerald-300 font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Telemetry 🟢</span>
+            </div>
+          </div>
+
+          <!-- Reactive Client Banner Simulation (In-App) -->
+          <div id="liveBanner" class="mx-3 mt-2.5 p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-[11px] flex items-start gap-2 shadow-lg transition-all duration-300">
+            <span class="text-sm">⚠️</span>
+            <div class="flex-1">
+              <div id="bannerTitle" class="font-bold text-[11.5px] text-amber-300">PSA Sync Maintenance Tonight</div>
+              <div id="bannerBody" class="text-[10px] text-amber-100/90 leading-tight mt-0.5">KinTrace tree sync services will undergo maintenance from 11:00 PM to 1:00 AM PHT.</div>
+              <div id="bannerTime" class="text-[9px] text-amber-300/80 mt-1 font-semibold">⏱️ 23:00 - 01:00 PHT • Broadcaster: Super Admin</div>
+            </div>
+            <button onclick="dismissBanner()" class="text-amber-400 hover:text-white text-xs px-1 font-bold">✕</button>
+          </div>
+
+          <!-- 3 Citadel Tabs Switcher -->
+          <div class="px-3 pt-3">
+            <div class="grid grid-cols-3 gap-1 bg-[#091710] p-1 rounded-xl border border-[#D4AF37]/20 text-[10.5px]">
+              <button onclick="setTab('telemetry')" id="btnTabTelemetry" class="py-1.5 font-bold rounded-lg bg-[#143322] text-[#F4E08B] shadow">📊 Telemetry</button>
+              <button onclick="setTab('broadcaster')" id="btnTabBroadcaster" class="py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg">📢 Broadcaster</button>
+              <button onclick="setTab('upgrades')" id="btnTabUpgrades" class="py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg">👑 Upgrades (<span id="upgradeCountBadge">2</span>)</button>
+            </div>
+          </div>
+
+          <!-- Scrollable Tab Content Container -->
+          <div class="flex-1 overflow-y-auto p-3 space-y-3">
+
+            <!-- TAB 1: TELEMETRY (Figure 20) -->
+            <div id="tabTelemetry" class="space-y-2.5">
+              <div class="grid grid-cols-2 gap-2">
+                <!-- Tile 1: Users -->
+                <div class="p-3 rounded-2xl bg-gradient-to-br from-[#0F261B] to-[#08160F] border border-[#D4AF37]/20 relative overflow-hidden">
+                  <div class="text-[9.5px] uppercase font-bold text-[#8EA394]">Registered Accounts</div>
+                  <div class="text-xl font-bold text-white serif-brand mt-1 flex items-baseline gap-1.5">
+                    128 <span class="text-[9.5px] text-emerald-400 font-sans">▲ +14%</span>
+                  </div>
+                  <div class="text-[9px] text-[#8EA394] mt-0.5">Firebase Auth active</div>
+                </div>
+
+                <!-- Tile 2: Trees -->
+                <div class="p-3 rounded-2xl bg-gradient-to-br from-[#0F261B] to-[#08160F] border border-[#D4AF37]/20 relative overflow-hidden">
+                  <div class="text-[9.5px] uppercase font-bold text-[#8EA394]">Active Clan Trees</div>
+                  <div class="text-xl font-bold text-white serif-brand mt-1 flex items-baseline gap-1.5">
+                    42 <span class="text-[9.5px] text-emerald-400 font-sans">● 100% Sync</span>
+                  </div>
+                  <div class="text-[9px] text-[#8EA394] mt-0.5">CentralTreeSynchronizer</div>
+                </div>
+
+                <!-- Tile 3: Encoded Members -->
+                <div class="p-3 rounded-2xl bg-gradient-to-br from-[#0F261B] to-[#08160F] border border-[#D4AF37]/20 relative overflow-hidden">
+                  <div class="text-[9.5px] uppercase font-bold text-[#8EA394]">Encoded Members</div>
+                  <div class="text-xl font-bold text-white serif-brand mt-1 flex items-baseline gap-1.5">
+                    1,840 <span class="text-[9.5px] text-emerald-400 font-sans">▲ +320</span>
+                  </div>
+                  <div class="text-[9px] text-[#8EA394] mt-0.5">Average 43.8 / tree</div>
+                </div>
+
+                <!-- Tile 4: System Health -->
+                <div class="p-3 rounded-2xl bg-gradient-to-br from-[#0F261B] to-[#08160F] border border-[#D4AF37]/20 relative overflow-hidden">
+                  <div class="text-[9.5px] uppercase font-bold text-[#8EA394]">Health & Validation</div>
+                  <div class="text-xl font-bold text-white serif-brand mt-1 flex items-baseline gap-1.5">
+                    99.9% <span class="text-[9.5px] text-emerald-400 font-sans">🟢 Optimal</span>
+                  </div>
+                  <div class="text-[9px] text-[#8EA394] mt-0.5">0 Cycle loops found</div>
+                </div>
+              </div>
+
+              <!-- Central Audit Summary Card -->
+              <div class="p-3 rounded-2xl bg-[#0D2117] border border-emerald-500/20 text-xs">
+                <div class="flex items-center gap-1.5 text-[#F4E08B] font-bold serif-brand mb-1">
+                  <span>🌿 Central Database Audit Engine</span>
+                </div>
+                <p class="text-[11px] text-[#8EA394] leading-relaxed">
+                  Continuous validation verifies all 42 registered trees through <code>FamilyRelationshipService</code>. 100% adherence to Philippine Family Code consanguinity rules.
+                </p>
+              </div>
+            </div>
+
+            <!-- TAB 2: BROADCASTER (FR-11, Figure 19) -->
+            <div id="tabBroadcaster" class="hidden space-y-2.5">
+              <div class="p-3.5 rounded-2xl bg-[#0D2117] border border-[#D4AF37]/25 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-[#F4E08B] serif-brand">📢 Push Maintenance Broadcaster</h3>
+                  <span class="text-[9px] text-[#8EA394] uppercase font-bold">FR-11 Live Engine</span>
+                </div>
+
+                <!-- Severity Picker -->
+                <div>
+                  <label class="block text-[9.5px] font-bold text-[#8EA394] uppercase mb-1">Severity Level</label>
+                  <div class="grid grid-cols-3 gap-1.5">
+                    <button onclick="setSeverity('info')" id="sevInfo" class="py-1 text-[10px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]">ℹ️ Info</button>
+                    <button onclick="setSeverity('warning')" id="sevWarning" class="py-1 text-[10px] font-bold rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-300">⚠️ Warning</button>
+                    <button onclick="setSeverity('lockdown')" id="sevLockdown" class="py-1 text-[10px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]">🚨 Lockdown</button>
+                  </div>
+                </div>
+
+                <!-- Title Input -->
+                <div>
+                  <label class="block text-[9.5px] font-bold text-[#8EA394] uppercase mb-1">Announcement Title</label>
+                  <input id="inputTitle" type="text" value="PSA Sync Maintenance Tonight" class="w-full bg-[#06110B] border border-[#1E4530] rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-[#D4AF37] outline-none" />
+                </div>
+
+                <!-- Description Input -->
+                <div>
+                  <label class="block text-[9.5px] font-bold text-[#8EA394] uppercase mb-1">Message Body</label>
+                  <textarea id="inputBody" rows="2" class="w-full bg-[#06110B] border border-[#1E4530] rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-[#D4AF37] outline-none resize-none">KinTrace tree sync services will undergo maintenance from 11:00 PM to 1:00 AM PHT.</textarea>
+                </div>
+
+                <!-- Scheduled Time Input -->
+                <div>
+                  <label class="block text-[9.5px] font-bold text-[#8EA394] uppercase mb-1">Scheduled Window</label>
+                  <input id="inputTime" type="text" value="23:00 - 01:00 PHT" class="w-full bg-[#06110B] border border-[#1E4530] rounded-xl px-2.5 py-1.5 text-xs text-white focus:border-[#D4AF37] outline-none" />
+                </div>
+
+                <!-- Dispatch Button -->
+                <button onclick="dispatchBroadcastAction()" class="w-full py-2.5 rounded-xl font-bold text-xs text-[#06110A] gold-gradient shadow-lg shadow-[#D4AF37]/20 flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+                  <span>🚀 Dispatch Global In-App Alert</span>
+                </button>
+
+                <!-- Retract Button -->
+                <button onclick="retractBroadcastAction()" class="w-full py-1.5 rounded-xl font-semibold text-[11px] text-red-300 bg-red-500/15 border border-red-500/30 hover:bg-red-500/25 transition-all">
+                  ✕ Retract / Clear Active Alert
+                </button>
+              </div>
+            </div>
+
+            <!-- TAB 3: UPGRADES QUEUE (Pages 14, 21-22) -->
+            <div id="tabUpgrades" class="hidden space-y-2.5">
+              <div class="text-[10px] text-[#8EA394] uppercase font-bold px-1">Pending Freemium Capacity Requests</div>
+
+              <!-- Card 1 -->
+              <div id="upgradeCard1" class="p-3 rounded-2xl bg-[#0D2117] border border-[#D4AF37]/25 space-y-2">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h4 class="text-xs font-bold text-white">Malone Family Clan Tree</h4>
+                    <div class="text-[10px] text-[#8EA394]">Owner: gendums5@gmail.com</div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-[9px]">50/50 Capped</span>
+                </div>
+                <p class="text-[10.5px] text-[#B4CFC0] leading-relaxed">
+                  Clan reached 50-member limit. Owner requesting expansion to encode 4th generation grandchildren.
+                </p>
+                <div class="flex gap-2 pt-1">
+                  <button onclick="resolveUpgrade('upgradeCard1', 'Malone Family', true)" class="flex-1 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-[10.5px] active:scale-95 transition-all">
+                    ✓ Approve Unlimited
+                  </button>
+                  <button onclick="resolveUpgrade('upgradeCard1', 'Malone Family', false)" class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[10.5px]">
+                    ✕ Decline
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card 2 -->
+              <div id="upgradeCard2" class="p-3 rounded-2xl bg-[#0D2117] border border-[#D4AF37]/25 space-y-2">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h4 class="text-xs font-bold text-white">Santos-Reyes Heritage</h4>
+                    <div class="text-[10px] text-[#8EA394]">Owner: clan.santos@gmail.com</div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-[9px]">50/50 Capped</span>
+                </div>
+                <p class="text-[10.5px] text-[#B4CFC0] leading-relaxed">
+                  Provincial clan reunion approaching. Requesting premium tier to merge 2 provincial sub-branches.
+                </p>
+                <div class="flex gap-2 pt-1">
+                  <button onclick="resolveUpgrade('upgradeCard2', 'Santos-Reyes', true)" class="flex-1 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold text-[10.5px] active:scale-95 transition-all">
+                    ✓ Approve Unlimited
+                  </button>
+                  <button onclick="resolveUpgrade('upgradeCard2', 'Santos-Reyes', false)" class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[10.5px]">
+                    ✕ Decline
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Security Watermark -->
+          <div class="p-2 text-center text-[9px] text-[#8EA394]/60 bg-[#091710] border-t border-[#163625]">
+            KinTrace Enterprise Core • Gated by UserProfile.role == "admin"
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Testing & Simulation Console (5 Cols) -->
+    <div class="lg:col-span-5 space-y-4">
+      
+      <!-- Testing Card -->
+      <div class="p-5 rounded-3xl bg-[#0C1E14] border border-[#D4AF37]/30 space-y-3.5 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[#1E4530] pb-2.5">
+          <h3 class="text-sm font-bold text-[#F4E08B] serif-brand">🎮 Live Simulator Sandbox</h3>
+          <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">Active Sandbox</span>
+        </div>
+        
+        <p class="text-xs text-[#8EA394] leading-relaxed">
+          Click the test presets below to watch the in-app announcement banner adapt reactively in the phone mockup:
+        </p>
+
+        <div class="space-y-2">
+          <button onclick="testPreset('warning')" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-amber-500/30 hover:border-amber-400 text-amber-200 text-xs font-semibold flex items-center justify-between transition-all">
+            <span>⚠️ Scheduled Server Maintenance</span>
+            <span class="text-[9.5px] bg-amber-500/20 px-2 py-0.5 rounded">Warning</span>
+          </button>
+
+          <button onclick="testPreset('lockdown')" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-red-500/30 hover:border-red-400 text-red-200 text-xs font-semibold flex items-center justify-between transition-all">
+            <span>🚨 Critical Database Schema Lockdown</span>
+            <span class="text-[9.5px] bg-red-500/20 px-2 py-0.5 rounded">Lockdown</span>
+          </button>
+
+          <button onclick="testPreset('info')" class="w-full text-left p-2.5 rounded-xl bg-[#102B1E] border border-blue-500/30 hover:border-blue-400 text-blue-200 text-xs font-semibold flex items-center justify-between transition-all">
+            <span>ℹ️ New KinAcademy Masterclass Online</span>
+            <span class="text-[9.5px] bg-blue-500/20 px-2 py-0.5 rounded">Info</span>
+          </button>
+
+          <button onclick="retractBroadcastAction()" class="w-full text-left p-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 text-[#8EA394] text-xs font-medium flex items-center justify-between transition-all">
+            <span>✕ Retract / Clear Active Broadcast</span>
+            <span class="text-[9.5px] opacity-75">Clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Defense Advantages Card -->
+      <div class="p-5 rounded-3xl bg-[#0C1E14] border border-[#1E4530] space-y-3">
+        <h3 class="text-xs font-bold text-white uppercase tracking-wider">🌟 Capstone Defense Highlights</h3>
+        <ul class="text-xs text-[#B4CFC0] space-y-2 leading-relaxed">
+          <li class="flex items-start gap-2">
+            <span class="text-emerald-400 font-bold">✓</span>
+            <span><strong>100% Thesis Match</strong>: Implements exact FR-11 requirement and Figures 19 & 20 from pages 38, 63 & 64.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-emerald-400 font-bold">✓</span>
+            <span><strong>Zero User Damage</strong>: Normal users browse with zero slowdowns or admin artifacts.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-emerald-400 font-bold">✓</span>
+            <span><strong>1-Tap Demo Sign-In</strong>: Panelists can tap <code>admin@kintrace.ph</code> directly on the login screen.</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let activeSeverity = 'warning';
+    let pendingCount = 2;
+
+    function setTab(tab) {
+      document.getElementById('tabTelemetry').classList.toggle('hidden', tab !== 'telemetry');
+      document.getElementById('tabBroadcaster').classList.toggle('hidden', tab !== 'broadcaster');
+      document.getElementById('tabUpgrades').classList.toggle('hidden', tab !== 'upgrades');
+
+      const btnTel = document.getElementById('btnTabTelemetry');
+      const btnBrd = document.getElementById('btnTabBroadcaster');
+      const btnUpg = document.getElementById('btnTabUpgrades');
+
+      btnTel.className = tab === 'telemetry' ? 'py-1.5 font-bold rounded-lg bg-[#143322] text-[#F4E08B] shadow' : 'py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg';
+      btnBrd.className = tab === 'broadcaster' ? 'py-1.5 font-bold rounded-lg bg-[#143322] text-[#F4E08B] shadow' : 'py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg';
+      btnUpg.className = tab === 'upgrades' ? 'py-1.5 font-bold rounded-lg bg-[#143322] text-[#F4E08B] shadow' : 'py-1.5 font-semibold text-[#8EA394] hover:text-white rounded-lg';
+    }
+
+    function setSeverity(sev) {
+      activeSeverity = sev;
+      const bInfo = document.getElementById('sevInfo');
+      const bWarn = document.getElementById('sevWarning');
+      const bLock = document.getElementById('sevLockdown');
+
+      bInfo.className = sev === 'info' ? 'py-1 text-[10px] font-bold rounded-lg border border-blue-500/50 bg-blue-500/20 text-blue-300' : 'py-1 text-[10px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+      bWarn.className = sev === 'warning' ? 'py-1 text-[10px] font-bold rounded-lg border border-amber-500/50 bg-amber-500/20 text-amber-300' : 'py-1 text-[10px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+      bLock.className = sev === 'lockdown' ? 'py-1 text-[10px] font-bold rounded-lg border border-red-500/50 bg-red-500/20 text-red-300' : 'py-1 text-[10px] font-bold rounded-lg border border-slate-700 bg-[#091710] text-[#8EA394]';
+    }
+
+    function dispatchBroadcastAction() {
+      const title = document.getElementById('inputTitle').value;
+      const body = document.getElementById('inputBody').value;
+      const time = document.getElementById('inputTime').value;
+      applyBanner(title, body, time, activeSeverity);
+      alert(`🚀 Broadcast Dispatched Live across all sessions!\nSeverity: ${activeSeverity.toUpperCase()}\nTitle: ${title}`);
+    }
+
+    function retractBroadcastAction() {
+      document.getElementById('liveBanner').classList.add('hidden');
+      alert('✕ Active maintenance alert retracted from all client sessions.');
+    }
+
+    function dismissBanner() {
+      document.getElementById('liveBanner').classList.add('hidden');
+    }
+
+    function applyBanner(title, body, time, sev) {
+      const banner = document.getElementById('liveBanner');
+      banner.classList.remove('hidden');
+
+      if (sev === 'info') {
+        banner.className = 'mx-3 mt-2.5 p-2.5 rounded-xl bg-blue-500/15 border border-blue-500/40 text-blue-200 text-[11px] flex items-start gap-2 shadow-lg transition-all';
+      } else if (sev === 'lockdown') {
+        banner.className = 'mx-3 mt-2.5 p-2.5 rounded-xl bg-red-500/20 border border-red-500/50 text-red-200 text-[11px] flex items-start gap-2 shadow-lg transition-all';
+      } else {
+        banner.className = 'mx-3 mt-2.5 p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-[11px] flex items-start gap-2 shadow-lg transition-all';
+      }
+
+      document.getElementById('bannerTitle').innerText = title;
+      document.getElementById('bannerBody').innerText = body;
+      document.getElementById('bannerTime').innerText = `⏱️ ${time} • Broadcaster: Super Admin`;
+    }
+
+    function testPreset(sev) {
+      setSeverity(sev);
+      if (sev === 'warning') {
+        document.getElementById('inputTitle').value = 'PSA Sync Maintenance Tonight';
+        document.getElementById('inputBody').value = 'KinTrace tree sync services will undergo maintenance from 11:00 PM to 1:00 AM PHT.';
+        document.getElementById('inputTime').value = '23:00 - 01:00 PHT';
+        applyBanner('PSA Sync Maintenance Tonight', 'KinTrace tree sync services will undergo maintenance from 11:00 PM to 1:00 AM PHT.', '23:00 - 01:00 PHT', 'warning');
+      } else if (sev === 'lockdown') {
+        document.getElementById('inputTitle').value = '🚨 Critical Database Schema Lockdown';
+        document.getElementById('inputBody').value = 'Temporary read-only mode during Firestore collection index upgrades. Data write actions safely paused.';
+        document.getElementById('inputTime').value = 'Next 20 mins';
+        applyBanner('🚨 Critical Database Schema Lockdown', 'Temporary read-only mode during Firestore collection index upgrades. Data write actions safely paused.', 'Next 20 mins', 'lockdown');
+      } else if (sev === 'info') {
+        document.getElementById('inputTitle').value = 'ℹ️ New KinAcademy Masterclass Online';
+        document.getElementById('inputBody').value = 'Check out the new comprehensive genealogical learning tracks in the KinAcademy hub.';
+        document.getElementById('inputTime').value = 'Announcement';
+        applyBanner('ℹ️ New KinAcademy Masterclass Online', 'Check out the new comprehensive genealogical learning tracks in the KinAcademy hub.', 'Announcement', 'info');
+      }
+    }
+
+    function resolveUpgrade(cardId, name, approved) {
+      const card = document.getElementById(cardId);
+      if (approved) {
+        card.innerHTML = `<div class="p-3 text-center text-xs font-bold text-emerald-400 bg-emerald-500/10 rounded-xl border border-emerald-500/20">✓ ${name} upgraded to Unlimited Premium! Owner notified.</div>`;
+      } else {
+        card.innerHTML = `<div class="p-3 text-center text-xs font-semibold text-slate-400 bg-white/5 rounded-xl">✕ ${name} request declined.</div>`;
+      }
+      pendingCount = Math.max(0, pendingCount - 1);
+      document.getElementById('upgradeCountBadge').innerText = pendingCount;
+    }
+  </script>
+</body>
+</html>

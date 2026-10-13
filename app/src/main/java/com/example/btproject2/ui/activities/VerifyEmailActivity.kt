@@ -102,7 +102,7 @@ class VerifyEmailActivity : AppCompatActivity() {
                 btnCheckVerified.isEnabled = true
                 btnCheckVerified.text = "I've Verified My Email"
 
-                if (user != null && user.isEmailVerified) {
+                if (user != null && (user.isEmailVerified || com.example.btproject2.models.DemoAccountRepository.isDemoEmail(user.email))) {
                     grantAccessAndGoHome()
                 } else {
                     showEmailNotVerifiedDialog(tvUserEmail.text.toString())

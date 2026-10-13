@@ -48,4 +48,18 @@ For every single change, addition, or feature increment made in the codebase, yo
    - All existing user journeys (tree creation/selection, member viewing/editing, theme toggle, logout, bottom navigation) remain 100% intact.
 4. **Transparent Verification Reporting**: Always report the test execution results, the build status, and the exact list of verified components to the user after every change.
 
+---
 
+## Mandatory Interactive Visual Prototype Standard for New Features & Plans
+
+Whenever proposing, planning, or designing a new feature, visual layout, UI modernization, or component change for the KinTrace app, you must **always generate an interactive visual prototype** before proceeding with code implementation:
+1. **Interactive Multi-Direction HTML Prototype**:
+   - Create a self-contained `.html` artifact in the artifacts directory (`C:\Users\Renzy\.gemini\antigravity\brain\<conversation-id>`).
+   - Include 3 distinct, high-craft design directions/concepts with interactive tab switchers.
+   - Embed an interactive mobile phone canvas frame mimicking the exact KinTrace dark emerald and gold heritage theme (`#060D09`, `#132B1E`, `#D4AF37`, etc.).
+   - Make buttons, toggles, dialogs, and animations interactively clickable so the user can test the feel directly in their browser.
+2. **Prominent Clickable Browser Link in Responses**:
+   - Always present a direct, clickable link to the interactive HTML prototype in the chat response:
+     `👉 📄 [Open Interactive Visual Prototype (<filename>.html)](file:///<path>/<filename>.html) (Click to open in your browser to switch between the 3 suggestions and preview the interaction).`
+3. **User Selection First**:
+   - Allow the user to test and select their preferred direction from the visual prototype before implementing phase-by-phase code.

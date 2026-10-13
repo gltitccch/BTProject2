@@ -14,6 +14,7 @@ import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.UserProfile
+import com.example.btproject2.ui.activities.AdminPortalActivity
 import com.example.btproject2.ui.activities.LoginActivity
 import com.example.btproject2.utils.NotificationHelper
 import com.example.btproject2.utils.OnboardingPreferences
@@ -228,6 +229,19 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
             TermsOfServiceBottomSheet.newInstance().show(parentFragmentManager, TermsOfServiceBottomSheet.TAG)
         }
 
+        // System Admin Citadel (FR-11) (Gated exclusively to Admin accounts)
+        val btnAdminCitadel = view.findViewById<View?>(R.id.btnAdminCitadel)
+        val dividerAdminCitadel = view.findViewById<View?>(R.id.dividerAdminCitadel)
+        if (user.email.equals("admin@kintrace.ph", ignoreCase = true)) {
+            btnAdminCitadel?.visibility = View.VISIBLE
+            dividerAdminCitadel?.visibility = View.VISIBLE
+            btnAdminCitadel?.setOnClickListener {
+                dismiss()
+                val intent = Intent(requireContext(), AdminPortalActivity::class.java)
+                startActivity(intent)
+            }
+        }
+
         // Delete Account & Clan Stewardship
         btnDeleteAccount?.setOnClickListener {
             showDeleteAccountConfirmationDialog(user.uid)
@@ -235,22 +249,11 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun showDeleteAccountConfirmationDialog(userId: String) {
-        val context = context ?: return
-        AlertDialog.Builder(context)
-            .setTitle("Delete Clan Account")
-            .setMessage(
-                "Are you sure you want to permanently delete your KinTrace account?\n\n" +
-                "• Your login credentials, email, and personal profile will be completely wiped.\n" +
-                "• Any unshared solo trees you created will be deleted.\n" +
-                "• Shared family trees will remain preserved under Clan Stewardship to safeguard genealogical records for surviving relatives, with authorship attributed to 'Former Clan Contributor'.\n" +
-                "• Any living relatives you added without death records will have their personal details masked as 'Private Living Relative' for privacy protection.\n\n" +
-                "This action is permanent and cannot be undone."
-            )
-            .setPositiveButton("Delete Permanently") { _, _ ->
-                executeAccountDeletion(userId)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        val dangerZoneSheet = ClanDangerZoneBottomSheet.newInstance()
+        dangerZoneSheet.onConfirmDelete = {
+            executeAccountDeletion(userId)
+        }
+        dangerZoneSheet.show(parentFragmentManager, ClanDangerZoneBottomSheet.TAG)
     }
 
     private fun executeAccountDeletion(userId: String) {

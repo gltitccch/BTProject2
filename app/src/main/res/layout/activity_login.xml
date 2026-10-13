@@ -29,6 +29,7 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.16"
+                android:fontFamily="@font/font_display_sora"
                 android:textColor="@color/gold_accent" />
 
             <TextView
@@ -47,6 +48,7 @@
                 android:text="Welcome Back"
                 android:textSize="24sp"
                 android:textStyle="bold"
+                android:fontFamily="@font/font_display_sora"
                 android:textColor="@color/text_primary"
                 android:layout_marginTop="10dp" />
 
@@ -225,6 +227,7 @@
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:textColor="@color/btn_gold_text"
+                    android:fontFamily="@font/font_display_sora"
                     android:background="@drawable/btn_primary_bg"
                     android:textAllCaps="false"
                     android:layout_marginBottom="16dp" />
@@ -320,6 +323,54 @@
                 android:textSize="10.5sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_hint" />
+        </LinearLayout>
+
+        <!-- Direction C: Centered Bottom Dock Capsule Button -->
+        <LinearLayout
+            android:id="@+id/btnDemoDock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/bg_demo_dock_capsule"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:elevation="3dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🗝️"
+                android:textSize="13sp"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Demo Accounts Vault"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:background="@drawable/bg_demo_badge_counter"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:layout_marginStart="8dp" />
         </LinearLayout>
 
     </LinearLayout>

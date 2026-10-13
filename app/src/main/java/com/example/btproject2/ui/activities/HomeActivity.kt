@@ -113,20 +113,41 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    private var announcementListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var isBannerDismissedSession = false
+
     override fun onStart() {
         super.onStart()
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().registerListener(homeSyncListener)
+        announcementListener = firestoreHelper.listenToActiveSystemAnnouncement { announcement ->
+            runOnUiThread { updateMaintenanceBannerUi(announcement) }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         reloadDebounceHandler.removeCallbacks(reloadTreeRunnable)
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().unregisterListener(homeSyncListener)
+        announcementListener?.remove()
+        announcementListener = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val activeUser = authHelper.getCurrentUser()
+        val isAdmin = com.example.btproject2.models.DemoAccountRepository.isAdminEmail(activeUser?.email)
+        if (isAdmin && !intent.getBooleanExtra("ADMIN_PREVIEW_MODE", false)) {
+            startActivity(Intent(this, AdminPortalActivity::class.java))
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_home)
+
+        com.example.btproject2.utils.InAppUpdateManager.syncCurrentReleaseToFirestore {
+            com.example.btproject2.utils.InAppUpdateManager.checkForUpdates(this)
+        }
 
         val tvGreeting = findViewById<TextView>(R.id.tvGreeting)
         tvUserName = findViewById(R.id.tvUserName)
@@ -486,6 +507,15 @@ class HomeActivity : AppCompatActivity() {
             layoutEmptyState.visibility = View.VISIBLE
             findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  Family Tree"
 
+            val currentUser = authHelper.getCurrentUser()
+            val isAdmin = com.example.btproject2.models.DemoAccountRepository.isAdminEmail(currentUser?.email)
+            if (isAdmin) {
+                findViewById<View?>(R.id.cardQuestHud)?.visibility = View.GONE
+                btnEmptyCreateTree.text = "🛡️ Return to Admin Citadel"
+                btnEmptyCreateTree.setOnClickListener { finish() }
+                return@runOnUiThread
+            }
+
             // Phase 1 Onboarding: Show 3-slide welcome story modal for new user without trees
             WelcomeStoryDialogFragment.showIfNotSeen(this@HomeActivity)
 
@@ -526,6 +556,9 @@ class HomeActivity : AppCompatActivity() {
             }
             .setPositiveButton("Create New Tree") { _, _ ->
                 startActivity(Intent(this, CreateTreeActivity::class.java))
+            }
+            .setNeutralButton("Join Tree") { _, _ ->
+                startActivity(Intent(this, JoinTreeActivity::class.java))
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -973,6 +1006,11 @@ class HomeActivity : AppCompatActivity() {
 
     private fun refreshQuestHudUi(memberCount: Int? = null) {
         val cardQuestHud = findViewById<View?>(R.id.cardQuestHud) ?: return
+        val currentUser = authHelper.getCurrentUser()
+        if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(currentUser?.email)) {
+            cardQuestHud.visibility = View.GONE
+            return
+        }
         if (OnboardingPreferences.isQuestDismissed(this)) {
             cardQuestHud.visibility = View.GONE
             return
@@ -1118,5 +1156,43 @@ class HomeActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Create or select a family tree first to share its invite code.", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun updateMaintenanceBannerUi(announcement: com.example.btproject2.models.SystemAnnouncement?) {
+        val banner = findViewById<View?>(R.id.cardMaintenanceBanner) ?: return
+        val badge = findViewById<TextView?>(R.id.tvNoticeSeverityBadge)
+        val headline = findViewById<TextView?>(R.id.tvNoticeHeadline)
+        val body = findViewById<TextView?>(R.id.tvNoticeBody)
+        val btnDismiss = findViewById<View?>(R.id.btnDismissNoticeBanner)
+
+        if (announcement == null || !announcement.isActive || isBannerDismissedSession) {
+            banner.visibility = View.GONE
+            return
+        }
+
+        headline?.text = announcement.title
+        body?.text = announcement.message
+
+        when {
+            announcement.isLockdown -> {
+                badge?.text = "⛔ CRITICAL LOCKDOWN"
+                badge?.setTextColor(ContextCompat.getColor(this, R.color.danger))
+            }
+            announcement.isWarning -> {
+                badge?.text = "⚠️ SYSTEM ADVISORY"
+                badge?.setTextColor(ContextCompat.getColor(this, R.color.warning))
+            }
+            else -> {
+                badge?.text = "ℹ️ SYSTEM NOTICE"
+                badge?.setTextColor(ContextCompat.getColor(this, R.color.info))
+            }
+        }
+
+        btnDismiss?.setOnClickListener {
+            isBannerDismissedSession = true
+            banner.visibility = View.GONE
+        }
+
+        banner.visibility = View.VISIBLE
     }
 }

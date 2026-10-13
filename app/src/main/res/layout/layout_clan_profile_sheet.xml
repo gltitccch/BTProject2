@@ -484,6 +484,71 @@
                     android:textSize="14sp"
                     android:textColor="@color/dark_subtext" />
             </LinearLayout>
+
+            <View
+                android:id="@+id/dividerAdminCitadel"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/forest_card_border"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:visibility="gone" />
+
+            <!-- System Admin Citadel (FR-11) (Gated to Admin Accounts) -->
+            <LinearLayout
+                android:id="@+id/btnAdminCitadel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp"
+                android:visibility="gone"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🛡️"
+                    android:textSize="16sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="System Admin Citadel (FR-11)"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Telemetry, broadcasts, quotas &amp; ops recovery"
+                        android:textSize="10.5sp"
+                        android:textColor="@color/dark_subtext"
+                        android:layout_marginTop="1dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Admin"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/mint_text"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Section 4: Account Actions & Danger Zone -->
