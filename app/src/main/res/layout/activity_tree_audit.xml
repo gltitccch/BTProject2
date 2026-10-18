@@ -60,16 +60,17 @@
             <TextView
                 android:id="@+id/btnQuickAssistAudit"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💡 Help"
-                android:textSize="11sp"
+                android:layout_height="32dp"
+                android:gravity="center_vertical"
+                android:drawableStart="@drawable/ic_help_minimal"
+                android:drawablePadding="5dp"
+                android:text="Help"
+                android:textSize="11.5sp"
                 android:textStyle="bold"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
+                android:textColor="@color/primary"
+                android:background="@drawable/bg_nav_back_pill"
                 android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
+                android:paddingEnd="12dp"
                 android:layout_marginStart="8dp"
                 android:clickable="true"
                 android:focusable="true" />
@@ -88,7 +89,7 @@
             android:id="@+id/tvAuditSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Philippine Family Code &amp; Graph Integrity Engine"
+            android:text="Philippine Family Code &amp; Lineage Integrity Engine"
             android:textSize="12sp"
             android:textColor="@color/text_secondary" />
     </LinearLayout>
@@ -141,7 +142,7 @@
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:background="@color/forest_card_light"
+                        android:background="@drawable/bg_audit_neutral_card"
                         android:padding="10dp"
                         android:layout_marginEnd="6dp">
 
@@ -169,7 +170,7 @@
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:background="#301518"
+                        android:background="@drawable/bg_audit_critical_card"
                         android:padding="10dp"
                         android:layout_marginEnd="6dp">
 
@@ -180,14 +181,14 @@
                             android:text="0"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="@color/danger" />
+                            android:textColor="@color/audit_critical_text" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Critical Errors"
                             android:textSize="11sp"
-                            android:textColor="#FCA5A5" />
+                            android:textColor="@color/audit_critical_text" />
                     </LinearLayout>
 
                     <!-- Metric 3: Warnings -->
@@ -197,7 +198,7 @@
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:background="#2E2412"
+                        android:background="@drawable/bg_audit_warning_card"
                         android:padding="10dp">
 
                         <TextView
@@ -207,14 +208,14 @@
                             android:text="0"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="@color/warning" />
+                            android:textColor="@color/audit_warning_text" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Warnings"
                             android:textSize="11sp"
-                            android:textColor="#FDE68A" />
+                            android:textColor="@color/audit_warning_text" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
@@ -233,7 +234,7 @@
                     android:text="All Issues"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    android:textColor="@color/forest_bg"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
@@ -306,7 +307,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="No illegal marriages, impossible parent-child cycles, self-ancestry loops, or in-law misclassifications were detected in your family tree."
+                    android:text="No illegal marriages, impossible parent-child loops, circular ancestry, or in-law misclassifications were detected in your family tree."
                     android:textSize="13sp"
                     android:textColor="@color/text_secondary"
                     android:gravity="center"

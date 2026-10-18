@@ -483,8 +483,8 @@ class FamilyRelationshipService(
                     issues.add(
                         TreeAuditIssue(
                             severity = AuditSeverity.CRITICAL_ERROR,
-                            title = "Dangling Spouse Reference",
-                            description = "${person.firstName} ${person.lastName} references spouse ID '${person.spouseId}' which does not exist in the tree.",
+                            title = "“Who is ${person.firstName} married to?”",
+                            description = "The husband or wife ${person.firstName} had before was deleted from the tree, so we aren’t sure who to show as their spouse right now.",
                             primaryPerson = person
                         )
                     )
@@ -496,8 +496,8 @@ class FamilyRelationshipService(
                         issues.add(
                             TreeAuditIssue(
                                 severity = AuditSeverity.CRITICAL_ERROR,
-                                title = "Asymmetric Marriage Link",
-                                description = "${person.firstName} is linked to spouse ${spouse.firstName}, but ${spouse.firstName}'s spouse link does not point back.",
+                                title = "“Are ${person.firstName} and ${spouse.firstName} married to each other?”",
+                                description = "${person.firstName} has ${spouse.firstName} listed as their spouse, but ${spouse.firstName}’s page doesn’t show ${person.firstName} as spouse yet.",
                                 primaryPerson = person,
                                 secondaryPerson = spouse
                             )
@@ -529,8 +529,8 @@ class FamilyRelationshipService(
                     issues.add(
                         TreeAuditIssue(
                             severity = AuditSeverity.CRITICAL_ERROR,
-                            title = "Dangling Father Reference",
-                            description = "${person.firstName} references father ID '${person.fatherId}' which does not exist.",
+                            title = "“Who is ${person.firstName}’s father?”",
+                            description = "The father ${person.firstName} had before was deleted from the tree, so we aren’t sure who to show as their dad right now.",
                             primaryPerson = person
                         )
                     )
@@ -546,8 +546,8 @@ class FamilyRelationshipService(
                     issues.add(
                         TreeAuditIssue(
                             severity = AuditSeverity.CRITICAL_ERROR,
-                            title = "Dangling Mother Reference",
-                            description = "${person.firstName} references mother ID '${person.motherId}' which does not exist.",
+                            title = "“Who is ${person.firstName}’s mother?”",
+                            description = "The mother ${person.firstName} had before was deleted from the tree, so we aren’t sure who to show as their mom right now.",
                             primaryPerson = person
                         )
                     )
@@ -565,15 +565,18 @@ class FamilyRelationshipService(
                         issues.add(
                             TreeAuditIssue(
                                 severity = AuditSeverity.CRITICAL_ERROR,
-                                title = "Invalid Parents: Same Person",
-                                description = "${father.firstName} ${father.lastName} is assigned as both father and mother of ${person.firstName}.",
+                                title = "“Who are ${person.firstName}’s parents?”",
+                                description = "${father.firstName} ${father.lastName} was accidentally selected as both ${person.firstName}’s father and mother.",
                                 primaryPerson = person,
                                 secondaryPerson = father
                             )
                         )
                     } else {
                         val coParentValidation = marriageEngine.validateSpouseConnection(father.id, mother.id, tree)
-                        if (!coParentValidation.isAllowed) {
+                        val nonBigamyFailures = coParentValidation.failedValidations.filter {
+                            it != com.example.btproject2.engine.MarriageValidationEngine.SpouseValidationFailureReason.ACTIVE_SPOUSE_EXISTS
+                        }
+                        if (!coParentValidation.isAllowed && nonBigamyFailures.isNotEmpty()) {
                             issues.add(
                                 TreeAuditIssue(
                                     severity = AuditSeverity.CRITICAL_ERROR,

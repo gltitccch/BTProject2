@@ -136,7 +136,7 @@ class KinAcademyActivity : AppCompatActivity() {
 
         val activeBg = ContextCompat.getDrawable(this, R.drawable.btn_gold_primary)
         val inactiveBg = ContextCompat.getDrawable(this, R.drawable.badge_pill_dark)
-        val activeTextColor = ContextCompat.getColor(this, R.color.forest_bg)
+        val activeTextColor = ContextCompat.getColor(this, R.color.btn_gold_text)
         val inactiveTextColor = ContextCompat.getColor(this, R.color.text_primary)
 
         for (chip in allChips) {
@@ -191,7 +191,7 @@ class KinAcademyActivity : AppCompatActivity() {
     private fun launchActionTarget(target: String) {
         val intent = when (target) {
             "CreateTreeActivity" -> Intent(this, CreateTreeActivity::class.java)
-            "FamilyTreeActivity" -> Intent(this, FamilyTreeActivity::class.java)
+            "InteractiveTreeActivity", "FamilyTreeActivity" -> Intent(this, InteractiveTreeActivity::class.java)
             "TraceActivity" -> Intent(this, TraceActivity::class.java)
             "FamilyRecordsActivity" -> Intent(this, FamilyRecordsActivity::class.java)
             "MergeBranchesActivity" -> Intent(this, MergeBranchesActivity::class.java)
@@ -203,6 +203,9 @@ class KinAcademyActivity : AppCompatActivity() {
         }
 
         if (intent != null) {
+            val activeTreeId = getIntent().getStringExtra("TREE_ID") ?: getIntent().getStringExtra("treeId") ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
+            intent.putExtra("TREE_ID", activeTreeId)
+            intent.putExtra("treeId", activeTreeId)
             startActivity(intent)
         }
     }

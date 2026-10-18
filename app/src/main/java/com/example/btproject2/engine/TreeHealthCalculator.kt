@@ -42,8 +42,14 @@ class TreeHealthCalculator {
         val withParents = allPersons.count { it.fatherId != null || it.motherId != null }
         val withSpouse = allPersons.count { it.spouseId != null }
         val childIds = allPersons.flatMap { listOfNotNull(it.fatherId, it.motherId) }.toSet()
-        val parentIds = allPersons.filter { it.fatherId != null || it.motherId != null }.map { it.id }.toSet()
-        val orphans = allPersons.count { it.fatherId == null && it.motherId == null && it.id !in childIds }
+        val spouseTargetIds = allPersons.mapNotNull { it.spouseId?.takeIf { s -> s.isNotBlank() } }.toSet()
+        val orphans = allPersons.count {
+            it.fatherId.isNullOrBlank() &&
+                it.motherId.isNullOrBlank() &&
+                it.id !in childIds &&
+                it.spouseId.isNullOrBlank() &&
+                it.id !in spouseTargetIds
+        }
 
         // Missing birth dates: -1 per member, max -15
         val missingBirth = total - withBirth
@@ -61,7 +67,7 @@ class TreeHealthCalculator {
             deductions.add("${missingParents - 1} member(s) missing parent links (-$penalty)")
         }
 
-        // Orphans (no parents, no children pointing to them): -2 each, max -10
+        // Orphans (no parents, no children pointing to them, and no spouse): -2 each, max -10
         if (orphans > 1) {
             val penalty = ((orphans - 1) * 2).coerceAtMost(10)
             score -= penalty
@@ -150,19 +156,33 @@ class TreeHealthCalculator {
     }
 
     private fun calculateMaxGenerations(persons: List<Person>): Int {
+        if (persons.isEmpty()) return 0
         val personMap = persons.associateBy { it.id }
+        val memo = mutableMapOf<String, Int>()
+
+        fun depthOf(personId: String, visiting: MutableSet<String>): Int {
+            memo[personId]?.let { return it }
+            if (!visiting.add(personId)) return 0 // cycle guard
+            val p = personMap[personId] ?: run {
+                visiting.remove(personId)
+                return 0
+            }
+            val fatherDepth = p.fatherId?.takeIf { it.isNotBlank() && personMap.containsKey(it) }?.let {
+                1 + depthOf(it, visiting)
+            } ?: 0
+            val motherDepth = p.motherId?.takeIf { it.isNotBlank() && personMap.containsKey(it) }?.let {
+                1 + depthOf(it, visiting)
+            } ?: 0
+            visiting.remove(personId)
+            val best = maxOf(fatherDepth, motherDepth)
+            memo[personId] = best
+            return best
+        }
+
         var maxDepth = 0
         persons.forEach { person ->
-            var depth = 0
-            var current = person
-            val visited = mutableSetOf<String>()
-            while ((current.fatherId != null || current.motherId != null) && !visited.contains(current.id)) {
-                visited.add(current.id)
-                depth++
-                val parentId = current.fatherId ?: current.motherId ?: break
-                current = personMap[parentId] ?: break
-            }
-            if (depth > maxDepth) maxDepth = depth
+            val d = depthOf(person.id, mutableSetOf())
+            if (d > maxDepth) maxDepth = d
         }
         return maxDepth + 1
     }

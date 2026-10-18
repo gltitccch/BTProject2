@@ -1,5 +1,6 @@
 package com.example.btproject2.models
 
+import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 
 /**
@@ -37,10 +38,12 @@ data class ClanMergeRequest(
         const val DEFAULT_EXPIRY_MILLIS = 48L * 60L * 60L * 1000L
     }
 
+    @Exclude
     fun isExpired(): Boolean {
         return status == STATUS_EXPIRED || (expiresAt > 0 && System.currentTimeMillis() > expiresAt)
     }
 
+    @Exclude
     fun canUnlockSynthesis(): Boolean {
         return status == STATUS_APPROVED && createdMasterTreeId.isBlank() && !isExpired()
     }

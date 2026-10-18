@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -63,14 +65,23 @@ class FamilyRecordsActivity : AppCompatActivity() {
         )
     }
 
+    private val networkListener: (com.example.btproject2.utils.NetworkStateMonitor.NetworkState) -> Unit = { state ->
+        com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.updateNetworkState(this, state) {
+            loadMembers()
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         syncCoordinator.register()
+        com.example.btproject2.utils.NetworkStateMonitor.startMonitoring(this)
+        com.example.btproject2.utils.NetworkStateMonitor.addListener(networkListener)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         syncCoordinator.unregister()
+        com.example.btproject2.utils.NetworkStateMonitor.removeListener(networkListener)
     }
 
     private val memberDetailLauncher = registerForActivityResult(
@@ -127,6 +138,13 @@ class FamilyRecordsActivity : AppCompatActivity() {
 
         // FIX: back button now calls finish() to return to the previous screen
         btnBack.setOnClickListener { finish() }
+
+        findViewById<TextView>(R.id.btnQuickAssistRecords)?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.show(
+                this,
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.RECORDS
+            )
+        }
 
         btnEmptyAddMember.setOnClickListener {
             if (isViewer) {
@@ -340,6 +358,13 @@ class FamilyRecordsActivity : AppCompatActivity() {
     }
 
     private fun loadMembers(showLoading: Boolean = allMembers.isEmpty()) {
+        val cached = FirestoreHelper.getCachedPersons(treeId)?.filter { it.id !in recentlyDeletedIds }
+        if (!cached.isNullOrEmpty() && allMembers.isEmpty()) {
+            allMembers = cached.sortedBy { "${it.firstName} ${it.lastName}" }
+            syncCoordinator.allMembersList = allMembers
+            applyFilter(etSearch.text?.toString().orEmpty())
+        }
+
         if (showLoading && allMembers.isEmpty()) {
             progressBar.visibility = View.VISIBLE
         }
@@ -353,11 +378,18 @@ class FamilyRecordsActivity : AppCompatActivity() {
             },
             onFailure = {
                 progressBar.visibility = View.GONE
-                AlertDialog.Builder(this)
-                    .setTitle("Error")
-                    .setMessage("Failed to load family members.")
-                    .setPositiveButton("OK") { d, _ -> d.dismiss() }
-                    .show()
+                val fallbackCache = FirestoreHelper.getCachedPersons(treeId)?.filter { it.id !in recentlyDeletedIds }
+                if (!fallbackCache.isNullOrEmpty()) {
+                    allMembers = fallbackCache.sortedBy { "${it.firstName} ${it.lastName}" }
+                    syncCoordinator.allMembersList = allMembers
+                    applyFilter(etSearch.text?.toString().orEmpty())
+                } else if (allMembers.isEmpty()) {
+                    AlertDialog.Builder(this)
+                        .setTitle("Offline Archive")
+                        .setMessage("Unable to reach cloud servers. Connect to the internet to fetch latest records.")
+                        .setPositiveButton("OK") { d, _ -> d.dismiss() }
+                        .show()
+                }
             }
         )
     }
@@ -380,10 +412,10 @@ class FamilyRecordsActivity : AppCompatActivity() {
                 firestoreHelper.deletePerson(
                     deletedId,
                     onSuccess = {
-                        android.widget.Toast.makeText(this, "$fullName deleted", android.widget.Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "$fullName deleted")
                     },
                     onFailure = { err ->
-                        android.widget.Toast.makeText(this, "Failed to delete: ${err.message}", android.widget.Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to delete: ${err.message}")
                         // Re-enable and reload on failure
                         recentlyDeletedIds.remove(deletedId)
                         loadMembers()

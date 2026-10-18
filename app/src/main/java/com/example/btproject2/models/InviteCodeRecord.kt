@@ -1,5 +1,6 @@
 package com.example.btproject2.models
 
+import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 
 @IgnoreExtraProperties
@@ -21,17 +22,21 @@ data class InviteCodeRecord(
         const val STATUS_REVOKED = "revoked"
     }
 
+    @Exclude
     fun isExpired(): Boolean =
         status.equals(STATUS_EXPIRED, ignoreCase = true) ||
         (expiresAt > 0L && expiresAt < System.currentTimeMillis())
 
+    @Exclude
     fun isRevoked(): Boolean =
         status.equals(STATUS_REVOKED, ignoreCase = true)
 
+    @Exclude
     fun isUsageLimitReached(): Boolean =
         status.equals(STATUS_USED, ignoreCase = true) ||
         (usageLimit > 0 && usageCount >= usageLimit)
 
+    @Exclude
     fun isValid(): Boolean =
         !isExpired() && !isRevoked() && !isUsageLimitReached()
 }

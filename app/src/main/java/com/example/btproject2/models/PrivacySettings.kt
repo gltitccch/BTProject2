@@ -1,8 +1,12 @@
 package com.example.btproject2.models
 
+import com.google.firebase.firestore.IgnoreExtraProperties
+import com.google.firebase.firestore.PropertyName
+
+@IgnoreExtraProperties
 data class PrivacySettings(
     val treeId: String = "",
-    val isPrivateTree: Boolean = true,
+    @get:PropertyName("isPrivateTree") @set:PropertyName("isPrivateTree") var isPrivateTree: Boolean = true,
     val hideBirthDates: Boolean = false,
     val hideNotes: Boolean = false,
     val hideDeceasedStatus: Boolean = false,

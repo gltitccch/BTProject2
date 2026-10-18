@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -12,7 +14,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.btproject2.R
-import com.example.btproject2.engine.TreeHealthCalculator
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.ActivityRecord
@@ -37,7 +38,6 @@ class HomeActivity : AppCompatActivity() {
 
     private val authHelper = AuthHelper()
     private val firestoreHelper = FirestoreHelper()
-    private val healthCalculator = TreeHealthCalculator()
     private var treeId: String = ""
     private var userOwnedTrees: List<FamilyTree> = emptyList()
     private val recentlyDeletedIds = mutableSetOf<String>()
@@ -114,14 +114,29 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private var announcementListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var currentAnnouncement: com.example.btproject2.models.SystemAnnouncement? = null
     private var isBannerDismissedSession = false
+
+    private val networkListener: (com.example.btproject2.utils.NetworkStateMonitor.NetworkState) -> Unit = { state ->
+        com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.updateNetworkState(
+            activity = this,
+            state = state,
+            onRetryClicked = { resolveAndLoadTree() }
+        )
+    }
 
     override fun onStart() {
         super.onStart()
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().registerListener(homeSyncListener)
         announcementListener = firestoreHelper.listenToActiveSystemAnnouncement { announcement ->
-            runOnUiThread { updateMaintenanceBannerUi(announcement) }
+            currentAnnouncement = announcement
+            runOnUiThread {
+                updateMaintenanceBannerUi(announcement)
+                refreshNotificationBadge()
+            }
         }
+        com.example.btproject2.utils.NetworkStateMonitor.startMonitoring(this)
+        com.example.btproject2.utils.NetworkStateMonitor.addListener(networkListener)
     }
 
     override fun onDestroy() {
@@ -130,6 +145,8 @@ class HomeActivity : AppCompatActivity() {
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().unregisterListener(homeSyncListener)
         announcementListener?.remove()
         announcementListener = null
+        com.example.btproject2.utils.NetworkStateMonitor.removeListener(networkListener)
+        findViewById<View?>(R.id.layoutHomeShimmer)?.let { com.example.btproject2.utils.KinTraceShimmerHelper.stopShimmer(it) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -137,7 +154,7 @@ class HomeActivity : AppCompatActivity() {
 
         val activeUser = authHelper.getCurrentUser()
         val isAdmin = com.example.btproject2.models.DemoAccountRepository.isAdminEmail(activeUser?.email)
-        if (isAdmin && !intent.getBooleanExtra("ADMIN_PREVIEW_MODE", false)) {
+        if (isAdmin) {
             startActivity(Intent(this, AdminPortalActivity::class.java))
             finish()
             return
@@ -155,7 +172,6 @@ class HomeActivity : AppCompatActivity() {
         val tvMemberCount = findViewById<TextView>(R.id.tvMemberCount)
         val tvBranchCount = findViewById<TextView>(R.id.tvBranchCount)
         val tvRecentCount = findViewById<TextView>(R.id.tvRecentCount)
-        val tvHealthScore = findViewById<TextView>(R.id.tvHealthScore)
 
         layoutStatsHeader = findViewById(R.id.layoutStatsHeader)
         layoutEmptyState = findViewById(R.id.layoutEmptyState)
@@ -270,7 +286,6 @@ class HomeActivity : AppCompatActivity() {
         val btnJoinTree = findViewById<LinearLayout?>(R.id.btnJoinTree)
         val btnSeeAllRecentActivities = findViewById<View?>(R.id.btnSeeAllRecentActivities) ?: findViewById<View?>(R.id.btnExportTree)
         val btnPrivacy = findViewById<LinearLayout>(R.id.btnPrivacy)
-        val btnLogout = findViewById<TextView>(R.id.btnLogout)
 
         btnCreateTree?.setOnClickListener {
             startActivity(Intent(this, CreateTreeActivity::class.java))
@@ -346,56 +361,15 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // ── Docked Bottom Navigation Bar (Figure 6) ────────────────
-        findViewById<View>(R.id.navHome)?.setOnClickListener {
-            resolveAndLoadTree()
-        }
-        findViewById<View>(R.id.navTree)?.setOnClickListener {
-            if (treeId.isNotEmpty() || userOwnedTrees.isNotEmpty()) {
-                OnboardingPreferences.setMilestoneCanvasInspected(this, true)
-                val currentUserId = authHelper.getCurrentUserId().orEmpty()
-                if (currentUserId.isNotEmpty()) {
-                    firestoreHelper.saveOnboardingState(
-                        currentUserId,
-                        OnboardingPreferences.getOnboardingState(this)
-                    )
-                }
-                refreshQuestHudUi()
-                val intent = Intent(this, FamilyTreeActivity::class.java).apply {
-                    if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
-                }
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "Please create or join a family tree first.", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, CreateTreeActivity::class.java))
-            }
-        }
-        findViewById<View>(R.id.navTrace)?.setOnClickListener {
-            val intent = Intent(this, TraceActivity::class.java).apply {
-                if (treeId.isNotEmpty()) putExtra("TREE_ID", treeId)
-            }
-            startActivity(intent)
-        }
-        findViewById<View>(R.id.navProfile)?.setOnClickListener {
-            showAccountProfileDialog()
-        }
+        // ── Floating Heritage Island Bottom Navigation Coordinator ──
+        com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.setup(
+            activity = this,
+            activeTab = com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.NavTab.HOME,
+            treeIdProvider = { treeId },
+            onProfileClicked = { showAccountProfileDialog() }
+        )
 
-        btnLogout.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Log Out")
-                .setMessage("Are you sure you want to log out?")
-                .setPositiveButton("Yes") { _, _ ->
-                    TreePreferences.clear(this)
-                    FirestoreHelper.clearCache()
-                    com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
-                    com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
-                    authHelper.logout()
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
-                }
-                .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
-                .show()
-        }
+
 
         setupQuestHud()
         resolveAndLoadTree()
@@ -409,6 +383,7 @@ class HomeActivity : AppCompatActivity() {
         tvThemeToggleIcon?.text = if (isDark) "☀️" else "🌙"
 
         refreshQuestHudUi()
+        refreshNotificationBadge()
         resolveAndLoadTree()
     }
 
@@ -422,13 +397,19 @@ class HomeActivity : AppCompatActivity() {
         val cachedTreeId = TreePreferences.getActiveTreeId(this)
         val cachedTreeName = TreePreferences.getActiveTreeName(this)
 
+        val layoutHomeShimmer = findViewById<View?>(R.id.layoutHomeShimmer)
+
         if (cachedTreeId.isNotEmpty()) {
             this.treeId = cachedTreeId
             layoutStatsHeader.visibility = View.VISIBLE
             findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  ${cachedTreeName.ifEmpty { "Family Tree" }}"
             loadStatsForTree(cachedTreeId)
         } else {
-            showNoTreeEmptyState()
+            // Fresh login / switch account: preserve shimmer skeleton while Firestore resolves user's trees (prevents 0.1s blink)
+            layoutStatsHeader.visibility = View.GONE
+            layoutPopulatedState.visibility = View.GONE
+            layoutEmptyState.visibility = View.GONE
+            layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.startShimmer(it) }
         }
 
         firestoreHelper.getUserProfile(currentUserId,
@@ -440,6 +421,7 @@ class HomeActivity : AppCompatActivity() {
                         if (trees.isEmpty()) {
                             this.treeId = ""
                             TreePreferences.clear(this)
+                            layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
                             showNoTreeEmptyState()
                             return@getUserTrees
                         }
@@ -461,6 +443,7 @@ class HomeActivity : AppCompatActivity() {
                     },
                     onFailure = {
                         if (cachedTreeId.isEmpty()) {
+                            layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
                             showNoTreeEmptyState()
                         }
                     }
@@ -468,6 +451,7 @@ class HomeActivity : AppCompatActivity() {
             },
             onFailure = {
                 if (cachedTreeId.isEmpty()) {
+                    layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
                     showNoTreeEmptyState()
                 }
             }
@@ -507,14 +491,7 @@ class HomeActivity : AppCompatActivity() {
             layoutEmptyState.visibility = View.VISIBLE
             findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  Family Tree"
 
-            val currentUser = authHelper.getCurrentUser()
-            val isAdmin = com.example.btproject2.models.DemoAccountRepository.isAdminEmail(currentUser?.email)
-            if (isAdmin) {
-                findViewById<View?>(R.id.cardQuestHud)?.visibility = View.GONE
-                btnEmptyCreateTree.text = "🛡️ Return to Admin Citadel"
-                btnEmptyCreateTree.setOnClickListener { finish() }
-                return@runOnUiThread
-            }
+
 
             // Phase 1 Onboarding: Show 3-slide welcome story modal for new user without trees
             WelcomeStoryDialogFragment.showIfNotSeen(this@HomeActivity)
@@ -573,7 +550,30 @@ class HomeActivity : AppCompatActivity() {
         val tvMemberCount = findViewById<TextView>(R.id.tvMemberCount)
         val tvBranchCount = findViewById<TextView>(R.id.tvBranchCount)
         val tvRecentCount = findViewById<TextView>(R.id.tvRecentCount)
-        val tvHealthScore = findViewById<TextView>(R.id.tvHealthScore)
+        val layoutHomeShimmer = findViewById<View?>(R.id.layoutHomeShimmer)
+
+        // Instant 0ms cache rendering before network query
+        val cached = FirestoreHelper.getCachedPersons(activeTreeId)?.filter { it.id !in recentlyDeletedIds }
+        if (!cached.isNullOrEmpty()) {
+            layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+            tvMemberCount.text = cached.size.toString()
+            val genCount = calculateGenerations(cached)
+            findViewById<TextView?>(R.id.tvGenerationCountLarge)?.text = genCount.toString()
+            findViewById<TextView?>(R.id.tvGenerationsCount)?.text = genCount.toString()
+            findViewById<TextView>(R.id.tvLivingCount)?.text = cached.count { it.isLiving }.toString()
+            val totalRecords = cached.size + cached.count { !it.fatherId.isNullOrEmpty() } + cached.count { !it.motherId.isNullOrEmpty() }
+            findViewById<TextView?>(R.id.tvRecordsCount)?.text = maxOf(cached.size, totalRecords).toString()
+            layoutStatsHeader.visibility = View.VISIBLE
+            layoutEmptyState.visibility = View.GONE
+            layoutPopulatedState.visibility = View.VISIBLE
+            renderRecentActivity(cached)
+        } else {
+            // No cache available: display heritage shimmer skeleton placeholder (0ms)
+            layoutStatsHeader.visibility = View.GONE
+            layoutPopulatedState.visibility = View.GONE
+            layoutEmptyState.visibility = View.GONE
+            layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.startShimmer(it) }
+        }
 
         firestoreHelper.getPersonsByTree(
             activeTreeId,
@@ -599,27 +599,34 @@ class HomeActivity : AppCompatActivity() {
                 val livingCount = activePersons.count { it.isLiving }
                 findViewById<TextView>(R.id.tvLivingCount)?.text = livingCount.toString()
 
-                val health = healthCalculator.calculate(activePersons)
-                val healthText = "${health.score}% Health"
-                findViewById<TextView>(R.id.tvHealthScoreBadge)?.text = healthText
-                if (tvHealthScore != null) {
-                    tvHealthScore.text = healthText
-                } else {
-                    tvRecentCount.text = health.score.toString()
-                }
-
                 val totalRecords = activePersons.size + activePersons.count { !it.fatherId.isNullOrEmpty() } + activePersons.count { !it.motherId.isNullOrEmpty() }
                 findViewById<TextView?>(R.id.tvRecordsCount)?.text = maxOf(activePersons.size, totalRecords).toString()
-                findViewById<TextView?>(R.id.tvRecordsDelta)?.text = "+${minOf(activePersons.size, 6)}"
-                findViewById<TextView?>(R.id.tvMemberDelta)?.text = "+${minOf(activePersons.size, 2)}"
-                findViewById<TextView?>(R.id.tvBranchDelta)?.text = "+1"
+                val sevenDaysAgo = System.currentTimeMillis() - (7L * 24 * 60 * 60 * 1000L)
+                val recentMembers7d = activePersons.count { it.createdAt >= sevenDaysAgo || it.updatedAt >= sevenDaysAgo }
+                val recentLinks7d = activePersons.count {
+                    (it.createdAt >= sevenDaysAgo || it.updatedAt >= sevenDaysAgo) &&
+                        (!it.fatherId.isNullOrEmpty() || !it.motherId.isNullOrEmpty() || !it.spouseId.isNullOrEmpty())
+                }
+                val recentRecords7d = recentMembers7d + recentLinks7d
+                val uniqueClanSurnames = activePersons.mapNotNull { it.lastName.trim().takeIf { s -> s.isNotEmpty() }?.lowercase() }.distinct().size.coerceAtLeast(1)
 
-                tvInsightsBannerSub.text =
-                    "Tree Health: ${health.score}% (${health.label}) · Tap to view breakdown →"
+                findViewById<TextView?>(R.id.tvRecordsDelta)?.text = "+$recentRecords7d"
+                findViewById<TextView?>(R.id.tvMemberDelta)?.text = "+$recentMembers7d"
+                findViewById<TextView?>(R.id.tvBranchDelta)?.text = "+$uniqueClanSurnames"
 
-                layoutStatsHeader.visibility = View.VISIBLE
+                tvInsightsBannerSub.text = "Lineage Overview · Tap to view breakdown →"
+
                 layoutEmptyState.visibility = View.GONE
-                layoutPopulatedState.visibility = View.VISIBLE
+                if (layoutHomeShimmer != null && layoutHomeShimmer.visibility == View.VISIBLE) {
+                    com.example.btproject2.utils.KinTraceShimmerHelper.crossfade(layoutHomeShimmer, layoutPopulatedState, durationMs = 150)
+                    layoutStatsHeader.alpha = 0f
+                    layoutStatsHeader.visibility = View.VISIBLE
+                    layoutStatsHeader.animate().alpha(1f).setDuration(150).start()
+                } else {
+                    layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+                    layoutStatsHeader.visibility = View.VISIBLE
+                    layoutPopulatedState.visibility = View.VISIBLE
+                }
 
                 firestoreHelper.getRecentActivities(activeTreeId, limit = 5,
                     onSuccess = { activities ->
@@ -635,25 +642,40 @@ class HomeActivity : AppCompatActivity() {
                 )
             },
             onFailure = {
-                tvMemberCount.text = "0"
-                findViewById<TextView>(R.id.tvLivingCount)?.text = "0"
-                findViewById<TextView?>(R.id.tvGenerationCountLarge)?.text = "0"
-                findViewById<TextView?>(R.id.tvGenerationsCount)?.text = "0"
-                findViewById<TextView?>(R.id.tvRecordsCount)?.text = "0"
-                if (tvHealthScore != null) tvHealthScore.text = "0%"
+                val fallbackCache = FirestoreHelper.getCachedPersons(activeTreeId)?.filter { it.id !in recentlyDeletedIds }
+                if (!fallbackCache.isNullOrEmpty()) {
+                    tvMemberCount.text = fallbackCache.size.toString()
+                    val genCount = calculateGenerations(fallbackCache)
+                    findViewById<TextView?>(R.id.tvGenerationCountLarge)?.text = genCount.toString()
+                    findViewById<TextView?>(R.id.tvGenerationsCount)?.text = genCount.toString()
+                    findViewById<TextView>(R.id.tvLivingCount)?.text = fallbackCache.count { it.isLiving }.toString()
+                    val totalRecords = fallbackCache.size + fallbackCache.count { !it.fatherId.isNullOrEmpty() } + fallbackCache.count { !it.motherId.isNullOrEmpty() }
+                    findViewById<TextView?>(R.id.tvRecordsCount)?.text = maxOf(fallbackCache.size, totalRecords).toString()
+                    layoutEmptyState.visibility = View.GONE
+                    if (layoutHomeShimmer != null && layoutHomeShimmer.visibility == View.VISIBLE) {
+                        com.example.btproject2.utils.KinTraceShimmerHelper.crossfade(layoutHomeShimmer, layoutPopulatedState, durationMs = 150)
+                        layoutStatsHeader.alpha = 0f
+                        layoutStatsHeader.visibility = View.VISIBLE
+                        layoutStatsHeader.animate().alpha(1f).setDuration(150).start()
+                    } else {
+                        layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+                        layoutStatsHeader.visibility = View.VISIBLE
+                        layoutPopulatedState.visibility = View.VISIBLE
+                    }
+                    renderRecentActivity(fallbackCache)
+                } else {
+                    layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+                    tvMemberCount.text = "0"
+                    findViewById<TextView>(R.id.tvLivingCount)?.text = "0"
+                    findViewById<TextView?>(R.id.tvGenerationCountLarge)?.text = "0"
+                    findViewById<TextView?>(R.id.tvGenerationsCount)?.text = "0"
+                    findViewById<TextView?>(R.id.tvRecordsCount)?.text = "0"
+                }
             }
         )
 
-        // Check unread notifications count for badge
-        val currentUserId = authHelper.getCurrentUserId().orEmpty()
-        firestoreHelper.getUnreadNotificationCount(activeTreeId, currentUserId,
-            onSuccess = { count ->
-                viewNotifBadge.visibility = if (count > 0) View.VISIBLE else View.GONE
-            },
-            onFailure = {
-                viewNotifBadge.visibility = View.GONE
-            }
-        )
+        // Check unread notifications count (including system advisories) for badge
+        refreshNotificationBadge()
 
         firestoreHelper.getTree(activeTreeId,
             onSuccess = { tree ->
@@ -766,7 +788,41 @@ class HomeActivity : AppCompatActivity() {
             }
             tvRecentTime?.text = timeText
 
-            if (activity.targetId.isNotEmpty() && activity.type.uppercase() !in listOf("DELETE", "MEMBER_DELETED")) {
+            val actType = activity.type.uppercase()
+            if (actType in listOf("DELETE", "MEMBER_DELETED")) {
+                itemView.setOnClickListener {
+                    if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(authHelper.getCurrentUser()?.email)) {
+                        val intent = Intent(this, AdminPortalActivity::class.java).apply {
+                            putExtra("OPEN_TAB", 3)
+                            putExtra("HIGHLIGHT_MEMBER_ID", activity.targetId)
+                            putExtra("TREE_ID", activity.treeId)
+                        }
+                        startActivity(intent)
+                    } else {
+                        AlertDialog.Builder(this)
+                            .setTitle("Archived Record Notice")
+                            .setMessage("${activity.description}\n\nDeleted member recovery is managed in the System Administrator Citadel.")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+            } else if (actType in listOf("MERGE_COLLISION_BLOCKED", "COLLISION", "MERGE_COLLISION")) {
+                itemView.setOnClickListener {
+                    if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(authHelper.getCurrentUser()?.email)) {
+                        val intent = Intent(this, AdminPortalActivity::class.java).apply {
+                            putExtra("OPEN_TAB", 3)
+                            putExtra("HIGHLIGHT_COLLISION_ID", activity.targetId)
+                        }
+                        startActivity(intent)
+                    } else {
+                        AlertDialog.Builder(this)
+                            .setTitle("Merge Collision Notice")
+                            .setMessage("${activity.description}\n\nMerge collision dockets are reviewed by the System Administrator.")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+            } else if (activity.targetId.isNotEmpty()) {
                 itemView.setOnClickListener {
                     val intent = Intent(this, MemberDetailActivity::class.java).apply {
                         putExtra("personId", activity.targetId)
@@ -855,6 +911,17 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun showAccountProfileDialog() {
+        val currentUser = authHelper.getCurrentUser()
+        if (currentUser?.email.equals("admin@kintrace.ph", ignoreCase = true)) {
+            val adminSheet = com.example.btproject2.ui.dialogs.SuperAdminProfileBottomSheet.newInstance()
+            adminSheet.onProfileUpdated = { newName ->
+                tvUserName.text = newName
+                tvProfileInitial.text = newName.firstOrNull()?.uppercase() ?: "A"
+            }
+            adminSheet.show(supportFragmentManager, com.example.btproject2.ui.dialogs.SuperAdminProfileBottomSheet.TAG)
+            return
+        }
+
         val sheet = ClanProfileBottomSheet.newInstance(treeId)
         sheet.onProfileUpdated = { newName ->
             tvUserName.text = newName
@@ -900,7 +967,7 @@ class HomeActivity : AppCompatActivity() {
                 tvPasswordError.visibility = View.GONE
                 authHelper.updatePassword(newPass,
                     onSuccess = {
-                        Toast.makeText(this, "Password updated successfully!", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Password updated successfully!")
                         val currentUserId = authHelper.getCurrentUserId().orEmpty()
                         if (currentUserId.isNotEmpty()) {
                             val notif = com.example.btproject2.utils.NotificationHelper.createPasswordChangedNotification(
@@ -953,7 +1020,7 @@ class HomeActivity : AppCompatActivity() {
 
         btnAddMember?.setOnClickListener {
             if (treeId.isEmpty()) {
-                Toast.makeText(this, "Create or join a family tree first to add relatives.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Create or join a family tree first to add relatives.")
                 startActivity(Intent(this, CreateTreeActivity::class.java))
             } else {
                 val intent = Intent(this, AddMemberActivity::class.java).apply {
@@ -965,7 +1032,7 @@ class HomeActivity : AppCompatActivity() {
 
         btnOpenCanvas?.setOnClickListener {
             if (treeId.isEmpty() && userOwnedTrees.isEmpty()) {
-                Toast.makeText(this, "Create or join a family tree first to inspect the canvas.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Create or join a family tree first to inspect the canvas.")
                 startActivity(Intent(this, CreateTreeActivity::class.java))
             } else {
                 OnboardingPreferences.setMilestoneCanvasInspected(this, true)
@@ -998,7 +1065,7 @@ class HomeActivity : AppCompatActivity() {
                 )
             }
             cardQuestHud.visibility = View.GONE
-            Toast.makeText(this, "Clan Quest completed and archived!", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Clan Quest completed and archived!")
         }
 
         refreshQuestHudUi()
@@ -1154,7 +1221,7 @@ class HomeActivity : AppCompatActivity() {
                 .setNegativeButton("Done", null)
                 .show()
         } else {
-            Toast.makeText(this, "Create or select a family tree first to share its invite code.", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Create or select a family tree first to share its invite code.")
         }
     }
 
@@ -1165,7 +1232,14 @@ class HomeActivity : AppCompatActivity() {
         val body = findViewById<TextView?>(R.id.tvNoticeBody)
         val btnDismiss = findViewById<View?>(R.id.btnDismissNoticeBanner)
 
-        if (announcement == null || !announcement.isActive || isBannerDismissedSession) {
+        val isDismissed = announcement != null && com.example.btproject2.utils.AnnouncementPreferences.isDismissed(
+            this,
+            announcement.id,
+            announcement.createdAt
+        )
+        val isExpired = announcement?.isExpired ?: false
+
+        if (announcement == null || !announcement.isActive || isExpired || isDismissed || isBannerDismissedSession) {
             banner.visibility = View.GONE
             return
         }
@@ -1190,9 +1264,37 @@ class HomeActivity : AppCompatActivity() {
 
         btnDismiss?.setOnClickListener {
             isBannerDismissedSession = true
+            com.example.btproject2.utils.AnnouncementPreferences.setDismissed(
+                this,
+                announcement.id,
+                announcement.createdAt
+            )
             banner.visibility = View.GONE
+            KinTraceAlert.show(this, "Advisory dismissed. View anytime in Notifications (🔔)")
         }
 
         banner.visibility = View.VISIBLE
+    }
+
+    private fun refreshNotificationBadge() {
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        val ann = currentAnnouncement
+        val hasUnreadAdvisory = ann != null && ann.isActive && !ann.isExpired &&
+            !com.example.btproject2.utils.AnnouncementPreferences.isAdvisoryReadInNotifications(this, ann.id, ann.createdAt)
+
+        val targetTreeId = treeId.ifEmpty { com.example.btproject2.utils.TreePreferences.getActiveTreeId(this) }
+        if (targetTreeId.isEmpty()) {
+            viewNotifBadge.visibility = if (hasUnreadAdvisory) View.VISIBLE else View.GONE
+            return
+        }
+
+        firestoreHelper.getUnreadNotificationCount(targetTreeId, currentUserId,
+            onSuccess = { count ->
+                viewNotifBadge.visibility = if (count > 0 || hasUnreadAdvisory) View.VISIBLE else View.GONE
+            },
+            onFailure = {
+                viewNotifBadge.visibility = if (hasUnreadAdvisory) View.VISIBLE else View.GONE
+            }
+        )
     }
 }

@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -102,11 +104,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     base64,
                     filePath,
                     onSuccess = {
-                        Toast.makeText(this, "Profile photo updated", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Profile photo updated")
                         loadTree(refreshProfile = true)
                     },
                     onFailure = {
-                        Toast.makeText(this, "Failed to update photo: ${it.message}", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to update photo: ${it.message}")
                     }
                 )
             }
@@ -123,11 +125,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     activeProfilePersonId!!,
                     doc,
                     onSuccess = {
-                        Toast.makeText(this, "Document attached successfully", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Document attached successfully")
                         loadTree(refreshProfile = true)
                     },
                     onFailure = {
-                        Toast.makeText(this, "Failed to attach document: ${it.message}", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to attach document: ${it.message}")
                     }
                 )
             }
@@ -144,9 +146,23 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
 
+        findViewById<TextView>(R.id.btnQuickAssistInteractiveTree)?.setOnClickListener {
+            val ctx = if (currentMode == "PEDIGREE" || currentMode == "FAN_CHART") {
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.PEDIGREE_FAN_CHART
+            } else {
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.CANVAS
+            }
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.show(this, ctx)
+        }
+
         btnConnectBranchesShortcut = findViewById(R.id.btnConnectBranchesShortcut)
         btnConnectBranchesShortcut?.setOnClickListener {
-            startActivity(Intent(this, MergeBranchesActivity::class.java))
+            val activeTreeId = treeId.ifBlank { com.example.btproject2.utils.TreePreferences.getActiveTreeId(this@InteractiveTreeActivity) }
+            val intent = Intent(this, MergeBranchesActivity::class.java).apply {
+                putExtra("TREE_ID", activeTreeId)
+                putExtra("treeId", activeTreeId)
+            }
+            startActivity(intent)
         }
         tvInteractiveTreeRoleBadge = findViewById(R.id.tvInteractiveTreeRoleBadge)
         layoutInteractiveViewerBanner = findViewById(R.id.layoutInteractiveViewerBanner)
@@ -171,6 +187,19 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 putExtra("treeId", treeId)
             }
             startActivity(intent)
+        }
+
+        findViewById<TextView>(R.id.btnInteractiveToolsMenu)?.setOnClickListener { anchorView ->
+            com.example.btproject2.ui.dialogs.TreeToolsPopoverHelper.show(
+                context = this,
+                anchor = anchorView,
+                showConnect = isOwner,
+                showAudit = true,
+                onConnect = { btnConnectBranchesShortcut?.performClick() },
+                onAudit = { findViewById<TextView>(R.id.btnAuditTree)?.performClick() },
+                onExport = { findViewById<TextView>(R.id.btnExportTreeShortcut)?.performClick() },
+                onLegend = { findViewById<TextView>(R.id.btnInteractiveLegend)?.performClick() }
+            )
         }
 
         chipMainTree = findViewById(R.id.chipMainTree)
@@ -401,7 +430,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     override fun onSyncEvent(event: TreeSyncEvent) {
         if (event.changeType == SyncChangeType.TREE_DELETED && (event.treeId == treeId || event.treeId == interestedTreeId)) {
             runOnUiThread {
-                Toast.makeText(this, "The displayed family tree was removed.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "The displayed family tree was removed.")
                 finish()
             }
             return
@@ -452,19 +481,31 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     }
 
     private fun updateModeChips(mode: String) {
-        val goldBg = R.drawable.btn_gold_primary
-        val darkBg = R.drawable.badge_pill_dark
-        val darkText = Color.parseColor("#0A1B12")
-        val secText = Color.parseColor("#A3B899")
+        val activeBg = R.drawable.bg_segmented_item_active
+        val inactiveBg = android.R.color.transparent
+        val activeText = androidx.core.content.ContextCompat.getColor(this, R.color.btn_gold_text)
+        val inactiveText = androidx.core.content.ContextCompat.getColor(this, R.color.text_secondary)
 
-        chipMainTree.setBackgroundResource(if (mode == "MAIN") goldBg else darkBg)
-        chipMainTree.setTextColor(if (mode == "MAIN") darkText else secText)
+        chipMainTree.setBackgroundResource(if (mode == "MAIN") activeBg else inactiveBg)
+        chipMainTree.setTextColor(if (mode == "MAIN") activeText else inactiveText)
+        androidx.core.widget.TextViewCompat.setCompoundDrawableTintList(
+            chipMainTree,
+            android.content.res.ColorStateList.valueOf(if (mode == "MAIN") activeText else inactiveText)
+        )
 
-        chipPedigree.setBackgroundResource(if (mode == "PEDIGREE") goldBg else darkBg)
-        chipPedigree.setTextColor(if (mode == "PEDIGREE") darkText else secText)
+        chipPedigree.setBackgroundResource(if (mode == "PEDIGREE") activeBg else inactiveBg)
+        chipPedigree.setTextColor(if (mode == "PEDIGREE") activeText else inactiveText)
+        androidx.core.widget.TextViewCompat.setCompoundDrawableTintList(
+            chipPedigree,
+            android.content.res.ColorStateList.valueOf(if (mode == "PEDIGREE") activeText else inactiveText)
+        )
 
-        chipTraceHighlight.setBackgroundResource(if (mode == "TRACE_HIGHLIGHT") goldBg else darkBg)
-        chipTraceHighlight.setTextColor(if (mode == "TRACE_HIGHLIGHT") darkText else secText)
+        chipTraceHighlight.setBackgroundResource(if (mode == "TRACE_HIGHLIGHT") activeBg else inactiveBg)
+        chipTraceHighlight.setTextColor(if (mode == "TRACE_HIGHLIGHT") activeText else inactiveText)
+        androidx.core.widget.TextViewCompat.setCompoundDrawableTintList(
+            chipTraceHighlight,
+            android.content.res.ColorStateList.valueOf(if (mode == "TRACE_HIGHLIGHT") activeText else inactiveText)
+        )
 
         if (mode == "TRACE_HIGHLIGHT") {
             layoutTraceBanner.visibility = View.VISIBLE
@@ -473,11 +514,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         } else if (mode == "PEDIGREE") {
             layoutTraceBanner.visibility = View.GONE
             layoutPedigreeFocalBar.visibility = View.VISIBLE
-            tvFocalBarLabel.text = "🌳 Pedigree for:"
+            tvFocalBarLabel.text = "Pedigree for:"
         } else {
             layoutTraceBanner.visibility = View.GONE
             layoutPedigreeFocalBar.visibility = View.VISIBLE
-            tvFocalBarLabel.text = "🌿 Kinship relative to:"
+            tvFocalBarLabel.text = "Kinship relative to:"
         }
     }
 
@@ -591,7 +632,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 loadRoleAndApplyPermissions(effectiveTreeId)
             },
             onFailure = {
-                Toast.makeText(this, "Failed to load tree", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Failed to load tree")
             }
         )
     }
@@ -631,9 +672,9 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 }
             },
             onFailure = {
-                isOwner = true
+                isOwner = false
                 isEditor = false
-                isViewer = false
+                isViewer = true
                 applyRolePermissionsToUI()
             }
         )
@@ -665,9 +706,23 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             btnConnectBranchesShortcut?.visibility = View.GONE
         }
         if (::treeView.isInitialized) {
+            val viewerChanged = treeView.isViewerMode != isViewer
             treeView.isViewerMode = isViewer
             treeView.treePrivacy = treePrivacy
-            treeView.invalidate()
+            if (viewerChanged && allPersonsList.isNotEmpty()) {
+                treeView.setDataAndMode(
+                    list = allPersonsList,
+                    mode = currentMode,
+                    highlightIds = highlightPathIds,
+                    mrcaId = mrcaId,
+                    focalPedigreeId = focalPedigreePersonId,
+                    personAId = highlightPersonAId,
+                    personBId = highlightPersonBId,
+                    forceRefresh = true
+                )
+            } else {
+                treeView.invalidate()
+            }
         }
     }
 
@@ -681,13 +736,12 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
                 if (conflicts.isNotEmpty()) {
-                    val errorCount = conflicts.count { it.severity == "error" }
                     val totalCount = conflicts.size
                     layoutConflictBanner.visibility = View.VISIBLE
-                    tvConflictBannerText.text = if (errorCount > 0) {
-                        "⚠️ $errorCount invalid relationship(s) detected. Tap to inspect & fix."
+                    tvConflictBannerText.text = if (totalCount == 1) {
+                        "🧭 1 family question to check • Tap for step-by-step guide"
                     } else {
-                        "⚠️ $totalCount tree warning(s) detected. Tap to inspect."
+                        "🧭 $totalCount family questions to check • Tap for step-by-step guide"
                     }
                     layoutConflictBanner.setOnClickListener {
                         showTreeConflictsDialog(conflicts)
@@ -700,15 +754,238 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     }
 
     private fun showTreeConflictsDialog(conflicts: List<com.example.btproject2.engine.ConflictScanner.Conflict>) {
-        val details = conflicts.joinToString("\n\n") { c ->
-            val icon = if (c.severity == "error") "❌" else "⚠️"
-            "$icon ${c.personName}: ${c.description}"
+        if (conflicts.isEmpty()) return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_tree_conflict_wizard, null, false)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val tvHeaderBadge = dialogView.findViewById<TextView>(R.id.tvWizardHeaderBadge)
+        val btnFixAll = dialogView.findViewById<TextView>(R.id.btnWizardFixAll)
+        val tvModalTitle = dialogView.findViewById<TextView>(R.id.tvWizardModalTitle)
+        val tvModalSub = dialogView.findViewById<TextView>(R.id.tvWizardModalSub)
+        val tvStepCounter = dialogView.findViewById<TextView>(R.id.tvWizardStepCounter)
+        val tvStepPercent = dialogView.findViewById<TextView>(R.id.tvWizardStepPercent)
+        val progressSteps = dialogView.findViewById<ProgressBar>(R.id.progressWizardSteps)
+
+        val tvPersonName = dialogView.findViewById<TextView>(R.id.tvWizardPersonName)
+        val tvStepTag = dialogView.findViewById<TextView>(R.id.tvWizardStepTag)
+        val tvHeadline = dialogView.findViewById<TextView>(R.id.tvWizardQuestionHeadline)
+        val tvExplain = dialogView.findViewById<TextView>(R.id.tvWizardQuestionExplain)
+        val tvHelper = dialogView.findViewById<TextView>(R.id.tvWizardHelperPrompt)
+        val btnPrimary = dialogView.findViewById<Button>(R.id.btnWizardPrimaryChoice)
+        val btnSecondary = dialogView.findViewById<Button>(R.id.btnWizardSecondaryChoice)
+        val btnPrev = dialogView.findViewById<Button>(R.id.btnWizardPrev)
+        val btnSkip = dialogView.findViewById<Button>(R.id.btnWizardSkip)
+
+        val activeConflicts = conflicts.toMutableList()
+        var currentIndex = 0
+
+        fun refreshCanvasAfterRepair() {
+            val cached = FirestoreHelper.getCachedPersons(treeId.ifBlank { null })
+            if (!cached.isNullOrEmpty()) {
+                allPersonsList = cached.filter { it.treeId.isEmpty() || it.treeId == treeId }
+            }
+            treeView.setDataAndMode(
+                list = allPersonsList,
+                mode = currentMode,
+                highlightIds = highlightPathIds,
+                mrcaId = mrcaId,
+                focalPedigreeId = focalPedigreePersonId,
+                personAId = highlightPersonAId,
+                personBId = highlightPersonBId,
+                forceRefresh = true
+            )
+            checkForTreeConflicts(allPersonsList)
         }
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Tree Relationship Inconsistencies")
-            .setMessage(details)
-            .setPositiveButton("Understood", null)
-            .show()
+
+        fun renderCompleteState() {
+            tvHeaderBadge.text = "✓ ALL TIDIED UP"
+            tvHeaderBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+            btnFixAll.visibility = View.GONE
+            tvModalTitle.text = "Everything Is Tidied Up!"
+            tvModalSub.text = "Your family tree connections are clean and up to date."
+            tvStepCounter.text = "All Steps Complete!"
+            tvStepPercent.text = "100% Done"
+            progressSteps.progress = 100
+
+            tvPersonName.text = "🎉 Family Tree Healthy"
+            tvStepTag.text = "✓ Done"
+            tvStepTag.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+            tvHeadline.text = "“Your family tree looks great!”"
+            tvExplain.text = "All missing parent and spouse spots have been cleaned up. You can go back to exploring your family tree now."
+            tvHelper.text = "✨ 0 issues remaining."
+
+            btnPrimary.isEnabled = true
+            btnPrimary.text = "✓ Back to Family Tree"
+            btnPrimary.setOnClickListener { dialog.dismiss() }
+            btnSecondary.visibility = View.GONE
+            btnPrev.visibility = View.GONE
+            btnSkip.text = "Close"
+            btnSkip.setOnClickListener { dialog.dismiss() }
+        }
+
+        fun renderCurrentStep() {
+            if (activeConflicts.isEmpty()) {
+                renderCompleteState()
+                return
+            }
+            if (currentIndex >= activeConflicts.size) {
+                currentIndex = activeConflicts.size - 1
+            }
+            if (currentIndex < 0) {
+                currentIndex = 0
+            }
+
+            val total = activeConflicts.size
+            val item = activeConflicts[currentIndex]
+            val pct = (((currentIndex + 1) * 100) / total).coerceIn(1, 100)
+
+            tvStepCounter.text = "Step ${currentIndex + 1} of $total"
+            tvStepPercent.text = "$pct% Done"
+            progressSteps.progress = pct
+
+            tvPersonName.text = "👤 ${item.personName}"
+            tvStepTag.text = "Question ${currentIndex + 1}"
+            tvHeadline.text = item.questionHeadline
+            tvExplain.text = item.simpleExplanation
+            tvHelper.text = item.helperPrompt
+
+            btnPrimary.isEnabled = true
+            btnSecondary.isEnabled = true
+            btnSecondary.visibility = View.VISIBLE
+            btnPrimary.text = item.primaryActionLabel
+            btnSecondary.text = item.secondaryActionLabel
+
+            btnPrev.visibility = if (total > 1) View.VISIBLE else View.GONE
+            btnPrev.isEnabled = currentIndex > 0
+            btnPrev.alpha = if (currentIndex > 0) 1.0f else 0.45f
+            btnSkip.text = if (currentIndex < total - 1) "Skip for Now →" else "Close"
+
+            btnPrimary.setOnClickListener {
+                if (isViewer) {
+                    dialog.dismiss()
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Update Family Connection"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                    return@setOnClickListener
+                }
+                if (item.canAutoFix) {
+                    btnPrimary.isEnabled = false
+                    btnPrimary.text = "⏳ Saving..."
+                    firestoreHelper.autoRepairConflict(
+                        conflict = item,
+                        allPersons = allPersonsList,
+                        onSuccess = { updatedPerson ->
+                            runOnUiThread {
+                                if (updatedPerson != null) {
+                                    allPersonsList = allPersonsList.map { if (it.id == updatedPerson.id) updatedPerson else it }
+                                }
+                                activeConflicts.removeAt(currentIndex)
+                                refreshCanvasAfterRepair()
+                                renderCurrentStep()
+                            }
+                        },
+                        onFailure = { err ->
+                            runOnUiThread {
+                                btnPrimary.isEnabled = true
+                                btnPrimary.text = item.primaryActionLabel
+                                KinTraceAlert.warning(this, "Could Not Save", err.message ?: "Please try again.")
+                            }
+                        }
+                    )
+                } else {
+                    dialog.dismiss()
+                    val intent = Intent(this, EditMemberActivity::class.java).apply {
+                        putExtra("personId", item.personId)
+                        putExtra("TREE_ID", treeId)
+                        putExtra("isViewer", isViewer)
+                    }
+                    startActivity(intent)
+                }
+            }
+
+            btnSecondary.setOnClickListener {
+                if (isViewer) {
+                    dialog.dismiss()
+                    ActionRestrictedDialog.newInstance(
+                        treeId = treeId,
+                        treeName = currentTreeName,
+                        actionAttempted = "Edit Family Member"
+                    ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                    return@setOnClickListener
+                }
+                dialog.dismiss()
+                val intent = Intent(this, EditMemberActivity::class.java).apply {
+                    putExtra("personId", item.personId)
+                    putExtra("TREE_ID", treeId)
+                    putExtra("isViewer", isViewer)
+                }
+                startActivity(intent)
+            }
+        }
+
+        btnPrev.setOnClickListener {
+            if (currentIndex > 0) {
+                currentIndex--
+                renderCurrentStep()
+            }
+        }
+
+        btnSkip.setOnClickListener {
+            if (currentIndex < activeConflicts.size - 1) {
+                currentIndex++
+                renderCurrentStep()
+            } else {
+                dialog.dismiss()
+            }
+        }
+
+        btnFixAll.setOnClickListener {
+            if (isViewer) {
+                dialog.dismiss()
+                ActionRestrictedDialog.newInstance(
+                    treeId = treeId,
+                    treeName = currentTreeName,
+                    actionAttempted = "Auto-Clean Family Connections"
+                ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+                return@setOnClickListener
+            }
+            val fixable = activeConflicts.filter { it.canAutoFix }
+            if (fixable.isEmpty()) {
+                KinTraceAlert.show(this, "Please open the member's page to review birth dates.")
+                return@setOnClickListener
+            }
+            btnFixAll.isEnabled = false
+            btnFixAll.text = "⏳ Fixing..."
+            btnPrimary.isEnabled = false
+            firestoreHelper.autoRepairAllConflicts(
+                conflicts = fixable,
+                allPersons = allPersonsList,
+                onSuccess = {
+                    runOnUiThread {
+                        activeConflicts.removeAll(fixable.toSet())
+                        refreshCanvasAfterRepair()
+                        renderCurrentStep()
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnFixAll.isEnabled = true
+                        btnFixAll.text = "✨ Fix All at Once"
+                        btnPrimary.isEnabled = true
+                        KinTraceAlert.warning(this, "Auto-Fix Failed", err.message ?: "Please try again.")
+                    }
+                }
+            )
+        }
+
+        renderCurrentStep()
+        dialog.show()
     }
 
     // ══════════════════════════════════════════════════════════════════
@@ -802,7 +1079,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             "$kinshipSubtitle · $effectiveCivilStatus"
         }
         if (!person.isLiving && !shouldHideDeceased) {
-            tvSubtitle.setTextColor(android.graphics.Color.parseColor("#94A3B8"))
+            tvSubtitle.setTextColor(resources.getColor(R.color.text_secondary, null))
         } else {
             tvSubtitle.setTextColor(resources.getColor(R.color.mint_text, null))
         }
@@ -824,14 +1101,14 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             val idx = allPersonsList.indexOfFirst { it.id == person.id }
             if (idx >= 0) spinnerPedigreeFocal.setSelection(idx)
             treeView.setMode(currentMode, highlightPathIds, mrcaId, focalPedigreePersonId)
-            Toast.makeText(this, "Tree kinship updated relative to ${person.firstName}", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Tree kinship updated relative to ${person.firstName}")
             dialog.dismiss()
         }
 
         // Direction 1 Subtle Shield: Age & Sex Badges
         if (shouldHideBirth) {
             tvAgeBadge.text = "🔒 Private"
-            tvAgeBadge.setTextColor(android.graphics.Color.parseColor("#D4AF37"))
+            tvAgeBadge.setTextColor(resources.getColor(R.color.gold_accent, null))
         } else {
             val ageStr = DocumentHelper.calculateAge(person.birthDate, person.deathDate, person.isLiving)
             tvAgeBadge.text = ageStr.ifEmpty { "Age N/A" }
@@ -842,7 +1119,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         // Vital details: Direction 1 Subtle Shield
         if (shouldHideBirth) {
             tvBirth.text = "🔒 Hidden by Owner"
-            tvBirth.setTextColor(android.graphics.Color.parseColor("#A0B2A8"))
+            tvBirth.setTextColor(resources.getColor(R.color.text_hint, null))
             tvBirth.setTypeface(null, android.graphics.Typeface.ITALIC)
         } else {
             val bDate = person.birthDate.ifEmpty { "Unknown" }
@@ -1010,7 +1287,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     val birthCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(person.birthDate)
                     val deathCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(effectiveDate)
                     if (birthCal != null && deathCal != null && deathCal.before(birthCal)) {
-                        Toast.makeText(this, "Date of passing cannot be earlier than birthdate (${person.birthDate}).", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(this, "Date of passing cannot be earlier than birthdate (${person.birthDate}).")
                         return@setOnClickListener
                     }
                 }
@@ -1026,7 +1303,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                         val childCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(child.birthDate)
                         val deathCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(effectiveDate)
                         if (childCal != null && deathCal != null && childCal.after(deathCal)) {
-                            Toast.makeText(this, "Cannot set date of passing earlier than biological child ${child.firstName}'s birthdate (${child.birthDate}).", Toast.LENGTH_LONG).show()
+                            KinTraceAlert.show(this, "Cannot set date of passing earlier than biological child ${child.firstName}'s birthdate (${child.birthDate}).")
                             return@setOnClickListener
                         }
                     }
@@ -1037,7 +1314,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     val mCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(person.marriageDate)
                     val dCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(effectiveDate)
                     if (mCal != null && dCal != null && mCal.after(dCal)) {
-                        Toast.makeText(this, "Date of passing cannot be earlier than marriage date (${person.marriageDate}).", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(this, "Date of passing cannot be earlier than marriage date (${person.marriageDate}).")
                         return@setOnClickListener
                     }
                 }
@@ -1053,13 +1330,13 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     onSuccess = { updated ->
                         alertDialog.dismiss()
                         activeProfileDialog?.dismiss()
-                        Toast.makeText(this, "Marked as Deceased", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Marked as Deceased")
                         loadTree(refreshProfile = true)
                     },
                     onFailure = { err ->
                         btnConfirm.isEnabled = true
                         btnConfirm.text = "Mark Deceased"
-                        Toast.makeText(this, "Failed to update: ${err.message}", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(this, "Failed to update: ${err.message}")
                     }
                 )
             }
@@ -1078,11 +1355,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                         onSuccess = { updated ->
                             dialog.dismiss()
                             activeProfileDialog?.dismiss()
-                            Toast.makeText(this, "Marked as Living", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Marked as Living")
                             loadTree(refreshProfile = true)
                         },
                         onFailure = { err ->
-                            Toast.makeText(this, "Failed to update: ${err.message}", Toast.LENGTH_LONG).show()
+                            KinTraceAlert.show(this, "Failed to update: ${err.message}")
                         }
                     )
                 }
@@ -1151,7 +1428,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         val candidates = allPersonsList.filter { !com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, person.id) }
 
         if (candidates.isEmpty()) {
-            Toast.makeText(this, "No other members available in the tree.", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "No other members available in the tree.")
             return
         }
 
@@ -1214,11 +1491,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                             targetId = person.id,
                             targetName = personName
                         )
-                        Toast.makeText(this, "Spouse relationship successfully saved!", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Spouse relationship successfully saved!")
                         loadTree(refreshProfile = true)
                     },
                     onFailure = { err ->
-                        Toast.makeText(this, "Failed to save spouse: ${err.message}", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(this, "Failed to save spouse: ${err.message}")
                     }
                 )
             }
@@ -1344,12 +1621,12 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         if (docs.isEmpty()) {
             tvNoDocs.visibility = View.VISIBLE
             badge.text = "⚠️ Unverified"
-            badge.setTextColor(Color.parseColor("#BA7517"))
+            badge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_warning_text))
             badge.setBackgroundResource(R.drawable.badge_pill_dark)
         } else {
             tvNoDocs.visibility = View.GONE
             badge.text = "✓ Verified (${docs.size} Docs)"
-            badge.setTextColor(Color.parseColor("#10B981"))
+            badge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
             badge.setBackgroundResource(R.drawable.badge_pill_dark)
 
             docs.forEach { doc ->
@@ -1368,18 +1645,23 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     DocumentHelper.openDocument(this, doc)
                 }
 
+                btnDelete.visibility = if (isViewer) View.GONE else View.VISIBLE
                 btnDelete.setOnClickListener {
+                    if (isViewer) {
+                        KinTraceAlert.warning(this, "Read-Only Access", "Read-only Viewers cannot remove attached documents.")
+                        return@setOnClickListener
+                    }
                     AlertDialog.Builder(this)
                         .setTitle("Remove Document")
                         .setMessage("Remove \"${doc.name}\" from ${person.firstName}'s profile?")
                         .setPositiveButton("Remove") { _, _ ->
                             firestoreHelper.removeDocument(person.id, doc.id,
                                 onSuccess = {
-                                    Toast.makeText(this, "Document removed", Toast.LENGTH_SHORT).show()
+                                    KinTraceAlert.show(this, "Document removed")
                                     loadTree(refreshProfile = true)
                                 },
                                 onFailure = {
-                                    Toast.makeText(this, "Failed to remove: ${it.message}", Toast.LENGTH_SHORT).show()
+                                    KinTraceAlert.show(this, "Failed to remove: ${it.message}")
                                 }
                             )
                         }
@@ -1661,9 +1943,24 @@ class FamilyTreeView @JvmOverloads constructor(
     fun applyDarkPalette() {
         pCardBg.color = Color.parseColor("#0F241A")
         pCardBorder.color = Color.parseColor("#234E3B")
+        pCardBgDim.color = Color.parseColor("#0F241A"); pCardBgDim.alpha = 70
+        pCardBorderDim.color = Color.parseColor("#234E3B"); pCardBorderDim.alpha = 70
+        pCardDeceasedBg.color = Color.parseColor("#334155")
+        pCardDeceasedBorder.color = Color.parseColor("#94A3B8")
+        pCardDeceasedBgDim.color = Color.parseColor("#1E293B"); pCardDeceasedBgDim.alpha = 70
+        pCardDeceasedBorderDim.color = Color.parseColor("#475569"); pCardDeceasedBorderDim.alpha = 70
+        pCardHighlightBg.color = Color.parseColor("#1B3B2B")
+        pCardHighlightBorder.color = Color.parseColor("#D4A359")
+        pCardMrcaBg.color = Color.parseColor("#2A1F08")
+        pCardMrcaBorder.color = Color.parseColor("#F5D77F")
         pFirstName.color = Color.WHITE
+        pFirstNameDim.color = Color.WHITE; pFirstNameDim.alpha = 80
         pLastName.color = Color.parseColor("#A3B899")
+        pLastNameDim.color = Color.parseColor("#A3B899"); pLastNameDim.alpha = 80
         pYear.color = Color.parseColor("#7A9A88")
+        pYearDim.color = Color.parseColor("#7A9A88"); pYearDim.alpha = 80
+        pYearDeceased.color = Color.parseColor("#94A3B8")
+        pYearDeceasedDim.color = Color.parseColor("#94A3B8"); pYearDeceasedDim.alpha = 80
         pDashedCircle.color = Color.parseColor("#5A6E60")
         pDashedLine.color = Color.parseColor("#344C3D")
         pPedigreeLine.color = Color.parseColor("#1D9E75")
@@ -1671,6 +1968,35 @@ class FamilyTreeView @JvmOverloads constructor(
         pDashedText.color = Color.parseColor("#A3B899")
         pDashedLabel.color = Color.parseColor("#7A9A88")
         pLine.color = Color.parseColor("#1D9E75")
+        pLineDim.color = Color.parseColor("#1D9E75"); pLineDim.alpha = 70
+        pSpouseLine.color = Color.parseColor("#D4A359")
+        pSpouseLineDim.color = Color.parseColor("#D4A359"); pSpouseLineDim.alpha = 70
+        pGoldPathLine.color = Color.parseColor("#D4A359")
+        pMaritalPillBg.color = Color.parseColor("#1B2E24")
+        pMaritalPillBorder.color = Color.parseColor("#D4A359")
+        pMaritalPillText.color = Color.parseColor("#F5D77F")
+        pMaritalPillBgDim.color = Color.parseColor("#1B2E24"); pMaritalPillBgDim.alpha = 80
+        pMaritalPillBorderDim.color = Color.parseColor("#D4A359"); pMaritalPillBorderDim.alpha = 80
+        pMaritalPillTextDim.color = Color.parseColor("#F5D77F"); pMaritalPillTextDim.alpha = 80
+        pTitleBg.color = Color.parseColor("#132B20")
+        pTitleBorder.color = Color.parseColor("#D4A359")
+        pTitleText.color = Color.parseColor("#F5D77F")
+        pTitleBgDim.color = Color.parseColor("#132B20"); pTitleBgDim.alpha = 70
+        pTitleBorderDim.color = Color.parseColor("#D4A359"); pTitleBorderDim.alpha = 70
+        pTitleTextDim.color = Color.parseColor("#F5D77F"); pTitleTextDim.alpha = 70
+        pDeceasedTitleBg.color = Color.parseColor("#1E293B")
+        pDeceasedTitleBorder.color = Color.parseColor("#64748B")
+        pDeceasedTitleText.color = Color.parseColor("#CBD5E1")
+        pDeceasedTitleBgDim.color = Color.parseColor("#1E293B"); pDeceasedTitleBgDim.alpha = 70
+        pDeceasedTitleBorderDim.color = Color.parseColor("#64748B"); pDeceasedTitleBorderDim.alpha = 70
+        pDeceasedTitleTextDim.color = Color.parseColor("#CBD5E1"); pDeceasedTitleTextDim.alpha = 70
+        pMemBg.color = Color.parseColor("#334155")
+        pPersonABadge.color = Color.parseColor("#D4A359")
+        pPersonBBadge.color = Color.parseColor("#4ECCA3")
+        pBloodlineBadge.color = Color.parseColor("#F5D77F")
+        pMrcaBadge.color = Color.parseColor("#D4A359")
+        pFab.color = Color.parseColor("#D4A359")
+        pFabIcon.color = Color.parseColor("#0A1B12")
         pEmpty.color = Color.parseColor("#A3B899")
         pEmptySub.color = Color.parseColor("#7A9A88")
     }
@@ -1682,16 +2008,60 @@ class FamilyTreeView @JvmOverloads constructor(
         } else {
             pCardBg.color = Color.parseColor("#F5F7F1")
             pCardBorder.color = Color.parseColor("#D2D9CE")
+            pCardBgDim.color = Color.parseColor("#E2E8F0"); pCardBgDim.alpha = 160
+            pCardBorderDim.color = Color.parseColor("#CBD5E1"); pCardBorderDim.alpha = 160
+            pCardDeceasedBg.color = Color.parseColor("#E2E8F0")
+            pCardDeceasedBorder.color = Color.parseColor("#94A3B8")
+            pCardDeceasedBgDim.color = Color.parseColor("#E2E8F0"); pCardDeceasedBgDim.alpha = 140
+            pCardDeceasedBorderDim.color = Color.parseColor("#94A3B8"); pCardDeceasedBorderDim.alpha = 140
+            pCardHighlightBg.color = Color.parseColor("#E6F6EF")
+            pCardHighlightBorder.color = Color.parseColor("#B45309")
+            pCardMrcaBg.color = Color.parseColor("#FEF3C7")
+            pCardMrcaBorder.color = Color.parseColor("#B45309")
             pFirstName.color = Color.parseColor("#0F172A")
+            pFirstNameDim.color = Color.parseColor("#0F172A"); pFirstNameDim.alpha = 110
             pLastName.color = Color.parseColor("#475569")
+            pLastNameDim.color = Color.parseColor("#475569"); pLastNameDim.alpha = 110
             pYear.color = Color.parseColor("#64748B")
-            pDashedCircle.color = Color.parseColor("#475569")
-            pDashedLine.color = Color.BLACK
-            pPedigreeLine.color = Color.BLACK
-            pPedigreeDashedLine.color = Color.BLACK
+            pYearDim.color = Color.parseColor("#64748B"); pYearDim.alpha = 110
+            pYearDeceased.color = Color.parseColor("#475569")
+            pYearDeceasedDim.color = Color.parseColor("#475569"); pYearDeceasedDim.alpha = 110
+            pDashedCircle.color = Color.parseColor("#64748B")
+            pDashedLine.color = Color.parseColor("#64748B")
+            pPedigreeLine.color = Color.parseColor("#B45309")
+            pPedigreeDashedLine.color = Color.parseColor("#64748B")
             pDashedText.color = Color.parseColor("#475569")
             pDashedLabel.color = Color.parseColor("#64748B")
             pLine.color = Color.parseColor("#B45309")
+            pLineDim.color = Color.parseColor("#B45309"); pLineDim.alpha = 90
+            pSpouseLine.color = Color.parseColor("#B45309")
+            pSpouseLineDim.color = Color.parseColor("#B45309"); pSpouseLineDim.alpha = 90
+            pGoldPathLine.color = Color.parseColor("#B45309")
+            pMaritalPillBg.color = Color.parseColor("#FEF3C7")
+            pMaritalPillBorder.color = Color.parseColor("#B45309")
+            pMaritalPillText.color = Color.parseColor("#92400E")
+            pMaritalPillBgDim.color = Color.parseColor("#FEF3C7"); pMaritalPillBgDim.alpha = 130
+            pMaritalPillBorderDim.color = Color.parseColor("#B45309"); pMaritalPillBorderDim.alpha = 130
+            pMaritalPillTextDim.color = Color.parseColor("#92400E"); pMaritalPillTextDim.alpha = 130
+            pTitleBg.color = Color.parseColor("#FEF3C7")
+            pTitleBorder.color = Color.parseColor("#FDE68A")
+            pTitleText.color = Color.parseColor("#92400E")
+            pTitleBgDim.color = Color.parseColor("#FEF3C7"); pTitleBgDim.alpha = 130
+            pTitleBorderDim.color = Color.parseColor("#FDE68A"); pTitleBorderDim.alpha = 130
+            pTitleTextDim.color = Color.parseColor("#92400E"); pTitleTextDim.alpha = 130
+            pDeceasedTitleBg.color = Color.parseColor("#CBD5E1")
+            pDeceasedTitleBorder.color = Color.parseColor("#94A3B8")
+            pDeceasedTitleText.color = Color.parseColor("#334155")
+            pDeceasedTitleBgDim.color = Color.parseColor("#CBD5E1"); pDeceasedTitleBgDim.alpha = 130
+            pDeceasedTitleBorderDim.color = Color.parseColor("#94A3B8"); pDeceasedTitleBorderDim.alpha = 130
+            pDeceasedTitleTextDim.color = Color.parseColor("#334155"); pDeceasedTitleTextDim.alpha = 130
+            pMemBg.color = Color.parseColor("#475569")
+            pPersonABadge.color = Color.parseColor("#B45309")
+            pPersonBBadge.color = Color.parseColor("#0F6E4B")
+            pBloodlineBadge.color = Color.parseColor("#92400E")
+            pMrcaBadge.color = Color.parseColor("#B45309")
+            pFab.color = Color.parseColor("#B45309")
+            pFabIcon.color = Color.WHITE
             pEmpty.color = Color.parseColor("#57635A")
             pEmptySub.color = Color.parseColor("#64748B")
         }
@@ -2085,9 +2455,9 @@ class FamilyTreeView @JvmOverloads constructor(
             val shouldHideBirth = isViewerMode && treePrivacy.hideBirthDates
             val shouldHideDeceased = isViewerMode && treePrivacy.hideDeceasedStatus
 
-            val yr = if (shouldHideBirth) "" else p.birthDate.take(4)
+            val yr = if (shouldHideBirth) "" else (com.example.btproject2.engine.FamilyLinkValidator.extractYear(p.birthDate)?.toString() ?: p.birthDate.take(4).trim())
             val dYr = if (!p.isLiving && !shouldHideDeceased) {
-                val d = p.deathDate.take(4)
+                val d = com.example.btproject2.engine.FamilyLinkValidator.extractYear(p.deathDate)?.toString() ?: p.deathDate.take(4).trim()
                 if (d.isNotEmpty()) "-$d" else "🕊️"
             } else ""
             val yrStr = if (shouldHideBirth) {
@@ -2696,7 +3066,7 @@ class FamilyTreeView @JvmOverloads constructor(
         displayPersons.forEach { p ->
             val pos = posMap[p.id] ?: return@forEach
             hitAreas.add(HitArea(pos.x, pos.y, NODE_RADIUS, p.id, w = CARD_W, h = CARD_H))
-            if (mode == "MAIN") {
+            if (mode == "MAIN" && !isViewerMode) {
                 val btnY = pos.y + CARD_H / 2f
                 hitAreas.add(HitArea(pos.x, btnY, ADD_BTN_R + 10f, "add:${p.id}"))
             }
@@ -2789,7 +3159,9 @@ class FamilyTreeView @JvmOverloads constructor(
             } else {
                 // Dashed Unadded Ancestor Slot (matching reference image)
                 canvas.drawCircle(cx, cy, NODE_RADIUS, pDashedCircle)
-                canvas.drawText("+", cx, cy + pAddIcon.textSize / 3f, pDashedText)
+                if (!isViewerMode) {
+                    canvas.drawText("+", cx, cy + pAddIcon.textSize / 3f, pDashedText)
+                }
 
                 // Labels
                 canvas.drawText(slot.relationLabel, cx, cy + NODE_RADIUS + 34f, pDashedLabel)
@@ -2931,7 +3303,7 @@ class FamilyTreeView @JvmOverloads constructor(
             drawPersonCard(canvas, p, pos.x, pos.y, isTraceMode, isOnPath, isMrca)
 
             // Add Child Quick Button docked at bottom center of card (only in Main mode when not dimmed and not exporting)
-            if (mode == "MAIN" && (!isTraceMode || isOnPath) && !isExportMode) {
+            if (mode == "MAIN" && (!isTraceMode || isOnPath) && !isExportMode && !isViewerMode) {
                 val btnY = pos.y + CARD_H / 2f
                 canvas.drawCircle(pos.x, btnY, ADD_BTN_R, pAddBtn)
                 canvas.drawCircle(pos.x, btnY, ADD_BTN_R, pAddBtnBorder)

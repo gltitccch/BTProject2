@@ -2,9 +2,13 @@
 <paths>
     <cache-path name="reports_cache" path="reports/" />
     <cache-path name="apk_cache" path="." />
+    <cache-path name="apk_updates_cache" path="updates/" />
     <external-cache-path name="reports_external_cache" path="reports/" />
     <external-cache-path name="apk_external_cache" path="." />
     <external-files-path name="reports_external_files" path="reports/" />
+    <external-files-path name="apk_downloads_external" path="Download/" />
+    <external-files-path name="all_external_files" path="." />
     <files-path name="reports_files" path="reports/" />
+    <files-path name="apk_updates_files" path="updates/" />
     <files-path name="all_internal_files" path="." />
 </paths>

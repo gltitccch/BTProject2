@@ -19,6 +19,7 @@ class AncestorFinder {
             val path: List<Person>
         )
 
+        val visited = mutableSetOf(startPerson.id)
         val queue = ArrayDeque<QueueItem>()
         queue.add(QueueItem(startPerson, 0, listOf(startPerson)))
 
@@ -34,7 +35,7 @@ class AncestorFinder {
             if (isMotherBio) {
                 current.person.motherId?.let { motherId ->
                     val mother = personMap[motherId]
-                    if (mother != null && !ancestors.containsKey(motherId)) {
+                    if (mother != null && visited.add(motherId) && !ancestors.containsKey(motherId)) {
                         val newPath = current.path + mother
                         val newDistance = current.distance + 1
                         ancestors[motherId] = Pair(newDistance, newPath)
@@ -48,7 +49,7 @@ class AncestorFinder {
             if (isFatherBio) {
                 current.person.fatherId?.let { fatherId ->
                     val father = personMap[fatherId]
-                    if (father != null && !ancestors.containsKey(fatherId)) {
+                    if (father != null && visited.add(fatherId) && !ancestors.containsKey(fatherId)) {
                         val newPath = current.path + father
                         val newDistance = current.distance + 1
                         ancestors[fatherId] = Pair(newDistance, newPath)

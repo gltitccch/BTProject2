@@ -32,7 +32,7 @@
             android:text="85% Match"
             android:textSize="10sp"
             android:textStyle="bold"
-            android:textColor="#4ECCA3"
+            android:textColor="@color/status_mint_text"
             android:background="@drawable/badge_pill_dark"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
@@ -123,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:text="To Be Merged"
                 android:textSize="9sp"
-                android:textColor="#FF8A8A"
+                android:textColor="@color/danger"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
     </LinearLayout>
@@ -155,7 +155,7 @@
             android:text="Merge Now"
             android:textSize="12sp"
             android:textStyle="bold"
-            android:textColor="#0A1B12"
+            android:textColor="@color/btn_gold_text"
             android:background="@drawable/btn_gold_primary"
             android:textAllCaps="false"
             android:layout_marginEnd="8dp" />

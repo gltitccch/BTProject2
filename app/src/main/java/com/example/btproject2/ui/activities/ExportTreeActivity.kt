@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -88,7 +90,7 @@ class ExportTreeActivity : AppCompatActivity() {
                 "PNG"    -> exportPng()
                 "GEDCOM" -> exportGedcom()
                 "CSV"    -> exportCsv()
-                else     -> Toast.makeText(this, "Please select a format first", Toast.LENGTH_SHORT).show()
+                else     -> KinTraceAlert.show(this, "Please select a format first")
             }
         }
 
@@ -494,22 +496,8 @@ class ExportTreeActivity : AppCompatActivity() {
 
     private fun exportGedcom() {
         if (persons.isEmpty()) { toast("No members to export"); return }
-        val sb = StringBuilder()
-        sb.appendLine("0 HEAD")
-        sb.appendLine("1 GEDC")
-        sb.appendLine("2 VERS 5.5.1")
-        sb.appendLine("1 CHAR UTF-8")
-        persons.forEach { p ->
-            sb.appendLine("0 @I${p.id.take(8)}@ INDI")
-            sb.appendLine("1 NAME ${p.firstName} /${p.lastName}/")
-            sb.appendLine("1 SEX ${if (p.gender == "Female") "F" else "M"}")
-            if (p.birthDate.isNotEmpty()) {
-                sb.appendLine("1 BIRT")
-                sb.appendLine("2 DATE ${p.birthDate}")
-            }
-        }
-        sb.appendLine("0 TRLR")
-        saveTextFile("FamilyTree.ged", sb.toString())
+        val gedcom = buildGedcomContent(persons)
+        saveTextFile("FamilyTree.ged", gedcom)
     }
 
     private fun exportCsv() {
@@ -653,5 +641,155 @@ class ExportTreeActivity : AppCompatActivity() {
         }
     }
 
-    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+    private fun toast(msg: String) = KinTraceAlert.show(this, msg)
+
+    companion object {
+        private data class GedcomFamilyUnit(
+            val famId: String,
+            val husbId: String?,
+            val wifeId: String?,
+            val marriageDate: String = "",
+            val childIds: MutableList<String> = mutableListOf()
+        )
+
+        /**
+         * Builds a standard-compliant GEDCOM 5.5.1 document containing individual (`INDI`) records,
+         * vital events (`BIRT`, `DEAT`), parent/spouse links (`FAMC`, `FAMS`), and family (`FAM`) blocks.
+         */
+        fun buildGedcomContent(persons: List<Person>): String {
+            val sb = StringBuilder()
+            sb.appendLine("0 HEAD")
+            sb.appendLine("1 SOUR KinTrace")
+            sb.appendLine("2 NAME KinTrace Heritage Lineage System")
+            sb.appendLine("1 GEDC")
+            sb.appendLine("2 VERS 5.5.1")
+            sb.appendLine("2 FORM LINEAGE-LINKED")
+            sb.appendLine("1 CHAR UTF-8")
+
+            val personById = persons.associateBy { it.id }
+            val indiTagById = persons.mapIndexed { idx, p ->
+                val clean = p.id.replace(Regex("[^A-Za-z0-9]"), "").take(10).ifEmpty { (idx + 1).toString() }
+                p.id to "I_${idx + 1}_$clean"
+            }.toMap()
+
+            // Discover all unique family units (couples via spouseId and parent pairs via children's fatherId/motherId)
+            val familyUnits = linkedMapOf<String, GedcomFamilyUnit>()
+            var famCounter = 1
+
+            fun getOrCreateFamily(fatherId: String?, motherId: String?, marriageDate: String = ""): GedcomFamilyUnit? {
+                val fValid = fatherId?.takeIf { personById.containsKey(it) }
+                val mValid = motherId?.takeIf { personById.containsKey(it) }
+                if (fValid == null && mValid == null) return null
+                val key = "${fValid.orEmpty()}|${mValid.orEmpty()}"
+                return familyUnits.getOrPut(key) {
+                    GedcomFamilyUnit(
+                        famId = "F${famCounter++}",
+                        husbId = fValid,
+                        wifeId = mValid,
+                        marriageDate = marriageDate
+                    )
+                }
+            }
+
+            // 1. Register spousal pairs first
+            persons.forEach { p ->
+                val spId = p.spouseId?.takeIf { personById.containsKey(it) }
+                if (spId != null) {
+                    val spouse = personById[spId]!!
+                    val isP1Female = p.gender.equals("Female", ignoreCase = true)
+                    val isP2Female = spouse.gender.equals("Female", ignoreCase = true)
+                    val (husb, wife) = when {
+                        !isP1Female && isP2Female -> p.id to spouse.id
+                        isP1Female && !isP2Female -> spouse.id to p.id
+                        p.id < spouse.id -> p.id to spouse.id
+                        else -> spouse.id to p.id
+                    }
+                    val mDate = p.marriageDate.ifBlank { spouse.marriageDate }
+                    getOrCreateFamily(husb, wife, mDate)
+                }
+            }
+
+            // 2. Register parent-child links into family units
+            val childToFamc = mutableMapOf<String, String>()
+            persons.forEach { child ->
+                val fId = child.fatherId?.takeIf { personById.containsKey(it) }
+                val mId = child.motherId?.takeIf { personById.containsKey(it) }
+                if (fId != null || mId != null) {
+                    val fam = getOrCreateFamily(fId, mId)
+                    if (fam != null) {
+                        if (!fam.childIds.contains(child.id)) {
+                            fam.childIds.add(child.id)
+                        }
+                        childToFamc[child.id] = fam.famId
+                    }
+                }
+            }
+
+            // Map each person to all FAMS where they are husb or wife
+            val personToFams = mutableMapOf<String, MutableList<String>>()
+            familyUnits.values.forEach { fam ->
+                fam.husbId?.let { personToFams.getOrPut(it) { mutableListOf() }.add(fam.famId) }
+                fam.wifeId?.let { personToFams.getOrPut(it) { mutableListOf() }.add(fam.famId) }
+            }
+
+            // 3. Emit INDI records
+            persons.forEach { p ->
+                val indiTag = indiTagById[p.id] ?: "I_${p.id.take(8)}"
+                sb.appendLine("0 @$indiTag@ INDI")
+                val given = listOf(p.firstName.trim(), p.middleName.trim()).filter { it.isNotEmpty() }.joinToString(" ")
+                val surname = p.lastName.trim()
+                val suffix = p.suffix.trim()
+                val nameLine = buildString {
+                    append(given)
+                    append(" /").append(surname).append("/")
+                    if (suffix.isNotEmpty()) append(" ").append(suffix)
+                }.trim()
+                sb.appendLine("1 NAME $nameLine")
+                if (given.isNotEmpty()) sb.appendLine("2 GIVN $given")
+                if (surname.isNotEmpty()) sb.appendLine("2 SURN $surname")
+                if (suffix.isNotEmpty()) sb.appendLine("2 NSFX $suffix")
+                sb.appendLine("1 SEX ${if (p.gender.equals("Female", ignoreCase = true)) "F" else "M"}")
+
+                if (p.birthDate.isNotBlank() || p.birthPlace.isNotBlank()) {
+                    sb.appendLine("1 BIRT")
+                    if (p.birthDate.isNotBlank()) sb.appendLine("2 DATE ${p.birthDate}")
+                    if (p.birthPlace.isNotBlank()) sb.appendLine("2 PLAC ${p.birthPlace}")
+                }
+
+                if (!p.isLiving || p.deathDate.isNotBlank() || p.deathPlace.isNotBlank()) {
+                    sb.appendLine("1 DEAT Y")
+                    if (p.deathDate.isNotBlank()) sb.appendLine("2 DATE ${p.deathDate}")
+                    if (p.deathPlace.isNotBlank()) sb.appendLine("2 PLAC ${p.deathPlace}")
+                }
+
+                childToFamc[p.id]?.let { famId ->
+                    sb.appendLine("1 FAMC @$famId@")
+                }
+                personToFams[p.id]?.distinct()?.forEach { famId ->
+                    sb.appendLine("1 FAMS @$famId@")
+                }
+            }
+
+            // 4. Emit FAM records
+            familyUnits.values.forEach { fam ->
+                sb.appendLine("0 @${fam.famId}@ FAM")
+                fam.husbId?.let { hId ->
+                    indiTagById[hId]?.let { sb.appendLine("1 HUSB @$it@") }
+                }
+                fam.wifeId?.let { wId ->
+                    indiTagById[wId]?.let { sb.appendLine("1 WIFE @$it@") }
+                }
+                if (fam.marriageDate.isNotBlank()) {
+                    sb.appendLine("1 MARR")
+                    sb.appendLine("2 DATE ${fam.marriageDate}")
+                }
+                fam.childIds.forEach { cId ->
+                    indiTagById[cId]?.let { sb.appendLine("1 CHIL @$it@") }
+                }
+            }
+
+            sb.appendLine("0 TRLR")
+            return sb.toString()
+        }
+    }
 }

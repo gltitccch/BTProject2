@@ -63,6 +63,24 @@
                 android:paddingEnd="10dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp" />
+
+            <TextView
+                android:id="@+id/btnQuickAssistRecords"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:gravity="center_vertical"
+                android:drawableStart="@drawable/ic_help_minimal"
+                android:drawablePadding="5dp"
+                android:text="Help"
+                android:textSize="11.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:background="@drawable/bg_nav_back_pill"
+                android:paddingStart="10dp"
+                android:paddingEnd="12dp"
+                android:layout_marginStart="8dp"
+                android:clickable="true"
+                android:focusable="true" />
         </LinearLayout>
 
         <!-- Search Bar -->
@@ -152,10 +170,62 @@
                 android:text="+ Add Family Member"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="#0A1B12"
+                android:textColor="@color/btn_gold_text"
                 android:background="@drawable/btn_gold_primary"
                 android:paddingStart="20dp"
                 android:paddingEnd="20dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Floating Network Status Dock Pill (Placement 2) -->
+        <LinearLayout
+            android:id="@+id/dockNetworkStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:elevation="16dp"
+            android:visibility="gone"
+            android:background="@drawable/bg_network_dock_offline">
+
+            <TextView
+                android:id="@+id/tvNetworkDockIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📡"
+                android:textSize="12sp"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/tvNetworkDockMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Offline Mode · Local Archive"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#FED7AA" />
+
+            <TextView
+                android:id="@+id/btnNetworkDockRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Retry 🔄"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_btn_network_retry"
+                android:paddingStart="7dp"
+                android:paddingEnd="7dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:layout_marginStart="8dp"
                 android:clickable="true"
                 android:focusable="true" />
         </LinearLayout>

@@ -75,4 +75,75 @@
     <color name="login_hero_bg">#07170E</color>
     <color name="login_hero_border">#D4A359</color>
     <color name="login_input_bg">#183626</color>
+
+    <!-- Citadel Header Semantic Tokens (Dark Mode) -->
+    <color name="citadel_glass_start">#1B3D2B</color>
+    <color name="citadel_glass_end">#122A1D</color>
+    <color name="citadel_glass_border">#59D4A359</color>
+    <color name="citadel_avatar_start">#B86B18</color>
+    <color name="citadel_avatar_end">#7E3E06</color>
+    <color name="citadel_avatar_border">#D4A359</color>
+    <color name="citadel_avatar_text">#FFFFFF</color>
+    <color name="citadel_dot_border">#0A1B12</color>
+    <color name="citadel_dot_fill">#00E5A3</color>
+    <color name="citadel_date_color">#A3B899</color>
+    <color name="citadel_greeting_color">#FFFFFF</color>
+    <color name="citadel_clock_color">#FFFFFF</color>
+    <color name="citadel_sync_status_color">#5EEAD4</color>
+
+    <!-- In-App Toaster Alert Tokens (Dark Mode) -->
+    <color name="alert_card_start">#142B1E</color>
+    <color name="alert_card_end">#0A160F</color>
+    <color name="alert_card_border">#D4A359</color>
+    <color name="alert_title_color">#FFFFFF</color>
+    <color name="alert_message_color">#A3B899</color>
+    <color name="alert_icon_circle_bg">#1B3D2B</color>
+    <color name="alert_icon_circle_border">#285C41</color>
+    <color name="alert_icon_tint">#D4A359</color>
+    <color name="alert_action_bg">#33D4A359</color>
+    <color name="alert_action_border">#D4A359</color>
+    <color name="alert_action_text">#D4A359</color>
+    <color name="alert_badge_bg">#1B3D2B</color>
+    <color name="alert_badge_border">#5EEAD4</color>
+    <color name="alert_badge_text">#5EEAD4</color>
+
+    <!-- UI 1 Semantic Tokens (Dark Mode counterparts) -->
+    <color name="sandbox_banner_bg">#1B3326</color>
+    <color name="sandbox_banner_border">#285C41</color>
+    <color name="sandbox_banner_title">#4ECCA3</color>
+    <color name="sandbox_banner_text">#A3B899</color>
+    <color name="viewer_banner_bg">#261E05</color>
+    <color name="viewer_banner_border">#5C430E</color>
+    <color name="viewer_banner_text">#D4A359</color>
+    <color name="incoming_banner_bg">#2E1F08</color>
+    <color name="incoming_banner_border">#784F14</color>
+    <color name="incoming_banner_text">#FDE68A</color>
+    <color name="audit_critical_bg">#301518</color>
+    <color name="audit_critical_border">#7F1D1D</color>
+    <color name="audit_critical_text">#FCA5A5</color>
+    <color name="audit_warning_bg">#2E2412</color>
+    <color name="audit_warning_border">#78531B</color>
+    <color name="audit_warning_text">#FDE68A</color>
+    <color name="status_mint_text">#4ECCA3</color>
+    <color name="status_mint_bg">#183626</color>
+    <color name="legal_valid_bg">#064E3B</color>
+    <color name="legal_valid_border">#047857</color>
+    <color name="legal_invalid_bg">#7F1D1D</color>
+    <color name="legal_invalid_border">#B91C1C</color>
+
+    <!-- Dual-Group Tools Dock Semantic Tokens (Dark Mode Forest) -->
+    <color name="tool_gold_bg">#2A2210</color>
+    <color name="tool_gold_tint">#D4A359</color>
+    <color name="tool_mint_bg">#153324</color>
+    <color name="tool_mint_tint">#4ADE80</color>
+    <color name="tool_sky_bg">#11283B</color>
+    <color name="tool_sky_tint">#60A5FA</color>
+    <color name="tool_purple_bg">#211A36</color>
+    <color name="tool_purple_tint">#A78BFA</color>
+    <color name="tool_amber_bg">#2E230E</color>
+    <color name="tool_amber_tint">#FBBF24</color>
+    <color name="tool_rose_bg">#2D151E</color>
+    <color name="tool_rose_tint">#FB7185</color>
+    <color name="tool_tag_bg">#183626</color>
+    <color name="tool_tag_border">#1E4530</color>
 </resources>

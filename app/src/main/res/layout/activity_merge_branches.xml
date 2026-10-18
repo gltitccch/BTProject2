@@ -77,16 +77,17 @@
             <TextView
                 android:id="@+id/btnQuickAssistMerge"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💡 Help"
-                android:textSize="11sp"
+                android:layout_height="32dp"
+                android:gravity="center_vertical"
+                android:drawableStart="@drawable/ic_help_minimal"
+                android:drawablePadding="5dp"
+                android:text="Help"
+                android:textSize="11.5sp"
                 android:textStyle="bold"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
+                android:textColor="@color/primary"
+                android:background="@drawable/bg_nav_back_pill"
                 android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
+                android:paddingEnd="12dp"
                 android:layout_marginStart="8dp"
                 android:clickable="true"
                 android:focusable="true" />
@@ -100,7 +101,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="#1B3326"
+        android:background="@color/sandbox_banner_bg"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="8dp"
@@ -112,7 +113,7 @@
             android:text="🛡️ Sandbox Isolated: "
             android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="#4ECCA3" />
+            android:textColor="@color/sandbox_banner_title" />
 
         <TextView
             android:layout_width="0dp"
@@ -120,7 +121,7 @@
             android:layout_weight="1"
             android:text="Viewing or synthesizing trees here never alters your personal family tree in View Tree."
             android:textSize="11sp"
-            android:textColor="@color/text_secondary" />
+            android:textColor="@color/sandbox_banner_text" />
     </LinearLayout>
 
     <!-- Viewer Read-Only Banner -->
@@ -130,7 +131,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="#261E05"
+        android:background="@color/viewer_banner_bg"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="8dp"
@@ -142,7 +143,7 @@
             android:layout_height="wrap_content"
             android:text="👁 Viewer Mode: Clan tree synthesis is restricted to Owners."
             android:textSize="11sp"
-            android:textColor="@color/gold_accent" />
+            android:textColor="@color/viewer_banner_text" />
     </LinearLayout>
 
     <!-- Incoming Clan Merge Requests Notification Banner -->
@@ -152,7 +153,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="#2E1F08"
+        android:background="@color/incoming_banner_bg"
         android:paddingStart="20dp"
         android:paddingEnd="16dp"
         android:paddingTop="10dp"
@@ -167,7 +168,7 @@
             android:text="🔒 Pending Clan Merge Request(s) awaiting your review"
             android:textSize="12sp"
             android:textStyle="bold"
-            android:textColor="@color/gold_accent" />
+            android:textColor="@color/incoming_banner_text" />
 
         <Button
             android:id="@+id/btnReviewMergeRequests"
@@ -176,7 +177,7 @@
             android:text="Review"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="#1B3326"
+            android:textColor="@color/btn_gold_text"
             android:background="@drawable/btn_gold_primary"
             android:paddingStart="12dp"
             android:paddingEnd="12dp" />
@@ -256,10 +257,10 @@
                     android:id="@+id/btnOpenSynthesizeClanTree"
                     android:layout_width="match_parent"
                     android:layout_height="46dp"
-                    android:text="➕  Synthesize New Clan Tree"
+                    android:text="＋  Synthesize New Clan Tree"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/btn_gold_primary"
                     app:backgroundTint="@null"
                     android:textAllCaps="false" />
@@ -298,8 +299,8 @@
                         android:text="INDEPENDENT"
                         android:textSize="10sp"
                         android:textStyle="bold"
-                        android:textColor="#4ECCA3"
-                        android:background="@drawable/badge_pill_dark"
+                        android:textColor="@color/status_mint_text"
+                        android:background="@drawable/bg_status_mint_pill"
                         android:paddingStart="8dp"
                         android:paddingEnd="8dp"
                         android:paddingTop="3dp"
@@ -343,7 +344,7 @@
                         android:text="📋 Copy"
                         android:textSize="12sp"
                         android:textStyle="bold"
-                        android:textColor="#0A1B12"
+                        android:textColor="@color/btn_gold_text"
                         android:background="@drawable/btn_gold_primary"
                         app:backgroundTint="@null"
                         android:textAllCaps="false"
@@ -468,7 +469,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Link Disconnected Nodes Inside Current Tree"
+                    android:text="Link Disconnected Members Inside Current Tree"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_primary"
@@ -477,7 +478,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Connect floating or unparented nodes within your currently active family tree."
+                    android:text="Connect unlinked relatives within your active family tree."
                     android:textSize="11sp"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="12dp" />
@@ -486,7 +487,7 @@
                     android:id="@+id/btnOpenConnectBranches"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:text="🔗  Connect Internal Tree Nodes"
+                    android:text="🔗  Connect Unlinked Relatives"
                     android:textSize="12sp"
                     android:textColor="@color/text_primary"
                     android:background="@drawable/badge_pill_dark"

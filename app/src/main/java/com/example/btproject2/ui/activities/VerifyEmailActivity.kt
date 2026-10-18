@@ -1,6 +1,9 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -26,6 +29,13 @@ import com.example.btproject2.utils.TreePreferences
 
 class VerifyEmailActivity : AppCompatActivity() {
 
+    companion object {
+        private const val PREFS_NAME = "kintrace_email_verification"
+        private const val KEY_LAST_SENT_TIMESTAMP = "last_resend_timestamp"
+        private const val DEFAULT_COOLDOWN_MS = 60000L
+        private const val THROTTLE_COOLDOWN_MS = 90000L
+    }
+
     private val authHelper = AuthHelper()
     private var resendTimer: CountDownTimer? = null
 
@@ -48,6 +58,20 @@ class VerifyEmailActivity : AppCompatActivity() {
         val currentUser = authHelper.getCurrentUser()
         val email = currentUser?.email.orEmpty().ifEmpty { "your email" }
         tvUserEmail.text = email
+
+        // Manage initial & persistent resend cooldown
+        val startWithCooldown = intent.getBooleanExtra("EXTRA_INITIAL_COOLDOWN", false)
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        if (startWithCooldown) {
+            prefs.edit().putLong(KEY_LAST_SENT_TIMESTAMP, System.currentTimeMillis()).apply()
+            startResendCooldown(DEFAULT_COOLDOWN_MS)
+        } else {
+            val lastSent = prefs.getLong(KEY_LAST_SENT_TIMESTAMP, 0L)
+            val elapsed = System.currentTimeMillis() - lastSent
+            if (elapsed in 1 until DEFAULT_COOLDOWN_MS) {
+                startResendCooldown(DEFAULT_COOLDOWN_MS - elapsed)
+            }
+        }
 
         btnCheckVerified.setOnClickListener {
             checkEmailVerificationStatus()
@@ -118,15 +142,31 @@ class VerifyEmailActivity : AppCompatActivity() {
         authHelper.sendEmailVerification(
             onSuccess = {
                 runOnUiThread {
-                    Toast.makeText(this, "Verification email sent to ${tvUserEmail.text}!", Toast.LENGTH_SHORT).show()
-                    startResendCooldown(60000L)
+                    KinTraceAlert.show(this, "Verification email sent to ${tvUserEmail.text}!")
+                    getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                        .edit().putLong(KEY_LAST_SENT_TIMESTAMP, System.currentTimeMillis()).apply()
+                    startResendCooldown(DEFAULT_COOLDOWN_MS)
                 }
             },
             onFailure = { err ->
                 runOnUiThread {
-                    btnResendEmail.isEnabled = true
-                    btnResendEmail.text = "Resend Verification Link"
-                    Toast.makeText(this, "Failed to send email: ${err.message}", Toast.LENGTH_LONG).show()
+                    val msg = (err.message ?: "").lowercase()
+                    val isRateLimited = err is com.google.firebase.FirebaseTooManyRequestsException ||
+                        (err is com.google.firebase.auth.FirebaseAuthException && err.errorCode == "ERROR_TOO_MANY_REQUESTS") ||
+                        msg.contains("blocked all requests") ||
+                        msg.contains("unusual activity") ||
+                        msg.contains("too many requests") ||
+                        msg.contains("too-many-requests")
+
+                    if (isRateLimited) {
+                        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                            .edit().putLong(KEY_LAST_SENT_TIMESTAMP, System.currentTimeMillis()).apply()
+                        startResendCooldown(THROTTLE_COOLDOWN_MS)
+                        showRateLimitDialog(tvUserEmail.text.toString())
+                    } else {
+                        startResendCooldown(30000L)
+                        KinTraceAlert.show(this, "Could not send email: ${err.localizedMessage ?: err.message}")
+                    }
                 }
             }
         )
@@ -148,8 +188,36 @@ class VerifyEmailActivity : AppCompatActivity() {
         }.start()
     }
 
+    private fun showRateLimitDialog(email: String) {
+        if (isFinishing || isDestroyed) return
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_email_rate_limit)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.88).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        val tvDialogRateLimitEmail = dialog.findViewById<TextView>(R.id.tvDialogRateLimitEmail)
+        val btnOpenEmail = dialog.findViewById<TextView>(R.id.btnOpenEmailClient)
+        val btnDismiss = dialog.findViewById<TextView>(R.id.btnDismissRateLimit)
+
+        tvDialogRateLimitEmail?.text = email
+
+        btnOpenEmail?.setOnClickListener {
+            dialog.dismiss()
+            openDefaultEmailApp()
+        }
+
+        btnDismiss?.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
     private fun grantAccessAndGoHome() {
-        Toast.makeText(this, "Email verified successfully! Welcome to KinTrace.", Toast.LENGTH_SHORT).show()
+        KinTraceAlert.show(this, "Email verified successfully! Welcome to KinTrace.")
 
         // Dispatch official Academic & Educational Welcome Notification (DFD Store D7)
         val currentUser = authHelper.getCurrentUser()
@@ -175,17 +243,7 @@ class VerifyEmailActivity : AppCompatActivity() {
 
     private fun signOutAndRedirect() {
         resendTimer?.cancel()
-        authHelper.logout()
-        TreePreferences.clear(this)
-        FirestoreHelper.clearCache()
-        com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
-        com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
-
-        val intent = Intent(this, LoginActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        startActivity(intent)
-        finish()
+        authHelper.performGlobalLogout(this)
     }
 
     private fun showEmailNotVerifiedDialog(email: String) {
@@ -211,7 +269,7 @@ class VerifyEmailActivity : AppCompatActivity() {
             // Option A: In-dialog loading state without dismissing
             layoutDialogStatusBanner?.visibility = View.GONE
             btnDialogCheckStatus.isEnabled = false
-            btnDialogCheckStatus.text = "⏳ Checking Firebase..."
+            btnDialogCheckStatus.text = "⏳ Checking verification..."
 
             val startTime = System.currentTimeMillis()
             authHelper.reloadUser { user ->
@@ -270,7 +328,7 @@ class VerifyEmailActivity : AppCompatActivity() {
                 val mailtoIntent = Intent(Intent.ACTION_VIEW, Uri.parse("mailto:"))
                 startActivity(mailtoIntent)
             } catch (_: Exception) {
-                Toast.makeText(this, "Please open your email application manually.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Please open your email application manually.")
             }
         }
     }

@@ -15,7 +15,6 @@ class InsightsActivity : AppCompatActivity() {
     private val firestoreHelper = FirestoreHelper()
     private var treeId = ""
 
-    private val healthCalculator = TreeHealthCalculator()
     private val profileChecker = ProfileCompletenessChecker()
 
     private val insightsSyncListener = object : com.example.btproject2.sync.SyncEventListener {
@@ -68,6 +67,13 @@ class InsightsActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        findViewById<TextView>(R.id.btnQuickAssistInsights)?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.show(
+                this,
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.INSIGHTS
+            )
+        }
+
         loadInsights()
     }
 
@@ -75,9 +81,8 @@ class InsightsActivity : AppCompatActivity() {
         firestoreHelper.getPersonsByTree(
             treeId,
             onSuccess = { persons ->
-                val health = healthCalculator.calculate(persons)
                 val avgCompleteness = profileChecker.checkAll(persons)
-                displayInsights(persons, health, avgCompleteness)
+                displayInsights(persons, avgCompleteness)
             },
             onFailure = {}
         )
@@ -85,7 +90,6 @@ class InsightsActivity : AppCompatActivity() {
 
     private fun displayInsights(
         persons: List<Person>,
-        health: TreeHealthResult,
         avgCompleteness: Int
     ) {
         val total = persons.size
@@ -155,36 +159,31 @@ class InsightsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvGen3Count)?.text = gen3.toString()
         findViewById<TextView>(R.id.tvGen4Count)?.text = gen4.toString()
 
-        // 4. Tree Health & Data Quality Scorecard
-        findViewById<TextView>(R.id.tvHealthScore)?.text = "${health.score}%"
-        findViewById<TextView>(R.id.tvHealthLabel)?.text = health.label
+        // 4. Data Quality & Profile Completeness Scorecard
+        findViewById<TextView>(R.id.tvHealthScore)?.text = "${avgCompleteness}%"
+        val qualityLabel = when {
+            avgCompleteness >= 85 -> "Excellent Profile Completeness"
+            avgCompleteness >= 60 -> "Good Profile Completeness"
+            avgCompleteness > 0 -> "Needs More Lineage Details"
+            else -> "No Members Added Yet"
+        }
+        findViewById<TextView>(R.id.tvHealthLabel)?.text = qualityLabel
 
+        val withBirthDates = persons.count { it.birthDate.isNotBlank() }
+        val withParents = persons.count { !it.motherId.isNullOrEmpty() || !it.fatherId.isNullOrEmpty() }
+        val withBio = persons.count { it.biography.isNotBlank() }
         val layoutDeductions = findViewById<LinearLayout>(R.id.layoutHealthDeductions)
-        layoutDeductions?.removeAllViews()
         if (layoutDeductions != null) {
-            if (health.deductions.isEmpty()) {
-                val okRow = TextView(this).apply {
-                    text = "✓ All recorded relationships are biologically consistent"
-                    textSize = 12f
-                    setTextColor(androidx.core.content.ContextCompat.getColor(this@InsightsActivity, R.color.mint_text))
-                    setPadding(0, 4, 0, 4)
-                }
-                layoutDeductions.addView(okRow)
-            } else {
-                health.deductions.take(4).forEach { deduction ->
-                    val row = TextView(this).apply {
-                        text = "• ${deduction.reason} (-${deduction.points})"
-                        textSize = 12f
-                        setTextColor(androidx.core.content.ContextCompat.getColor(this@InsightsActivity, R.color.amber_warm))
-                        setPadding(0, 2, 0, 2)
-                    }
-                    layoutDeductions.addView(row)
-                }
+            layoutDeductions.removeAllViews()
+            val summaryRow = TextView(this).apply {
+                text = "📅 Birth Dates: $withBirthDates/$total   ·   🌳 Parent Links: $withParents/$total   ·   📖 Biographies: $withBio/$total"
+                textSize = 11.5f
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@InsightsActivity, R.color.text_secondary))
             }
+            layoutDeductions.addView(summaryRow)
         }
 
         // Dynamic tip
-        val withParents = persons.count { !it.motherId.isNullOrEmpty() || !it.fatherId.isNullOrEmpty() }
         val noParentCount = total - withParents
         findViewById<TextView>(R.id.tvTip)?.text = if (noParentCount > 0) {
             "💡 $noParentCount member${if (noParentCount > 1) "s" else ""} don't have parents set. Setting parent links improves bloodline tracing accuracy."
@@ -202,86 +201,6 @@ class InsightsActivity : AppCompatActivity() {
    Helper models + calculators kept in the same file
    so you only need to paste one source file.
 --------------------------------------------------- */
-
-private data class TreeHealthDeduction(
-    val reason: String,
-    val points: Int
-)
-
-private data class TreeHealthResult(
-    val score: Int,
-    val label: String,
-    val deductions: List<TreeHealthDeduction>
-)
-
-private class TreeHealthCalculator {
-
-    fun calculate(persons: List<Person>): TreeHealthResult {
-        val deductions = mutableListOf<TreeHealthDeduction>()
-
-        persons.forEach { person ->
-            if (person.birthDate.isBlank()) {
-                deductions.add(TreeHealthDeduction("Missing birth date for ${fullName(person)}", 5))
-            }
-
-            if (person.fatherId.isNullOrEmpty() && person.motherId.isNullOrEmpty()) {
-                deductions.add(TreeHealthDeduction("No parents set for ${fullName(person)}", 3))
-            }
-
-            if (!person.spouseId.isNullOrEmpty() && person.maritalStatus.equals("Single", ignoreCase = true)) {
-                deductions.add(TreeHealthDeduction("Single but has spouse: ${fullName(person)}", 4))
-            }
-
-            if (person.maritalStatus.equals("Married", ignoreCase = true) && person.spouseId.isNullOrEmpty()) {
-                deductions.add(TreeHealthDeduction("Married but no spouse set: ${fullName(person)}", 4))
-            }
-
-            if (
-                !person.fatherId.isNullOrEmpty() &&
-                !person.motherId.isNullOrEmpty() &&
-                person.fatherId == person.motherId
-            ) {
-                deductions.add(TreeHealthDeduction("Same father and mother set for ${fullName(person)}", 10))
-            }
-
-            if (!person.birthDate.isNullOrBlank()) {
-                val birthYear = person.birthDate.take(4).toIntOrNull()
-
-                if (!person.marriageDate.isNullOrBlank()) {
-                    val marriageYear = person.marriageDate.take(4).toIntOrNull()
-                    if (birthYear != null && marriageYear != null && marriageYear < birthYear) {
-                        deductions.add(
-                            TreeHealthDeduction(
-                                "Marriage before birth for ${fullName(person)}",
-                                10
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        val rawScore = 100 - deductions.sumOf { it.points }
-        val finalScore = rawScore.coerceIn(0, 100)
-
-        val label = when {
-            finalScore >= 90 -> "Excellent"
-            finalScore >= 75 -> "Good"
-            finalScore >= 50 -> "Needs Improvement"
-            else -> "Critical"
-        }
-
-        return TreeHealthResult(
-            score = finalScore,
-            label = label,
-            deductions = deductions
-        )
-    }
-
-    private fun fullName(person: Person): String {
-        return "${person.firstName} ${person.lastName}".trim()
-    }
-}
 private class ProfileCompletenessChecker {
 
     fun checkAll(persons: List<Person>): Int {

@@ -70,7 +70,7 @@
                     android:text="RB"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
+                    android:textColor="@color/gold_accent"
                     android:background="@drawable/avatar_circle_dark" />
 
                 <!-- Change Photo Button Badge -->
@@ -425,7 +425,7 @@
                 android:text="Full Profile →"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/forest_bg"
+                android:textColor="@color/btn_gold_text"
                 android:background="@drawable/btn_gold_primary"
                 android:clickable="true"
                 android:focusable="true" />

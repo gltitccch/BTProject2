@@ -53,4 +53,25 @@ class AppVersionConfigTest {
         )
         assertTrue(mandatoryConfig.isMandatory)
     }
+
+    @Test
+    fun v120Client_detectsV130Increment_andResolvesGitHubReleaseApkUrl() {
+        val friendInstalledCode = 2L // Friend on v1.2.0
+        val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.0")
+        assertEquals(
+            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.0/app-debug.apk",
+            releaseUrl
+        )
+
+        val remoteV130Config = AppVersionConfig(
+            versionCode = 3L,
+            versionName = "v1.3.0",
+            apkDownloadUrl = releaseUrl,
+            releaseNotes = "• Global Freemium 50-Member Cap & Clan Expansion Queue\n• Step-by-Step Friendly Question Tree Health Wizard"
+        )
+
+        val isUpdateAvailable = remoteV130Config.versionCode > friendInstalledCode &&
+            remoteV130Config.apkDownloadUrl.startsWith("https://")
+        assertTrue(isUpdateAvailable)
+    }
 }

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_shield_dialog"
+    android:padding="20dp"
+    android:gravity="center_horizontal">
+
+    <!-- Top Hourglass Icon -->
+    <LinearLayout
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:background="@drawable/bg_verify_step_circle">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⏳"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <!-- Title & Subtitle -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Verification Request Paused"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Google Anti-Spam Protection"
+        android:textSize="11.5sp"
+        android:textColor="@color/gold_accent"
+        android:textStyle="bold"
+        android:layout_marginTop="2dp" />
+
+    <!-- Target Email Pill -->
+    <TextView
+        android:id="@+id/tvDialogRateLimitEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="user@gmail.com"
+        android:textSize="11.5sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_accent"
+        android:background="@drawable/bg_covenant_badge_pill"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:maxLines="1"
+        android:ellipsize="middle"
+        android:layout_marginTop="6dp" />
+
+    <!-- Guidance Checklist Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/note_bg"
+        android:padding="12dp"
+        android:layout_marginTop="12dp">
+
+        <TextView
+            android:id="@+id/tvRateLimitDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Google Firebase temporarily restricts repeat email requests to protect your account. An initial verification email was already sent."
+            android:textSize="11.5sp"
+            android:textColor="@color/text_primary"
+            android:lineSpacingMultiplier="1.2"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Tip 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:gravity="center"
+                android:text="1"
+                android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/bg_verify_step_circle"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Check your Spam / Junk folder"
+                android:textSize="11.5sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- Tip 2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:gravity="center"
+                android:text="2"
+                android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/bg_verify_step_circle"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Move to Inbox to enable clickable link"
+                android:textSize="11.5sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Primary Action: Open Email App Directly -->
+    <TextView
+        android:id="@+id/btnOpenEmailClient"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:gravity="center"
+        android:text="📬 Open Email App ↗"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="@color/btn_gold_text"
+        android:background="@drawable/btn_gold_primary"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="14dp" />
+
+    <!-- Dismiss Button -->
+    <TextView
+        android:id="@+id/btnDismissRateLimit"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:text="I'll Check My Existing Email"
+        android:textSize="12sp"
+        android:textColor="@color/text_primary"
+        android:background="@drawable/btn_outline_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

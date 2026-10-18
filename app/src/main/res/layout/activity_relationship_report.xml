@@ -81,16 +81,17 @@
             <TextView
                 android:id="@+id/btnQuickAssistReport"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💡 Help"
-                android:textSize="12sp"
+                android:layout_height="32dp"
+                android:gravity="center_vertical"
+                android:drawableStart="@drawable/ic_help_minimal"
+                android:drawablePadding="5dp"
+                android:text="Help"
+                android:textSize="11.5sp"
                 android:textStyle="bold"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
+                android:textColor="@color/primary"
+                android:background="@drawable/bg_nav_back_pill"
                 android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
+                android:paddingEnd="12dp"
                 android:layout_marginStart="8dp"
                 android:clickable="true"
                 android:focusable="true" />
@@ -108,7 +109,7 @@
             android:id="@+id/tvReportSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Official Genealogical &amp; Legal Verification • Module 6"
+            android:text="Official Genealogical &amp; Legal Verification"
             android:textSize="12sp"
             android:textColor="@color/gold_accent"
             android:layout_marginTop="2dp" />
@@ -334,7 +335,7 @@
                         android:text="4th Degree"
                         android:textSize="11sp"
                         android:textStyle="bold"
-                        android:textColor="#0A1B12"
+                        android:textColor="@color/btn_gold_text"
                         android:background="@drawable/btn_gold_primary"
                         android:paddingStart="10dp"
                         android:paddingEnd="10dp"
@@ -458,7 +459,7 @@
                         android:gravity="center"
                         android:text="★"
                         android:textSize="16sp"
-                        android:textColor="#0A1B12"
+                        android:textColor="@color/btn_gold_text"
                         android:layout_marginEnd="12dp" />
 
                     <LinearLayout

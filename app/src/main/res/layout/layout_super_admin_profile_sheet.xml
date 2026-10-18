@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_super_admin_sheet"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="28dp">
+
+    <!-- Bottom Sheet Drag Handle -->
+    <View
+        android:layout_width="38dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/badge_pill_dark"
+        android:backgroundTint="@color/gold_accent"
+        android:alpha="0.6"
+        android:layout_marginBottom="16dp" />
+
+    <!-- ============================================================= -->
+    <!-- DIGNIFIED SLEEK SOVEREIGN HEADER                              -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:layout_marginBottom="14dp">
+
+        <!-- Avatar Ring with Online Beacon -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvSuperAdminAvatar"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:gravity="center"
+                android:text="SA"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/bg_avatar_crest_gold" />
+
+            <!-- Active Online Beacon -->
+            <View
+                android:id="@+id/viewSuperAdminStatusDot"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/badge_pill_dark"
+                android:backgroundTint="#34D399" />
+        </FrameLayout>
+
+        <!-- Name Row with Inline Edit Icon -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvSuperAdminHeaderName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Super Administrator"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/btnEditSuperAdminName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" ✏️"
+                android:textSize="14sp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Email -->
+        <TextView
+            android:id="@+id/tvSuperAdminEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="admin@kintrace.ph"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="2dp" />
+
+        <!-- Clearance Badge -->
+        <TextView
+            android:id="@+id/tvSuperAdminClearance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="🛡️ LEVEL-5 ROOT SOVEREIGN"
+            android:textColor="@color/gold_accent"
+            android:textSize="10.5sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.06" />
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- 3-POINT MICRO-METRIC RIBBON (MINIMALIST TELEMETRY)            -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:id="@+id/layoutMetricRibbon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_metric_ribbon"
+        android:paddingVertical="10dp"
+        android:paddingHorizontal="8dp"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="14dp">
+
+        <!-- Stat 1: Clans Governed -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMetricClans"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:textColor="@color/gold_accent"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CLANS"
+                android:textColor="@color/text_secondary"
+                android:textSize="9.5sp"
+                android:letterSpacing="0.05"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <!-- Vertical Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="24dp"
+            android:background="@color/forest_card_border" />
+
+        <!-- Stat 2: Total Nodes -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMetricNodes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TOTAL NODES"
+                android:textColor="@color/text_secondary"
+                android:textSize="9.5sp"
+                android:letterSpacing="0.05"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <!-- Vertical Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="24dp"
+            android:background="@color/forest_card_border" />
+
+        <!-- Stat 3: DB Status -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMetricStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Online"
+                android:textColor="@color/mint_text"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvMetricLatency"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LATENCY 38MS"
+                android:textColor="@color/text_secondary"
+                android:textSize="9.5sp"
+                android:letterSpacing="0.05"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- PRIMARY HERO GATEWAY: THE CITADEL COMMAND HUB                 -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:id="@+id/btnOpenCitadelHub"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/btn_gold_primary"
+        android:paddingHorizontal="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🏰 Open Citadel Command Hub"
+            android:textSize="13.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/btn_gold_text" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="→"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/btn_gold_text" />
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- SLEEK HAIRLINE ACTIONS CARD (ZERO DUAL-ADMIN CLUTTER)         -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:id="@+id/cardSuperAdminActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_sleek_actions_card"
+        android:layout_marginBottom="14dp">
+
+        <!-- Row 1: Master Admin Password -->
+        <LinearLayout
+            android:id="@+id/rowChangeMasterPassword"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔑"
+                android:textSize="15sp"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Master Admin Password"
+                android:textSize="12.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Change →"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/forest_card_border" />
+
+        <!-- Row 2: Ops & Recovery Desk -->
+        <LinearLayout
+            android:id="@+id/rowOpsRecoveryDesk"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🛠️"
+                android:textSize="15sp"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Ops &amp; Recovery Desk"
+                android:textSize="12.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inspect →"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/forest_card_border" />
+
+        <!-- Row 3: System Admin Audit Trail -->
+        <LinearLayout
+            android:id="@+id/rowSystemAuditTrail"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="14dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📜"
+                android:textSize="15sp"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="System Admin Audit Trail"
+                android:textSize="12.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View →"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- SECURE TERMINATION: SIGN OUT                                  -->
+    <!-- ============================================================= -->
+    <TextView
+        android:id="@+id/btnSuperAdminSignOut"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:gravity="center"
+        android:text="Sign Out Super Admin Session"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/danger"
+        android:background="@drawable/btn_danger_subtle"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_shield_dialog"
+    android:padding="20dp"
+    android:gravity="center_horizontal">
+
+    <!-- Top Scales Icon -->
+    <LinearLayout
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:background="@drawable/bg_verify_step_circle">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚖️"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <!-- Title & Subtitle -->
+    <TextView
+        android:id="@+id/tvCollisionDialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Escalation Dossier"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/tvCollisionDialogSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lineage Conflict • RA 10173 Audit"
+        android:textSize="11.5sp"
+        android:textColor="@color/gold_accent"
+        android:textStyle="bold"
+        android:layout_marginTop="2dp" />
+
+    <!-- Incident Summary Card -->
+    <TextView
+        android:id="@+id/tvCollisionDialogSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Automated merge was blocked to prevent generation paradox and duplicate person nodes."
+        android:textSize="11sp"
+        android:textColor="@color/text_secondary"
+        android:lineSpacingMultiplier="1.2"
+        android:layout_marginTop="8dp" />
+
+    <!-- Comparison Table Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/note_bg"
+        android:padding="12dp"
+        android:layout_marginTop="12dp">
+
+        <!-- Table Header Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Attribute"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+
+            <TextView
+                android:id="@+id/tvCollisionBranchAHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="Branch A"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+
+            <TextView
+                android:id="@+id/tvCollisionBranchBHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="Branch B"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/border"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Row 1: Full Name -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="5dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Name"
+                android:textSize="10.5sp"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tvCollisionNameA"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="—"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tvCollisionNameB"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="—"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- Row 2: Conflict Summary (COLLISION) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="5dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Conflict"
+                android:textSize="10.5sp"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tvCollisionBirthA"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="—"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/warning" />
+
+            <TextView
+                android:id="@+id/tvCollisionBirthB"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="—"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/warning" />
+        </LinearLayout>
+
+        <!-- Row 3: Escalated By -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="5dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Type"
+                android:textSize="10.5sp"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tvCollisionTypeA"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.4"
+                android:text="LINEAGE_COLLISION"
+                android:textSize="10.5sp"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- Row 4: Source Record -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Source"
+                android:textSize="10.5sp"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tvCollisionEscalatedBy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.4"
+                android:text="Automated Validation Engine"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Recommendation Box -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_warning_banner"
+        android:padding="10dp"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💡"
+            android:textSize="14sp"
+            android:layout_marginEnd="6dp" />
+
+        <TextView
+            android:id="@+id/tvCollisionRecommendation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Review conflicting branch records and apply canonical lineage resolution."
+            android:textSize="10.5sp"
+            android:textColor="@color/text_primary"
+            android:lineSpacingMultiplier="1.2" />
+    </LinearLayout>
+
+    <!-- Primary Action: Apply Resolution -->
+    <TextView
+        android:id="@+id/btnDialogResolveCollision"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:gravity="center"
+        android:text="⚖️ Apply Canonical 1945 Resolution"
+        android:textSize="12.5sp"
+        android:textStyle="bold"
+        android:textColor="@color/btn_gold_text"
+        android:background="@drawable/btn_gold_primary"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="14dp" />
+
+    <!-- Secondary Action: Dismiss -->
+    <TextView
+        android:id="@+id/btnDialogDismissReport"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:gravity="center"
+        android:text="Dismiss Report"
+        android:textSize="12sp"
+        android:textColor="@color/text_primary"
+        android:background="@drawable/btn_outline_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

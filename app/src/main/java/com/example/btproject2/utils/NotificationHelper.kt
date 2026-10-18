@@ -52,6 +52,8 @@ object NotificationHelper {
         val sorted = notifications.sortedByDescending { it.timestamp }
         return if (category.equals(CATEGORY_ALL, ignoreCase = true)) {
             sorted
+        } else if (category.equals(CATEGORY_SECURITY, ignoreCase = true)) {
+            sorted.filter { it.type.equals(CATEGORY_SECURITY, ignoreCase = true) || it.type.equals("ADVISORY", ignoreCase = true) }
         } else {
             sorted.filter { it.type.equals(category, ignoreCase = true) }
         }

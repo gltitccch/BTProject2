@@ -23,7 +23,7 @@ class TimelineGenerator {
 
         // Born
         if (person.birthDate.isNotEmpty()) {
-            val year = person.birthDate.take(4)
+            val year = extractYearString(person.birthDate)
             val desc = buildString {
                 append("Born · ${person.gender}")
                 if (person.birthPlace.isNotBlank()) append(" in ${person.birthPlace}")
@@ -34,14 +34,14 @@ class TimelineGenerator {
         // Father
         val father = allPersons.firstOrNull { it.id == person.fatherId }
         if (father != null) {
-            val year = person.birthDate.take(4).ifEmpty { "?" }
+            val year = extractYearString(person.birthDate).ifEmpty { "?" }
             events.add(TimelineEvent(year, "👨", "Father: ${father.firstName} ${father.lastName}", yearToInt(year)))
         }
 
         // Mother
         val mother = allPersons.firstOrNull { it.id == person.motherId }
         if (mother != null) {
-            val year = person.birthDate.take(4).ifEmpty { "?" }
+            val year = extractYearString(person.birthDate).ifEmpty { "?" }
             events.add(TimelineEvent(year, "👩", "Mother: ${mother.firstName} ${mother.lastName}", yearToInt(year)))
         }
 
@@ -49,13 +49,13 @@ class TimelineGenerator {
         if (person.spouseId != null && person.marriageDate.isNotEmpty()) {
             val spouse = allPersons.firstOrNull { it.id == person.spouseId }
             val spouseName = spouse?.let { "${it.firstName} ${it.lastName}" } ?: "Spouse"
-            val year = person.marriageDate.take(4)
+            val year = extractYearString(person.marriageDate)
             events.add(TimelineEvent(year, "💍", "Married $spouseName", yearToInt(year)))
         }
 
         // Children born
         children.filter { it.birthDate.isNotEmpty() }.forEach { child ->
-            val year = child.birthDate.take(4)
+            val year = extractYearString(child.birthDate)
             events.add(TimelineEvent(year, "👶", "Child born: ${child.firstName} ${child.lastName}", yearToInt(year)))
         }
 
@@ -67,7 +67,7 @@ class TimelineGenerator {
             events.add(TimelineEvent("—", "💔", "Separated", 9998))
         }
         if (!person.isLiving) {
-            val dYear = person.deathDate.take(4).ifEmpty { "—" }
+            val dYear = extractYearString(person.deathDate).ifEmpty { "—" }
             val desc = buildString {
                 append("Passed away")
                 if (person.deathPlace.isNotBlank()) append(" in ${person.deathPlace}")
@@ -79,7 +79,11 @@ class TimelineGenerator {
         return events.sortedBy { it.sortKey }
     }
 
+    private fun extractYearString(dateStr: String): String {
+        return FamilyLinkValidator.extractYear(dateStr)?.toString() ?: dateStr.take(4).trim()
+    }
+
     private fun yearToInt(year: String): Int {
-        return try { year.toInt() } catch (e: Exception) { 9997 }
+        return FamilyLinkValidator.extractYear(year) ?: try { year.toInt() } catch (e: Exception) { 9997 }
     }
 }

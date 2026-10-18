@@ -1,0 +1,12 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="135"
+        android:startColor="@color/alert_card_start"
+        android:endColor="@color/alert_card_end"
+        android:type="linear"/>
+    <corners android:radius="999dp"/>
+    <stroke
+        android:width="1.2dp"
+        android:color="@color/alert_card_border"/>
+</shape>

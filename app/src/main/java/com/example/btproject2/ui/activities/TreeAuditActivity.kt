@@ -169,13 +169,13 @@ class TreeAuditActivity : AppCompatActivity() {
 
         if (report.criticalErrorCount > 0) {
             tvSummaryHeadline.text = "❌ Critical Legal or Structural Violations (${report.criticalErrorCount})"
-            tvSummaryHeadline.setTextColor(Color.parseColor("#EF4444"))
+            tvSummaryHeadline.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_critical_text))
         } else if (report.warningCount > 0) {
             tvSummaryHeadline.text = "⚠️ Lineage Warnings Detected (${report.warningCount})"
-            tvSummaryHeadline.setTextColor(Color.parseColor("#F59E0B"))
+            tvSummaryHeadline.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_warning_text))
         } else {
             tvSummaryHeadline.text = "✅ 100% Compliant with Philippine Family Code"
-            tvSummaryHeadline.setTextColor(Color.parseColor("#34D399"))
+            tvSummaryHeadline.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
         }
 
         applyFilter()
@@ -185,14 +185,17 @@ class TreeAuditActivity : AppCompatActivity() {
         val activeBg = R.drawable.badge_pill_gold
         val inactiveBg = R.drawable.badge_pill_dark
 
+        val activeTextColor = androidx.core.content.ContextCompat.getColor(this, R.color.btn_gold_text)
+        val inactiveTextColor = androidx.core.content.ContextCompat.getColor(this, R.color.text_primary)
+
         chipFilterAll.setBackgroundResource(if (currentFilter == "ALL") activeBg else inactiveBg)
-        chipFilterAll.setTextColor(if (currentFilter == "ALL") Color.parseColor("#0A1B12") else Color.WHITE)
+        chipFilterAll.setTextColor(if (currentFilter == "ALL") activeTextColor else inactiveTextColor)
 
         chipFilterCritical.setBackgroundResource(if (currentFilter == "CRITICAL") activeBg else inactiveBg)
-        chipFilterCritical.setTextColor(if (currentFilter == "CRITICAL") Color.parseColor("#0A1B12") else Color.WHITE)
+        chipFilterCritical.setTextColor(if (currentFilter == "CRITICAL") activeTextColor else inactiveTextColor)
 
         chipFilterWarnings.setBackgroundResource(if (currentFilter == "WARNINGS") activeBg else inactiveBg)
-        chipFilterWarnings.setTextColor(if (currentFilter == "WARNINGS") Color.parseColor("#0A1B12") else Color.WHITE)
+        chipFilterWarnings.setTextColor(if (currentFilter == "WARNINGS") activeTextColor else inactiveTextColor)
     }
 
     private fun applyFilter() {

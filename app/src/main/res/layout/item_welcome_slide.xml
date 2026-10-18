@@ -176,7 +176,7 @@
                             android:id="@+id/tvBullet3Desc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Strict cycle-prevention and biological validation protect your family graph from corrupted links."
+                            android:text="Generational validation and biological rules protect your family tree from conflicting relationships."
                             android:textSize="12sp"
                             android:textColor="@color/text_secondary"
                             android:layout_marginTop="2dp" />

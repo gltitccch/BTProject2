@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:background="@drawable/bg_admin_code_box"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvQuotaTreeName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clan Name"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tvQuotaStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="🛑 50/50 Capped"
+            android:textColor="@color/warning"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvQuotaOwnerMeta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Owner: owner@email.com • Request: Tier 2 (200 Members)"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp" />
+
+    <Button
+        android:id="@+id/btnApproveQuotaExpansion"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/primary"
+        android:text="⚡ Approve Clan Expansion (+150 Cap)"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvQuotaActionStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Pending admin review."
+        android:textColor="@color/text_secondary"
+        android:textSize="10sp" />
+</LinearLayout>

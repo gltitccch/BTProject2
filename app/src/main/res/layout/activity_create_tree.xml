@@ -144,7 +144,7 @@
                         android:text="👑 Patriarch"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        android:textColor="#0A1B12" />
+                        android:textColor="@color/btn_gold_text" />
                 </LinearLayout>
 
                 <!-- Matriarch Pill Card -->
@@ -206,7 +206,7 @@
                     android:text="🌱 Family Member (Youth / Descendant)"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12" />
+                    android:textColor="@color/btn_gold_text" />
             </LinearLayout>
 
             <TextView
@@ -271,7 +271,7 @@
             android:text="Create tree"
             android:textSize="15sp"
             android:textStyle="bold"
-            android:textColor="#0A1B12"
+            android:textColor="@color/btn_gold_text"
             android:background="@drawable/btn_primary_bg"
             android:textAllCaps="false"
             android:layout_marginBottom="12dp" />

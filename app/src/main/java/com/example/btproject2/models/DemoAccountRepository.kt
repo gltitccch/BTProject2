@@ -38,7 +38,7 @@ object DemoAccountRepository {
             roleBadge = "ADMIN",
             email = "admin@kintrace.ph",
             password = "123456789",
-            treeSummary = "Global Overseer • 42 Trees • FR-11 Citadel",
+            treeSummary = "Global Overseer • 42 Trees • Citadel Hub",
             emojiIcon = "🛡️",
             badgeColorRes = R.color.gold_accent
         )

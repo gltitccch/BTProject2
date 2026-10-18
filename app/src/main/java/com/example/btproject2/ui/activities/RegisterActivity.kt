@@ -68,7 +68,7 @@ class RegisterActivity : AppCompatActivity() {
                     // Update right action icon to solid gold plate with dark check
                     tvCovenantCheckIcon?.text = "✓"
                     tvCovenantCheckIcon?.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f)
-                    tvCovenantCheckIcon?.setTextColor(android.graphics.Color.parseColor("#0A1B12"))
+                    tvCovenantCheckIcon?.setTextColor(getColor(R.color.btn_gold_text))
                     tvCovenantCheckIcon?.setBackgroundResource(R.drawable.bg_covenant_box_gold)
 
                     // Update label and helper text
@@ -173,6 +173,7 @@ class RegisterActivity : AppCompatActivity() {
                                 btnCreate.text = "Create Account"
                                 val intent = Intent(this, VerifyEmailActivity::class.java).apply {
                                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    putExtra("EXTRA_INITIAL_COOLDOWN", true)
                                 }
                                 startActivity(intent)
                                 finish()
@@ -186,6 +187,7 @@ class RegisterActivity : AppCompatActivity() {
                                 // Still proceed to verification since auth account was created
                                 val intent = Intent(this, VerifyEmailActivity::class.java).apply {
                                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    putExtra("EXTRA_INITIAL_COOLDOWN", true)
                                 }
                                 startActivity(intent)
                                 finish()

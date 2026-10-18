@@ -138,7 +138,7 @@ object SpouseValidationMessageHelper {
             SpouseValidationFailureReason.AFFINITY_IN_LAW ->
                 "Unable to add this person as a spouse because of a prohibited in-law relationship."
             SpouseValidationFailureReason.IMPOSSIBLE_CYCLE ->
-                "Unable to add this person as a spouse because it creates an impossible cycle."
+                "Unable to add this person as a spouse because it creates an impossible generational loop."
             SpouseValidationFailureReason.MARRIAGE_AFTER_DEATH ->
                 "Unable to add this person as a spouse because the marriage date cannot occur after either spouse's date of death."
         }

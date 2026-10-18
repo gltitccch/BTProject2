@@ -1,5 +1,7 @@
 package com.example.btproject2.utils
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -114,6 +116,17 @@ object DocumentHelper {
                 fileSizeStr = formatFileSize(destFile.length())
             }
 
+            // Encode portable Base64 payload for files up to 512 KB so documents survive reinstallation and cross-device sync
+            val portableBase64 = if (destFile.exists() && destFile.length() in 1..(512 * 1024L)) {
+                try {
+                    Base64.encodeToString(destFile.readBytes(), Base64.NO_WRAP)
+                } catch (_: Exception) {
+                    ""
+                }
+            } else {
+                ""
+            }
+
             AttachedDocument(
                 id = UUID.randomUUID().toString(),
                 name = fileName,
@@ -121,7 +134,8 @@ object DocumentHelper {
                 fileType = fileType,
                 category = category,
                 uploadedAt = System.currentTimeMillis(),
-                fileSize = fileSizeStr
+                fileSize = fileSizeStr,
+                fileBase64 = portableBase64
             )
         } catch (e: Exception) {
             e.printStackTrace()
@@ -129,11 +143,48 @@ object DocumentHelper {
         }
     }
 
+    /**
+     * Resolves an [AttachedDocument]'s local file or reconstructs it on demand into [fallbackDir]
+     * from [AttachedDocument.fileBase64] when the original device-local path is missing.
+     */
+    fun reconstructFileIfMissing(fallbackDir: File, document: AttachedDocument): File? {
+        if (document.fileUri.isNotBlank()) {
+            val existing = File(document.fileUri)
+            if (existing.exists() && existing.length() > 0L) {
+                return existing
+            }
+        }
+        if (document.fileBase64.isBlank()) return null
+        return try {
+            val decodedBytes = try {
+                Base64.decode(document.fileBase64, Base64.DEFAULT)
+            } catch (_: Throwable) {
+                java.util.Base64.getDecoder().decode(document.fileBase64)
+            }
+            if (decodedBytes == null || decodedBytes.isEmpty()) return null
+            if (!fallbackDir.exists()) fallbackDir.mkdirs()
+            val ext = when (document.fileType.lowercase()) {
+                "pdf" -> ".pdf"
+                "image" -> ".jpg"
+                else -> ".bin"
+            }
+            val safeName = document.name.ifBlank { "doc_${document.id.ifBlank { "restored" }}" }
+                .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+            val finalFileName = if (safeName.contains(".")) safeName else "$safeName$ext"
+            val targetFile = File(fallbackDir, "${document.id.ifBlank { "doc" }}_$finalFileName")
+            FileOutputStream(targetFile).use { it.write(decodedBytes) }
+            targetFile
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun openDocument(context: Context, document: AttachedDocument) {
         try {
-            val file = File(document.fileUri)
-            if (!file.exists()) {
-                Toast.makeText(context, "Document file not found on device.", Toast.LENGTH_SHORT).show()
+            val fallbackDir = File(context.filesDir, "documents")
+            val file = reconstructFileIfMissing(fallbackDir, document)
+            if (file == null || !file.exists()) {
+                KinTraceAlert.show(context, "Document file not found on device.")
                 return
             }
 
@@ -156,9 +207,9 @@ object DocumentHelper {
             }
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "No app available to open ${document.fileType.uppercase()} files.", Toast.LENGTH_LONG).show()
+            KinTraceAlert.show(context, "No app available to open ${document.fileType.uppercase()} files.")
         } catch (e: Exception) {
-            Toast.makeText(context, "Could not open document: ${e.message}", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(context, "Could not open document: ${e.message}")
         }
     }
 

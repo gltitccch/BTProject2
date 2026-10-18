@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutHomeShimmer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <!-- Shimmer Hero Heritage Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_shimmer_card"
+        android:padding="18dp"
+        android:layout_marginBottom="22dp">
+
+        <!-- Shimmer Pill Header -->
+        <View
+            android:layout_width="120dp"
+            android:layout_height="24dp"
+            android:background="@drawable/bg_shimmer_pill"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Shimmer Large Generations Hero Metric -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="bottom"
+            android:layout_marginBottom="6dp">
+
+            <View
+                android:layout_width="48dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_shimmer_rect"
+                android:layout_marginEnd="10dp" />
+
+            <View
+                android:layout_width="140dp"
+                android:layout_height="26dp"
+                android:background="@drawable/bg_shimmer_rect"
+                android:layout_marginBottom="4dp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="160dp"
+            android:layout_height="14dp"
+            android:background="@drawable/bg_shimmer_rect"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Shimmer Divider Line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/forest_card_border"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Shimmer 4-Stat Column Grid -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="18dp">
+
+            <!-- Stat 1: Members -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <View
+                    android:layout_width="32dp"
+                    android:layout_height="18dp"
+                    android:background="@drawable/bg_shimmer_rect" />
+                <View
+                    android:layout_width="46dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_shimmer_rect"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Stat 2: Generations -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <View
+                    android:layout_width="32dp"
+                    android:layout_height="18dp"
+                    android:background="@drawable/bg_shimmer_rect" />
+                <View
+                    android:layout_width="52dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_shimmer_rect"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Stat 3: Living -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <View
+                    android:layout_width="32dp"
+                    android:layout_height="18dp"
+                    android:background="@drawable/bg_shimmer_rect" />
+                <View
+                    android:layout_width="38dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_shimmer_rect"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Stat 4: Records -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <View
+                    android:layout_width="32dp"
+                    android:layout_height="18dp"
+                    android:background="@drawable/bg_shimmer_rect" />
+                <View
+                    android:layout_width="42dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_shimmer_rect"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Shimmer Action CTAs Inside Hero Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_shimmer_pill"
+                android:layout_marginEnd="4dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_shimmer_pill"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_shimmer_pill"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Shimmer Recent Activities Section Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <View
+            android:layout_width="140dp"
+            android:layout_height="14dp"
+            android:background="@drawable/bg_shimmer_rect" />
+    </LinearLayout>
+
+    <!-- Shimmer Recent Activity Items -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_shimmer_card"
+        android:padding="14dp"
+        android:layout_marginBottom="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_shimmer_squircle"
+                android:layout_marginEnd="12dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <View
+                    android:layout_width="160dp"
+                    android:layout_height="14dp"
+                    android:background="@drawable/bg_shimmer_rect"
+                    android:layout_marginBottom="6dp" />
+
+                <View
+                    android:layout_width="100dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_shimmer_rect" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_shimmer_card"
+        android:padding="14dp"
+        android:layout_marginBottom="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_shimmer_squircle"
+                android:layout_marginEnd="12dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <View
+                    android:layout_width="130dp"
+                    android:layout_height="14dp"
+                    android:background="@drawable/bg_shimmer_rect"
+                    android:layout_marginBottom="6dp" />
+
+                <View
+                    android:layout_width="90dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_shimmer_rect" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

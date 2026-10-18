@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -56,7 +58,7 @@ class JoinTreeActivity : AppCompatActivity() {
         val rawInput = etInviteCode.text.toString()
         val code = rawInput.replace(" ", "").trim().uppercase()
         if (code.length != 6) {
-            Toast.makeText(this, "Please enter a valid 6-character code", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Please enter a valid 6-character code")
             return
         }
 
@@ -113,7 +115,7 @@ class JoinTreeActivity : AppCompatActivity() {
                 val userId = user?.uid.orEmpty()
                 if (userId.isEmpty()) {
                     resetButton()
-                    Toast.makeText(this, "Please log in to join a family tree", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this, "Please log in to join a family tree")
                     return@getInviteCodeRecord
                 }
 
@@ -145,8 +147,75 @@ class JoinTreeActivity : AppCompatActivity() {
                                         .setMessage("You are already a member of this family tree (\"$treeName\").")
                                         .setPositiveButton("OK") { _, _ -> finish() }
                                         .show()
+                                } else if (existing != null && existing.status.equals("Pending", ignoreCase = true)) {
+                                    resetButton()
+                                    layoutJoinForm.visibility = View.GONE
+                                    layoutPendingApproval.visibility = View.VISIBLE
+                                    tvPendingTreeMessage.text = "Your request to join \"$treeName\" is already pending approval from the tree owner."
                                 } else {
-                                    // Requirements 9, 10, 11: Create membership with role Viewer, status Approved, and immediately display tree
+                                    firestoreHelper.getPrivacySettings(targetTreeId,
+                                        onSuccess = { privacySettings ->
+                                            val isPrivateTree = (tree?.isPrivate == true) || privacySettings.isPrivateTree
+                                            if (isPrivateTree) {
+                                                submitPendingJoinRequest(
+                                                    treeId = targetTreeId,
+                                                    treeName = treeName,
+                                                    ownerId = ownerId,
+                                                    userId = userId,
+                                                    code = code,
+                                                    record = record,
+                                                    existingMemberId = existing?.id
+                                                )
+                                            } else {
+                                                joinTreeImmediately(
+                                                    treeId = targetTreeId,
+                                                    treeName = treeName,
+                                                    ownerId = ownerId,
+                                                    userId = userId,
+                                                    code = code,
+                                                    record = record,
+                                                    existingMemberId = existing?.id
+                                                )
+                                            }
+                                        },
+                                        onFailure = {
+                                            if (tree?.isPrivate == true) {
+                                                submitPendingJoinRequest(
+                                                    treeId = targetTreeId,
+                                                    treeName = treeName,
+                                                    ownerId = ownerId,
+                                                    userId = userId,
+                                                    code = code,
+                                                    record = record,
+                                                    existingMemberId = existing?.id
+                                                )
+                                            } else {
+                                                joinTreeImmediately(
+                                                    treeId = targetTreeId,
+                                                    treeName = treeName,
+                                                    ownerId = ownerId,
+                                                    userId = userId,
+                                                    code = code,
+                                                    record = record,
+                                                    existingMemberId = existing?.id
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            },
+                            onFailure = {
+                                if (tree?.isPrivate == true) {
+                                    submitPendingJoinRequest(
+                                        treeId = targetTreeId,
+                                        treeName = treeName,
+                                        ownerId = ownerId,
+                                        userId = userId,
+                                        code = code,
+                                        record = record,
+                                        existingMemberId = null
+                                    )
+                                } else {
                                     joinTreeImmediately(
                                         treeId = targetTreeId,
                                         treeName = treeName,
@@ -154,27 +223,15 @@ class JoinTreeActivity : AppCompatActivity() {
                                         userId = userId,
                                         code = code,
                                         record = record,
-                                        existingMemberId = existing?.id
+                                        existingMemberId = null
                                     )
                                 }
-                            },
-                            onFailure = {
-                                // If membership lookup fails, proceed to join
-                                joinTreeImmediately(
-                                    treeId = targetTreeId,
-                                    treeName = treeName,
-                                    ownerId = ownerId,
-                                    userId = userId,
-                                    code = code,
-                                    record = record,
-                                    existingMemberId = null
-                                )
                             }
                         )
                     },
                     onFailure = { err ->
                         resetButton()
-                        Toast.makeText(this, "Failed to load tree details: ${err.message}", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to load tree details: ${err.message}")
                     }
                 )
             },
@@ -184,11 +241,11 @@ class JoinTreeActivity : AppCompatActivity() {
                 val msg = err.message.orEmpty()
                 val friendlyMessage = when {
                     msg.contains("offline", ignoreCase = true) ->
-                        "Unable to connect to Firebase. If your internet connection is active, please check whether Cloud Firestore is enabled in your Firebase Console (project-x-61285)."
+                        "Unable to reach the family tree server. Please check your internet connection or try again in a few moments."
                     msg.contains("PERMISSION_DENIED", ignoreCase = true) || msg.contains("not been used", ignoreCase = true) ->
-                        "Cloud Firestore API has not been enabled in the Firebase Console for project-x-61285. Please create your Firestore Database in the Firebase Console."
+                        "Unable to access family tree records. Please check your account permissions or try again later."
                     else ->
-                        "Network error: $msg"
+                        "Network error: ${msg.ifEmpty { "Please check your network connection." }}"
                 }
                 AlertDialog.Builder(this)
                     .setTitle("Connection Error")
@@ -197,6 +254,74 @@ class JoinTreeActivity : AppCompatActivity() {
                     .show()
             }
         )
+    }
+
+    private fun submitPendingJoinRequest(
+        treeId: String,
+        treeName: String,
+        ownerId: String,
+        userId: String,
+        code: String,
+        record: InviteCodeRecord,
+        existingMemberId: String?
+    ) {
+        val user = authHelper.getCurrentUser()
+        val userName = user?.displayName?.takeIf { it.isNotBlank() }
+            ?: user?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() }
+            ?: "Family Member"
+        val userEmail = user?.email.orEmpty()
+
+        val pendingMember = TreeMember(
+            id = existingMemberId.orEmpty(),
+            treeId = treeId,
+            userId = userId,
+            userName = userName,
+            userEmail = userEmail,
+            role = "Viewer",
+            status = "Pending"
+        )
+
+        val onRequestSubmitted = {
+            firestoreHelper.incrementInviteCodeUsage(code, record.usageCount, record.usageLimit)
+
+            if (ownerId.isNotEmpty()) {
+                val ownerNotif = NotificationRecord(
+                    treeId = treeId,
+                    userId = ownerId,
+                    title = "Join Request Pending Approval",
+                    message = "$userName requested to join private tree '$treeName' using invite code $code.",
+                    type = NotificationHelper.CATEGORY_ACCESS,
+                    targetId = treeId
+                )
+                firestoreHelper.addNotification(ownerNotif)
+            }
+
+            runOnUiThread {
+                resetButton()
+                layoutJoinForm.visibility = View.GONE
+                layoutPendingApproval.visibility = View.VISIBLE
+                tvPendingTreeMessage.text = "Your request to join \"$treeName\" has been sent to the tree owner for approval."
+                KinTraceAlert.show(this, "Join request sent for approval!")
+            }
+        }
+
+        if (existingMemberId.isNullOrBlank()) {
+            firestoreHelper.addTreeMember(pendingMember,
+                onSuccess = onRequestSubmitted,
+                onFailure = { err ->
+                    resetButton()
+                    KinTraceAlert.show(this, "Failed to submit join request: ${err.message}")
+                }
+            )
+        } else {
+            firestoreHelper.updateTreeMemberRole(existingMemberId, "Viewer", "Pending",
+                onSuccess = onRequestSubmitted,
+                onFailure = { err ->
+                    resetButton()
+                    KinTraceAlert.show(this, "Failed to submit join request: ${err.message}")
+                }
+            )
+        }
     }
 
     private fun joinTreeImmediately(
@@ -272,7 +397,7 @@ class JoinTreeActivity : AppCompatActivity() {
             )
             firestoreHelper.addNotification(memberNotif)
 
-            Toast.makeText(this, "Successfully joined $treeName!", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Successfully joined $treeName!")
 
             // Requirement 11: Immediately display the joined family tree in the new user's account
             val intent = Intent(this, HomeActivity::class.java).apply {
@@ -287,7 +412,7 @@ class JoinTreeActivity : AppCompatActivity() {
                 onSuccess = onMemberAdded,
                 onFailure = { err ->
                     resetButton()
-                    Toast.makeText(this, "Failed to join tree: ${err.message}", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this, "Failed to join tree: ${err.message}")
                 }
             )
         } else {
@@ -295,7 +420,7 @@ class JoinTreeActivity : AppCompatActivity() {
                 onSuccess = onMemberAdded,
                 onFailure = { err ->
                     resetButton()
-                    Toast.makeText(this, "Failed to update membership: ${err.message}", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this, "Failed to update membership: ${err.message}")
                 }
             )
         }

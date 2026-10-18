@@ -1,18 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="@color/forest_bg"
     android:fitsSystemWindows="true">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="36dp"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="32dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/forest_bg"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="36dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
 
         <!-- Header Navigation Bar -->
         <LinearLayout
@@ -46,16 +53,17 @@
             <TextView
                 android:id="@+id/btnQuickAssistTrace"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💡 Help"
-                android:textSize="11sp"
+                android:layout_height="32dp"
+                android:gravity="center_vertical"
+                android:drawableStart="@drawable/ic_help_minimal"
+                android:drawablePadding="5dp"
+                android:text="Help"
+                android:textSize="11.5sp"
                 android:textStyle="bold"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
+                android:textColor="@color/primary"
+                android:background="@drawable/bg_nav_back_pill"
                 android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
+                android:paddingEnd="12dp"
                 android:clickable="true"
                 android:focusable="true" />
         </LinearLayout>
@@ -79,7 +87,7 @@
             android:lineSpacingMultiplier="1.3"
             android:layout_marginBottom="24dp" />
 
-        <!-- Person A Selector Card -->
+        <!-- Person A Selector Card (UI 3: Minimalist Search Input Bar Style) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -91,22 +99,46 @@
             android:layout_marginBottom="6dp" />
 
         <LinearLayout
+            android:id="@+id/cardSelectPersonA"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:background="@drawable/bg_forest_card"
-            android:padding="6dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
             android:layout_marginBottom="10dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_search_minimal"
+                android:contentDescription="Search Person A" />
 
             <Spinner
                 android:id="@+id/spinnerPersonA"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp" />
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp" />
+
+            <TextView
+                android:id="@+id/btnSpotlightPersonA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap to change ›"
+                android:textSize="11.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:clickable="false"
+                android:focusable="false" />
         </LinearLayout>
 
-        <!-- Connector Icon -->
+        <!-- Connector Icon (Swap Person A & Person B) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -116,16 +148,20 @@
             android:layout_marginBottom="10dp">
 
             <TextView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
+                android:id="@+id/btnSwapTracePersons"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:gravity="center"
                 android:text="⇅"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textColor="@color/gold_accent"
-                android:background="@drawable/icon_bg_green" />
+                android:background="@drawable/icon_bg_green"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Swap Person A and Person B" />
         </LinearLayout>
 
-        <!-- Person B Selector Card -->
+        <!-- Person B Selector Card (UI 3: Minimalist Search Input Bar Style) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -137,19 +173,43 @@
             android:layout_marginBottom="6dp" />
 
         <LinearLayout
+            android:id="@+id/cardSelectPersonB"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:background="@drawable/bg_forest_card"
-            android:padding="6dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
             android:layout_marginBottom="24dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_search_minimal"
+                android:contentDescription="Search Person B" />
 
             <Spinner
                 android:id="@+id/spinnerPersonB"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp" />
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp" />
+
+            <TextView
+                android:id="@+id/btnSpotlightPersonB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap to change ›"
+                android:textSize="11.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:clickable="false"
+                android:focusable="false" />
         </LinearLayout>
 
         <!-- Trace Action Button -->
@@ -495,4 +555,9 @@
         </LinearLayout>
 
     </LinearLayout>
-</ScrollView>
+    </ScrollView>
+
+    <!-- ── Floating Heritage Island Bottom Navigation ── -->
+    <include layout="@layout/layout_floating_nav_island" />
+
+</LinearLayout>

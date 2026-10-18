@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.app.DatePickerDialog
 import android.graphics.Color
 import android.os.Bundle
@@ -154,12 +156,14 @@ class CreateTreeActivity : AppCompatActivity() {
 
     private fun updateFounderRoleUI(role: String, syncSpinner: Boolean) {
         selectedFounderRole = role
+        val activeTextColor = ContextCompat.getColor(this, R.color.btn_gold_text)
+        val inactiveTextColor = ContextCompat.getColor(this, R.color.text_secondary)
         if (role == "Patriarch") {
             cardPatriarch.setBackgroundResource(R.drawable.badge_pill_gold)
-            tvPatriarchText.setTextColor(Color.parseColor("#0A1B12"))
+            tvPatriarchText.setTextColor(activeTextColor)
 
             cardMatriarch.setBackgroundResource(R.drawable.badge_pill_dark)
-            tvMatriarchText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+            tvMatriarchText.setTextColor(inactiveTextColor)
 
             if (syncSpinner && spinnerGender.selectedItemPosition != 0) {
                 isUpdatingRoleProgrammatically = true
@@ -168,10 +172,10 @@ class CreateTreeActivity : AppCompatActivity() {
             }
         } else {
             cardMatriarch.setBackgroundResource(R.drawable.badge_pill_gold)
-            tvMatriarchText.setTextColor(Color.parseColor("#0A1B12"))
+            tvMatriarchText.setTextColor(activeTextColor)
 
             cardPatriarch.setBackgroundResource(R.drawable.badge_pill_dark)
-            tvPatriarchText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+            tvPatriarchText.setTextColor(inactiveTextColor)
 
             if (syncSpinner && spinnerGender.selectedItemPosition != 1) {
                 isUpdatingRoleProgrammatically = true
@@ -187,18 +191,18 @@ class CreateTreeActivity : AppCompatActivity() {
         val gender = spinnerGender.selectedItem.toString()
 
         if (treeName.isEmpty()) {
-            Toast.makeText(this, "Please enter a tree name", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Please enter a tree name")
             return
         }
 
         if (creatorName.isEmpty()) {
-            Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Please enter your name")
             return
         }
 
         val userId = authHelper.getCurrentUserId().orEmpty()
         if (userId.isEmpty()) {
-            Toast.makeText(this, "Please sign in to create a family tree", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Please sign in to create a family tree")
             return
         }
 
@@ -206,12 +210,12 @@ class CreateTreeActivity : AppCompatActivity() {
         if (selectedFounderRole.equals("Patriarch", ignoreCase = true) || selectedFounderRole.equals("Matriarch", ignoreCase = true)) {
             if (selectedDate.isBlank()) {
                 etBirthDate.error = "Birth date is required for $selectedFounderRole (must be 18+)"
-                Toast.makeText(this, "Please select your birth date to verify 18+ eligibility for $selectedFounderRole.", Toast.LENGTH_LONG).show()
+                KinTraceAlert.show(this, "Please select your birth date to verify 18+ eligibility for $selectedFounderRole.")
                 return
             }
             val age = com.example.btproject2.engine.FamilyLinkValidator.calculateAgeYears(selectedDate)
             if (age == null || age < 18) {
-                Toast.makeText(this, "A member must be at least 18 years old to be designated as $selectedFounderRole (current age: ${age ?: 0}).", Toast.LENGTH_LONG).show()
+                KinTraceAlert.show(this, "A member must be at least 18 years old to be designated as $selectedFounderRole (current age: ${age ?: 0}).")
                 return
             }
         }
@@ -268,12 +272,12 @@ class CreateTreeActivity : AppCompatActivity() {
                 firestoreHelper.addPerson(selfPerson,
                     onSuccess = {
                         CentralTreeSynchronizer.getInstance().startRealtimeListener(createdTree.id)
-                        Toast.makeText(this, "Family tree created! Invite code: $inviteCode", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(this, "Family tree created! Invite code: $inviteCode")
                         finish()
                     },
                     onFailure = {
                         CentralTreeSynchronizer.getInstance().startRealtimeListener(createdTree.id)
-                        Toast.makeText(this, "Tree created, but failed to add first member", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Tree created, but failed to add first member")
                         finish()
                     }
                 )

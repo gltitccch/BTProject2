@@ -197,7 +197,7 @@
                     android:text="Save"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:gravity="center"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
@@ -522,7 +522,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="System Admin Citadel (FR-11)"
+                        android:text="System Admin Citadel"
                         android:textSize="12.5sp"
                         android:textStyle="bold"
                         android:textColor="@color/primary" />
@@ -561,6 +561,58 @@
             android:textColor="@color/danger"
             android:letterSpacing="0.08"
             android:layout_marginBottom="6dp" />
+
+        <!-- Sign Out Action Tile -->
+        <LinearLayout
+            android:id="@+id/btnProfileSignOut"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_quick_assist_card"
+            android:padding="13dp"
+            android:layout_marginBottom="10dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🚪"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sign Out of KinTrace"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="End current session and return to sign-in"
+                    android:textSize="10.5sp"
+                    android:textColor="@color/dark_subtext"
+                    android:layout_marginTop="1dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sign Out ➔"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/btnDeleteAccountProfile"

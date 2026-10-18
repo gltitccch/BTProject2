@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Tree Canopy Compass Ring -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8z"/>
+    <!-- Tree Trunk & Compass Needle -->
+    <path
+        android:fillColor="#4EEDA4"
+        android:pathData="M12,7l2.5,4.5h-2v5h-1v-5h-2L12,7z"/>
+    <!-- Cardinal Points -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M11.5,3.5h1v2h-1v-2zM11.5,18.5h1v2h-1v-2zM3.5,11.5h2v1h-2v-1zM18.5,11.5h2v1h-2v-1z"/>
+</vector>

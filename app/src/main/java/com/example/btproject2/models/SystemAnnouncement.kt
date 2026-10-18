@@ -39,4 +39,12 @@ data class SystemAnnouncement(
 
     @get:Exclude
     val isInfo: Boolean get() = severity.equals(SEVERITY_INFO, ignoreCase = true)
+
+    @get:Exclude
+    val isExpired: Boolean
+        get() {
+            if (autoRetractHours <= 0) return false
+            val expiryTime = createdAt + (autoRetractHours * 3600_000L)
+            return System.currentTimeMillis() > expiryTime
+        }
 }

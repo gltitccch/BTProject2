@@ -40,7 +40,40 @@ class RecentActivitiesActivity : AppCompatActivity() {
         rvActivities.layoutManager = LinearLayoutManager(this)
 
         adapter = ActivityAdapter { activity ->
-            if (activity.targetId.isNotEmpty() && activity.type.uppercase() != "DELETE" && activity.type.uppercase() != "MEMBER_DELETED") {
+            val type = activity.type.uppercase()
+            val isAdmin = com.example.btproject2.models.DemoAccountRepository.isAdminEmail(
+                com.example.btproject2.firebase.AuthHelper().getCurrentUser()?.email
+            )
+            if (type in listOf("MEMBER_DELETED", "DELETE", "DELETED")) {
+                if (isAdmin) {
+                    val intent = Intent(this, AdminPortalActivity::class.java).apply {
+                        putExtra("OPEN_TAB", 3)
+                        putExtra("HIGHLIGHT_MEMBER_ID", activity.targetId)
+                        putExtra("TREE_ID", activity.treeId)
+                    }
+                    startActivity(intent)
+                } else {
+                    androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Archived Record Notice")
+                        .setMessage("${activity.description}\n\nDeleted member recovery is managed in the System Administrator Citadel.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            } else if (type in listOf("MERGE_COLLISION_BLOCKED", "COLLISION", "MERGE_COLLISION")) {
+                if (isAdmin) {
+                    val intent = Intent(this, AdminPortalActivity::class.java).apply {
+                        putExtra("OPEN_TAB", 3)
+                        putExtra("HIGHLIGHT_COLLISION_ID", activity.targetId)
+                    }
+                    startActivity(intent)
+                } else {
+                    androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Merge Collision Notice")
+                        .setMessage("${activity.description}\n\nMerge collision dockets are reviewed by the System Administrator.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            } else if (activity.targetId.isNotEmpty()) {
                 val intent = Intent(this, MemberDetailActivity::class.java).apply {
                     putExtra("personId", activity.targetId)
                     putExtra("TREE_ID", treeId)

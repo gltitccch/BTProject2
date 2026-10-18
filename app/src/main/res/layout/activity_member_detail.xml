@@ -710,7 +710,7 @@
                         android:text="+ Add New Child"
                         android:textSize="12sp"
                         android:textStyle="bold"
-                        android:textColor="#0A1B12"
+                        android:textColor="@color/btn_gold_text"
                         android:background="@drawable/btn_gold_primary"
                         android:layout_marginEnd="6dp"
                         android:clickable="true"
@@ -806,7 +806,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#1AFFFFFF"
+                    android:background="@color/card_border"
                     android:layout_marginTop="12dp"
                     android:layout_marginBottom="12dp" />
 
@@ -856,7 +856,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#1AFFFFFF"
+                    android:background="@color/card_border"
                     android:layout_marginTop="12dp"
                     android:layout_marginBottom="12dp" />
 
@@ -906,7 +906,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#1AFFFFFF"
+                    android:background="@color/card_border"
                     android:layout_marginTop="12dp"
                     android:layout_marginBottom="12dp" />
 

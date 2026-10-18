@@ -130,6 +130,8 @@ class ConnectionSuggestionEngine {
     }
 
     private fun yearsBetween(earlier: String, later: String): Int {
-        return try { later.take(4).toInt() - earlier.take(4).toInt() } catch (e: Exception) { 99 }
+        val eYr = FamilyLinkValidator.extractYear(earlier)
+        val lYr = FamilyLinkValidator.extractYear(later)
+        return if (eYr != null && lYr != null) lYr - eYr else 99
     }
 }

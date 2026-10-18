@@ -247,7 +247,7 @@ object AddChildBiologicalParentDialogHelper {
                 val gender = spinnerGender.selectedItem?.toString() ?: defaultGender
 
                 if (fName.isEmpty() || lName.isEmpty()) {
-                    Toast.makeText(context, "First and last name are required", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.warning(context, "Validation Required", "First and last name are required")
                     onCancel?.invoke()
                     return@setPositiveButton
                 }
@@ -267,11 +267,11 @@ object AddChildBiologicalParentDialogHelper {
                     person = newPerson,
                     onSuccess = { savedId ->
                         val savedPerson = newPerson.copy(id = savedId)
-                        Toast.makeText(context, "$fName $lName created successfully", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(context, "$fName $lName created successfully")
                         onCreated(savedPerson)
                     },
                     onFailure = { err ->
-                        Toast.makeText(context, "Failed to create person: ${err.message}", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.warning(context, "Creation Failed", "Failed to create person: ${err.message}")
                         onCancel?.invoke()
                     }
                 )

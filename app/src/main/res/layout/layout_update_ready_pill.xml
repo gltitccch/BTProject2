@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/updateReadyPillRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|center_horizontal"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="88dp"
+    android:background="@drawable/bg_kintrace_alert_card"
+    android:elevation="16dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="10dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Lightning / Update Ready Badge -->
+    <FrameLayout
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_kintrace_alert_icon_circle"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tvUpdatePillEmoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="⚡"
+            android:textSize="16sp" />
+    </FrameLayout>
+
+    <!-- Title & Release Notes Summary -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvUpdatePillTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/alert_title_color"
+            android:textSize="12.5sp"
+            android:textStyle="bold"
+            tools:text="KinTrace v1.3.0 Ready" />
+
+        <TextView
+            android:id="@+id/tvUpdatePillSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/alert_message_color"
+            android:textSize="10.5sp"
+            tools:text="Downloaded via GitHub • Tap to install" />
+    </LinearLayout>
+
+    <!-- 1-Tap Update Button -->
+    <TextView
+        android:id="@+id/btnUpdatePillInstall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_update_pill_btn"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:paddingStart="12dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp"
+        android:text="1-Tap Update"
+        android:textColor="@color/citadel_avatar_text"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <!-- Subtle Dismiss Button -->
+    <TextView
+        android:id="@+id/btnUpdatePillDismiss"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginStart="6dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="✕"
+        android:textColor="@color/alert_message_color"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:contentDescription="Dismiss update reminder" />
+
+</LinearLayout>

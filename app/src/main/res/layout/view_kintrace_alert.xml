@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/alertCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|center_horizontal"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="88dp"
+    android:background="@drawable/bg_kintrace_alert_card"
+    android:elevation="14dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="14dp"
+    android:paddingBottom="8dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Specialized Heraldic Icon Frame -->
+    <FrameLayout
+        android:id="@+id/flAlertIconContainer"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_kintrace_alert_icon_circle"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/ivAlertIcon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="center"
+            android:contentDescription="Alert Icon"
+            android:src="@drawable/ic_kintrace_alert_rocket" />
+    </FrameLayout>
+
+    <!-- Alert Title and Message Body -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvAlertTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/alert_title_color"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Version v1.5.0 Deployed" />
+
+        <TextView
+            android:id="@+id/tvAlertMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/alert_message_color"
+            android:textSize="11sp"
+            tools:text="Live across 24 client devices" />
+    </LinearLayout>
+
+    <!-- Optional Interactive Action Button (e.g. UNDO) -->
+    <TextView
+        android:id="@+id/btnAlertAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_kintrace_alert_btn_undo"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:letterSpacing="0.06"
+        android:paddingStart="12dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="5dp"
+        android:textColor="@color/alert_action_text"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="UNDO"
+        tools:visibility="visible" />
+
+    <!-- Optional Telemetry Badge Pill (e.g. LIVE, RESTORED, CANONICAL) -->
+    <TextView
+        android:id="@+id/tvAlertBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_kintrace_alert_badge"
+        android:gravity="center"
+        android:letterSpacing="0.08"
+        android:paddingStart="8dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="3dp"
+        android:textColor="@color/alert_badge_text"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="LIVE"
+        tools:visibility="visible" />
+
+</LinearLayout>

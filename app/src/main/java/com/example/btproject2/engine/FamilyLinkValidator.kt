@@ -210,6 +210,50 @@ object FamilyLinkValidator {
     }
 
     /**
+     * Compares two date strings chronologically regardless of formatting ("MMM d, yyyy", "yyyy-MM-dd", "MM/dd/yyyy", "yyyy").
+     * Returns negative if [dateA] is earlier than [dateB], 0 if equal, positive if [dateA] is later than [dateB],
+     * or null if either date cannot be parsed.
+     */
+    fun compareDatesChronologically(dateA: String?, dateB: String?): Int? {
+        val calA = parseDateToCalendar(dateA)
+        val calB = parseDateToCalendar(dateB)
+        if (calA != null && calB != null) {
+            return calA.timeInMillis.compareTo(calB.timeInMillis)
+        }
+        val yrA = extractYear(dateA)
+        val yrB = extractYear(dateB)
+        if (yrA != null && yrB != null) {
+            return yrA.compareTo(yrB)
+        }
+        return null
+    }
+
+    /**
+     * Returns the signed difference in years (`laterYear - earlierYear`) between two date strings,
+     * accounting for month/day when full calendar dates are available.
+     */
+    fun yearsBetweenDates(earlierDateStr: String?, laterDateStr: String?): Int? {
+        val cal1 = parseDateToCalendar(earlierDateStr)
+        val cal2 = parseDateToCalendar(laterDateStr)
+        if (cal1 != null && cal2 != null) {
+            var years = cal2.get(Calendar.YEAR) - cal1.get(Calendar.YEAR)
+            if (cal2.get(Calendar.MONTH) < cal1.get(Calendar.MONTH) ||
+                (cal2.get(Calendar.MONTH) == cal1.get(Calendar.MONTH) &&
+                    cal2.get(Calendar.DAY_OF_MONTH) < cal1.get(Calendar.DAY_OF_MONTH))
+            ) {
+                years--
+            }
+            return years
+        }
+        val yr1 = extractYear(earlierDateStr)
+        val yr2 = extractYear(laterDateStr)
+        if (yr1 != null && yr2 != null) {
+            return yr2 - yr1
+        }
+        return null
+    }
+
+    /**
      * Validates that lineage roles (PATRIARCH / MATRIARCH) meet minimum age requirements (18+).
      * Prevents minors or unverified infants from holding founding head-of-family titles.
      */
@@ -478,23 +522,6 @@ object FamilyLinkValidator {
                     message = "Cannot register ${father.firstName} and ${mother.firstName} as co-parents: $stepDesc.\n\n" +
                             "Under Article 38 (3) of the Family Code of the Philippines, union between step-parents and step-children is prohibited and void from the beginning for reasons of public policy.",
                     legalArticle = "Article 38 (3), Family Code of the Philippines",
-                    field = "parents"
-                )
-            )
-            return ValidationResult(issues)
-        }
-
-        // 3b. Explicit Fallback Guard for Bugarin Family (Renzy and Clara are brother and sister / siblings)
-        val isExplicitRenzyClara = (isPersonNamed(father, "renzy") && isPersonNamed(mother, "clara")) ||
-                (isPersonNamed(father, "clara") && isPersonNamed(mother, "renzy"))
-        if (isExplicitRenzyClara) {
-            issues.add(
-                LinkIssue(
-                    type = IssueType.FATAL_ERROR,
-                    title = "Prohibited Co-Parents (Siblings - Art. 37)",
-                    message = "Cannot register ${father.firstName} and ${mother.firstName} as co-parents: Renzy and Clara are brother and sister (siblings).\n\n" +
-                            "Under Article 37 (2) of the Family Code of the Philippines, union and marriage between brothers and sisters (whether full or half blood) is incestuous and void from the beginning (Void ab initio).",
-                    legalArticle = "Article 37 (2), Family Code of the Philippines",
                     field = "parents"
                 )
             )
@@ -794,16 +821,12 @@ object FamilyLinkValidator {
         val isExistingAncestor2ndDegree = isAncestorOf(parent.id, child.id, personMap) &&
                 !isSameId(parent.id, child.fatherId) && !isSameId(parent.id, child.motherId)
 
-        // Explicit check for Bugarin family: Clara & Pedro are Ghillain's grandparents
-        val isExplicitClaraGhillain = isPersonNamed(parent, "clara") && isPersonNamed(child, "ghillain")
-        val isExplicitPedroGhillain = isPersonNamed(parent, "pedro") && isPersonNamed(child, "ghillain")
-
-        if (isParentOfExistingFather || isParentOfExistingMother || isGrandparentThroughAnyChild || isExistingAncestor2ndDegree || isExplicitClaraGhillain || isExplicitPedroGhillain) {
+        if (isParentOfExistingFather || isParentOfExistingMother || isGrandparentThroughAnyChild || isExistingAncestor2ndDegree) {
+            val gpTerm = if (parent.gender.equals("Female", ignoreCase = true)) "biological grandmother" else if (parent.gender.equals("Male", ignoreCase = true)) "biological grandfather" else "grandparent"
             val relation = when {
-                isExplicitClaraGhillain || isParentOfExistingFather -> "the biological grandmother (parent of father ${existingFather?.firstName ?: "Renzy"})"
-                isExplicitPedroGhillain -> "the biological grandfather"
-                isParentOfExistingMother -> "the biological grandmother (parent of mother ${existingMother?.firstName ?: "Luz"})"
-                else -> "a grandparent / lineal ancestor"
+                isParentOfExistingFather -> "the $gpTerm (parent of father ${existingFather?.firstName ?: "their father"})"
+                isParentOfExistingMother -> "the $gpTerm (parent of mother ${existingMother?.firstName ?: "their mother"})"
+                else -> "a $gpTerm / lineal ancestor"
             }
             issues.add(
                 LinkIssue(
@@ -848,11 +871,7 @@ object FamilyLinkValidator {
             } catch (_: Exception) {}
         }
 
-        // Explicit check for Bugarin family: Jose & Renzy are biological uncles of Ghillain (brothers of parents)
-        val isExplicitJoseGhillain = isPersonNamed(parent, "jose") && isPersonNamed(child, "ghillain")
-        val isExplicitRenzyUncle = isPersonNamed(parent, "renzy") && isPersonNamed(child, "ghillain") && (existingFather != null && !isSameId(existingFather.id, parent.id))
-
-        if (isFatherBrotherOfParent || isMotherSisterOfParent || isUncleThroughAnySibling || isCollateralUncleAuntViaTrace || isExplicitJoseGhillain || isExplicitRenzyUncle) {
+        if (isFatherBrotherOfParent || isMotherSisterOfParent || isUncleThroughAnySibling || isCollateralUncleAuntViaTrace) {
             val siblingPerson = when {
                 isFatherBrotherOfParent -> existingFather
                 isMotherSisterOfParent -> existingMother
@@ -1134,10 +1153,32 @@ object FamilyLinkValidator {
     // CANDIDATE FILTERING HELPERS FOR DROPDOWNS & PICKERS
     // ══════════════════════════════════════════════════════════════
 
+    /**
+     * Resolves the linked spouse or existing co-parent partner of [person] from [allPersons].
+     * Checks direct `spouseId`, reciprocal `spouseId`, and existing co-parent links if no `spouseId` is recorded.
+     */
+    fun findLinkedSpouse(person: Person?, allPersons: List<Person>): Person? {
+        if (person == null || person.id.isBlank()) return null
+        val directSpouse = findPersonInList(person.spouseId, allPersons)
+        if (directSpouse != null && !isSameId(directSpouse.id, person.id)) {
+            return directSpouse
+        }
+        val reverseSpouse = allPersons.find {
+            !isSameId(it.id, person.id) && isSameId(it.spouseId, person.id)
+        }
+        if (reverseSpouse != null) {
+            return reverseSpouse
+        }
+        return allPersons.find {
+            !isSameId(it.id, person.id) && areCoParents(person.id, it.id, allPersons)
+        }
+    }
+
     fun getEligibleFathers(
         child: Person,
         existingMother: Person?,
-        allPersons: List<Person>
+        allPersons: List<Person>,
+        preferredOtherParentId: String? = null
     ): List<Person> {
         val existingParents = getExistingParentsInfo(child, allPersons)
         if (existingParents.hasTwoParents) return emptyList()
@@ -1149,7 +1190,7 @@ object FamilyLinkValidator {
         val mother = existingMother ?: findPersonInList(child.motherId, allPersons)
         val childEffective = if (mother != null && child.motherId.isNullOrBlank()) child.copy(motherId = mother.id) else child
 
-        return allPersons.filter { candidate ->
+        val eligible = allPersons.filter { candidate ->
             if (candidate.gender.lowercase() != "male") return@filter false
             if (child.id.isNotBlank() && isSameId(candidate.id, child.id)) return@filter false
 
@@ -1163,12 +1204,23 @@ object FamilyLinkValidator {
 
             true
         }
+
+        val linkedHusband = findLinkedSpouse(mother, allPersons)
+        if (linkedHusband != null) {
+            return eligible.filter { candidate ->
+                isSameId(candidate.id, linkedHusband.id) ||
+                    (!preferredOtherParentId.isNullOrBlank() && isSameId(candidate.id, preferredOtherParentId))
+            }
+        }
+
+        return eligible
     }
 
     fun getEligibleMothers(
         child: Person,
         existingFather: Person?,
-        allPersons: List<Person>
+        allPersons: List<Person>,
+        preferredOtherParentId: String? = null
     ): List<Person> {
         val existingParents = getExistingParentsInfo(child, allPersons)
         if (existingParents.hasTwoParents) return emptyList()
@@ -1180,7 +1232,7 @@ object FamilyLinkValidator {
         val father = existingFather ?: findPersonInList(child.fatherId, allPersons)
         val childEffective = if (father != null && child.fatherId.isNullOrBlank()) child.copy(fatherId = father.id) else child
 
-        return allPersons.filter { candidate ->
+        val eligible = allPersons.filter { candidate ->
             if (candidate.gender.lowercase() != "female") return@filter false
             if (child.id.isNotBlank() && isSameId(candidate.id, child.id)) return@filter false
 
@@ -1194,6 +1246,16 @@ object FamilyLinkValidator {
 
             true
         }
+
+        val linkedWife = findLinkedSpouse(father, allPersons)
+        if (linkedWife != null) {
+            return eligible.filter { candidate ->
+                isSameId(candidate.id, linkedWife.id) ||
+                    (!preferredOtherParentId.isNullOrBlank() && isSameId(candidate.id, preferredOtherParentId))
+            }
+        }
+
+        return eligible
     }
 
     fun getEligibleSpouses(
@@ -1287,21 +1349,28 @@ object FamilyLinkValidator {
         val cross2 = !aM.isNullOrEmpty() && !bF.isNullOrEmpty() && aM.equals(bF, ignoreCase = true)
         if (cross1 || cross2) return true
 
-        // Step-siblings: parent of A is married to parent of B
-        if (allPersons.isNotEmpty()) {
-            val aFatherObj = findPersonInList(a.fatherId, allPersons)
-            val aMotherObj = findPersonInList(a.motherId, allPersons)
-            val bFatherObj = findPersonInList(b.fatherId, allPersons)
-            val bMotherObj = findPersonInList(b.motherId, allPersons)
-
-            val step1 = aFatherObj != null && bMotherObj != null && areSpouses(aFatherObj.id, bMotherObj.id, allPersons)
-            val step2 = aMotherObj != null && bFatherObj != null && areSpouses(aMotherObj.id, bFatherObj.id, allPersons)
-            val step3 = aFatherObj != null && bFatherObj != null && areSpouses(aFatherObj.id, bFatherObj.id, allPersons)
-            val step4 = aMotherObj != null && bMotherObj != null && areSpouses(aMotherObj.id, bMotherObj.id, allPersons)
-            if (step1 || step2 || step3 || step4) return true
-        }
-
         return false
+    }
+
+    /**
+     * Checks whether [a] and [b] are unrelated step-siblings (share zero biological/adoptive parents,
+     * but a parent of [a] is married to a parent of [b]). Step-siblings have 0 degrees of consanguinity.
+     */
+    fun isStepSiblingOf(a: Person, b: Person, allPersons: List<Person>): Boolean {
+        if (isSameId(a.id, b.id)) return false
+        if (isSiblingOf(a, b, allPersons)) return false
+        if (allPersons.isEmpty()) return false
+
+        val aFatherObj = findPersonInList(a.fatherId, allPersons)
+        val aMotherObj = findPersonInList(a.motherId, allPersons)
+        val bFatherObj = findPersonInList(b.fatherId, allPersons)
+        val bMotherObj = findPersonInList(b.motherId, allPersons)
+
+        val step1 = aFatherObj != null && bMotherObj != null && areSpouses(aFatherObj.id, bMotherObj.id, allPersons)
+        val step2 = aMotherObj != null && bFatherObj != null && areSpouses(aMotherObj.id, bFatherObj.id, allPersons)
+        val step3 = aFatherObj != null && bFatherObj != null && areSpouses(aFatherObj.id, bFatherObj.id, allPersons)
+        val step4 = aMotherObj != null && bMotherObj != null && areSpouses(aMotherObj.id, bMotherObj.id, allPersons)
+        return step1 || step2 || step3 || step4
     }
 
     fun areSpouses(id1: String?, id2: String?, allPersons: List<Person>): Boolean {

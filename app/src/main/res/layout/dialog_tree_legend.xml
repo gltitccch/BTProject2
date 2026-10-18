@@ -40,7 +40,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FR-06 Genealogical Visual Standards"
+                android:text="Genealogical Visual Standards &amp; Badges"
                 android:textSize="11sp"
                 android:textColor="@color/gold_accent" />
         </LinearLayout>
@@ -79,7 +79,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MEMBER NODE COLORS"
+                android:text="MEMBER CARD COLORS"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -370,7 +370,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="• Pinch to Zoom: Two fingers to zoom between 0.25x and 3.5x.\n• Drag to Pan: One finger to navigate around generations.\n• Tap Node: Inspect personal timeline, dates, and biography.\n• Tap Green '+' under Node: Quick-add a child to that parent."
+                android:text="• Pinch to Zoom: Two fingers to zoom between 0.25x and 3.5x.\n• Drag to Pan: One finger to navigate around generations.\n• Tap Member: Inspect personal timeline, dates, and biography.\n• Tap Green '+' under Member: Quick-add a child to that parent."
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="3dp"
@@ -388,7 +388,7 @@
         android:text="Got It"
         android:textSize="14sp"
         android:textStyle="bold"
-        android:textColor="#0A1B12"
+        android:textColor="@color/btn_gold_text"
         android:background="@drawable/btn_gold_primary"
         android:clickable="true"
         android:focusable="true" />

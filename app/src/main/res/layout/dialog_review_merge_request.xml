@@ -100,7 +100,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#1B3326"
+        android:background="@drawable/bg_sandbox_pill"
         android:padding="10dp"
         android:layout_marginBottom="18dp">
 
@@ -116,7 +116,7 @@
             android:layout_weight="1"
             android:text="Approving this request allows this specific tree to synthesize a deep-cloned Master Tree C with yours. Your original tree remains 100% read-only and safe."
             android:textSize="11sp"
-            android:textColor="#4ECCA3"
+            android:textColor="@color/sandbox_banner_text"
             android:lineSpacingExtra="2dp" />
     </LinearLayout>
 
@@ -134,7 +134,7 @@
             android:text="Decline"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="#FF6B6B"
+            android:textColor="@color/danger"
             android:background="@drawable/btn_dark_secondary"
             android:textAllCaps="false"
             android:layout_marginEnd="8dp" />
@@ -147,7 +147,7 @@
             android:text="Approve Access"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="#0A1B12"
+            android:textColor="@color/btn_gold_text"
             android:background="@drawable/btn_gold_primary"
             android:textAllCaps="false" />
     </LinearLayout>

@@ -88,7 +88,7 @@
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:text="Mark Deceased"
-            android:textColor="@color/forest_bg"
+            android:textColor="@color/btn_gold_text"
             android:backgroundTint="@color/emerald_accent"
             android:textStyle="bold" />
     </LinearLayout>

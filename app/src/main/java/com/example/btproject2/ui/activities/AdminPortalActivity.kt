@@ -4,6 +4,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
@@ -18,9 +20,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.btproject2.R
+import com.example.btproject2.utils.KinTraceAlert
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.AdminAuditLog
+import com.example.btproject2.models.ArchivedMemberRecord
+import com.example.btproject2.models.MergeCollisionRecord
+import com.example.btproject2.models.Person
 import com.example.btproject2.models.ReunionPassRecord
 import com.example.btproject2.models.SystemAnnouncement
 import java.security.MessageDigest
@@ -37,6 +43,24 @@ class AdminPortalActivity : AppCompatActivity() {
 
     private val firestoreHelper = FirestoreHelper()
     private val authHelper = AuthHelper()
+
+    // Option 3 Minimalist Chronometer Header Views
+    private lateinit var barCitadelHeader: View
+    private lateinit var tvCitadelAvatar: TextView
+    private lateinit var tvCitadelDate: TextView
+    private lateinit var tvCitadelGreeting: TextView
+    private lateinit var tvCitadelClock: TextView
+    private val clockHandler = Handler(Looper.getMainLooper())
+    private val clockRunnable = object : Runnable {
+        override fun run() {
+            val now = Date()
+            val dateFmt = SimpleDateFormat("EEEE, MMM d", Locale.getDefault())
+            val timeFmt = SimpleDateFormat("h:mm:ss a", Locale.getDefault())
+            tvCitadelDate.text = dateFmt.format(now).uppercase()
+            tvCitadelClock.text = timeFmt.format(now)
+            clockHandler.postDelayed(this, 1000L)
+        }
+    }
 
     // Navigation Tabs
     private lateinit var tabTelemetryBtn: TextView
@@ -84,6 +108,9 @@ class AdminPortalActivity : AppCompatActivity() {
     private lateinit var tvGhostTreeList: TextView
 
     // Quota & Passes
+    private lateinit var layoutQuotaQueueList: LinearLayout
+    private lateinit var tvEmptyQuotaQueue: TextView
+    private lateinit var btnRefreshQuotaQueue: TextView
     private lateinit var btnApproveMalone: Button
     private lateinit var tvMaloneStatus: TextView
     private lateinit var btnApproveSantos: Button
@@ -93,11 +120,13 @@ class AdminPortalActivity : AppCompatActivity() {
     private lateinit var tvGeneratedPassCode: TextView
     private lateinit var btnCopyPassCode: Button
 
-    // Ops Desk Controls
-    private lateinit var btnRestoreNode: Button
-    private lateinit var tvRestoreStatus: TextView
-    private lateinit var btnResolveCollision: Button
-    private lateinit var tvCollisionStatus: TextView
+    // Ops Desk Dynamic Containers
+    private lateinit var cardDeletedRecovery: View
+    private lateinit var layoutDeletedMembersList: LinearLayout
+    private lateinit var tvNoDeletedMembers: TextView
+    private lateinit var cardMergeCollision: View
+    private lateinit var layoutCollisionDocketsList: LinearLayout
+    private lateinit var tvNoCollisions: TextView
     private lateinit var btnSeedDemoClan: Button
     private lateinit var tvSeedStatus: TextView
     private lateinit var btnFlushDemoState: Button
@@ -120,6 +149,14 @@ class AdminPortalActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val currentEmail = authHelper.getCurrentUser()?.email
+        if (!com.example.btproject2.models.DemoAccountRepository.isAdminEmail(currentEmail)) {
+            KinTraceAlert.warning(this, "Access Denied", "Only System Administrators can access the Central Command Citadel.")
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_admin_portal)
 
         initViews()
@@ -131,18 +168,70 @@ class AdminPortalActivity : AppCompatActivity() {
         seedInitialAuditLogs()
         renderAuditLogs()
         loadLiveTelemetry()
+
+        val openTab = intent.getIntExtra("OPEN_TAB", -1)
+        if (openTab >= 0) {
+            switchTab(openTab)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val openTab = intent.getIntExtra("OPEN_TAB", -1)
+        if (openTab >= 0) {
+            switchTab(openTab)
+            val highlightMemberId = intent.getStringExtra("HIGHLIGHT_MEMBER_ID")
+            val highlightCollisionId = intent.getStringExtra("HIGHLIGHT_COLLISION_ID")
+            loadArchivedDeletedMembers(highlightMemberId)
+            loadMergeCollisions(highlightCollisionId)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        populateHeaderAdminProfile()
+        clockHandler.removeCallbacks(clockRunnable)
+        clockHandler.post(clockRunnable)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        clockHandler.removeCallbacks(clockRunnable)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        clockHandler.removeCallbacks(clockRunnable)
+    }
+
+    private fun populateHeaderAdminProfile() {
+        val user = authHelper.getCurrentUser()
+        val displayName = user?.displayName?.takeIf { it.isNotBlank() }
+            ?: user?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() }
+            ?: "Super Admin"
+        tvCitadelAvatar.text = displayName.firstOrNull()?.uppercase() ?: "A"
+        tvCitadelGreeting.text = "Hi, $displayName"
     }
 
     private fun initViews() {
-        findViewById<View>(R.id.btnBack).setOnClickListener {
-            showSignOutDialog()
-        }
-        findViewById<View?>(R.id.btnPreviewFeed)?.setOnClickListener {
-            val intent = Intent(this, HomeActivity::class.java).apply {
-                putExtra("ADMIN_PREVIEW_MODE", true)
+        barCitadelHeader = findViewById(R.id.barCitadelHeader)
+        tvCitadelAvatar = findViewById(R.id.tvCitadelAvatar)
+        tvCitadelDate = findViewById(R.id.tvCitadelDate)
+        tvCitadelGreeting = findViewById(R.id.tvCitadelGreeting)
+        tvCitadelClock = findViewById(R.id.tvCitadelClock)
+
+        barCitadelHeader.setOnClickListener {
+            val sheet = com.example.btproject2.ui.dialogs.SuperAdminProfileBottomSheet.newInstance()
+            sheet.onProfileUpdated = { newName ->
+                tvCitadelAvatar.text = newName.firstOrNull()?.uppercase() ?: "A"
+                tvCitadelGreeting.text = "Hi, $newName"
             }
-            startActivity(intent)
+            sheet.show(supportFragmentManager, com.example.btproject2.ui.dialogs.SuperAdminProfileBottomSheet.TAG)
         }
+
+        populateHeaderAdminProfile()
+
 
         // Tabs
         tabTelemetryBtn = findViewById(R.id.tabTelemetryBtn)
@@ -189,6 +278,9 @@ class AdminPortalActivity : AppCompatActivity() {
         tvGhostTreeList = findViewById(R.id.tvGhostTreeList)
 
         // Quota
+        layoutQuotaQueueList = findViewById(R.id.layoutQuotaQueueList)
+        tvEmptyQuotaQueue = findViewById(R.id.tvEmptyQuotaQueue)
+        btnRefreshQuotaQueue = findViewById(R.id.btnRefreshQuotaQueue)
         btnApproveMalone = findViewById(R.id.btnApproveMalone)
         tvMaloneStatus = findViewById(R.id.tvMaloneStatus)
         btnApproveSantos = findViewById(R.id.btnApproveSantos)
@@ -199,10 +291,12 @@ class AdminPortalActivity : AppCompatActivity() {
         btnCopyPassCode = findViewById(R.id.btnCopyPassCode)
 
         // Ops Desk
-        btnRestoreNode = findViewById(R.id.btnRestoreNode)
-        tvRestoreStatus = findViewById(R.id.tvRestoreStatus)
-        btnResolveCollision = findViewById(R.id.btnResolveCollision)
-        tvCollisionStatus = findViewById(R.id.tvCollisionStatus)
+        cardDeletedRecovery = findViewById(R.id.cardDeletedRecovery)
+        layoutDeletedMembersList = findViewById(R.id.layoutDeletedMembersList)
+        tvNoDeletedMembers = findViewById(R.id.tvNoDeletedMembers)
+        cardMergeCollision = findViewById(R.id.cardMergeCollision)
+        layoutCollisionDocketsList = findViewById(R.id.layoutCollisionDocketsList)
+        tvNoCollisions = findViewById(R.id.tvNoCollisions)
         btnSeedDemoClan = findViewById(R.id.btnSeedDemoClan)
         tvSeedStatus = findViewById(R.id.tvSeedStatus)
         btnFlushDemoState = findViewById(R.id.btnFlushDemoState)
@@ -242,6 +336,9 @@ class AdminPortalActivity : AppCompatActivity() {
         tabQuotaBtn.background = if (tabIndex == 2) activeBg else inactiveBg
         tabQuotaBtn.setTextColor(if (tabIndex == 2) activeColor else inactiveColor)
         layoutQuotaContent.visibility = if (tabIndex == 2) View.VISIBLE else View.GONE
+        if (tabIndex == 2) {
+            loadDynamicQuotaQueue()
+        }
 
         tabOpsBtn.background = if (tabIndex == 3) activeBg else inactiveBg
         tabOpsBtn.setTextColor(if (tabIndex == 3) activeColor else inactiveColor)
@@ -365,7 +462,7 @@ class AdminPortalActivity : AppCompatActivity() {
         val message = etBroadcastMessage.text.toString().trim()
 
         if (title.isBlank() || message.isBlank()) {
-            Toast.makeText(this, "Please enter both a title and message", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.warning(this, "Validation Notice", "Please enter both a title and message")
             return
         }
 
@@ -387,7 +484,7 @@ class AdminPortalActivity : AppCompatActivity() {
                 tvBroadcastStatus.text = "✅ System Broadcast published live to Firestore."
                 tvBroadcastStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
                 recordAudit("BROADCAST_PUBLISHED", "active_broadcast", "Dispatched: '$title' ($selectedSeverity to $selectedScope)")
-                Toast.makeText(this, "Broadcast published live!", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.telemetry(this, "Broadcast Published", "Broadcast published live to all devices!", "BROADCAST")
             },
             onFailure = { err ->
                 tvBroadcastStatus.text = "⚠️ Offline: Local preview saved (${err.message})"
@@ -403,7 +500,7 @@ class AdminPortalActivity : AppCompatActivity() {
                 tvBroadcastStatus.text = "🛑 Active broadcast retracted from all devices."
                 tvBroadcastStatus.setTextColor(ContextCompat.getColor(this, R.color.danger))
                 recordAudit("BROADCAST_RETRACTED", "active_broadcast", "Notice retracted by admin")
-                Toast.makeText(this, "Broadcast retracted.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.telemetry(this, "Broadcast Retracted", "Live alert removed from client feeds", "RETRACTED")
             },
             onFailure = {
                 tvBroadcastStatus.text = "🛑 Broadcast retracted locally."
@@ -419,7 +516,7 @@ class AdminPortalActivity : AppCompatActivity() {
             runOnUiThread {
                 tvTotalAccounts.text = "${telemetry.totalAccounts} Users"
                 tvTotalClans.text = "${telemetry.totalClans} Clans"
-                tvTotalNodes.text = "${telemetry.totalNodes} Nodes"
+                tvTotalNodes.text = "${telemetry.totalNodes} Members"
                 if (telemetry.isOnline) {
                     tvSystemStatus.text = "Online & Synced"
                     tvSystemStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
@@ -438,151 +535,375 @@ class AdminPortalActivity : AppCompatActivity() {
 
     private fun setupCapacityPruner() {
         btnPruneGhostTrees.setOnClickListener {
-            tvGhostTreeList.text = "✅ All 3 dormant / empty ghost tree records purged.\nReclaimed document slots for active clans."
-            tvPruneStatus.text = "✅ 3 Ghost Trees Purged • Database Optimized."
-            tvPruneStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
             btnPruneGhostTrees.isEnabled = false
-            recordAudit("GHOST_TREES_PRUNED", "tree_catalog", "Purged 3 dormant trees (Test_Empty_01, Draft_Sandbox_A, Orphan_Tree_99)")
-            loadLiveTelemetry()
-            Toast.makeText(this, "Purged 3 ghost trees successfully!", Toast.LENGTH_SHORT).show()
+            tvPruneStatus.text = "⏳ Scanning Firestore for unpopulated ghost trees..."
+            firestoreHelper.pruneDormantTrees(
+                onSuccess = { count, names ->
+                    runOnUiThread {
+                        if (count > 0) {
+                            val listSummary = names.joinToString(", ")
+                            tvGhostTreeList.text = "✅ Purged $count dormant / unpopulated tree record(s): $listSummary.\nReclaimed capacity for active clans."
+                            tvPruneStatus.text = "✅ $count Inactive Tree(s) Purged • Database Optimized."
+                        } else {
+                            tvGhostTreeList.text = "✅ Audit complete: 0 unpopulated ghost trees found. All registered clan trees contain active members."
+                            tvPruneStatus.text = "✅ 0 Dormant Trees • All Active Trees Verified."
+                        }
+                        tvPruneStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        recordAudit("INACTIVE_TREES_PURGED", "tree_catalog", "Pruned $count dormant tree(s): ${names.ifEmpty { listOf("None") }.joinToString()}")
+                        loadLiveTelemetry()
+                        KinTraceAlert.security(this, "Audit Purge Complete", "Pruned $count unpopulated tree(s) from Firestore.", "PURGED")
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnPruneGhostTrees.isEnabled = true
+                        tvPruneStatus.text = "⚠️ Purge failed: ${err.message}"
+                        tvPruneStatus.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                    }
+                }
+            )
         }
     }
 
     private fun setupQuotaAndPasses() {
+        btnRefreshQuotaQueue.setOnClickListener {
+            loadDynamicQuotaQueue()
+        }
+        loadDynamicQuotaQueue()
+
         btnApproveMalone.setOnClickListener {
-            tvMaloneStatus.text = "✅ Expansion Approved: Cap elevated from 50 to 200 members."
-            tvMaloneStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
             btnApproveMalone.isEnabled = false
-            recordAudit("CLAN_CAP_EXPANDED", "tree_malone", "Malone Clan quota elevated to 200 nodes")
-            Toast.makeText(this, "Malone Clan expansion approved!", Toast.LENGTH_SHORT).show()
+            val activeTreeId = com.example.btproject2.utils.TreePreferences.getActiveTreeId(this).ifBlank { "tree_malone" }
+            val activeTreeName = com.example.btproject2.utils.TreePreferences.getActiveTreeName(this).ifBlank { "Malone Clan" }
+            firestoreHelper.expandTreeMemberQuota(
+                treeId = activeTreeId,
+                treeName = activeTreeName,
+                newQuota = 200,
+                onSuccess = {
+                    runOnUiThread {
+                        tvMaloneStatus.text = "✅ Expansion Approved: Cap elevated from 50 to 200 members in Firestore."
+                        tvMaloneStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        recordAudit("CLAN_CAP_EXPANDED", activeTreeId, "$activeTreeName quota elevated to 200 members")
+                        KinTraceAlert.security(this, "Expansion Approved", "$activeTreeName expansion persisted (200 cap)!", "APPROVED")
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnApproveMalone.isEnabled = true
+                        tvMaloneStatus.text = "⚠️ Failed to update quota: ${err.message}"
+                    }
+                }
+            )
         }
 
         btnApproveSantos.setOnClickListener {
-            tvSantosStatus.text = "✅ Proactive Expansion Approved: Cap elevated to 200 members."
-            tvSantosStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
             btnApproveSantos.isEnabled = false
-            recordAudit("CLAN_CAP_EXPANDED", "tree_santos", "Santos-Reyes Heritage quota elevated to 200 nodes")
-            Toast.makeText(this, "Santos-Reyes proactive expansion approved!", Toast.LENGTH_SHORT).show()
+            firestoreHelper.expandTreeMemberQuota(
+                treeId = "tree_santos",
+                treeName = "Santos-Reyes Heritage",
+                newQuota = 200,
+                onSuccess = {
+                    runOnUiThread {
+                        tvSantosStatus.text = "✅ Proactive Expansion Approved: Cap elevated to 200 members in Firestore."
+                        tvSantosStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        recordAudit("CLAN_CAP_EXPANDED", "tree_santos", "Santos-Reyes Heritage quota elevated to 200 members")
+                        KinTraceAlert.security(this, "Expansion Approved", "Santos-Reyes proactive expansion persisted!", "APPROVED")
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnApproveSantos.isEnabled = true
+                        tvSantosStatus.text = "⚠️ Failed to update quota: ${err.message}"
+                    }
+                }
+            )
         }
 
         btnGenerateReunionPass.setOnClickListener {
-            val passCode = "REUNION-PASS-${(1000..9999).random()}"
+            val charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+            val passCode = (1..6).map { charset.random() }.joinToString("")
             layoutGeneratedPass.visibility = View.VISIBLE
             tvGeneratedPassCode.text = passCode
 
+            val activeTreeId = com.example.btproject2.utils.TreePreferences.getActiveTreeId(this).ifBlank { "tree_malone" }
+            val activeTreeName = com.example.btproject2.utils.TreePreferences.getActiveTreeName(this).ifBlank { "Malone Clan Reunion" }
+            val currentUserId = authHelper.getCurrentUserId().orEmpty().ifBlank { "system_admin" }
+
+            // 1. Register as a valid 6-character InviteCodeRecord so JoinTreeActivity accepts it
+            val thirtyDaysMs = 30L * 24L * 60L * 60L * 1000L
+            val inviteRecord = com.example.btproject2.models.InviteCodeRecord(
+                code = passCode,
+                treeId = activeTreeId,
+                treeName = activeTreeName,
+                createdBy = currentUserId,
+                createdAt = System.currentTimeMillis(),
+                expiresAt = System.currentTimeMillis() + thirtyDaysMs,
+                usageLimit = 0,
+                usageCount = 0,
+                status = com.example.btproject2.models.InviteCodeRecord.STATUS_ACTIVE
+            )
+            firestoreHelper.saveInviteCodeRecord(inviteRecord)
+            firestoreHelper.updateTreeInviteCode(activeTreeId, passCode, activeTreeName, currentUserId)
+
+            // 2. Also persist the ReunionPassRecord for Admin Citadel tracking
             val passRecord = ReunionPassRecord(
                 code = passCode,
-                treeId = "tree_malone",
-                treeName = "Malone Clan Reunion",
+                treeId = activeTreeId,
+                treeName = activeTreeName,
                 validDays = 30,
-                generatedBy = "admin@kintrace.ph"
+                generatedBy = authHelper.getCurrentUser()?.email ?: "admin@kintrace.ph"
             )
 
             firestoreHelper.saveReunionPass(
                 pass = passRecord,
                 onSuccess = {
-                    recordAudit("REUNION_PASS_GENERATED", passCode, "Generated 30-day reunion pass for Malone Clan")
+                    recordAudit("REUNION_PASS_GENERATED", passCode, "Generated 6-char 30-day reunion invite code ($passCode) for $activeTreeName")
                 },
                 onFailure = {
-                    recordAudit("REUNION_PASS_GENERATED", passCode, "Generated 30-day reunion pass (offline)")
+                    recordAudit("REUNION_PASS_GENERATED", passCode, "Generated 6-char 30-day reunion invite code (offline)")
                 }
             )
 
-            Toast.makeText(this, "Pass generated: $passCode", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.clipboard(this, "Pass Generated", "6-Char Join Code generated: $passCode", "GENERATED")
         }
 
         btnCopyPassCode.setOnClickListener {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Reunion Pass Code", tvGeneratedPassCode.text.toString())
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "Copied ${tvGeneratedPassCode.text} to clipboard!", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.clipboard(this, "Code Copied", "Copied ${tvGeneratedPassCode.text} to clipboard!")
         }
     }
 
-    private fun setupOpsDesk() {
-        btnRestoreNode.setOnClickListener {
-            tvRestoreStatus.text = "✅ Node Restored! Juan Dela Cruz re-linked to graph."
-            tvRestoreStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-            btnRestoreNode.isEnabled = false
-            recordAudit("NODE_RESTORED", "node_juan_delacruz", "Soft-delete flag cleared; restored ancestor node into tree_malone")
-            Toast.makeText(this, "Ancestor node restored & graph healed!", Toast.LENGTH_SHORT).show()
-        }
+    private fun loadDynamicQuotaQueue() {
+        tvEmptyQuotaQueue.visibility = View.VISIBLE
+        tvEmptyQuotaQueue.text = "🔄 Scanning Firestore for clans at or near their member cap..."
+        tvEmptyQuotaQueue.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+        layoutQuotaQueueList.removeAllViews()
 
-        btnResolveCollision.setOnClickListener {
-            tvCollisionStatus.text = "✅ Conflict resolved! Canonical Birth Year 1945 established."
-            tvCollisionStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-            btnResolveCollision.isEnabled = false
-            recordAudit("COLLISION_RESOLVED", "person_maria_santos", "Escalation #402 resolved: Birth year established as 1945")
-            Toast.makeText(this, "Branch conflict resolved successfully!", Toast.LENGTH_SHORT).show()
-        }
+        firestoreHelper.fetchQuotaQueueTrees(
+            includeAllForInspection = false,
+            onSuccess = { statuses ->
+                runOnUiThread {
+                layoutQuotaQueueList.removeAllViews()
+                if (statuses.isEmpty()) {
+                    tvEmptyQuotaQueue.visibility = View.VISIBLE
+                    tvEmptyQuotaQueue.text = "✅ All active clans are currently within their member quota limits. Any clan reaching ≥90% capacity or requesting a tier upgrade will appear here automatically."
+                    tvEmptyQuotaQueue.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                    return@runOnUiThread
+                }
+
+                tvEmptyQuotaQueue.visibility = View.GONE
+                val inflater = android.view.LayoutInflater.from(this)
+
+                for (status in statuses) {
+                    val cardView = inflater.inflate(R.layout.item_quota_queue_card, layoutQuotaQueueList, false)
+                    val tvTreeName = cardView.findViewById<TextView>(R.id.tvQuotaTreeName)
+                    val tvBadge = cardView.findViewById<TextView>(R.id.tvQuotaStatusBadge)
+                    val tvMeta = cardView.findViewById<TextView>(R.id.tvQuotaOwnerMeta)
+                    val btnApprove = cardView.findViewById<Button>(R.id.btnApproveQuotaExpansion)
+                    val tvActionStatus = cardView.findViewById<TextView>(R.id.tvQuotaActionStatus)
+
+                    val tree = status.tree
+                    val nextCap = status.nextQuota
+                    val delta = (nextCap - status.quota).coerceAtLeast(150)
+
+                    tvTreeName.text = tree.name.ifBlank { "Unnamed Clan" }
+                    tvBadge.text = status.badgeLabel
+                    tvMeta.text = status.metaSummary
+
+                    if (status.isCapped || tree.quotaExpansionRequested) {
+                        tvBadge.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                        btnApprove.text = "⚡ Approve Clan Expansion (+$delta Cap → $nextCap)"
+                        btnApprove.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.primary)
+                        )
+                        btnApprove.setTextColor(ContextCompat.getColor(this, R.color.white))
+                        tvActionStatus.text = if (tree.quotaExpansionRequested) {
+                            "🔔 Explicit expansion request submitted by owner (${status.liveMemberCount}/${status.quota})."
+                        } else {
+                            "Pending admin review (${status.liveMemberCount}/${status.quota} hard cap reached)."
+                        }
+                    } else {
+                        tvBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        btnApprove.text = "⚡ Approve Proactive Expansion (→ $nextCap Cap)"
+                        btnApprove.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.forest_card)
+                        )
+                        btnApprove.setTextColor(ContextCompat.getColor(this, R.color.primary))
+                        tvActionStatus.text = "Proactive upgrade available (${status.liveMemberCount}/${status.quota})."
+                    }
+
+                    btnApprove.setOnClickListener {
+                        btnApprove.isEnabled = false
+                        tvActionStatus.text = "⏳ Persisting $nextCap-member quota to Firestore..."
+                        firestoreHelper.expandTreeMemberQuota(
+                            treeId = tree.id,
+                            treeName = tree.name,
+                            newQuota = nextCap,
+                            onSuccess = {
+                                runOnUiThread {
+                                    tvBadge.text = "✅ ${status.liveMemberCount}/$nextCap Active"
+                                    tvBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                    tvActionStatus.text = "✅ Expansion Approved: Cap elevated from ${status.quota} to $nextCap members in Firestore."
+                                    tvActionStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                    btnApprove.text = "✓ Quota Expanded ($nextCap Cap)"
+                                    recordAudit(
+                                        "CLAN_CAP_EXPANDED",
+                                        tree.id,
+                                        "${tree.name} (${status.ownerEmail.ifBlank { tree.ownerId }}) quota elevated from ${status.quota} to $nextCap members"
+                                    )
+                                    KinTraceAlert.security(
+                                        this,
+                                        "Expansion Approved",
+                                        "${tree.name} expansion persisted ($nextCap member cap)!",
+                                        "APPROVED"
+                                    )
+                                }
+                            },
+                            onFailure = { err ->
+                                runOnUiThread {
+                                    btnApprove.isEnabled = true
+                                    tvActionStatus.text = "⚠️ Failed to update quota: ${err.message}"
+                                    tvActionStatus.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                                }
+                            }
+                        )
+                    }
+
+                    layoutQuotaQueueList.addView(cardView)
+                }
+            }
+            },
+            onFailure = { err ->
+                runOnUiThread {
+                    tvEmptyQuotaQueue.visibility = View.VISIBLE
+                    tvEmptyQuotaQueue.text = "⚠️ Failed to load quota queue: ${err.message}"
+                    tvEmptyQuotaQueue.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                }
+            }
+        )
+    }
+
+    private fun setupOpsDesk() {
+        val highlightMemberId = intent?.getStringExtra("HIGHLIGHT_MEMBER_ID")
+        val highlightCollisionId = intent?.getStringExtra("HIGHLIGHT_COLLISION_ID")
+
+        loadArchivedDeletedMembers(highlightMemberId)
+        loadMergeCollisions(highlightCollisionId)
 
         btnSeedDemoClan.setOnClickListener {
-            tvSeedStatus.text = "✅ 4-Generation Test Clan (24 Nodes) seeded into active session."
-            tvSeedStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-            recordAudit("DEMO_SANDBOX_SEEDED", "demo_session", "Seeded 24 test nodes for oral defense demonstration")
-            loadLiveTelemetry()
-            Toast.makeText(this, "24 test nodes seeded into emulator!", Toast.LENGTH_SHORT).show()
+            btnSeedDemoClan.isEnabled = false
+            tvSeedStatus.text = "⏳ Seeding isolated [DEMO] Heritage Sandbox Clan to Firestore..."
+            firestoreHelper.seedDemoSandboxClan(
+                onSuccess = { memberCount ->
+                    runOnUiThread {
+                        btnSeedDemoClan.isEnabled = true
+                        tvSeedStatus.text = "✅ 4-Generation Demo Sandbox Clan ($memberCount Members) seeded in Firestore."
+                        tvSeedStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        recordAudit("DEMO_SANDBOX_SEEDED", "tree_demo_sandbox", "Seeded $memberCount sample members into isolated [DEMO] Heritage Sandbox Clan")
+                        loadLiveTelemetry()
+                        KinTraceAlert.telemetry(this, "Demo Clan Seeded", "$memberCount sample members seeded into isolated Demo Tree!", "SEEDED")
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnSeedDemoClan.isEnabled = true
+                        tvSeedStatus.text = "⚠️ Failed to seed demo clan: ${err.message}"
+                    }
+                }
+            )
         }
 
         btnFlushDemoState.setOnClickListener {
-            tvFlushStatus.text = "✅ Sandbox reset to clean proposal defaults."
-            tvFlushStatus.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
-            recordAudit("DEMO_SANDBOX_FLUSHED", "demo_session", "Reset sandbox state to clean proposal defaults")
-            loadLiveTelemetry()
-            Toast.makeText(this, "Demo state reset to clean defaults.", Toast.LENGTH_SHORT).show()
+            btnFlushDemoState.isEnabled = false
+            tvFlushStatus.text = "⏳ Flushing demo sandbox & legacy test records from Firestore..."
+            firestoreHelper.flushDemoSandboxClan(
+                onSuccess = { removedCount ->
+                    runOnUiThread {
+                        btnFlushDemoState.isEnabled = true
+                        tvFlushStatus.text = "✅ Sandbox flushed ($removedCount demo member records & legacy seeds removed)."
+                        tvFlushStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        recordAudit("DEMO_SANDBOX_FLUSHED", "tree_demo_sandbox", "Flushed demo sandbox ($removedCount nodes) and legacy test records")
+                        loadArchivedDeletedMembers(null)
+                        loadMergeCollisions(null)
+                        loadLiveTelemetry()
+                        KinTraceAlert.telemetry(this, "Sandbox Flushed", "Demo sandbox and legacy test records purged from Firestore.", "RESET")
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnFlushDemoState.isEnabled = true
+                        tvFlushStatus.text = "⚠️ Failed to flush demo state: ${err.message}"
+                    }
+                }
+            )
         }
 
-        // OTA Release Desk Logic
+        // OTA Release Desk Logic (Zero-Cost GitHub Releases Integration)
         val etReleaseVersionName = findViewById<EditText>(R.id.etReleaseVersionName)
         val etReleaseVersionCode = findViewById<EditText>(R.id.etReleaseVersionCode)
         val etReleaseApkUrl = findViewById<EditText>(R.id.etReleaseApkUrl)
         val etReleaseNotes = findViewById<EditText>(R.id.etReleaseNotes)
 
-        firestoreHelper.fetchLatestAppVersion(
-            onSuccess = { config ->
-                if (config != null) {
-                    tvCurrentPublishedVersion.text = "Active Version: ${config.versionName} (Code ${config.versionCode})"
-                    if (config.releaseNotes.isNotBlank()) {
-                        tvVersionNotesPreview.text = config.releaseNotes.lines().firstOrNull() ?: "Active release"
-                    }
-                    if (etReleaseVersionCode.text.isBlank()) {
-                        etReleaseVersionCode.setText((config.versionCode + 1).toString())
-                    }
-                    if (etReleaseVersionName.text.isBlank()) {
-                        val currentMajorMinor = config.versionName.removePrefix("v").split(".")
-                        val nextVersionName = if (currentMajorMinor.size >= 2) {
-                            val minor = currentMajorMinor[1].toIntOrNull() ?: 2
-                            "v${currentMajorMinor[0]}.${minor + 1}.0"
-                        } else "v1.3.0"
-                        etReleaseVersionName.setText(nextVersionName)
-                    }
-                    if (etReleaseNotes.text.isBlank()) {
-                        etReleaseNotes.setText("• New Feature: \n• Performance optimization\n• System stability enhancement")
-                    }
-                    if (etReleaseApkUrl.text.isBlank() && config.apkDownloadUrl.isNotBlank()) {
-                        etReleaseApkUrl.setText(config.apkDownloadUrl)
+        com.example.btproject2.utils.InAppUpdateManager.syncCurrentReleaseToFirestore {
+            firestoreHelper.fetchLatestAppVersion(
+                onSuccess = { config ->
+                    if (config != null) {
+                        tvCurrentPublishedVersion.text = "Active Version: ${config.versionName} (Code ${config.versionCode})"
+                        if (config.releaseNotes.isNotBlank()) {
+                            tvVersionNotesPreview.text = config.releaseNotes.lines().firstOrNull() ?: "Active release"
+                        }
+                        if (etReleaseVersionCode.text.isBlank()) {
+                            etReleaseVersionCode.setText((config.versionCode + 1).toString())
+                        }
+                        val nextVersionName = if (etReleaseVersionName.text.isBlank()) {
+                            val currentMajorMinor = config.versionName.removePrefix("v").split(".")
+                            val computed = if (currentMajorMinor.size >= 2) {
+                                val minor = currentMajorMinor[1].toIntOrNull() ?: 2
+                                "v${currentMajorMinor[0]}.${minor + 1}.0"
+                            } else "v1.3.0"
+                            etReleaseVersionName.setText(computed)
+                            computed
+                        } else {
+                            etReleaseVersionName.text.toString().trim()
+                        }
+                        if (etReleaseNotes.text.isBlank()) {
+                            etReleaseNotes.setText("• Added new lineage features & UI enhancements\n• Zero-Cost GitHub Releases OTA auto-installer\n• Adaptive Dark & Light Mode semantic palette")
+                        }
+                        if (etReleaseApkUrl.text.isBlank()) {
+                            val defaultUrl = config.apkDownloadUrl.ifBlank {
+                                com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl(nextVersionName)
+                            }
+                            etReleaseApkUrl.setText(defaultUrl)
+                        }
                     }
                 }
-            }
-        )
+            )
+        }
 
         btnPublishVersionIncrement.setOnClickListener {
             val vName = etReleaseVersionName.text.toString().trim()
             val vCodeStr = etReleaseVersionCode.text.toString().trim()
             val vNotes = etReleaseNotes.text.toString().trim()
-            val vUrl = etReleaseApkUrl.text.toString().trim()
+            val rawUrl = etReleaseApkUrl.text.toString().trim()
 
             if (vName.isBlank()) {
                 etReleaseVersionName.error = "Version name required"
                 return@setOnClickListener
             }
-            val vCode = vCodeStr.toLongOrNull() ?: 2L
+            val vCode = vCodeStr.toLongOrNull() ?: 3L
+            val resolvedUrl = if (vCode >= 3L && rawUrl.isBlank()) {
+                com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl(vName)
+            } else {
+                rawUrl
+            }
 
             val nextConfig = com.example.btproject2.models.AppVersionConfig(
                 versionCode = vCode,
                 versionName = vName,
                 releaseNotes = if (vNotes.isNotBlank()) vNotes else "• System increment $vName",
-                apkDownloadUrl = vUrl,
+                apkDownloadUrl = resolvedUrl,
                 isMandatory = false,
                 publishedBy = authHelper.getCurrentUser()?.email ?: "admin@kintrace.ph"
             )
@@ -595,12 +916,12 @@ class AdminPortalActivity : AppCompatActivity() {
                 onSuccess = {
                     tvCurrentPublishedVersion.text = "Active Version: $vName (Code $vCode)"
                     tvVersionNotesPreview.text = nextConfig.releaseNotes.lines().firstOrNull() ?: "Active release"
-                    tvPublishVersionStatus.text = "✅ $vName (Code $vCode) deployed live to all client devices!"
+                    tvPublishVersionStatus.text = "✅ $vName (Code $vCode) deployed via GitHub Releases!"
                     tvPublishVersionStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
                     btnPublishVersionIncrement.isEnabled = true
                     com.example.btproject2.utils.InAppUpdateManager.clearDismissalCache(this)
-                    recordAudit("OTA_RELEASE_DEPLOYED", "app_version_$vName", "Deployed version increment $vName (Code $vCode) to Firestore")
-                    Toast.makeText(this, "Version $vName deployed to all client devices!", Toast.LENGTH_SHORT).show()
+                    recordAudit("OTA_RELEASE_DEPLOYED", "app_version_$vName", "Deployed version increment $vName (Code $vCode) pointing to $resolvedUrl")
+                    KinTraceAlert.telemetry(this, "Version $vName Deployed", "GitHub Release $vName published to client feeds!", "LIVE")
                 },
                 onFailure = { err ->
                     tvPublishVersionStatus.text = "⚠️ Deploy failed: ${err.message}"
@@ -609,6 +930,314 @@ class AdminPortalActivity : AppCompatActivity() {
                 }
             )
         }
+    }
+
+    private fun loadArchivedDeletedMembers(highlightMemberId: String? = null) {
+        layoutDeletedMembersList.removeAllViews()
+        firestoreHelper.getArchivedDeletedMembers(
+            onSuccess = { list ->
+                runOnUiThread {
+                    if (list.isEmpty()) {
+                        tvNoDeletedMembers.visibility = View.VISIBLE
+                        tvNoDeletedMembers.text = "🛡️ No archived deleted members. All lineages intact."
+                        tvNoDeletedMembers.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        layoutDeletedMembersList.visibility = View.GONE
+                    } else {
+                        tvNoDeletedMembers.visibility = View.GONE
+                        layoutDeletedMembersList.visibility = View.VISIBLE
+
+                        for (rec in list) {
+                            val itemView = layoutInflater.inflate(R.layout.item_deleted_member_recovery, layoutDeletedMembersList, false)
+                            val tvName = itemView.findViewById<TextView>(R.id.tvDeletedMemberName)
+                            val tvTree = itemView.findViewById<TextView>(R.id.tvDeletedMemberTree)
+                            val tvTimeAgo = itemView.findViewById<TextView>(R.id.tvDeletedTimeAgo)
+                            val tvDetails = itemView.findViewById<TextView>(R.id.tvDeletedMemberDetails)
+                            val btnRestore = itemView.findViewById<Button>(R.id.btnRestoreMemberItem)
+                            val tvStatus = itemView.findViewById<TextView>(R.id.tvDeletedMemberStatus)
+                            val rootCard = itemView.findViewById<View>(R.id.cardDeletedMemberRoot)
+
+                            val fullName = "${rec.person.firstName} ${rec.person.lastName}".trim().ifBlank { "Family Member" }
+                            val role = if (rec.person.lineageRole.isNotBlank()) rec.person.lineageRole else if (rec.person.gender.equals("Female", true)) "Daughter" else "Son"
+                            tvName.text = "$fullName ($role)"
+                            tvTree.text = "🌳 ${rec.treeName.ifBlank { "Family Tree" }}"
+
+                            val diffMs = System.currentTimeMillis() - rec.deletedAt
+                            val diffMins = diffMs / 60000
+                            val diffHours = diffMins / 60
+                            val timeStr = when {
+                                diffMins < 1 -> "Just now"
+                                diffMins < 60 -> "${diffMins}m ago"
+                                diffHours < 24 -> "${diffHours}h ago"
+                                else -> "${diffHours / 24}d ago"
+                            }
+                            tvTimeAgo.text = timeStr
+                            tvDetails.text = "ID: ${rec.id} • Deleted by ${rec.deletedByName.ifBlank { rec.deletedBy }}"
+
+                            // Pulse highlight if navigated from Recent Activities
+                            if (rec.id.equals(highlightMemberId, ignoreCase = true) ||
+                                (highlightMemberId != null && rec.person.firstName.contains(highlightMemberId, ignoreCase = true))) {
+                                rootCard.setBackgroundResource(R.drawable.bg_card_highlight_gold)
+                                rootCard.postDelayed({
+                                    rootCard.setBackgroundResource(R.drawable.bg_admin_code_box)
+                                }, 3500)
+                            }
+
+                            btnRestore.setOnClickListener {
+                                btnRestore.isEnabled = false
+                                tvStatus.text = "⏳ Restoring member to tree..."
+                                firestoreHelper.restoreArchivedMember(
+                                    recordId = rec.id,
+                                    onSuccess = { restoredPerson ->
+                                        runOnUiThread {
+                                            tvStatus.text = "✅ Restored! ${restoredPerson.firstName} re-linked to ${rec.treeName}."
+                                            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                            btnRestore.visibility = View.GONE
+                                            recordAudit("NODE_RESTORED", restoredPerson.id, "Restored ${restoredPerson.firstName} ${restoredPerson.lastName} to ${rec.treeName} via Ops Desk")
+                                            loadLiveTelemetry()
+                                            KinTraceAlert.restore(this, "Member Restored", "${restoredPerson.firstName} restored to ${rec.treeName} successfully!")
+
+                                            // Check if all items in the UI are now restored
+                                            val remainingUnrestored = (0 until layoutDeletedMembersList.childCount)
+                                                .map { layoutDeletedMembersList.getChildAt(it) }
+                                                .count { it.findViewById<Button>(R.id.btnRestoreMemberItem)?.visibility == View.VISIBLE }
+                                            if (remainingUnrestored == 0) {
+                                                tvNoDeletedMembers.visibility = View.VISIBLE
+                                                tvNoDeletedMembers.text = "🛡️ No archived deleted members. All lineages intact."
+                                                tvNoDeletedMembers.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                            }
+                                        }
+                                    },
+                                    onFailure = { err ->
+                                        runOnUiThread {
+                                            tvStatus.text = "⚠️ Restore failed: ${err.message}"
+                                            btnRestore.isEnabled = true
+                                        }
+                                    }
+                                )
+                            }
+
+                            layoutDeletedMembersList.addView(itemView)
+                        }
+                    }
+                }
+            },
+            onFailure = {
+                runOnUiThread {
+                    tvNoDeletedMembers.visibility = View.VISIBLE
+                    tvNoDeletedMembers.text = "⚠️ Unable to load archived members: ${it.message}"
+                    tvNoDeletedMembers.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                }
+            }
+        )
+    }
+
+    private fun loadMergeCollisions(highlightCollisionId: String? = null) {
+        layoutCollisionDocketsList.removeAllViews()
+        firestoreHelper.getOpenMergeCollisions(
+            onSuccess = { list ->
+                runOnUiThread {
+                    if (list.isEmpty()) {
+                        tvNoCollisions.visibility = View.VISIBLE
+                        tvNoCollisions.text = "⚖️ No unresolved merge collisions. All clan branches synthesized."
+                        tvNoCollisions.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        layoutCollisionDocketsList.visibility = View.GONE
+                    } else {
+                        tvNoCollisions.visibility = View.GONE
+                        layoutCollisionDocketsList.visibility = View.VISIBLE
+
+                        for (docket in list) {
+                            val itemView = layoutInflater.inflate(R.layout.item_collision_docket, layoutCollisionDocketsList, false)
+                            val tvTitle = itemView.findViewById<TextView>(R.id.tvDocketTitle)
+                            val tvSubtitle = itemView.findViewById<TextView>(R.id.tvDocketSubtitle)
+                            val tvDocketBadge = itemView.findViewById<TextView>(R.id.tvDocketBadge)
+                            val btnReport = itemView.findViewById<Button>(R.id.btnViewDocketReport)
+                            val btnResolve = itemView.findViewById<Button>(R.id.btnResolveDocket)
+                            val tvStatus = itemView.findViewById<TextView>(R.id.tvDocketStatus)
+                            val rootCard = itemView.findViewById<View>(R.id.cardCollisionDocketRoot)
+
+                            val docketNumber = docket.id.takeLast(4).uppercase()
+                            tvTitle.text = "Escalation #$docketNumber: ${docket.personAName} Conflict"
+                            tvSubtitle.text = docket.conflictSummary.ifBlank { "${docket.sourceTree1Name} ⇄ ${docket.sourceTree2Name}" }
+
+                            if (docket.status == MergeCollisionRecord.STATUS_RESOLVED) {
+                                tvDocketBadge.text = "RESOLVED"
+                                tvDocketBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                tvStatus.text = "✅ Conflict resolved. Canonical record established."
+                                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                btnResolve.visibility = View.GONE
+                                btnReport.text = "📄 View Resolved Dossier"
+                            } else {
+                                tvDocketBadge.text = "BLOCKED"
+                                tvDocketBadge.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                                tvStatus.text = "Branch conflict unresolved."
+                                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                                btnResolve.visibility = View.VISIBLE
+                                btnReport.text = "📄 View Full Report"
+                            }
+
+                            if (docket.id.equals(highlightCollisionId, ignoreCase = true)) {
+                                rootCard.setBackgroundResource(R.drawable.bg_card_highlight_gold)
+                                rootCard.postDelayed({
+                                    rootCard.setBackgroundResource(R.drawable.bg_admin_code_box)
+                                }, 3500)
+                            }
+
+                            val effectiveResolution = docket.suggestedResolution.ifBlank { "Canonical lineage record established" }
+                            btnReport.setOnClickListener {
+                                showCollisionReportDialog(docket) {
+                                    tvStatus.text = "✅ Conflict resolved! $effectiveResolution"
+                                    tvStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                    tvDocketBadge.text = "RESOLVED"
+                                    tvDocketBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                    btnResolve.visibility = View.GONE
+                                    btnReport.text = "📄 View Resolved Dossier"
+                                    loadLiveTelemetry()
+
+                                    val remainingUnresolved = (0 until layoutCollisionDocketsList.childCount)
+                                        .map { layoutCollisionDocketsList.getChildAt(it) }
+                                        .count { it.findViewById<Button>(R.id.btnResolveDocket)?.visibility == View.VISIBLE }
+                                    if (remainingUnresolved == 0) {
+                                        tvNoCollisions.visibility = View.VISIBLE
+                                        tvNoCollisions.text = "⚖️ No unresolved merge collisions. All clan branches synthesized."
+                                        tvNoCollisions.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                    }
+                                }
+                            }
+
+                            btnResolve.setOnClickListener {
+                                btnResolve.isEnabled = false
+                                tvStatus.text = "⏳ Resolving conflict in Firestore..."
+                                firestoreHelper.resolveMergeCollision(
+                                    collisionId = docket.id,
+                                    resolutionNote = effectiveResolution,
+                                    resolvedBy = authHelper.getCurrentUser()?.email ?: "admin@kintrace.ph",
+                                    onSuccess = {
+                                        runOnUiThread {
+                                            tvStatus.text = "✅ Conflict resolved! $effectiveResolution"
+                                            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                            tvDocketBadge.text = "RESOLVED"
+                                            tvDocketBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                            btnResolve.visibility = View.GONE
+                                            btnReport.text = "📄 View Resolved Dossier"
+                                            recordAudit("COLLISION_RESOLVED", docket.id, "Escalation #${docketNumber} resolved: $effectiveResolution")
+                                            loadLiveTelemetry()
+                                            KinTraceAlert.conflict(this, "Escalation Resolved", "Branch conflict resolved successfully!", "CANONICAL")
+
+                                            val remainingUnresolved = (0 until layoutCollisionDocketsList.childCount)
+                                                .map { layoutCollisionDocketsList.getChildAt(it) }
+                                                .count { it.findViewById<Button>(R.id.btnResolveDocket)?.visibility == View.VISIBLE }
+                                            if (remainingUnresolved == 0) {
+                                                tvNoCollisions.visibility = View.VISIBLE
+                                                tvNoCollisions.text = "⚖️ No unresolved merge collisions. All clan branches synthesized."
+                                                tvNoCollisions.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                                            }
+                                        }
+                                    },
+                                    onFailure = { err ->
+                                        runOnUiThread {
+                                            tvStatus.text = "⚠️ Resolution failed: ${err.message}"
+                                            btnResolve.isEnabled = true
+                                        }
+                                    }
+                                )
+                            }
+
+                            layoutCollisionDocketsList.addView(itemView)
+                        }
+                    }
+                }
+            },
+            onFailure = {
+                runOnUiThread {
+                    tvNoCollisions.visibility = View.VISIBLE
+                    tvNoCollisions.text = "⚠️ Unable to load merge collisions: ${it.message}"
+                    tvNoCollisions.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                }
+            }
+        )
+    }
+
+    private fun showCollisionReportDialog(docket: MergeCollisionRecord? = null, onResolved: (() -> Unit)? = null) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_merge_collision_report, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val docketNum = docket?.id?.takeLast(4)?.uppercase()?.ifBlank { "0001" } ?: "0001"
+        dialogView.findViewById<TextView>(R.id.tvCollisionDialogTitle)?.text =
+            "Escalation #$docketNum: Collision Dossier"
+        dialogView.findViewById<TextView>(R.id.tvCollisionDialogSubtitle)?.text =
+            "${docket?.personAName?.ifBlank { "Branch A" } ?: "Branch A"} vs ${docket?.personBName?.ifBlank { "Branch B" } ?: "Branch B"} • RA 10173 Audit"
+        dialogView.findViewById<TextView>(R.id.tvCollisionDialogSummary)?.text =
+            docket?.conflictDetails?.takeIf { it.isNotBlank() }
+                ?: "Automated merge between ${docket?.sourceTree1Name ?: "Branch A"} and ${docket?.sourceTree2Name ?: "Branch B"} was blocked to prevent lineage paradox."
+
+        dialogView.findViewById<TextView>(R.id.tvCollisionBranchAHeader)?.text =
+            docket?.sourceTree1Name?.takeIf { it.isNotBlank() } ?: "Branch A"
+        dialogView.findViewById<TextView>(R.id.tvCollisionBranchBHeader)?.text =
+            docket?.sourceTree2Name?.takeIf { it.isNotBlank() } ?: "Branch B"
+        dialogView.findViewById<TextView>(R.id.tvCollisionNameA)?.text =
+            docket?.personAName?.takeIf { it.isNotBlank() } ?: "—"
+        dialogView.findViewById<TextView>(R.id.tvCollisionNameB)?.text =
+            docket?.personBName?.takeIf { it.isNotBlank() } ?: "—"
+
+        val summaryParts = docket?.conflictSummary?.split("|")?.map { it.trim() }.orEmpty()
+        dialogView.findViewById<TextView>(R.id.tvCollisionBirthA)?.text =
+            summaryParts.getOrNull(0)?.ifBlank { docket?.conflictSummary ?: "—" } ?: "—"
+        dialogView.findViewById<TextView>(R.id.tvCollisionBirthB)?.text =
+            summaryParts.getOrNull(1)?.ifBlank { "—" } ?: "—"
+
+        dialogView.findViewById<TextView>(R.id.tvCollisionTypeA)?.text =
+            docket?.conflictType?.takeIf { it.isNotBlank() } ?: "LINEAGE_COLLISION"
+        dialogView.findViewById<TextView>(R.id.tvCollisionEscalatedBy)?.text =
+            docket?.escalatedBy?.takeIf { it.isNotBlank() } ?: "Automated Validation Engine"
+
+        val resolutionText = docket?.suggestedResolution?.takeIf { it.isNotBlank() }
+            ?: "Apply Canonical Lineage Resolution"
+        dialogView.findViewById<TextView>(R.id.tvCollisionRecommendation)?.text = resolutionText
+
+        val btnDialogResolve = dialogView.findViewById<TextView>(R.id.btnDialogResolveCollision)
+        val btnDialogDismiss = dialogView.findViewById<TextView>(R.id.btnDialogDismissReport)
+
+        if (docket?.status == MergeCollisionRecord.STATUS_RESOLVED) {
+            btnDialogResolve.text = "✅ Already Resolved"
+            btnDialogResolve.isEnabled = false
+            btnDialogResolve.alpha = 0.6f
+        } else {
+            btnDialogResolve.text = "⚖️ $resolutionText"
+        }
+
+        btnDialogResolve.setOnClickListener {
+            btnDialogResolve.isEnabled = false
+            dialog.dismiss()
+            val docketId = docket?.id?.takeIf { it.isNotBlank() } ?: return@setOnClickListener
+            firestoreHelper.resolveMergeCollision(
+                collisionId = docketId,
+                resolutionNote = resolutionText,
+                resolvedBy = authHelper.getCurrentUser()?.email ?: "admin@kintrace.ph",
+                onSuccess = {
+                    runOnUiThread {
+                        onResolved?.invoke()
+                        recordAudit("COLLISION_RESOLVED", docketId, "Escalation #$docketNum resolved via forensic dossier: $resolutionText")
+                        KinTraceAlert.conflict(this, "Canonical Resolution", "Branch conflict resolved via Canonical Dossier!", "CANONICAL")
+                    }
+                },
+                onFailure = {
+                    runOnUiThread {
+                        onResolved?.invoke()
+                        KinTraceAlert.conflict(this, "Local Resolution", "Resolved locally.", "LOCAL")
+                    }
+                }
+            )
+        }
+
+        btnDialogDismiss.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 
     private fun generateSha256Badge(actionType: String, targetId: String, timestamp: Long): String {
@@ -641,31 +1270,35 @@ class AdminPortalActivity : AppCompatActivity() {
 
     private fun seedInitialAuditLogs() {
         val now = System.currentTimeMillis()
-        auditLogs.add(
+        val fallbackLogs = listOf(
             AdminAuditLog(
                 id = "AUDIT_${now - 100000}",
                 actionType = "CITADEL_SESSION_INIT",
                 targetId = "citadel_hub",
-                details = "Admin session authenticated for Super Admin (admin@kintrace.ph)",
-                checkHash = "SHA256:4a8c91...7e2a",
+                details = "Admin session authenticated for Super Admin (${authHelper.getCurrentUser()?.email ?: "admin@kintrace.ph"})",
+                checkHash = generateSha256Badge("CITADEL_SESSION_INIT", "citadel_hub", now - 100000),
                 timestamp = now - 100000
             )
         )
-        auditLogs.add(
-            AdminAuditLog(
-                id = "AUDIT_${now - 300000}",
-                actionType = "TELEMETRY_HEALTH_CHECK",
-                targetId = "cloud_quota",
-                details = "Firestore read/write quota consumption evaluated at 76.8% and 71.0%",
-                checkHash = "SHA256:8f1b29...4c90",
-                timestamp = now - 300000
-            )
-        )
+        if (auditLogs.isEmpty()) {
+            auditLogs.addAll(fallbackLogs)
+        }
+        firestoreHelper.fetchAdminAuditLogs(limit = 15, onSuccess = { cloudLogs ->
+            runOnUiThread {
+                if (cloudLogs.isNotEmpty()) {
+                    val existingIds = cloudLogs.map { it.id }.toSet()
+                    val localUnsynced = auditLogs.filter { it.id !in existingIds && !it.id.startsWith("AUDIT_${now - 100000}") }
+                    auditLogs.clear()
+                    auditLogs.addAll((localUnsynced + cloudLogs).sortedByDescending { it.timestamp })
+                    renderAuditLogs()
+                }
+            }
+        })
     }
 
     private fun renderAuditLogs() {
         layoutAuditList.removeAllViews()
-        val timeFormat = SimpleDateFormat("hh:mm:ss a", Locale.getDefault())
+        val dateTimeFormat = SimpleDateFormat("MMM dd, yyyy · hh:mm:ss a", Locale.getDefault())
 
         for (log in auditLogs.take(5)) {
             val itemLayout = LinearLayout(this).apply {
@@ -686,8 +1319,8 @@ class AdminPortalActivity : AppCompatActivity() {
             }
 
             val tvTitle = TextView(this).apply {
-                text = "${timeFormat.format(Date(log.timestamp))} • ${log.actionType}"
-                textSize = 11f
+                text = "${dateTimeFormat.format(Date(log.timestamp))} • ${log.actionType}"
+                textSize = 10.5f
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 setTextColor(ContextCompat.getColor(this@AdminPortalActivity, R.color.text_primary))
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -721,15 +1354,7 @@ class AdminPortalActivity : AppCompatActivity() {
             .setTitle("Sign Out of Admin Session")
             .setMessage("Are you sure you want to sign out of the System Admin Citadel?")
             .setPositiveButton("Sign Out") { _, _ ->
-                authHelper.logout()
-                com.example.btproject2.utils.TreePreferences.clear(this)
-                com.example.btproject2.firebase.FirestoreHelper.clearCache()
-                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
-                val intent = Intent(this, LoginActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                startActivity(intent)
-                finish()
+                authHelper.performGlobalLogout(this)
             }
             .setNegativeButton("Cancel", null)
             .show()

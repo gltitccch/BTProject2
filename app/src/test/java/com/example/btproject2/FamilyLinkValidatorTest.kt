@@ -490,46 +490,29 @@ class FamilyLinkValidatorTest {
 
     @Test
     fun testSanitizeTreeRecordsAutoRepairsGhillainClaraRenzyAndEnforcesUniversalRules() {
-        val josePatriarch = Person(id = "id_jose", firstName = "Jose", lastName = "Bugarin", gender = "Male")
-        val unlinkedRenzy = renzy.copy(motherId = null, fatherId = null)
-        val unlinkedLuz = luz.copy(motherId = null, fatherId = null)
-        val unlinkedPedro = pedro.copy(spouseId = null, maritalStatus = "Single")
-        val unlinkedClara = clara.copy(spouseId = null, maritalStatus = "Single")
+        // Universal structural sanitization:
+        // Clara is mother of Renzy. If Ghillain has fatherId = Renzy AND motherId = Clara (mother-son co-parenting),
+        // sanitizeTreeRecords must disconnect the ancestor co-parent link universally without relying on hardcoded names.
         val corruptedGhillain = ghillain.copy(motherId = clara.id, fatherId = renzy.id)
+        val selfParented = pedro.copy(fatherId = pedro.id)
 
-        val rawTree = listOf(josePatriarch, unlinkedPedro, unlinkedClara, unlinkedRenzy, unlinkedLuz, corruptedGhillain)
+        val rawTree = listOf(selfParented, clara, renzy, luz, corruptedGhillain)
         val repairedTree = com.example.btproject2.firebase.FirestoreHelper.sanitizeTreeRecords(rawTree)
 
-        val repJose = repairedTree.first { it.id == josePatriarch.id }
         val repPedro = repairedTree.first { it.id == pedro.id }
         val repClara = repairedTree.first { it.id == clara.id }
         val repRenzy = repairedTree.first { it.id == renzy.id }
-        val repLuz = repairedTree.first { it.id == luz.id }
         val repGhillain = repairedTree.first { it.id == ghillain.id }
 
-        // 1. Pedro and Clara must be mutually married
-        assertEquals(repClara.id, repPedro.spouseId)
-        assertEquals(repPedro.id, repClara.spouseId)
-        assertEquals("Married", repPedro.maritalStatus)
-        assertEquals("Married", repClara.maritalStatus)
+        // 1. Self-parenting cycle on Pedro must be removed
+        assertNull("Self-parenting fatherId must be cleared", repPedro.fatherId)
 
-        // 2. Renzy & Clara are siblings sharing father Jose (Renzy is NOT child of Clara)
-        assertEquals(repJose.id, repRenzy.fatherId)
-        assertNull("Renzy must NOT have Clara as mother", repRenzy.motherId)
-        assertEquals(repJose.id, repClara.fatherId)
-        assertNotEquals("Renzy and Clara must NOT be parent and child", repClara.id, repRenzy.motherId)
+        // 2. Legitimate parent links on Renzy (father Pedro, mother Clara) remain untouched
+        assertEquals(repPedro.id, repRenzy.fatherId)
+        assertEquals(repClara.id, repRenzy.motherId)
 
-        // 3. Ghillain must NOT have Clara as mother and must NOT have Renzy as father
-        assertNotEquals("Ghillain mother must NOT be Clara", repClara.id, repGhillain.motherId)
-        assertEquals("Ghillain mother must be auto-assigned to Luz", repLuz.id, repGhillain.motherId)
-        assertNull("Ghillain father Renzy must be disconnected", repGhillain.fatherId)
-
-        // 4. Clara & Renzy must NOT have Ghillain as a child in lookups
-        val claraChildren = repairedTree.filter { it.fatherId == repClara.id || it.motherId == repClara.id }
-        assertFalse("Clara must NOT have Ghillain in her children", claraChildren.any { it.id == repGhillain.id })
-
-        val renzyChildren = repairedTree.filter { it.fatherId == repRenzy.id || it.motherId == repRenzy.id }
-        assertFalse("Renzy must NOT have Ghillain in his children", renzyChildren.any { it.id == repGhillain.id })
+        // 3. Prohibited mother-son co-parenting on Ghillain (mother Clara is ancestor of father Renzy) must disconnect Clara
+        assertNull("Ancestor co-parent (Clara) must be disconnected from Ghillain", repGhillain.motherId)
     }
 
     // ── Two Parents Cap & Error Message Verification Tests ────────

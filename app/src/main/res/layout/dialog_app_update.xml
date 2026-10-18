@@ -33,7 +33,7 @@
         android:paddingHorizontal="12dp"
         android:paddingVertical="4dp"
         android:text="KinTrace v1.2.0 Available"
-        android:textColor="#0A1B12"
+        android:textColor="@color/btn_gold_text"
         android:textSize="11sp"
         android:textStyle="bold" />
 
@@ -83,7 +83,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:lineSpacingExtra="3dp"
-            android:text="• Added System Admin Citadel Hub\n• Live Firestore telemetry &amp; aggregate tracking\n• Background OTA update downloader"
+            android:text="• Added System Admin Citadel Hub\n• Live system telemetry &amp; lineage tracking\n• Seamless background update downloader"
             android:textColor="@color/text_primary"
             android:textSize="11sp" />
     </LinearLayout>
@@ -140,7 +140,7 @@
         android:layout_marginTop="16dp"
         android:background="@drawable/btn_gold_primary"
         android:text="📥 Download &amp; Install Update"
-        android:textColor="#0A1B12"
+        android:textColor="@color/btn_gold_text"
         android:textSize="13sp"
         android:textStyle="bold"
         android:textAllCaps="false" />

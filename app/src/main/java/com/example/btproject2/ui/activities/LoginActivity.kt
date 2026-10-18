@@ -25,6 +25,14 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val bypassAuthCheck = intent.getBooleanExtra("bypass_auth_check", false)
+        if (bypassAuthCheck) {
+            authHelper.logout()
+            com.example.btproject2.utils.TreePreferences.clear(this)
+            com.example.btproject2.firebase.FirestoreHelper.clearCache()
+            com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
+            com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
+        }
+
         val currentUser = authHelper.getCurrentUser()
         if (currentUser != null && !bypassAuthCheck) {
             if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(currentUser.email)) {
@@ -203,6 +211,18 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, HomeActivity::class.java))
         }
         finish()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (intent.getBooleanExtra("bypass_auth_check", false)) {
+            authHelper.logout()
+            com.example.btproject2.utils.TreePreferences.clear(this)
+            com.example.btproject2.firebase.FirestoreHelper.clearCache()
+            com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
+            com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
+        }
     }
 
     private fun showMessage(title: String, message: String) {

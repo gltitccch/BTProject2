@@ -11,6 +11,7 @@ import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import com.example.btproject2.utils.KinTraceAlert
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.btproject2.R
@@ -40,6 +41,7 @@ class EditMemberActivity : AppCompatActivity() {
 
     private var selectedBirthDate = ""
     private var selectedDeathDate = ""
+    private var selectedMarriageDate = ""
     private var isSaving = false
     private var isViewer = false
     private var currentTreeName = "Family Tree"
@@ -62,6 +64,7 @@ class EditMemberActivity : AppCompatActivity() {
     private lateinit var spinnerMother: Spinner
     private lateinit var spinnerMotherType: Spinner
     private lateinit var spinnerSpouse: Spinner
+    private lateinit var etMarriageDate: EditText
     private lateinit var etBiography: EditText
     private lateinit var btnSave: Button
 
@@ -69,8 +72,8 @@ class EditMemberActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_member)
 
-        personId = intent.getStringExtra("personId") ?: run {
-            Toast.makeText(this, "No member selected", Toast.LENGTH_SHORT).show()
+        personId = intent.getStringExtra("personId") ?: intent.getStringExtra("PERSON_ID") ?: run {
+            KinTraceAlert.warning(this, "Selection Notice", "No member selected")
             finish()
             return
         }
@@ -85,6 +88,13 @@ class EditMemberActivity : AppCompatActivity() {
         checkViewerPermissions()
 
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
+
+        findViewById<TextView>(R.id.btnQuickAssistEditMember)?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.show(
+                this,
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.EDIT_MEMBER
+            )
+        }
 
         etFirstName = findViewById(R.id.etFirstName)
         etMiddleName = findViewById(R.id.etMiddleName)
@@ -104,6 +114,7 @@ class EditMemberActivity : AppCompatActivity() {
         spinnerMother = findViewById(R.id.spinnerMother)
         spinnerMotherType = findViewById(R.id.spinnerMotherType)
         spinnerSpouse = findViewById(R.id.spinnerSpouse)
+        etMarriageDate = findViewById(R.id.etMarriageDate)
         etBiography = findViewById(R.id.etBiography)
         btnSave = findViewById(R.id.btnSaveMember)
 
@@ -167,6 +178,26 @@ class EditMemberActivity : AppCompatActivity() {
             }.show()
         }
 
+        // Marriage Date Picker
+        etMarriageDate.setOnClickListener {
+            val cal = Calendar.getInstance()
+            DatePickerDialog(
+                this,
+                { _, y, m, d ->
+                    val c = Calendar.getInstance().also { it.set(y, m, d) }
+                    selectedMarriageDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(c.time)
+                    etMarriageDate.setText(
+                        SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(c.time)
+                    )
+                },
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+            ).also {
+                it.datePicker.maxDate = System.currentTimeMillis()
+            }.show()
+        }
+
         loadMemberData()
 
         btnSave.setOnClickListener {
@@ -196,7 +227,8 @@ class EditMemberActivity : AppCompatActivity() {
             val effectiveDeathDate = if (selectedDeathDate.isNotBlank()) selectedDeathDate else enteredDeathDate
 
             if (!isLiving && selectedBirthDate.isNotBlank() && effectiveDeathDate.isNotBlank()) {
-                if (effectiveDeathDate < selectedBirthDate) {
+                val cmp = com.example.btproject2.engine.FamilyLinkValidator.compareDatesChronologically(effectiveDeathDate, selectedBirthDate)
+                if (cmp != null && cmp < 0) {
                     showMessage("Invalid Date", "Date of passing cannot be earlier than birthdate.")
                     return@setOnClickListener
                 }
@@ -213,6 +245,11 @@ class EditMemberActivity : AppCompatActivity() {
             val fatherRelationshipType = if (fatherId != null) spinnerFatherType.selectedItem?.toString() ?: "Biological" else "Biological"
             val motherRelationshipType = if (motherId != null) spinnerMotherType.selectedItem?.toString() ?: "Biological" else "Biological"
 
+            val enteredMarriageDate = etMarriageDate.text.toString().trim()
+            val effectiveMarriageDate = if (!spouseId.isNullOrEmpty()) {
+                if (selectedMarriageDate.isNotBlank()) selectedMarriageDate else enteredMarriageDate
+            } else ""
+
             val originalPerson = currentPerson ?: return@setOnClickListener
 
             val updated = originalPerson.copy(
@@ -227,6 +264,7 @@ class EditMemberActivity : AppCompatActivity() {
                 deathDate = if (!isLiving) effectiveDeathDate else "",
                 deathPlace = if (!isLiving) deathPlace else "",
                 maritalStatus = if (!spouseId.isNullOrEmpty()) "Married" else civil,
+                marriageDate = effectiveMarriageDate,
                 fatherId = fatherId,
                 fatherRelationshipType = fatherRelationshipType,
                 motherId = motherId,
@@ -256,6 +294,18 @@ class EditMemberActivity : AppCompatActivity() {
                 .distinctBy { it.id.trim().lowercase() }
             val treeMap = effectiveMembers.associateBy { it.id }.toMutableMap()
             treeMap[updated.id] = updated
+
+            // Mandatory Step-Parent Rule: Step-parent cannot be saved as biological parent
+            if ((fatherId != null && fatherRelationshipType.equals("Step", ignoreCase = true)) ||
+                (motherId != null && motherRelationshipType.equals("Step", ignoreCase = true))
+            ) {
+                AlertDialog.Builder(this)
+                    .setTitle("Cannot Save Step-Parent as Direct Parent")
+                    .setMessage("Under Philippine family law and application rules, a step-parent must not be saved as a biological parent. A step-parent relationship arises automatically from marriage to the child's biological parent.\n\nA step-parent can only be recorded as a direct parent if there is an explicit legal adoption. If this person was legally adopted, please select 'Adoptive'.")
+                    .setPositiveButton("Understood", null)
+                    .show()
+                return@setOnClickListener
+            }
 
             // Central Service Father Validation
             if (fatherId != null) {
@@ -433,7 +483,7 @@ class EditMemberActivity : AppCompatActivity() {
             val target = sanitized.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
                 ?: FirestoreHelper.getCachedPersons(preferredTreeId.ifBlank { null })?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId) }
             if (target == null) {
-                Toast.makeText(this, "Member not found", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.warning(this, "Not Found", "Member not found")
                 finish()
             } else {
                 val effectiveTreeId = target.treeId.ifBlank { preferredTreeId }
@@ -466,21 +516,21 @@ class EditMemberActivity : AppCompatActivity() {
                         processMembers(members)
                     } else {
                         firestoreHelper.getAllPersons(processMembers) {
-                            Toast.makeText(this, "Failed to load member data", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.warning(this, "Load Error", "Failed to load member data")
                             finish()
                         }
                     }
                 },
                 onFailure = {
                     firestoreHelper.getAllPersons(processMembers) {
-                        Toast.makeText(this, "Failed to load member data", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.warning(this, "Load Error", "Failed to load member data")
                         finish()
                     }
                 }
             )
         } else {
             firestoreHelper.getAllPersons(processMembers) {
-                Toast.makeText(this, "Failed to load member data", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.warning(this, "Load Error", "Failed to load member data")
                 finish()
             }
         }
@@ -519,6 +569,9 @@ class EditMemberActivity : AppCompatActivity() {
         etDeathDate.setText(p.deathDate)
         etDeathPlace.setText(p.deathPlace)
 
+        selectedMarriageDate = p.marriageDate
+        etMarriageDate.setText(p.marriageDate)
+
         val relOptions = listOf("Biological", "Adoptive", "Step")
         val fatherRelIdx = relOptions.indexOfFirst { it.equals(p.fatherRelationshipType, ignoreCase = true) }
         spinnerFatherType.setSelection(if (fatherRelIdx >= 0) fatherRelIdx else 0)
@@ -531,13 +584,20 @@ class EditMemberActivity : AppCompatActivity() {
 
     private fun refreshCandidateSpinners() {
         val target = currentPerson ?: return
-        val targetWithDate = target.copy(birthDate = selectedBirthDate)
+        val targetWithDate = target.copy(birthDate = selectedBirthDate, fatherId = null, motherId = null)
 
         val currentFather = allMembers.find { it.id == target.fatherId }
         val currentMother = allMembers.find { it.id == target.motherId }
 
+        isUpdatingSpinners = true
+
         // Eligible Fathers using FamilyLinkValidator
-        maleMembers = com.example.btproject2.engine.FamilyLinkValidator.getEligibleFathers(targetWithDate, currentMother, allMembers)
+        maleMembers = com.example.btproject2.engine.FamilyLinkValidator.getEligibleFathers(
+            targetWithDate,
+            currentMother,
+            allMembers,
+            preferredOtherParentId = target.fatherId
+        )
         val fatherNames = mutableListOf("-- None --")
         fatherNames.addAll(maleMembers.map { "${it.firstName} ${it.lastName}" })
         spinnerFather.setDarkAdapter(this, fatherNames)
@@ -545,7 +605,12 @@ class EditMemberActivity : AppCompatActivity() {
         if (selectedFatherIdx >= 0) spinnerFather.setSelection(selectedFatherIdx + 1)
 
         // Eligible Mothers using FamilyLinkValidator
-        femaleMembers = com.example.btproject2.engine.FamilyLinkValidator.getEligibleMothers(targetWithDate, currentFather, allMembers)
+        femaleMembers = com.example.btproject2.engine.FamilyLinkValidator.getEligibleMothers(
+            targetWithDate,
+            currentFather,
+            allMembers,
+            preferredOtherParentId = target.motherId
+        )
         val motherNames = mutableListOf("-- None --")
         motherNames.addAll(femaleMembers.map { "${it.firstName} ${it.lastName}" })
         spinnerMother.setDarkAdapter(this, motherNames)
@@ -560,16 +625,26 @@ class EditMemberActivity : AppCompatActivity() {
         val selectedSpouseIdx = eligibleSpouses.indexOfFirst { it.id == currentPerson?.spouseId }
         if (selectedSpouseIdx >= 0) spinnerSpouse.setSelection(selectedSpouseIdx + 1)
 
+        lastSelectedFatherId = if (selectedFatherIdx >= 0) maleMembers[selectedFatherIdx].id else null
+        lastSelectedMotherId = if (selectedMotherIdx >= 0) femaleMembers[selectedMotherIdx].id else null
+
+        isUpdatingSpinners = false
+
         setupCoParentSpinnerListeners(targetWithDate)
     }
 
     private var isUpdatingSpinners = false
+    private var lastSelectedFatherId: String? = null
+    private var lastSelectedMotherId: String? = null
 
     private fun setupCoParentSpinnerListeners(targetWithDate: Person) {
         spinnerFather.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (isUpdatingSpinners) return
                 val selectedFather = if (position > 0 && position - 1 < maleMembers.size) maleMembers[position - 1] else null
+                if (selectedFather?.id == lastSelectedFatherId) return
+                lastSelectedFatherId = selectedFather?.id
+
                 val currentMother = if (spinnerMother.selectedItemPosition > 0 && spinnerMother.selectedItemPosition - 1 < femaleMembers.size) femaleMembers[spinnerMother.selectedItemPosition - 1] else null
 
                 isUpdatingSpinners = true
@@ -577,22 +652,38 @@ class EditMemberActivity : AppCompatActivity() {
                 val motherNames = mutableListOf("-- None --")
                 motherNames.addAll(femaleMembers.map { "${it.firstName} ${it.lastName}" })
                 spinnerMother.setDarkAdapter(this@EditMemberActivity, motherNames)
-                if (currentMother != null) {
+
+                val linkedSpouse = com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouse(selectedFather, allMembers)
+                val linkedSpouseIdx = if (linkedSpouse != null) {
+                    femaleMembers.indexOfFirst { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, linkedSpouse.id) }
+                } else -1
+
+                if (selectedFather != null && linkedSpouseIdx >= 0) {
+                    spinnerMother.setSelection(linkedSpouseIdx + 1)
+                    lastSelectedMotherId = femaleMembers[linkedSpouseIdx].id
+                } else if (currentMother != null) {
                     val newIdx = femaleMembers.indexOfFirst { it.id == currentMother.id }
                     if (newIdx >= 0) {
                         spinnerMother.setSelection(newIdx + 1)
+                        lastSelectedMotherId = femaleMembers[newIdx].id
                     } else {
                         spinnerMother.setSelection(0)
-                        val currentUserId = authHelper.getCurrentUserId().orEmpty()
-                        val notif = NotificationHelper.createValidationConflictNotification(
-                            treeId = currentPerson?.treeId?.ifEmpty { TreePreferences.getActiveTreeId(this@EditMemberActivity) } ?: TreePreferences.getActiveTreeId(this@EditMemberActivity),
-                            userId = currentUserId,
-                            memberName = "${currentMother.firstName} ${currentMother.lastName}".trim(),
-                            conflictDetails = "Co-parenting blocked: ${currentMother.firstName} removed as mother because co-parenting is prohibited with ${selectedFather?.firstName} under Family Code Arts. 37/38."
-                        )
-                        firestoreHelper.addNotification(notif)
-                        Toast.makeText(this@EditMemberActivity, "${currentMother.firstName} removed as mother (co-parenting prohibited with ${selectedFather?.firstName})", Toast.LENGTH_SHORT).show()
+                        lastSelectedMotherId = null
+                        if (selectedFather != null && linkedSpouse == null) {
+                            val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                            val notif = NotificationHelper.createValidationConflictNotification(
+                                treeId = currentPerson?.treeId?.ifEmpty { TreePreferences.getActiveTreeId(this@EditMemberActivity) } ?: TreePreferences.getActiveTreeId(this@EditMemberActivity),
+                                userId = currentUserId,
+                                memberName = "${currentMother.firstName} ${currentMother.lastName}".trim(),
+                                conflictDetails = "Co-parenting blocked: ${currentMother.firstName} removed as mother because co-parenting is prohibited with ${selectedFather.firstName} under Family Code Arts. 37/38."
+                            )
+                            firestoreHelper.addNotification(notif)
+                            KinTraceAlert.warning(this@EditMemberActivity, "Rule Blocked", "${currentMother.firstName} removed as mother (co-parenting prohibited with ${selectedFather.firstName})")
+                        }
                     }
+                } else {
+                    spinnerMother.setSelection(0)
+                    lastSelectedMotherId = null
                 }
                 isUpdatingSpinners = false
             }
@@ -603,6 +694,9 @@ class EditMemberActivity : AppCompatActivity() {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (isUpdatingSpinners) return
                 val selectedMother = if (position > 0 && position - 1 < femaleMembers.size) femaleMembers[position - 1] else null
+                if (selectedMother?.id == lastSelectedMotherId) return
+                lastSelectedMotherId = selectedMother?.id
+
                 val currentFather = if (spinnerFather.selectedItemPosition > 0 && spinnerFather.selectedItemPosition - 1 < maleMembers.size) maleMembers[spinnerFather.selectedItemPosition - 1] else null
 
                 isUpdatingSpinners = true
@@ -610,22 +704,38 @@ class EditMemberActivity : AppCompatActivity() {
                 val fatherNames = mutableListOf("-- None --")
                 fatherNames.addAll(maleMembers.map { "${it.firstName} ${it.lastName}" })
                 spinnerFather.setDarkAdapter(this@EditMemberActivity, fatherNames)
-                if (currentFather != null) {
+
+                val linkedSpouse = com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouse(selectedMother, allMembers)
+                val linkedSpouseIdx = if (linkedSpouse != null) {
+                    maleMembers.indexOfFirst { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, linkedSpouse.id) }
+                } else -1
+
+                if (selectedMother != null && linkedSpouseIdx >= 0) {
+                    spinnerFather.setSelection(linkedSpouseIdx + 1)
+                    lastSelectedFatherId = maleMembers[linkedSpouseIdx].id
+                } else if (currentFather != null) {
                     val newIdx = maleMembers.indexOfFirst { it.id == currentFather.id }
                     if (newIdx >= 0) {
                         spinnerFather.setSelection(newIdx + 1)
+                        lastSelectedFatherId = maleMembers[newIdx].id
                     } else {
                         spinnerFather.setSelection(0)
-                        val currentUserId = authHelper.getCurrentUserId().orEmpty()
-                        val notif = NotificationHelper.createValidationConflictNotification(
-                            treeId = currentPerson?.treeId?.ifEmpty { TreePreferences.getActiveTreeId(this@EditMemberActivity) } ?: TreePreferences.getActiveTreeId(this@EditMemberActivity),
-                            userId = currentUserId,
-                            memberName = "${currentFather.firstName} ${currentFather.lastName}".trim(),
-                            conflictDetails = "Co-parenting blocked: ${currentFather.firstName} removed as father because co-parenting is prohibited with ${selectedMother?.firstName} under Family Code Arts. 37/38."
-                        )
-                        firestoreHelper.addNotification(notif)
-                        Toast.makeText(this@EditMemberActivity, "${currentFather.firstName} removed as father (co-parenting prohibited with ${selectedMother?.firstName})", Toast.LENGTH_SHORT).show()
+                        lastSelectedFatherId = null
+                        if (selectedMother != null && linkedSpouse == null) {
+                            val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                            val notif = NotificationHelper.createValidationConflictNotification(
+                                treeId = currentPerson?.treeId?.ifEmpty { TreePreferences.getActiveTreeId(this@EditMemberActivity) } ?: TreePreferences.getActiveTreeId(this@EditMemberActivity),
+                                userId = currentUserId,
+                                memberName = "${currentFather.firstName} ${currentFather.lastName}".trim(),
+                                conflictDetails = "Co-parenting blocked: ${currentFather.firstName} removed as father because co-parenting is prohibited with ${selectedMother.firstName} under Family Code Arts. 37/38."
+                            )
+                            firestoreHelper.addNotification(notif)
+                            KinTraceAlert.warning(this@EditMemberActivity, "Rule Blocked", "${currentFather.firstName} removed as father (co-parenting prohibited with ${selectedMother.firstName})")
+                        }
                     }
+                } else {
+                    spinnerFather.setSelection(0)
+                    lastSelectedFatherId = null
                 }
                 isUpdatingSpinners = false
             }
@@ -662,7 +772,7 @@ class EditMemberActivity : AppCompatActivity() {
             )
 
             setSavingState(false)
-            Toast.makeText(this, "Member updated successfully", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Member updated successfully")
             val returnIntent = Intent().apply {
                 putExtra("updatedPersonId", updatedPerson.id)
             }
@@ -687,6 +797,7 @@ class EditMemberActivity : AppCompatActivity() {
                             personId = updatedPerson.id,
                             spouseId = updatedPerson.spouseId,
                             maritalStatus = updatedPerson.maritalStatus,
+                            marriageDate = updatedPerson.marriageDate,
                             onSuccess = { onSaveCompleted() },
                             onFailure = { onSaveCompleted() } // Always complete gracefully
                         )

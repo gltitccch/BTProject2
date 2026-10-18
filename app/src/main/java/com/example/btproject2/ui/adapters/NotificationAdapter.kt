@@ -36,6 +36,10 @@ class NotificationAdapter(
 
         // Category icon & label
         when (item.type.uppercase()) {
+            "ADVISORY" -> {
+                holder.tvIcon.text = "⚠️"
+                holder.tvCategory.text = "ADVISORY"
+            }
             "ACCESS" -> {
                 holder.tvIcon.text = "🔑"
                 holder.tvCategory.text = "ACCESS"

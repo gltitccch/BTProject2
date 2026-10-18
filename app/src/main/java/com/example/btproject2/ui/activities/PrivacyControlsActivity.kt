@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -201,11 +203,9 @@ class PrivacyControlsActivity : AppCompatActivity() {
                 loadTreeData(activeTree, currentUserId)
             },
             onFailure = {
-                // If tree cannot be fetched, default to owner view for safety
-                layoutOwnerView.visibility = View.VISIBLE
-                layoutOwnerGate.visibility = View.GONE
-                loadPrivacySettings()
-                loadMembers()
+                // Fail-closed if tree ownership cannot be verified
+                layoutOwnerView.visibility = View.GONE
+                layoutOwnerGate.visibility = View.VISIBLE
             }
         )
     }
@@ -249,10 +249,10 @@ class PrivacyControlsActivity : AppCompatActivity() {
         firestoreHelper.getTreeMembers(treeId,
             onSuccess = { members ->
                 if (members.isEmpty()) {
-                    // Seed initial owner member if none exist
+                    // Seed initial owner member in Firestore if none exist
                     val currentUserId = authHelper.getCurrentUserId() ?: ""
                     val owner = TreeMember(
-                        id = "owner_default",
+                        id = "${treeId}_${currentUserId}".trim('_').ifBlank { "owner_default" },
                         treeId = treeId,
                         userId = currentUserId,
                         userName = authHelper.getCurrentUser()?.displayName ?: "Tree Owner",
@@ -260,6 +260,9 @@ class PrivacyControlsActivity : AppCompatActivity() {
                         role = "Owner",
                         status = "Approved"
                     )
+                    if (treeId.isNotBlank() && currentUserId.isNotBlank()) {
+                        firestoreHelper.addTreeMember(owner, onSuccess = {}, onFailure = {})
+                    }
                     authorizedAdapter.submitList(listOf(owner))
                 } else {
                     val approved = members.filter { it.status.equals("Approved", ignoreCase = true) }
@@ -285,7 +288,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
             ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(this).takeIf { it.isNotBlank() }
 
         if (targetTreeId.isNullOrBlank()) {
-            Toast.makeText(this, "Please select or create a family tree first.", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Please select or create a family tree first.")
             return
         }
 
@@ -344,7 +347,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("KinTrace Tree Invite Code", code)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "Invite code $code copied to clipboard!", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Invite code $code copied to clipboard!")
         }
 
         dialog.show()
@@ -380,11 +383,11 @@ class PrivacyControlsActivity : AppCompatActivity() {
                     firestoreHelper.addNotification(notif)
                 }
 
-                Toast.makeText(this, "Updated ${member.userName}'s role to $newRole", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Updated ${member.userName}'s role to $newRole")
                 loadMembers()
             },
             onFailure = {
-                Toast.makeText(this, "Failed to update role", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Failed to update role")
             }
         )
     }
@@ -411,11 +414,11 @@ class PrivacyControlsActivity : AppCompatActivity() {
                             firestoreHelper.addNotification(notif)
                         }
 
-                        Toast.makeText(this, "${member.userName} removed", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "${member.userName} removed")
                         loadMembers()
                     },
                     onFailure = {
-                        Toast.makeText(this, "Failed to remove member", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to remove member")
                     }
                 )
             }
@@ -444,11 +447,11 @@ class PrivacyControlsActivity : AppCompatActivity() {
                             firestoreHelper.addNotification(notif)
                         }
 
-                        Toast.makeText(this, "${member.userName} approved as $assignedRole", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "${member.userName} approved as $assignedRole")
                         loadMembers()
                     },
                     onFailure = {
-                        Toast.makeText(this, "Approval failed", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Approval failed")
                     }
                 )
             }
@@ -476,11 +479,11 @@ class PrivacyControlsActivity : AppCompatActivity() {
                             firestoreHelper.addNotification(notif)
                         }
 
-                        Toast.makeText(this, "Request rejected", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Request rejected")
                         loadMembers()
                     },
                     onFailure = {
-                        Toast.makeText(this, "Rejection failed", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Rejection failed")
                     }
                 )
             }
@@ -490,6 +493,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
 
     private fun savePrivacySettings() {
         val updated = currentSettings.copy(
+            treeId = treeId,
             isPrivateTree = switchPrivateTree.isChecked,
             hideBirthDates = switchHideBirthDates.isChecked,
             hideNotes = switchHideNotes.isChecked,
@@ -513,13 +517,13 @@ class PrivacyControlsActivity : AppCompatActivity() {
 
                 btnSavePrivacy.isEnabled = true
                 btnSavePrivacy.text = "Save Privacy Settings"
-                Toast.makeText(this, "Privacy settings saved", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Privacy settings saved")
                 finish()
             },
             onFailure = {
                 btnSavePrivacy.isEnabled = true
                 btnSavePrivacy.text = "Save Privacy Settings"
-                Toast.makeText(this, "Failed to save privacy settings: ${it.message}", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Failed to save privacy settings: ${it.message}")
             }
         )
     }

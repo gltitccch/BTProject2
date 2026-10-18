@@ -24,7 +24,8 @@ object EducationalContentRepository {
         MERGE_BRANCHES,
         PRIVACY_CONTROLS,
         TREE_AUDIT,
-        EXPORT_TREE
+        EXPORT_TREE,
+        INSIGHTS
     }
 
     data class QuickAssistPayload(
@@ -72,15 +73,15 @@ object EducationalContentRepository {
         return when (context) {
             QuickAssistContext.HOME_DASHBOARD -> QuickAssistPayload(
                 context = context,
-                title = "Dashboard & Clan Quest",
-                subtitle = "Mastering the KinTrace Hub & Onboarding Milestones",
+                title = "Dashboard & Clan Hub",
+                subtitle = "Multi-Tree Switching, Role Badges & Real-Time Sync",
                 proTips = listOf(
-                    "Phase 1 vs Phase 2: Fresh accounts focus strictly on planting a tree or joining via code. Once active, Phase 2 unlocks full clan exploration tools.",
-                    "Clan Builder Quest HUD: Complete all 4 onboarding milestones (Plant Tree → Add 2 Members → Explore Canvas → Share Code) to activate your clan.",
-                    "Multi-Tree Switching: Maintain distinct paternal and maternal family trees. Tap your tree title anytime to switch clans."
+                    "Multi-Tree Switching: Maintain distinct paternal and maternal family trees. Tap your tree title anytime to switch active clans.",
+                    "Role-Based Access Badges: Your active permission level (Owner, Editor, or Viewer) is enforced in real time across all tools.",
+                    "Clan Builder Quest HUD: Complete all 4 onboarding milestones (Plant Tree → Add 2 Members → Explore Canvas → Share Code) to activate your clan."
                 ),
                 legalGuardrails = listOf(
-                    "All account onboarding states are strictly isolated per user and will never cross-contaminate between different accounts on the same device."
+                    "All account onboarding states and role permissions are strictly isolated per user and synchronized reactively via Cloud Firestore."
                 ),
                 targetAcademyModuleId = 1,
                 actionCtaText = "Open Getting Started Masterclass →"
@@ -88,13 +89,12 @@ object EducationalContentRepository {
 
             QuickAssistContext.CANVAS -> QuickAssistPayload(
                 context = context,
-                title = "Canvas & Pedigree Mastery",
-                subtitle = "Touch Gestures, Node Badges & Ahnentafel Numbering",
+                title = "Interactive Tree & View Modes",
+                subtitle = "Tree Canvas, Pedigree View, Fan Chart & Touch Gestures",
                 proTips = listOf(
-                    "Pinch to Zoom: Smoothly scale between bird's-eye 5-generation overview and detailed individual member cards.",
-                    "Two-Finger Pan: Drag horizontally or vertically to traverse expansive ancestral branches.",
-                    "Double-Tap to Recenter: Instantly snaps the camera back to focus on your tree root ancestor.",
-                    "Long-Press Context Menu: Long-press any member card to directly add a spouse, child, or parent without opening full forms."
+                    "3 Visual Modes: Switch seamlessly between the full Interactive Tree Canvas, Ancestor Pedigree View, and Concentric Fan Chart using the top mode selector.",
+                    "Pinch-to-Zoom & Pan: Smoothly scale between a bird's-eye 5-generation overview and individual member cards.",
+                    "Tap or Long-Press Nodes: Tap any member card to inspect their profile, or long-press (Owners/Editors) to quickly add a spouse, child, or parent."
                 ),
                 legalGuardrails = listOf(
                     "Node Badge Colors: Primary Blue = Direct Lineage, Emerald Green = Spouses, Amber = Collateral Relatives, Purple = In-Laws, Teal = Bridge Anchors."
@@ -105,12 +105,12 @@ object EducationalContentRepository {
 
             QuickAssistContext.PEDIGREE_FAN_CHART -> QuickAssistPayload(
                 context = context,
-                title = "Ahnentafel & Fan Chart Guide",
-                subtitle = "Decoding Direct Ancestor Indices & Concentric Generation Rings",
+                title = "Ahnentafel & Horseshoe Fan Guide",
+                subtitle = "250° Separated-Wedge Horseshoe Fan, Lifespan Years & Root Switching",
                 proTips = listOf(
-                    "Ahnentafel Math: Direct ancestors are indexed mathematically: Self = 1, Father = 2, Mother = 3. A person's father is 2n and mother is 2n+1.",
-                    "Concentric Fan Rings: Ring layers display generations 1 through 5, highlighting missing ancestral branches at a single glance.",
-                    "Tap to Center: Tap any ancestor in the fan chart to view their full generational lineage."
+                    "250° Horseshoe Wedge Cards: Distinct pastel color rings (Cream Gold → Soft Sage → Mint Cyan → Sky Blue → Periwinkle) separate each generation step clearly for new users.",
+                    "Slide-Up Root Drawer & Generation Chips: Tap the top-right root pill (e.g. 'All Clan ▾') to open the compact drawer, filter by generation (Gen 4, Gen 3, Gen 2), and center the fan on any member's ancestors.",
+                    "Tap to Inspect & Fingertip Zoom/Pan: Tap any wedge card to highlight it and view an educational summary banner. Pinch with two fingers, drag to pan, or use the bottom HUD pill (− 100% + | ⟲)."
                 ),
                 legalGuardrails = null,
                 targetAcademyModuleId = 2,
@@ -120,15 +120,15 @@ object EducationalContentRepository {
             QuickAssistContext.TRACE -> QuickAssistPayload(
                 context = context,
                 title = "Bloodline Tracing Engine",
-                subtitle = "MRCA Calculation, Consanguinity Degrees & Bloodline Paths",
+                subtitle = "Spotlight Name Search, LCA Math & Affinal Kinship",
                 proTips = listOf(
-                    "Pick Any Two Members: Select Person A and Person B from the dropdowns to trace their biological and legal relationship.",
-                    "MRCA (Common Ancestor): KinTrace automatically calculates the Most Recent Common Ancestor connecting both individuals.",
-                    "Lineal vs Collateral: Lineal = direct ascendants/descendants (parent/child). Collateral = shared forebears (siblings, cousins, aunts/uncles).",
-                    "Official Report & Path: Tap 'View Full Report' to generate a shareable PDF certificate or view the animated visual connection path."
+                    "Spotlight Name Search: Tap the Person A or Person B search bar to type a first name, surname, or birth year, or filter by All, Living, Deceased, Male, or Female.",
+                    "One-Tap Swap (⇅): Tap the center ⇅ icon between Person A and Person B to instantly reverse the trace direction.",
+                    "Lowest / Most Recent Common Ancestor (LCA / MRCA) & In-Laws: Automatically finds the closest shared ancestor (minimizing total generational steps) or traces Affinal / In-Law paths (Spouse, Hipag, Bayaw, Balae, Bilas).",
+                    "Official Report & Tree Highlight: Tap 'View Official Relationship Report' for a certified PDF or 'Highlight on Tree Canvas' to visualize the route."
                 ),
                 legalGuardrails = listOf(
-                    "Civil Degrees: Calculated strictly under Philippine Civil Code Articles 963–966. 1st Cousin = 4th Degree Collateral; 2nd Cousin = 6th Degree Collateral."
+                    "Civil Degrees: Computed strictly under Philippine Civil Code Articles 963–966 and Family Code Articles 37–38 (prohibiting marriages up to the 4th civil degree / first cousins)."
                 ),
                 targetAcademyModuleId = 3,
                 actionCtaText = "Open Bloodline Tracing Masterclass →"
@@ -139,9 +139,9 @@ object EducationalContentRepository {
                 title = "Relationship Reports & Path",
                 subtitle = "Official Bloodline Certification & Visual Genealogy Trails",
                 proTips = listOf(
-                    "Visual Trail: The visual path illustrates each generational step from Person A up to the common ancestor and down to Person B.",
-                    "Export to PDF: Generate a formal, high-resolution bloodline certificate with timestamps and tree metadata.",
-                    "Copy Summary Text: Share a formatted text explanation directly to family group chats via WhatsApp, Viber, or Messenger."
+                    "Interactive Path Ladder: Step-by-step generational breakdown from Person A up to the Most Recent Common Ancestor (MRCA) and down to Person B.",
+                    "Export Official PDF: Generate a formal, high-resolution bloodline certificate with verified civil degrees and legal standing.",
+                    "Share Summary: Copy or share the formatted legal and genealogical summary directly to family chats."
                 ),
                 legalGuardrails = listOf(
                     "All generated relationship certificates comply with Philippine Civil Code consanguinity definitions and Family Code marriage criteria."
@@ -152,16 +152,16 @@ object EducationalContentRepository {
 
             QuickAssistContext.ADD_MEMBER, QuickAssistContext.EDIT_MEMBER -> QuickAssistPayload(
                 context = context,
-                title = "Member Data Quality & Rules",
-                subtitle = "Philippine Naming Customs, Dates & Legal Guardrails",
+                title = "Member Forms & Smart Links",
+                subtitle = "Linked-Spouse Auto-Selection, Marriage Dates & Legal Guardrails",
                 proTips = listOf(
-                    "Philippine Surnames: Use the mother's maiden name for middle names where applicable, and enter maiden names for married females.",
-                    "Date Conventions: Standard format is YYYY-MM-DD. For historical records, approximate birth years are supported.",
-                    "Biological vs Affinal: Specify whether parentage is biological or legal/adoptive to preserve accurate bloodline calculations."
+                    "Linked-Spouse Co-Parent Auto-Selection: Selecting a Biological Father automatically highlights and pre-selects his linked wife as Biological Mother (with '-- None --' available if the child has a different mother), and vice versa.",
+                    "Marriage Date Validation: When linking a spouse, enter the Date of Marriage to verify both partners were at least 18 years old at marriage and alive on that date.",
+                    "Cross-Device Portraits & Surnames: Profile photos are compressed for instant cloud sync across all clan devices. Record married females by their maiden surname."
                 ),
                 legalGuardrails = listOf(
-                    "Age Gap Guardrail: The system enforces a minimum 12-year biological age gap between parent and child.",
-                    "RA 11596 Compliance: Under the Prohibition of Child Marriage Act, marriages involving anyone under 18 years of age are strictly prohibited."
+                    "Biological Guardrails: Enforces a minimum 12-year parent-child age gap, realistic maternal (≤60) and paternal (≤80) childbearing windows, and blocks parent-sibling loop conflicts.",
+                    "RA 11596 & Family Code Arts. 37–38: Strictly blocks child marriages (<18 at marriage date) and incestuous/4th-degree consanguineous unions."
                 ),
                 targetAcademyModuleId = 4,
                 actionCtaText = "Open Member Records Masterclass →"
@@ -170,14 +170,15 @@ object EducationalContentRepository {
             QuickAssistContext.RECORDS -> QuickAssistPayload(
                 context = context,
                 title = "Family Records Directory",
-                subtitle = "Search, Multi-Criteria Filtering & Biographical Heritage",
+                subtitle = "Instant Search, Generation Filters & RA 10173 Privacy Masking",
                 proTips = listOf(
-                    "Instant Search: Search by first name, surname, or maiden name across the entire clan database.",
-                    "Filter by Generation & Branch: Narrow down records to specific ancestral generations or family branches.",
-                    "Sort Options: Sort members alphabetically, by birth year, or by recently updated profiles.",
-                    "Member Profile: Tap any card to view their complete biographical timeline, vital stats, and direct relatives."
+                    "Instant Search & Sort: Search by first name, surname, or birth place, and sort alphabetically or by birth year.",
+                    "Filter by Generation & Status: Narrow down records by generation tier, living/deceased status, or gender.",
+                    "RA 10173 Birthdate Masking: When 'Mask Living Birthdates' is enabled in Privacy Controls, living members display 'YYYY ( Protected )' instead of exact dates."
                 ),
-                legalGuardrails = null,
+                legalGuardrails = listOf(
+                    "Deleting a member automatically cleans up all reciprocal parent, child, spouse, and sibling references across the cloud tree."
+                ),
                 targetAcademyModuleId = 4,
                 actionCtaText = "Explore Records Management →"
             )
@@ -185,15 +186,14 @@ object EducationalContentRepository {
             QuickAssistContext.MERGE_BRANCHES -> QuickAssistPayload(
                 context = context,
                 title = "Branch Merging Wizard",
-                subtitle = "The 3 Bridge Types & Zero-Risk Master Tree C Synthesis",
+                subtitle = "Cross-Tree Cloud Synthesis & Smart Duplicate Deduplication",
                 proTips = listOf(
-                    "3-Step Merge Wizard: Select target tree → choose anchor members from both clans → pick bridge type and synthesize.",
-                    "Spouse Bridge: Unifies two separate clans connected by a marriage between their respective members.",
-                    "Parent-Child Bridge: Connects an offshoot branch to a discovered ancestor in the target tree.",
-                    "Shared Ancestor Bridge: Unifies two branches that trace back to the same historical forebear."
+                    "3-Step Merge Wizard: Select target tree → choose anchor members from both clans → pick bridge type (Spouse, Parent-Child, or Shared Ancestor).",
+                    "Smart Duplicate Deduplication: Automatically reconciles identical relatives (matching normalized name, birth date, and gender) so merged branches never create duplicate clones.",
+                    "Editor & Owner Access: Branch merging requires Owner or Editor permissions on the active tree."
                 ),
                 legalGuardrails = listOf(
-                    "Zero-Risk Master Tree C Guarantee: Your original source trees (Tree A and Tree B) remain 100% read-only and preserved. A new combined Master Tree C is generated exclusively inside the Merged Clan Space."
+                    "Zero-Risk Master Tree C Guarantee: Source trees remain 100% untouched while unified records are synthesized cleanly into the target merge space."
                 ),
                 targetAcademyModuleId = 5,
                 actionCtaText = "Open Branch Merging Masterclass →"
@@ -202,15 +202,14 @@ object EducationalContentRepository {
             QuickAssistContext.PRIVACY_CONTROLS -> QuickAssistPayload(
                 context = context,
                 title = "Privacy & RA 10173 Compliance",
-                subtitle = "Protecting Living Relatives & Managing Clan Access",
+                subtitle = "Real-Time Data Masking & Collaborator Role Governance",
                 proTips = listOf(
-                    "RA 10173 (Data Privacy Act of 2012): Living relatives' personal data is legally protected, whereas historical records of deceased ancestors are accessible for genealogical research.",
-                    "Mask Living Birthdates: Automatically hides exact birth dates for living members, showing only birth years or 'Living' badges to prevent identity theft.",
-                    "Hide Notes & Causes of Death: Restrict sensitive personal research notes, court decrees, and medical records from external viewers.",
-                    "Collaborator Roles: Owner has full administrative control; Editor can modify members; Viewer has read-only access."
+                    "Mask Living Birthdates (RA 10173): Automatically redacts exact birth dates for living relatives across Family Records, Member Details, and Tree Exports.",
+                    "Hide Sensitive Notes & Causes of Death: Restricts biographical notes and medical/death details from non-owner viewers in real time.",
+                    "Collaborator Role Governance: Tree Owners can promote/demote collaborators between Editor and Viewer roles or revoke access at any time."
                 ),
                 legalGuardrails = listOf(
-                    "All privacy settings update reactively in real time and are enforced across export files, records lists, and canvas cards."
+                    "Compliant with RA 10173 (Philippine Data Privacy Act of 2012): Living relatives' personal data is protected while historical ancestor records remain accessible."
                 ),
                 targetAcademyModuleId = 6,
                 actionCtaText = "Open Data Privacy Masterclass →"
@@ -219,17 +218,15 @@ object EducationalContentRepository {
             QuickAssistContext.TREE_AUDIT -> QuickAssistPayload(
                 context = context,
                 title = "Tree Legal & Health Audit",
-                subtitle = "Detecting Legal Violations & Structural Graph Anomalies",
+                subtitle = "Detecting Legal Impediments, Age Anomalies & Graph Cycles",
                 proTips = listOf(
-                    "Real-Time Clan Scan: Audits your entire family tree against Philippine legal codes and topological graph rules.",
-                    "Severity Badges: Red = Critical Legal Error (must be resolved); Amber = Data Warning (review recommended).",
-                    "One-Tap Correction: Tap any audit issue in the list to jump directly to the affected member and resolve the issue.",
-                    "Cycle Loop Detection: Prevents impossible ancestry loops where a person becomes their own ancestor."
+                    "Comprehensive Clan Scan: Audits every member for Family Code violations, RA 11596 marriage age rules, childbearing age bounds, and orphaned links.",
+                    "Severity Badges: Red = Critical Legal/Cycle Error; Amber = Chronological or Biographical Warning.",
+                    "One-Tap Resolution: Owners and Editors can tap any audit card to jump directly to the affected member profile and resolve the anomaly."
                 ),
                 legalGuardrails = listOf(
-                    "Article 37 Family Code: Prohibits marriages between ascendants and descendants, and full or half siblings (incestuous).",
-                    "Article 38 Family Code: Prohibits marriages between collateral blood relatives up to the 4th civil degree (first cousins / pinsan buo).",
-                    "RA 11596: Mandates that all marriage partners must be at least 18 years old."
+                    "Article 37 & Article 38 Family Code: Flags incestuous marriages (lineal/siblings) and collateral marriages up to the 4th civil degree (first cousins).",
+                    "RA 11596: Flags any marriage where either spouse was under 18 years old on the marriage date."
                 ),
                 targetAcademyModuleId = 7,
                 actionCtaText = "Open Legal Audit Masterclass →"
@@ -238,18 +235,31 @@ object EducationalContentRepository {
             QuickAssistContext.EXPORT_TREE -> QuickAssistPayload(
                 context = context,
                 title = "Tree Export & Archival Heritage",
-                subtitle = "High-Res PDF, HD PNG, CSV Roster & Privacy Masking",
+                subtitle = "High-Res PDF, HD PNG, CSV Roster & GEDCOM Interoperability",
                 proTips = listOf(
-                    "High-Resolution PDF: Formatted as a multi-page vector document ready for large-format physical printing and family reunions.",
-                    "HD Image (PNG): Generates a high-definition visual tree chart for digital presentations, slides, and social sharing.",
-                    "CSV Spreadsheet: Exports a complete tabular roster of members, birthdates, and relationship metadata for spreadsheet analysis.",
-                    "Generation Depth: Limit exports to 3 or 4 generations to fit comfortably on standard poster paper."
+                    "4 Export Formats: Export your clan as a Vector PDF poster, HD PNG chart, CSV spreadsheet, or standard GEDCOM genealogical file.",
+                    "Generation Depth Filter: Limit exports to 3, 4, or all generations for optimal printing layout.",
+                    "Privacy-Safe Exports: Automatically respects your tree's RA 10173 living-member birthdate masking rules."
                 ),
                 legalGuardrails = listOf(
                     "Living Member Privacy Mask: When enabled, exported files automatically redact birthdates and sensitive details of living relatives in accordance with RA 10173."
                 ),
                 targetAcademyModuleId = 8,
                 actionCtaText = "Open Tree Export Guide →"
+            )
+
+            QuickAssistContext.INSIGHTS -> QuickAssistPayload(
+                context = context,
+                title = "Clan Analytics & Completeness",
+                subtitle = "Profile Completeness Scorecard, Demographics & Longevity",
+                proTips = listOf(
+                    "Profile Completeness Scorecard (0–100%): Evaluates every member across 6 core fields (First Name, Last Name, Gender, Birth Date, Parents, and Biography).",
+                    "Generational & Gender Metrics: Visualizes unbroken generational depth, branch distribution, and gender balance across your clan.",
+                    "Longevity & Activity Trail: Computes historical lifespan averages and tracks collaborative edits in real time."
+                ),
+                legalGuardrails = null,
+                targetAcademyModuleId = 9,
+                actionCtaText = "Open Clan Analytics Masterclass →"
             )
         }
     }
@@ -311,26 +321,26 @@ object EducationalContentRepository {
                 id = 2,
                 title = "Interactive Canvas & Pedigree Fan Chart",
                 category = "Visual Navigation",
-                tagline = "Touch gestures, color-coded node badges, Ahnentafel math, and concentric fan charts",
+                tagline = "Touch gestures, 3 view modes, node badges, Ahnentafel math, and concentric fan charts",
                 iconEmoji = "🌳",
-                summary = "Explore family branches visually using KinTrace's custom canvas rendering engine. Learn pinch-to-zoom gestures, decode color badges, and understand Ahnentafel ancestor numbering.",
+                summary = "Explore family branches visually using KinTrace's hardware-accelerated rendering engine. Switch between Tree View, Pedigree View, and Fan Chart, use pinch-to-zoom gestures, decode color badges, and understand Ahnentafel ancestor numbering.",
                 detailedSections = listOf(
                     ModuleSection(
-                        heading = "Mastering Canvas Gestures",
+                        heading = "Mastering Canvas Gestures & 3 Visual Modes",
                         paragraphs = listOf(
-                            "The Interactive Family Tree Canvas is built with hardware-accelerated custom rendering, giving you fluid control over massive multi-generational trees:"
+                            "The Interactive Family Tree screen provides three synchronized visual lenses—Tree View, Pedigree View, and Fan Chart—with fluid touch controls:"
                         ),
                         bulletPoints = listOf(
                             "Pinch-to-Zoom: Pinch inward or outward to scale between a bird's-eye 5-generation overview and close-up member cards.",
                             "Two-Finger Pan / Drag: Slide across the screen to traverse wide horizontal generational tiers.",
                             "Double-Tap Recenter: Double-tap anywhere on the canvas to instantly center the camera back to your root progenitor ancestor.",
-                            "Long-Press Context Menu: Press and hold any member node to pop up quick action shortcuts (Add Spouse, Add Child, Add Parent, View Full Profile)."
+                            "Long-Press Context Menu: Owners and Editors can press and hold any member node to trigger quick action shortcuts (Add Spouse, Add Child, Add Parent, View Profile)."
                         )
                     ),
                     ModuleSection(
                         heading = "Decoding Node Badge Colors & Lineages",
                         paragraphs = listOf(
-                            "Every node on the canvas is color-coded to communicate relationship types at a glance:"
+                            "Every node on the canvas is color-coded (with adaptive Dark Mode and Light Mode contrast) to communicate relationship types at a glance:"
                         ),
                         bulletPoints = listOf(
                             "Primary Blue: Direct Lineal Bloodline (progenitors, parents, children, direct ascendants/descendants).",
@@ -352,7 +362,7 @@ object EducationalContentRepository {
                         )
                     )
                 ),
-                deepLinkTarget = "FamilyTreeActivity",
+                deepLinkTarget = "InteractiveTreeActivity",
                 deepLinkActionText = "Open Interactive Family Tree"
             ),
 
@@ -360,17 +370,16 @@ object EducationalContentRepository {
                 id = 3,
                 title = "The Bloodline Tracing Engine",
                 category = "Kinship Engine",
-                tagline = "MRCA calculation, civil degrees (Art. 963-966), and official relationship reports",
+                tagline = "Spotlight name search, LCA math, civil degrees (Art. 963-966), and affinal in-law tracing",
                 iconEmoji = "🩸",
-                summary = "The crown jewel of KinTrace: select any two individuals in your clan to calculate their Most Recent Common Ancestor (MRCA), Roman civil degrees of consanguinity, and generate official relationship certificates.",
+                summary = "The crown jewel of KinTrace: search and select any two individuals in your clan to calculate their Lowest Common Ancestor (LCA), Roman civil degrees of consanguinity, affinal in-law connections, and official relationship certificates.",
                 detailedSections = listOf(
                     ModuleSection(
-                        heading = "How the Bloodline Tracer Works",
+                        heading = "Minimalist Spotlight Search & Lowest Common Ancestor (LCA)",
                         paragraphs = listOf(
-                            "When you navigate to Bloodline Tracing and select Person A and Person B, KinTrace executes a lowest-common-ancestor graph traversal algorithm:",
-                            "1. Ascends through Person A's direct parental lines, mapping all ancestral nodes and generational distances.",
-                            "2. Ascends through Person B's parental lines to identify the first shared progenitor node—the Most Recent Common Ancestor (MRCA).",
-                            "3. Traces the downward path from the MRCA to both individuals, verifying whether the connection is Lineal, Collateral, or Affinal."
+                            "In Trace Relationship, tap the Person A or Person B search bar to open the Spotlight Search sheet—allowing you to type a first name, surname, or birth year, or filter by All, Living, Deceased, Male, or Female. Tap the center ⇅ button anytime to swap Person A and Person B.",
+                            "1. KinTrace ascends through both individuals' parental lines, evaluating all shared ancestral candidates and selecting the true Lowest Common Ancestor (LCA) that minimizes total generational steps (distanceA + distanceB).",
+                            "2. If no biological blood tie exists, the engine automatically checks Affinal / In-Law paths—identifying Spouse, Father/Mother-in-Law, Brother/Sister-in-Law (Hipag / Bayaw), Co-Parent-in-Law (Balae), and Co-Sibling-in-Law (Bilas) relationships."
                         )
                     ),
                     ModuleSection(
@@ -389,11 +398,12 @@ object EducationalContentRepository {
                         )
                     ),
                     ModuleSection(
-                        heading = "Visual Paths & Certified PDF Reports",
+                        heading = "Visual Paths, Tree Highlight & Certified PDF Reports",
                         paragraphs = listOf(
-                            "Once a trace is computed, tap 'View Full Report' to access two specialized tools:",
-                            "Relationship Path Activity: An interactive visual connection path highlighting each ancestor between Person A and Person B.",
-                            "Relationship Report Activity: An official genealogical summary certificate with verified civil degrees, timestamps, and tree metadata, exportable directly to PDF or shareable as text."
+                            "Once a trace is computed, you can explore three interactive outputs:",
+                            "Highlight on Tree Canvas: Opens the Interactive Family Tree with the exact bloodline path and MRCA highlighted.",
+                            "Interactive Path Ladder: Step-by-step generational breakdown between Person A and Person B.",
+                            "Official Relationship Report: A formal genealogical certificate with verified civil degrees and Family Code legal standing, exportable to PDF."
                         )
                     )
                 ),
@@ -405,31 +415,30 @@ object EducationalContentRepository {
                 id = 4,
                 title = "Member Records & Biographical Archival",
                 category = "Records & Archival",
-                tagline = "Philippine naming customs, date formatting, biological links, and search filters",
+                tagline = "Linked-spouse co-parent auto-selection, marriage dates, naming customs, and cloud portraits",
                 iconEmoji = "📋",
-                summary = "Capture rich family records while adhering to Philippine civil registry standards. Learn naming customs, date formats, biological age gap rules, and multi-criteria record search.",
+                summary = "Capture rich family records while adhering to Philippine civil registry standards. Learn how Linked-Spouse Co-Parent Auto-Selection works, validate marriage dates, and search across multi-generational directories.",
                 detailedSections = listOf(
                     ModuleSection(
-                        heading = "Philippine Naming Customs in Genealogy",
+                        heading = "Linked-Spouse Co-Parent Auto-Selection & Cloud Portraits",
                         paragraphs = listOf(
-                            "Philippine genealogical records follow distinctive legal and cultural naming patterns:",
-                            "Maternal Middle Name: In Philippine civil law, a person's middle name is typically their mother's maiden surname. Entering accurate middle names provides crucial clues when bridging separate branches.",
-                            "Maiden Names for Married Females: Always record female relatives by their maiden surname (birth surname) rather than their married surname. This preserves unbroken patriarchal lineage lines in ancestral trees."
+                            "Smart Co-Parent Auto-Selection: When adding or editing a family member, selecting a Biological Father automatically highlights and pre-selects his linked wife as Biological Mother (marked with '★ Linked Spouse'), while keeping '-- None --' at the top if the child has a different mother. The same works in reverse when selecting the Mother first.",
+                            "Cross-Device Cloud Portraits: Profile photos selected from your gallery are automatically compressed and encoded into portable cloud portraits that synchronize instantaneously across all clan members' devices.",
+                            "Philippine Naming Customs: Record married female relatives by their maiden surname (birth surname) to preserve unbroken lineage lines."
                         )
                     ),
                     ModuleSection(
-                        heading = "Vital Dates & Biological Guardrails",
+                        heading = "Vital Dates, Marriage Chronology & Biological Guardrails",
                         paragraphs = listOf(
-                            "Standard Date Format: Enter dates in YYYY-MM-DD format. If exact dates are unknown, circa dates (e.g. 'c. 1925') or approximate birth years are supported.",
-                            "Biological Age Gap Guardrail: KinTrace validates that a biological parent must be at least 12 years older than their biological child. If a date entry violates this rule, the system alerts you to prevent data entry errors.",
-                            "Biological vs. Adoptive / Affinal Links: Specify whether a relationship is biological or legal/adoptive. Biological parentage powers the consanguinity engine, while legal parentage preserves family bonds."
+                            "Flexible Date Parsing: Supports YYYY-MM-DD, MM/DD/YYYY, Month DD YYYY, or approximate birth years.",
+                            "Parent-Child & Sibling Guardrails: Enforces a minimum 12-year parent-child age gap, realistic maternal (≤60 yrs) and paternal (≤80 yrs) childbearing windows, and prevents linking a child as a sibling of their own parent or ancestor.",
+                            "Date of Marriage Validation: When linking spouses, entering the Date of Marriage verifies that both partners were at least 18 years old on their wedding date (RA 11596) and that the marriage occurred during both spouses' lifetimes."
                         )
                     ),
                     ModuleSection(
-                        heading = "Searching, Filtering & Profile Heritage",
+                        heading = "Searching, Filtering & Clean Deletion",
                         paragraphs = listOf(
-                            "In the Family Records directory, use the real-time search bar to find members by first name, surname, or maiden name. Use generation chips to filter members by branch.",
-                            "Tap any member card to view their Member Detail profile, featuring their complete biographical narrative, life milestones, photos, and direct relatives."
+                            "In Family Records, filter members by name, generation tier, or living status. Deleting a member automatically cleans up all reciprocal parent, child, spouse, and sibling links across the entire tree."
                         )
                     )
                 ),
@@ -441,34 +450,31 @@ object EducationalContentRepository {
                 id = 5,
                 title = "Multi-Tree Merging & Clan Federation",
                 category = "Collaboration",
-                tagline = "The 3-step merge wizard, bridge types, and zero-risk Master Tree C synthesis",
+                tagline = "The 3-step merge wizard, smart duplicate deduplication, and zero-risk synthesis",
                 iconEmoji = "🔗",
-                summary = "Combine separate family trees with distant relatives without fear of data loss. Learn how the 3 bridge types work and how Master Tree C preserves your original records with zero risk.",
+                summary = "Combine separate family trees with distant relatives without fear of data loss. Learn how the 3 bridge types and Smart Duplicate Deduplication reconcile overlapping relatives cleanly.",
                 detailedSections = listOf(
                     ModuleSection(
-                        heading = "The 3-Step Merge Wizard",
+                        heading = "The 3-Step Merge Wizard & Smart Deduplication",
                         paragraphs = listOf(
-                            "Merging branches in KinTrace is safe and structured through a dedicated 3-step wizard:",
                             "Step 1: Select Active Tree (Tree A) and Incoming Tree (Tree B from your account or an external tree joined via Invite Code).",
                             "Step 2: Choose Anchor Members—the connecting individuals from Tree A and Tree B.",
-                            "Step 3: Choose the Bridge Type and synthesize the unified clan view."
+                            "Step 3: Choose the Bridge Type (Spouse, Parent-Child, or Shared Ancestor) and execute the cloud merge.",
+                            "Smart Duplicate Deduplication: KinTrace automatically detects overlapping members across both trees (matching normalized first/last name, birth date, and gender) and reconciles their parent, spouse, and sibling links instead of creating duplicate clones."
                         )
                     ),
                     ModuleSection(
                         heading = "The 3 Bridge Types Explained",
                         paragraphs = listOf(
-                            "1. Spouse Bridge: Connects two unrelated family clans united by a marriage between their respective members (e.g. John Santos marries Maria Reyes).",
+                            "1. Spouse Bridge: Connects two unrelated family clans united by a marriage between their respective members.",
                             "2. Parent-Child Bridge: Connects an offshoot branch to a discovered historical ancestor in the main tree.",
-                            "3. Shared Ancestor Bridge: Unifies two branches that independently trace back to the same forebear, reconciling duplicate descendant records."
+                            "3. Shared Ancestor Bridge: Unifies two branches that independently trace back to the same forebear."
                         )
                     ),
                     ModuleSection(
                         heading = "The Zero-Risk Master Tree C Guarantee",
                         paragraphs = listOf(
-                            "Traditional genealogy software often corrupts existing trees during merges by directly overwriting files. KinTrace solves this with Non-Destructive Clan Synthesis:",
-                            "Tree A and Tree B are 100% read-only throughout the merge process.",
-                            "KinTrace deep-clones both trees into a brand-new combined Master Tree C.",
-                            "Master Tree C is housed exclusively inside the 'Merged Clan Space', leaving your primary 'View Tree' completely pure and untouched."
+                            "Tree A and Tree B remain 100% read-only throughout the merge process. KinTrace synthesizes the combined lineage safely and requires Owner or Editor permissions to commit."
                         )
                     )
                 ),
@@ -480,35 +486,32 @@ object EducationalContentRepository {
                 id = 6,
                 title = "Privacy Controls & RA 10173 Compliance",
                 category = "Security & Legal",
-                tagline = "Protecting living relatives under the Philippine Data Privacy Act of 2012",
+                tagline = "Real-time living birthdate redaction, note hiding, and collaborator role governance",
                 iconEmoji = "🛡️",
-                summary = "Protect sensitive family information in full compliance with Republic Act 10173. Learn how to mask living members' birthdates, hide sensitive notes, and manage collaborator roles.",
+                summary = "Protect sensitive family information in full compliance with Republic Act 10173. Learn how real-time birthdate masking, sensitive note redaction, and Owner/Editor/Viewer RBAC permissions work.",
                 detailedSections = listOf(
                     ModuleSection(
                         heading = "RA 10173 (Philippine Data Privacy Act of 2012)",
                         paragraphs = listOf(
-                            "Genealogical research balances open ancestral heritage with the fundamental right to privacy of living individuals:",
-                            "Deceased Ancestor Records: Historical records (vital dates, marriages, and lineage) of deceased forebears are generally open for family history documentation.",
-                            "Living Relatives Protection: Exact birthdates, contact info, and personal notes of living individuals are legally classified as sensitive personal information and require statutory safeguards."
+                            "Deceased Ancestor Records: Historical records of deceased forebears remain open for family history documentation.",
+                            "Living Relatives Protection: Exact birthdates and personal notes of living individuals are protected via reactive cloud privacy toggles."
                         )
                     ),
                     ModuleSection(
-                        heading = "Granular Privacy Toggles in KinTrace",
+                        heading = "Granular Real-Time Privacy Toggles",
                         paragraphs = listOf(
-                            "In Privacy Controls, tree owners can configure four reactive privacy safeguards:",
-                            "1. Private Tree Switch: When enabled, your tree is completely hidden from public directories and accessible only via direct invite approval.",
-                            "2. Mask Living Relatives' Birthdates: Automatically displays 'Living' or only the birth year for living individuals, preventing identity theft and phishing risks.",
-                            "3. Hide Sensitive Notes: Restricts personal research notes, court adoption decrees, and private documents from external viewers.",
-                            "4. Hide Deceased Status & Cause of Death: Protects sensitive medical history and causes of death."
+                            "1. Private Tree Switch: Restricts tree discovery strictly to invited collaborators.",
+                            "2. Mask Living Relatives' Birthdates: Automatically replaces exact birth dates of living members with 'YYYY ( Protected )' across Family Records, Member Details, and Exports.",
+                            "3. Hide Sensitive Notes: Redacts biographical notes from non-owner viewers.",
+                            "4. Hide Cause of Death & Vital Details: Masks sensitive mortality details for non-owners."
                         )
                     ),
                     ModuleSection(
-                        heading = "Collaborator Roles & Access Permissions",
+                        heading = "Collaborator Roles & Access Governance",
                         paragraphs = listOf(
-                            "Owner: Full administrative authority, privacy management, and tree deletion rights.",
-                            "Editor: Authorized to add, edit, and link family members within the tree.",
-                            "Viewer: Read-only access for family members to explore without making changes.",
-                            "Pending Requests: Tree owners can review, approve, or deny incoming join requests directly from the privacy dashboard."
+                            "Owner: Full administrative authority, privacy configuration, collaborator role changes, and tree deletion rights.",
+                            "Editor: Authorized to add, edit, merge, and link family members within the tree.",
+                            "Viewer: Read-only access to explore the tree and trace relationships without modifying records."
                         )
                     )
                 ),
@@ -520,31 +523,31 @@ object EducationalContentRepository {
                 id = 7,
                 title = "Tree Health & Legal Audit Engine",
                 category = "Validation & Law",
-                tagline = "Family Code Articles 37/38, RA 11596 child marriage law, and cycle loop detection",
+                tagline = "Family Code Articles 37/38, RA 11596 marriage date checks, childbearing bounds, and loop detection",
                 iconEmoji = "⚖️",
-                summary = "Ensure your family tree is legally sound and topologically valid. Learn how KinTrace scans for incestuous marriages, public policy prohibitions, child marriage violations, and circular loops.",
+                summary = "Ensure your family tree is legally sound and topologically valid. Learn how KinTrace scans for incestuous marriages, 4th-degree cousin restrictions, marriage-date age violations, childbearing bounds, and circular ancestry loops.",
                 detailedSections = listOf(
                     ModuleSection(
                         heading = "Running the Automated Tree Health Audit",
                         paragraphs = listOf(
-                            "KinTrace features an automated audit engine that scans your entire family tree in real time. It evaluates both topological graph integrity and strict Philippine legal codes:",
-                            "Red Badges (Critical Errors): Direct legal violations or graph corruptions that must be corrected.",
-                            "Amber Badges (Data Warnings): Incomplete birth dates, missing maiden surnames, or single-parent notes that warrant review."
+                            "KinTrace's audit engine scans every member and relationship in real time:",
+                            "Red Badges (Critical Errors): Direct legal violations, circular ancestry loops, or impossible parent-child chronologies.",
+                            "Amber Badges (Data Warnings): Missing vital dates, orphaned links, or childbearing age warnings."
                         )
                     ),
                     ModuleSection(
-                        heading = "Philippine Family Code Marriage Impediments",
+                        heading = "Philippine Family Code & RA 11596 Marriage Checks",
                         paragraphs = listOf(
-                            "Article 37 (Incestuous Marriages): Marriages between ascendants and descendants of any degree, and between brothers and sisters (whether full or half blood), are void from the beginning.",
-                            "Article 38 (Public Policy Prohibitions): Marriages between collateral blood relatives up to the 4th civil degree (first cousins / pinsan buo) are void for reasons of public policy.",
-                            "KinTrace's validation engine actively flags any relationship attempt that violates these statutory provisions."
+                            "Article 37 (Incestuous Marriages): Marriages between ascendants and descendants of any degree, and between full or half siblings, are void from the beginning.",
+                            "Article 38 (Public Policy Prohibitions): Marriages between collateral blood relatives up to the 4th civil degree (uncles/aunts, nieces/nephews, and first cousins / pinsan buo) are void.",
+                            "Republic Act 11596 (Child Marriage Prohibition): Validates that both spouses were at least 18 years old on their actual Date of Marriage and alive at the time of marriage."
                         )
                     ),
                     ModuleSection(
-                        heading = "Republic Act 11596 & Structural Graph Safeguards",
+                        heading = "Biological & Topological Graph Safeguards",
                         paragraphs = listOf(
-                            "Republic Act 11596 (Prohibition of Child Marriage Act): KinTrace strictly requires both partners in a marriage relationship to be at least 18 years of age at the time of marriage.",
-                            "Cycle / Loop Prevention: The audit engine scans for circular ancestry loops (where an individual is mistakenly saved as their own ancestor or descendant), ensuring clean topological layout."
+                            "Childbearing & Parent Gap Bounds: Verifies a minimum 12-year parent-child gap and checks maternal (≤60) and paternal (≤80) age at a child's birth.",
+                            "Cycle / Loop Prevention: Detects and blocks circular ancestry loops or parent-sibling contradictions."
                         )
                     )
                 ),
@@ -556,26 +559,24 @@ object EducationalContentRepository {
                 id = 8,
                 title = "Tree Export & Reunion Heritage",
                 category = "Export & Archival",
-                tagline = "Generating high-res PDFs, HD PNG charts, CSV rosters, and printing for reunions",
+                tagline = "Generating high-res PDFs, HD PNG charts, CSV rosters, and GEDCOM files",
                 iconEmoji = "📤",
-                summary = "Transform your digital family tree into tangible physical documents. Learn how to export high-resolution vector PDFs, high-definition PNGs, and CSV spreadsheets for family reunions and research archives.",
+                summary = "Transform your digital family tree into tangible physical documents. Learn how to export high-resolution vector PDFs, high-definition PNGs, CSV spreadsheets, and GEDCOM files for family reunions.",
                 detailedSections = listOf(
                     ModuleSection(
                         heading = "Supported Export Formats",
                         paragraphs = listOf(
-                            "KinTrace offers 4 versatile export formats tailored for different use cases:",
-                            "1. High-Resolution Vector PDF: Multi-page vector document formatted for large-format physical printing, poster framing, and archival binders.",
-                            "2. High-Definition Image (PNG): Beautiful visual tree chart formatted for digital presentations, tablet viewing, and sharing to family group chats.",
-                            "3. CSV Data Spreadsheet: Complete tabular roster containing all member vitals, dates, middle names, and relationship metadata for Excel or Google Sheets.",
-                            "4. GEDCOM 5.5.1 / 7.0: Standard international genealogical data format for interoperability with global research platforms."
+                            "1. High-Resolution Vector PDF: Multi-page vector document formatted for large-format physical printing and archival binders.",
+                            "2. High-Definition Image (PNG): Visual tree chart formatted for digital presentations and family group chats.",
+                            "3. CSV Data Spreadsheet: Complete tabular roster containing member vitals, dates, and relationship metadata.",
+                            "4. GEDCOM 5.5.1 / 7.0: Standard international genealogical format for cross-platform research."
                         )
                     ),
                     ModuleSection(
-                        heading = "Export Customization & Sizing Options",
+                        heading = "Export Customization & Privacy Masking",
                         paragraphs = listOf(
-                            "Generation Depth Filter: You can restrict exports to 3, 4, or full clan generations to optimize layout size for standard poster paper dimensions.",
-                            "Living Member Privacy Masking: When activated, all living relatives' exact birthdates are automatically redacted in the exported document, ensuring family privacy during reunions.",
-                            "Secure Sharing: Directly export files to your device storage or share seamlessly via Android system share to WhatsApp, Viber, Messenger, or Gmail."
+                            "Generation Depth Filter: Restrict exports to 3, 4, or full clan generations.",
+                            "Living Member Privacy Masking: Automatically redacts living relatives' exact birthdates in exported files when enabled."
                         )
                     )
                 ),
@@ -585,26 +586,24 @@ object EducationalContentRepository {
 
             KinAcademyModule(
                 id = 9,
-                title = "Clan Analytics & Dashboard Insights",
+                title = "Clan Analytics & Profile Completeness",
                 category = "Analytics",
-                tagline = "Generational depth metrics, gender distribution, longevity, and activity logs",
+                tagline = "Profile Completeness Scorecard (0–100%), generational depth, gender balance, and longevity",
                 iconEmoji = "📊",
-                summary = "Discover deep insights into your family's demographic history. Track generational depth, gender distribution ratios, ancestral longevity, and review the chronological audit trail.",
+                summary = "Discover deep insights into your family's demographic history and data health. Track your Clan Profile Completeness Scorecard, generational depth, gender distribution ratios, and ancestral longevity.",
                 detailedSections = listOf(
                     ModuleSection(
-                        heading = "Clan Generational Metrics",
+                        heading = "Data Quality & Profile Completeness Scorecard",
                         paragraphs = listOf(
-                            "Generational Depth: Measures the longest unbroken direct ancestral line currently documented in your tree.",
-                            "Clan Population Growth: Tracks generation-by-generation expansion, highlighting peak family growth eras.",
-                            "Gender Balance: Visualizes the proportion of male and female relatives documented across all branches."
+                            "At the top of Clan Insights, the Profile Completeness Scorecard (0%–100%) evaluates every member in your tree across 6 core biographical fields: First Name, Last Name, Gender, Birth Date, Biological Parent Links, and Biography.",
+                            "Scores of 80%+ earn an 'Excellent Profile Completeness' badge, 50%–79% indicate 'Moderate Profile Completeness', and below 50% highlight branches that need additional research."
                         )
                     ),
                     ModuleSection(
-                        heading = "Demographic Longevity & Activity Audit",
+                        heading = "Demographic, Generational & Activity Metrics",
                         paragraphs = listOf(
-                            "Ancestral Longevity: Computes average lifespan across documented generations, identifying long-lived ancestral lineages.",
-                            "Recent Activities Log: A transparent chronological audit trail recording who created, updated, or merged members, ensuring accountability in collaborative clans.",
-                            "In-App Notifications: Centralized alerts for collaborator join requests, merge status updates, and tree audit reminders."
+                            "Generational Depth & Gender Balance: Measures the longest unbroken ancestral line and visualizes male/female distribution across branches.",
+                            "Ancestral Longevity & Activity Log: Computes average lifespan across documented generations and displays a chronological audit trail of collaborative edits."
                         )
                     )
                 ),

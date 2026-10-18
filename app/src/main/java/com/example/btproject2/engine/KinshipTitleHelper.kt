@@ -47,7 +47,7 @@ object KinshipTitleHelper {
         relType.isNullOrBlank() || relType.equals("Biological", ignoreCase = true)
 
     fun isAdopt(relType: String?): Boolean =
-        relType != null && relType.equals("Adopted", ignoreCase = true)
+        relType != null && (relType.equals("Adopted", ignoreCase = true) || relType.equals("Adoptive", ignoreCase = true))
 
     /**
      * Classifies the sibling relationship between [a] and [b].

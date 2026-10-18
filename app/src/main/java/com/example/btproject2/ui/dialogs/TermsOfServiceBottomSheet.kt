@@ -67,7 +67,7 @@ class TermsOfServiceBottomSheet : BottomSheetDialogFragment() {
             btnAcceptTerms.isClickable = true
             btnAcceptTerms.isFocusable = true
             btnAcceptTerms.setBackgroundResource(R.drawable.btn_gold_primary)
-            btnAcceptTerms.setTextColor(Color.parseColor("#0A1B12"))
+            btnAcceptTerms.setTextColor(requireContext().getColor(R.color.btn_gold_text))
             btnAcceptTerms.text = "✓ I Have Read & Agree to the Terms"
         }
 

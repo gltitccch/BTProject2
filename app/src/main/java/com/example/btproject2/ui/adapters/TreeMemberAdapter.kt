@@ -13,7 +13,7 @@ class TreeMemberAdapter(
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     sealed class TreeItem {
-        data class Header(val generation: Int) : TreeItem()
+        data class Header(val generation: Int, val count: Int = 0) : TreeItem()
         data class Member(val person: Person) : TreeItem()
     }
 
@@ -54,7 +54,7 @@ class TreeMemberAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = items[position]) {
-            is TreeItem.Header -> (holder as HeaderViewHolder).bind(item.generation)
+            is TreeItem.Header -> (holder as HeaderViewHolder).bind(item.generation, item.count)
             is TreeItem.Member -> (holder as MemberViewHolder).bind(item.person, allMembers, focalPerson, onMemberClick)
         }
     }
@@ -63,8 +63,10 @@ class TreeMemberAdapter(
 
     class HeaderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val tvLabel: TextView = view.findViewById(R.id.tvGenLabel)
-        fun bind(generation: Int) {
+        private val tvCount: TextView? = view.findViewById(R.id.tvGenMemberCount)
+        fun bind(generation: Int, count: Int = 0) {
             tvLabel.text = "GENERATION $generation"
+            tvCount?.text = if (count > 0) "($count ${if (count == 1) "member" else "members"})" else ""
         }
     }
 
@@ -72,6 +74,7 @@ class TreeMemberAdapter(
         private val tvAvatar: TextView = view.findViewById(R.id.tvAvatar)
         private val tvName: TextView   = view.findViewById(R.id.tvName)
         private val tvInfo: TextView   = view.findViewById(R.id.tvInfo)
+        private val tvKinshipPill: TextView? = view.findViewById(R.id.tvKinshipPill)
 
         fun bind(
             person: Person,
@@ -84,31 +87,40 @@ class TreeMemberAdapter(
 
             // Avatar color based on gender and living status
             if (!person.isLiving) {
-                tvAvatar.setBackgroundResource(R.drawable.badge_pill_dark)
+                tvAvatar.setBackgroundResource(R.drawable.avatar_circle_dark)
+                tvAvatar.setTextColor(androidx.core.content.ContextCompat.getColor(itemView.context, R.color.text_secondary))
             } else {
                 val avatarBg = if (person.gender.lowercase() == "female")
                     R.drawable.avatar_bg_female else R.drawable.avatar_bg
                 tvAvatar.setBackgroundResource(avatarBg)
+                tvAvatar.setTextColor(android.graphics.Color.WHITE)
             }
 
-            val memorialSuffix = if (!person.isLiving) " 🕊️" else ""
-            tvName.text = "${person.firstName} ${person.lastName}$memorialSuffix"
+            tvName.text = "${person.firstName} ${person.lastName}".trim()
 
             val effectiveFocal = focalPerson ?: allMembers.firstOrNull()
             val kinship = if (effectiveFocal != null && effectiveFocal.id != person.id && allMembers.isNotEmpty()) {
                 com.example.btproject2.engine.KinshipTitleHelper.resolveTitle(person, effectiveFocal, allMembers)
             } else if (person.lineageRole.isNotBlank() && !person.lineageRole.equals("MEMBER", ignoreCase = true)) {
-                person.lineageRole.uppercase()
+                person.lineageRole
+            } else if (effectiveFocal?.id == person.id) {
+                "Root"
             } else null
-            val kinshipPrefix = if (!kinship.isNullOrEmpty()) "$kinship · " else ""
+
+            if (tvKinshipPill != null) {
+                val roleLabel = kinship?.takeIf { it.isNotBlank() } ?: if (person.fatherId.isNullOrBlank() && person.motherId.isNullOrBlank()) "Founder" else "Relative"
+                tvKinshipPill.text = roleLabel
+                tvKinshipPill.visibility = View.VISIBLE
+            }
 
             tvInfo.text = buildString {
-                append(kinshipPrefix)
                 append(person.gender)
                 if (person.birthDate.isNotEmpty()) append(" · b. ${person.birthDate}")
                 if (!person.isLiving) {
                     if (person.deathDate.isNotEmpty()) append(" · d. ${person.deathDate}")
-                    append(" (Deceased)")
+                    append(" · Deceased")
+                } else {
+                    append(" · Living")
                 }
             }
 

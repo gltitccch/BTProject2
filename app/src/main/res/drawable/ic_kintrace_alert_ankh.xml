@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Healing Cross / Ankh -->
+    <path
+        android:fillColor="#4EEDA4"
+        android:pathData="M10.5,13.5v7h3v-7h5v-3h-5V8c0,-0.83 -0.67,-1.5 -1.5,-1.5S10.5,7.17 10.5,8v2.5h-5v3h5zM12,2c2.21,0 4,1.79 4,4s-1.79,4 -4,4 -4,-1.79 -4,-4 1.79,-4 4,-4z"/>
+    <!-- Center Vital Spark -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M12,4.5c0.83,0 1.5,0.67 1.5,1.5s-0.67,1.5 -1.5,1.5 -1.5,-0.67 -1.5,-1.5 0.67,-1.5 1.5,-1.5z"/>
+</vector>

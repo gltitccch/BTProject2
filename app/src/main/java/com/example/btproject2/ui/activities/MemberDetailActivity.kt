@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import com.example.btproject2.utils.KinTraceAlert
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -93,12 +94,12 @@ class MemberDetailActivity : AppCompatActivity() {
                             targetId = currentPerson!!.id,
                             targetName = pName
                         )
-                        Toast.makeText(this, "Profile photo updated", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Profile photo updated")
                         setResult(RESULT_OK)
                         loadAllAndDisplay()
                     },
                     onFailure = {
-                        Toast.makeText(this, "Failed to update photo: ${it.message}", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to update photo: ${it.message}")
                     }
                 )
             }
@@ -127,12 +128,12 @@ class MemberDetailActivity : AppCompatActivity() {
                             targetId = currentPerson!!.id,
                             targetName = pName
                         )
-                        Toast.makeText(this, "Document attached successfully", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Document attached successfully")
                         setResult(RESULT_OK)
                         loadAllAndDisplay()
                     },
                     onFailure = {
-                        Toast.makeText(this, "Failed to attach document: ${it.message}", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to attach document: ${it.message}")
                     }
                 )
             }
@@ -267,10 +268,13 @@ class MemberDetailActivity : AppCompatActivity() {
                 mb.cornerRadius = (14 * density).toInt()
                 mb.setTextColor(Color.parseColor("#EF4444"))
             } else {
-                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B45309"))
-                mb.strokeWidth = 0
+                val dangerBg = ContextCompat.getColor(this, R.color.danger_bg)
+                val dangerText = ContextCompat.getColor(this, R.color.danger)
+                mb.backgroundTintList = ColorStateList.valueOf(dangerBg)
+                mb.strokeColor = ColorStateList.valueOf(dangerText)
+                mb.strokeWidth = (1.5f * density).toInt()
                 mb.cornerRadius = (14 * density).toInt()
-                mb.setTextColor(Color.WHITE)
+                mb.setTextColor(dangerText)
             }
         }
 
@@ -305,6 +309,8 @@ class MemberDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.btnQuickTrace)?.setOnClickListener {
             val intent = Intent(this, TraceActivity::class.java).apply {
                 putExtra("preselectedPersonA", personId)
+                putExtra("TREE_ID", treeId)
+                putExtra("treeId", treeId)
             }
             startActivity(intent)
         }
@@ -312,6 +318,8 @@ class MemberDetailActivity : AppCompatActivity() {
             val intent = Intent(this, InteractiveTreeActivity::class.java).apply {
                 putExtra("focalPedigreePersonId", personId)
                 putExtra("viewMode", "PEDIGREE")
+                putExtra("TREE_ID", treeId)
+                putExtra("treeId", treeId)
             }
             startActivity(intent)
         }
@@ -345,10 +353,10 @@ class MemberDetailActivity : AppCompatActivity() {
                     tvBiography.text = bio.ifEmpty { "No biography yet." }
                     layoutBioEdit.visibility = View.GONE
                     layoutBioView.visibility = View.VISIBLE
-                    Toast.makeText(this, "Biography saved", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this, "Biography saved")
                 },
                 onFailure = {
-                    Toast.makeText(this, "Failed to save biography", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this, "Failed to save biography")
                 }
             )
         }
@@ -417,7 +425,7 @@ class MemberDetailActivity : AppCompatActivity() {
             onCurrentPersonDeleted = { deletedId ->
                 runOnUiThread {
                     if (isFinishing || isDestroyed) return@runOnUiThread
-                    Toast.makeText(this, "This member was removed from the family tree", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this, "This member was removed from the family tree")
                     val data = Intent().apply {
                         putExtra("deletedPersonId", deletedId)
                     }
@@ -895,12 +903,12 @@ class MemberDetailActivity : AppCompatActivity() {
         if (docs.isEmpty()) {
             tvDetailNoDocs.visibility = View.VISIBLE
             tvDetailVerificationBadge.text = "⚠️ Unverified"
-            tvDetailVerificationBadge.setTextColor(Color.parseColor("#BA7517"))
+            tvDetailVerificationBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_warning_text))
             tvDetailVerificationBadge.setBackgroundResource(R.drawable.badge_pill_dark)
         } else {
             tvDetailNoDocs.visibility = View.GONE
             tvDetailVerificationBadge.text = "✓ Verified (${docs.size} Docs)"
-            tvDetailVerificationBadge.setTextColor(Color.parseColor("#10B981"))
+            tvDetailVerificationBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
             tvDetailVerificationBadge.setBackgroundResource(R.drawable.badge_pill_dark)
 
             docs.forEach { doc ->
@@ -919,19 +927,24 @@ class MemberDetailActivity : AppCompatActivity() {
                     com.example.btproject2.utils.DocumentHelper.openDocument(this, doc)
                 }
 
+                btnDelete.visibility = if (isViewer) View.GONE else View.VISIBLE
                 btnDelete.setOnClickListener {
+                    if (isViewer) {
+                        KinTraceAlert.warning(this, "Read-Only Access", "Read-only Viewers cannot remove attached documents.")
+                        return@setOnClickListener
+                    }
                     AlertDialog.Builder(this)
                         .setTitle("Remove Document")
                         .setMessage("Remove \"${doc.name}\" from ${person.firstName}'s profile?")
                         .setPositiveButton("Remove") { _, _ ->
                             firestoreHelper.removeDocument(person.id, doc.id,
                                 onSuccess = {
-                                    Toast.makeText(this, "Document removed", Toast.LENGTH_SHORT).show()
+                                    KinTraceAlert.show(this, "Document removed")
                                     setResult(RESULT_OK)
                                     loadAllAndDisplay()
                                 },
                                 onFailure = {
-                                    Toast.makeText(this, "Failed to remove: ${it.message}", Toast.LENGTH_SHORT).show()
+                                    KinTraceAlert.show(this, "Failed to remove: ${it.message}")
                                 }
                             )
                         }
@@ -953,7 +966,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val candidates = com.example.btproject2.engine.FamilyLinkValidator.getEligibleFathers(person, currentMother, allMembers)
 
         if (candidates.isEmpty() && person.fatherId == null) {
-            Toast.makeText(this, "No eligible father candidates found", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "No eligible father candidates found")
             return
         }
 
@@ -977,11 +990,11 @@ class MemberDetailActivity : AppCompatActivity() {
                                 targetId = person.id,
                                 targetName = "${person.firstName} ${person.lastName}"
                             )
-                            Toast.makeText(this, "Father removed", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Father removed")
                             reloadAndDisplay()
                         },
                         onFailure = {
-                            Toast.makeText(this, "Failed to remove father", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Failed to remove father")
                         }
                     )
                 } else {
@@ -1049,15 +1062,11 @@ class MemberDetailActivity : AppCompatActivity() {
                                 targetId = person.id,
                                 targetName = "${person.firstName} ${person.lastName}"
                             )
-                            Toast.makeText(
-                                this,
-                                "Father linked: ${selected.firstName} ${selected.lastName}",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            KinTraceAlert.show(this, "Father linked: ${selected.firstName} ${selected.lastName}")
                             reloadAndDisplay()
                         },
                         onFailure = {
-                            Toast.makeText(this, "Failed to link father", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Failed to link father")
                         }
                     )
                 }
@@ -1075,7 +1084,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val candidates = com.example.btproject2.engine.FamilyLinkValidator.getEligibleMothers(person, currentFather, allMembers)
 
         if (candidates.isEmpty() && person.motherId == null) {
-            Toast.makeText(this, "No eligible mother candidates found", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "No eligible mother candidates found")
             return
         }
 
@@ -1099,11 +1108,11 @@ class MemberDetailActivity : AppCompatActivity() {
                                 targetId = person.id,
                                 targetName = "${person.firstName} ${person.lastName}"
                             )
-                            Toast.makeText(this, "Mother removed", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Mother removed")
                             reloadAndDisplay()
                         },
                         onFailure = {
-                            Toast.makeText(this, "Failed to remove mother", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Failed to remove mother")
                         }
                     )
                 } else {
@@ -1171,15 +1180,11 @@ class MemberDetailActivity : AppCompatActivity() {
                                 targetId = person.id,
                                 targetName = "${person.firstName} ${person.lastName}"
                             )
-                            Toast.makeText(
-                                this,
-                                "Mother linked: ${selected.firstName} ${selected.lastName}",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            KinTraceAlert.show(this, "Mother linked: ${selected.firstName} ${selected.lastName}")
                             reloadAndDisplay()
                         },
                         onFailure = {
-                            Toast.makeText(this, "Failed to link mother", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Failed to link mother")
                         }
                     )
                 }
@@ -1198,7 +1203,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val candidates = allMembers.filter { !com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, person.id) }
 
         if (candidates.isEmpty() && person.spouseId == null) {
-            Toast.makeText(this, "No other family members found in this tree", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "No other family members found in this tree")
             return
         }
 
@@ -1228,11 +1233,11 @@ class MemberDetailActivity : AppCompatActivity() {
                                 targetId = person.id,
                                 targetName = "${person.firstName} ${person.lastName}"
                             )
-                            Toast.makeText(this, "Spouse removed for both profiles", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Spouse removed for both profiles")
                             reloadAndDisplay()
                         },
                         onFailure = {
-                            Toast.makeText(this, "Failed to remove spouse", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Failed to remove spouse")
                         }
                     )
                 } else {
@@ -1306,17 +1311,13 @@ class MemberDetailActivity : AppCompatActivity() {
                                 targetId = person.id,
                                 targetName = "${person.firstName} ${person.lastName}"
                             )
-                            Toast.makeText(
-                                this,
-                                "Spouse set: ${selected.firstName} ${selected.lastName}",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            KinTraceAlert.show(this, "Spouse set: ${selected.firstName} ${selected.lastName}")
                             // After setting spouse, prompt immediately to enter marriage date
                             reloadAndDisplay()
                             promptMarriageDate(person.id, selected.id)
                         },
                         onFailure = {
-                            Toast.makeText(this, "Failed to set spouse", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Failed to set spouse")
                         }
                     )
                 }
@@ -1387,10 +1388,10 @@ class MemberDetailActivity : AppCompatActivity() {
                 } else {
                     reloadAndDisplay()
                 }
-                Toast.makeText(this, "Marriage date saved for both profiles", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Marriage date saved for both profiles")
             },
             onFailure = {
-                Toast.makeText(this, "Failed to save marriage date", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Failed to save marriage date")
             }
         )
     }
@@ -1416,7 +1417,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val allOptions = (currentKids + eligibleToAdd).sortedBy { "${it.firstName} ${it.lastName}" }
 
         if (allOptions.isEmpty()) {
-            Toast.makeText(this, "No eligible children found to link", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "No eligible children found to link")
             return
         }
 
@@ -1542,7 +1543,7 @@ class MemberDetailActivity : AppCompatActivity() {
                 fun checkComplete() {
                     operationsPending--
                     if (operationsPending <= 0) {
-                        Toast.makeText(this, "Children updated successfully", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Children updated successfully")
                         reloadAndDisplay()
                     }
                 }
@@ -1684,7 +1685,7 @@ class MemberDetailActivity : AppCompatActivity() {
             text = "${relative.firstName} ${relative.lastName}"
             textSize = 13f
             setTypeface(null, Typeface.BOLD)
-            setTextColor(Color.WHITE)
+            setTextColor(ContextCompat.getColor(this@MemberDetailActivity, R.color.text_primary))
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
@@ -1734,7 +1735,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val p = currentPerson
         val targetId = p?.id?.takeIf { it.isNotBlank() } ?: personId
         if (targetId.isBlank()) {
-            Toast.makeText(this, "Cannot delete: Member ID not found", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Cannot delete: Member ID not found")
             return
         }
         val name = if (p != null) "${p.firstName} ${p.lastName}".trim().ifEmpty { "this member" } else "this member"
@@ -1767,7 +1768,7 @@ class MemberDetailActivity : AppCompatActivity() {
                             targetId = targetId
                         )
 
-                        Toast.makeText(this, "$name deleted", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "$name deleted")
                         val resultData = Intent().apply {
                             putExtra("deletedPersonId", targetId)
                         }
@@ -1775,7 +1776,7 @@ class MemberDetailActivity : AppCompatActivity() {
                         finish()
                     },
                     onFailure = { err ->
-                        Toast.makeText(this, "Failed to delete: ${err.message}", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to delete: ${err.message}")
                     }
                 )
             }
@@ -1796,13 +1797,17 @@ class MemberDetailActivity : AppCompatActivity() {
                         currentPerson?.let { displayPerson(it) }
                     },
                     onFailure = {
+                        isViewer = !isOwner
                         applyPermissionsToUI()
                         currentPerson?.let { displayPerson(it) }
                     }
                 )
             },
             onFailure = {
+                isOwner = false
+                isViewer = true
                 applyPermissionsToUI()
+                currentPerson?.let { displayPerson(it) }
             }
         )
 
@@ -2021,7 +2026,7 @@ class MemberDetailActivity : AppCompatActivity() {
                     val birthCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(person.birthDate)
                     val deathCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(effectiveDate)
                     if (birthCal != null && deathCal != null && deathCal.before(birthCal)) {
-                        Toast.makeText(this, "Date of passing cannot be earlier than birthdate (${person.birthDate}).", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(this, "Date of passing cannot be earlier than birthdate (${person.birthDate}).")
                         return@setOnClickListener
                     }
                 }
@@ -2037,7 +2042,7 @@ class MemberDetailActivity : AppCompatActivity() {
                         val childCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(child.birthDate)
                         val deathCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(effectiveDate)
                         if (childCal != null && deathCal != null && childCal.after(deathCal)) {
-                            Toast.makeText(this, "Cannot set date of passing earlier than biological child ${child.firstName}'s birthdate (${child.birthDate}).", Toast.LENGTH_LONG).show()
+                            KinTraceAlert.show(this, "Cannot set date of passing earlier than biological child ${child.firstName}'s birthdate (${child.birthDate}).")
                             return@setOnClickListener
                         }
                     }
@@ -2048,7 +2053,7 @@ class MemberDetailActivity : AppCompatActivity() {
                     val mCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(person.marriageDate)
                     val dCal = com.example.btproject2.engine.FamilyLinkValidator.parseDateToCalendar(effectiveDate)
                     if (mCal != null && dCal != null && mCal.after(dCal)) {
-                        Toast.makeText(this, "Date of passing cannot be earlier than marriage date (${person.marriageDate}).", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(this, "Date of passing cannot be earlier than marriage date (${person.marriageDate}).")
                         return@setOnClickListener
                     }
                 }
@@ -2064,13 +2069,13 @@ class MemberDetailActivity : AppCompatActivity() {
                     onSuccess = { updated ->
                         alertDialog.dismiss()
                         currentPerson = updated
-                        Toast.makeText(this, "Marked as Deceased", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Marked as Deceased")
                         loadAllAndDisplay()
                     },
                     onFailure = { err ->
                         btnConfirm.isEnabled = true
                         btnConfirm.text = "Mark Deceased"
-                        Toast.makeText(this, "Failed to update: ${err.message}", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(this, "Failed to update: ${err.message}")
                     }
                 )
             }
@@ -2090,11 +2095,11 @@ class MemberDetailActivity : AppCompatActivity() {
                         onSuccess = { updated ->
                             dialog.dismiss()
                             currentPerson = updated
-                            Toast.makeText(this, "Marked as Living", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Marked as Living")
                             loadAllAndDisplay()
                         },
                         onFailure = { err ->
-                            Toast.makeText(this, "Failed to update: ${err.message}", Toast.LENGTH_LONG).show()
+                            KinTraceAlert.show(this, "Failed to update: ${err.message}")
                         }
                     )
                 }

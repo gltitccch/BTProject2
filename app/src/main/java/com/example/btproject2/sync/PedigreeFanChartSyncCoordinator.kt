@@ -228,6 +228,7 @@ class PedigreeFanChartSyncCoordinator(
             )
         )
         val focal = focalPerson ?: persons.firstOrNull()
+        val yearRegex = Regex("""\b(\d{4})\b""")
         return buildString {
             append("[")
             sortedPersons.forEachIndexed { i, p ->
@@ -238,14 +239,32 @@ class PedigreeFanChartSyncCoordinator(
                     com.example.btproject2.engine.KinshipTitleHelper.resolveTitle(p, focal, persons)
                 } else ""
                 val memorialSuffix = if (!p.isLiving) " 🕊️" else ""
+                val birthYear = yearRegex.find(p.birthDate)?.value ?: ""
+                val deathYear = yearRegex.find(p.deathDate)?.value ?: ""
+                val yearsLabel = when {
+                    birthYear.isNotEmpty() && !p.isLiving && deathYear.isNotEmpty() -> "($birthYear – $deathYear)"
+                    birthYear.isNotEmpty() && !p.isLiving -> "($birthYear – †)"
+                    birthYear.isNotEmpty() -> "($birthYear – )"
+                    !p.isLiving && deathYear.isNotEmpty() -> "(– $deathYear)"
+                    else -> ""
+                }
+                val safeFirst = p.firstName.replace("\\", "\\\\").replace("\"", "\\\"")
+                val safeLast = p.lastName.replace("\\", "\\\\").replace("\"", "\\\"")
+                val safeKinship = kinship.replace("\\", "\\\\").replace("\"", "\\\"")
                 append("{")
                 append("\"id\":\"${p.id}\",")
-                append("\"name\":\"${p.firstName.replace("\"", "\\\"")} ${p.lastName.replace("\"", "\\\"")}$memorialSuffix\",")
+                append("\"name\":\"$safeFirst $safeLast$memorialSuffix\",")
+                append("\"firstName\":\"$safeFirst\",")
+                append("\"lastName\":\"$safeLast\",")
+                append("\"years\":\"$yearsLabel\",")
                 append("\"gender\":\"${p.gender}\",")
                 append("\"isLiving\":${p.isLiving},")
-                append("\"kinship\":\"${kinship.replace("\"", "\\\"")}\",")
+                append("\"kinship\":\"$safeKinship\",")
                 append("\"generation\":$gen,")
-                append("\"parentId\":${if (parentId != null) "\"$parentId\"" else "null"}")
+                append("\"parentId\":${if (!parentId.isNullOrEmpty()) "\"$parentId\"" else "null"},")
+                append("\"fatherId\":${if (!p.fatherId.isNullOrEmpty()) "\"${p.fatherId}\"" else "null"},")
+                append("\"motherId\":${if (!p.motherId.isNullOrEmpty()) "\"${p.motherId}\"" else "null"},")
+                append("\"spouseId\":${if (!p.spouseId.isNullOrEmpty()) "\"${p.spouseId}\"" else "null"}")
                 append("}")
             }
             append("]")

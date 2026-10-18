@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.dialogs
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
@@ -128,7 +130,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         btnSaveName.setOnClickListener {
             val newName = etDisplayName.text.toString().trim()
             if (newName.isEmpty()) {
-                Toast.makeText(requireContext(), "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(requireContext(), "Name cannot be empty")
                 return@setOnClickListener
             }
 
@@ -151,12 +153,12 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                     btnSaveName.text = "Saved ✓"
                     
                     onProfileUpdated?.invoke(newName)
-                    Toast.makeText(requireContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(requireContext(), "Profile updated successfully!")
                 },
                 onFailure = { err ->
                     btnSaveName.isEnabled = true
                     btnSaveName.text = "Save"
-                    Toast.makeText(requireContext(), "Failed to update profile: ${err.message}", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(requireContext(), "Failed to update profile: ${err.message}")
                 }
             )
         }
@@ -174,7 +176,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         cardResetPassword.setOnClickListener {
             val email = user.email
             if (email.isNullOrBlank()) {
-                Toast.makeText(requireContext(), "No email address linked to this account", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(requireContext(), "No email address linked to this account")
                 return@setOnClickListener
             }
 
@@ -191,7 +193,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                                 .show()
                         },
                         onFailure = { err ->
-                            Toast.makeText(requireContext(), "Failed to send reset email: ${err.message}", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(requireContext(), "Failed to send reset email: ${err.message}")
                         }
                     )
                 }
@@ -220,7 +222,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
             }
             
             onQuestResetRequested?.invoke()
-            Toast.makeText(context, "Clan Quest checklist restored to dashboard!", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(context, "Clan Quest checklist restored to dashboard!")
             dismiss()
         }
 
@@ -240,6 +242,20 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                 val intent = Intent(requireContext(), AdminPortalActivity::class.java)
                 startActivity(intent)
             }
+        }
+
+        // Sign Out Action
+        val btnProfileSignOut = view.findViewById<View?>(R.id.btnProfileSignOut)
+        btnProfileSignOut?.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Sign Out")
+                .setMessage("Are you sure you want to sign out of KinTrace?")
+                .setPositiveButton("Sign Out") { _, _ ->
+                    dismiss()
+                    activity?.let { authHelper.performGlobalLogout(it) }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
 
         // Delete Account & Clan Stewardship
@@ -271,27 +287,18 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                 authHelper.deleteCurrentUser(
                     onSuccess = {
                         progressDialog.dismiss()
-                        Toast.makeText(context, "Account deleted under Clan Stewardship.", Toast.LENGTH_LONG).show()
+                        KinTraceAlert.show(context, "Account deleted under Clan Stewardship.")
                         dismiss()
-                        val intent = Intent(context, LoginActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        }
-                        startActivity(intent)
-                        activity?.finish()
+                        activity?.let { authHelper.performGlobalLogout(it) }
                     },
                     onFailure = { err ->
                         progressDialog.dismiss()
                         AlertDialog.Builder(context)
                             .setTitle("Security Re-Authentication Required")
-                            .setMessage("Your profile and personal records have been removed under Clan Stewardship. However, Firebase requires recent authentication to permanently delete your login session.\n\nPlease sign out and sign in again to complete account removal:\n${err.message}")
+                            .setMessage("Your profile and personal records have been removed under Clan Stewardship. However, for security, KinTrace requires a recent sign-in before permanently deleting your login session.\n\nPlease sign out and sign in again to complete account removal:\n${err.message}")
                             .setPositiveButton("Sign Out") { _, _ ->
-                                authHelper.logout()
                                 dismiss()
-                                val intent = Intent(context, LoginActivity::class.java).apply {
-                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                }
-                                startActivity(intent)
-                                activity?.finish()
+                                activity?.let { authHelper.performGlobalLogout(it) }
                             }
                             .setNegativeButton("Dismiss", null)
                             .show()
@@ -300,7 +307,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
             },
             onFailure = { err ->
                 progressDialog.dismiss()
-                Toast.makeText(context, "Failed to delete account: ${err.message}", Toast.LENGTH_LONG).show()
+                KinTraceAlert.show(context, "Failed to delete account: ${err.message}")
             }
         )
     }
@@ -337,7 +344,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                 tvPasswordError.visibility = View.GONE
                 authHelper.updatePassword(newPass,
                     onSuccess = {
-                        Toast.makeText(context, "Password updated successfully!", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(context, "Password updated successfully!")
                         val currentUserId = authHelper.getCurrentUserId().orEmpty()
                         if (currentUserId.isNotEmpty()) {
                             val notif = NotificationHelper.createPasswordChangedNotification(

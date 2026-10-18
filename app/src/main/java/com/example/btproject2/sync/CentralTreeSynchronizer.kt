@@ -582,37 +582,7 @@ class CentralTreeSynchronizer private constructor() {
             realtimeListenerRegistration = FirestoreHelper().listenToTreePersons(
                 treeId = treeId,
                 onUpdate = { updatedPersons ->
-                    val oldList = FirestoreHelper.getCachedPersons(treeId).orEmpty()
-                    FirestoreHelper.setCachedPersons(updatedPersons)
-
-                    val oldMap = oldList.associateBy { it.id }
-                    val newMap = updatedPersons.associateBy { it.id }
-
-                    // Avoid event storm when an entire tree is loaded for the first time
-                    if (oldList.isEmpty() && updatedPersons.size > 1) {
-                        val focal = updatedPersons.firstOrNull()
-                        if (focal != null) {
-                            notifyMemberAdded(focal, sourceScreen = "RealtimeListenerInitialLoad")
-                        }
-                        return@listenToTreePersons
-                    }
-
-                    // Broadcast additions and modifications
-                    for (person in updatedPersons) {
-                        val prev = oldMap[person.id]
-                        if (prev == null) {
-                            notifyMemberAdded(person, sourceScreen = "RealtimeListener")
-                        } else if (prev != person) {
-                            notifyProfileEdited(person, previousPerson = prev, sourceScreen = "RealtimeListener")
-                        }
-                    }
-
-                    // Broadcast deletions
-                    for (oldPerson in oldList) {
-                        if (!newMap.containsKey(oldPerson.id)) {
-                            notifyMemberDeleted(deletedPersonId = oldPerson.id, treeId = oldPerson.treeId, sourceScreen = "RealtimeListener")
-                        }
-                    }
+                    processRealtimeSnapshotUpdate(treeId, updatedPersons)
                 },
                 onError = {
                     // Real-time snapshot listener error
@@ -620,6 +590,48 @@ class CentralTreeSynchronizer private constructor() {
             )
         } catch (_: Throwable) {
             // Environment failsafe (e.g. unit tests without Firebase initialized)
+        }
+    }
+
+    /**
+     * Diffs [updatedPersons] against the current cached list for [treeId] BEFORE overwriting
+     * the cache, then updates the cache authoritatively and broadcasts added/edited/deleted events.
+     */
+    fun processRealtimeSnapshotUpdate(treeId: String, updatedPersons: List<Person>) {
+        val oldList = FirestoreHelper.getCachedPersons(treeId).orEmpty()
+        FirestoreHelper.setCachedPersons(
+            updatedPersons,
+            authoritativeTreeId = treeId,
+            isAuthoritativeServerSnapshot = true
+        )
+
+        val oldMap = oldList.associateBy { it.id }
+        val newMap = updatedPersons.associateBy { it.id }
+
+        // Avoid event storm when an entire tree is loaded for the first time
+        if (oldList.isEmpty() && updatedPersons.size > 1) {
+            val focal = updatedPersons.firstOrNull()
+            if (focal != null) {
+                notifyMemberAdded(focal, sourceScreen = "RealtimeListenerInitialLoad")
+            }
+            return
+        }
+
+        // Broadcast additions and modifications
+        for (person in updatedPersons) {
+            val prev = oldMap[person.id]
+            if (prev == null) {
+                notifyMemberAdded(person, sourceScreen = "RealtimeListener")
+            } else if (prev != person) {
+                notifyProfileEdited(person, previousPerson = prev, sourceScreen = "RealtimeListener")
+            }
+        }
+
+        // Broadcast deletions
+        for (oldPerson in oldList) {
+            if (!newMap.containsKey(oldPerson.id)) {
+                notifyMemberDeleted(deletedPersonId = oldPerson.id, treeId = oldPerson.treeId, sourceScreen = "RealtimeListener")
+            }
         }
     }
 

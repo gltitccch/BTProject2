@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -164,9 +166,9 @@ class MergeBranchesActivity : AppCompatActivity() {
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("KinTrace Clan Merge Code", myActiveMergeCode)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(this, "Clan Merge Code $myActiveMergeCode copied to clipboard!", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Clan Merge Code $myActiveMergeCode copied to clipboard!")
             } else {
-                Toast.makeText(this, "Generating merge code, please wait...", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Generating merge code, please wait...")
             }
         }
 
@@ -176,7 +178,7 @@ class MergeBranchesActivity : AppCompatActivity() {
 
         btnOpenSynthesizeClanTree.setOnClickListener {
             if (isViewerOnly) {
-                Toast.makeText(this, "Permission restricted: Viewers cannot synthesize clan trees.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Permission restricted: Viewers cannot synthesize clan trees.")
             } else {
                 showSynthesizeClanTreeDialog()
             }
@@ -192,7 +194,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     currentRole = "Viewer"
                 )
                 firestoreHelper.addNotification(notif)
-                Toast.makeText(this, "Permission restricted: Viewers have read-only access.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Permission restricted: Viewers have read-only access.")
             } else {
                 showConnectBranchesDialog()
             }
@@ -226,17 +228,18 @@ class MergeBranchesActivity : AppCompatActivity() {
                                 }
                             },
                             onFailure = {
-                                tvMergeRoleBadge.text = "★ Owner"
-                                isViewerOnly = false
-                                layoutViewerBanner.visibility = View.GONE
+                                tvMergeRoleBadge.text = "👁 Viewer"
+                                isViewerOnly = true
+                                layoutViewerBanner.visibility = View.VISIBLE
                             }
                         )
                     }
                     loadPersonalTreesAndMembers()
                 },
                 onFailure = {
-                    tvMergeRoleBadge.text = "★ Owner"
-                    isViewerOnly = false
+                    tvMergeRoleBadge.text = "👁 Viewer"
+                    isViewerOnly = true
+                    layoutViewerBanner.visibility = View.VISIBLE
                     loadPersonalTreesAndMembers()
                 }
             )
@@ -297,7 +300,7 @@ class MergeBranchesActivity : AppCompatActivity() {
 
     private fun confirmRegenerateMergeCode() {
         if (isViewerOnly) {
-            Toast.makeText(this, "Permission restricted: Only owners can regenerate merge codes.", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Permission restricted: Only owners can regenerate merge codes.")
             return
         }
         AlertDialog.Builder(this)
@@ -316,10 +319,10 @@ class MergeBranchesActivity : AppCompatActivity() {
                     onSuccess = { newCode ->
                         myActiveMergeCode = newCode
                         tvMyMergeCodeDisplay.text = newCode.map { "$it " }.joinToString("").trim()
-                        Toast.makeText(this, "New Clan Merge Code: $newCode", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "New Clan Merge Code: $newCode")
                     },
                     onFailure = {
-                        Toast.makeText(this, "Failed to regenerate merge code.", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Failed to regenerate merge code.")
                         tvMyMergeCodeDisplay.text = myActiveMergeCode.map { "$it " }.joinToString("").trim()
                     }
                 )
@@ -348,7 +351,7 @@ class MergeBranchesActivity : AppCompatActivity() {
 
     private fun showReviewPendingRequestsDialog() {
         if (pendingIncomingRequests.isEmpty()) {
-            Toast.makeText(this, "No pending clan merge requests.", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "No pending clan merge requests.")
             return
         }
         if (pendingIncomingRequests.size == 1) {
@@ -393,11 +396,11 @@ class MergeBranchesActivity : AppCompatActivity() {
             btnApprove.isEnabled = false
             firestoreHelper.updateClanMergeRequestStatus(request.id, ClanMergeRequest.STATUS_REJECTED, onSuccess = {
                 dialog.dismiss()
-                Toast.makeText(this, "Clan merge request declined.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Clan merge request declined.")
             }, onFailure = { err ->
                 btnReject.isEnabled = true
                 btnApprove.isEnabled = true
-                Toast.makeText(this, "Failed to decline: ${err.message}", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Failed to decline: ${err.message}")
             })
         }
 
@@ -406,11 +409,11 @@ class MergeBranchesActivity : AppCompatActivity() {
             btnApprove.isEnabled = false
             firestoreHelper.updateClanMergeRequestStatus(request.id, ClanMergeRequest.STATUS_APPROVED, onSuccess = {
                 dialog.dismiss()
-                Toast.makeText(this, "✓ Clan merge authorized! The requester can now complete the synthesis.", Toast.LENGTH_LONG).show()
+                KinTraceAlert.show(this, "✓ Clan merge authorized! The requester can now complete the synthesis.")
             }, onFailure = { err ->
                 btnReject.isEnabled = true
                 btnApprove.isEnabled = true
-                Toast.makeText(this, "Failed to approve: ${err.message}", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Failed to approve: ${err.message}")
             })
         }
 
@@ -489,7 +492,15 @@ class MergeBranchesActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val currentUserId = authHelper.getCurrentUserId() ?: ""
+        val canDeleteClan = !isViewerOnly && (tree.ownerId.isEmpty() || tree.ownerId == currentUserId)
+        btnDelete.visibility = if (canDeleteClan) View.VISIBLE else View.GONE
+
         btnDelete.setOnClickListener {
+            if (!canDeleteClan) {
+                KinTraceAlert.warning(this, "Permission Restricted", "Only the Clan Tree owner can delete a Master Clan Tree.")
+                return@setOnClickListener
+            }
             AlertDialog.Builder(this)
                 .setTitle("Delete Master Clan Tree?")
                 .setMessage("Are you sure you want to remove '${tree.name}'?\n\n🛡️ 100% Safe: Your original family trees will NOT be modified or deleted.")
@@ -500,13 +511,13 @@ class MergeBranchesActivity : AppCompatActivity() {
                         context = this,
                         onSuccess = {
                             progressBarMerge.visibility = View.GONE
-                            Toast.makeText(this, "Master Clan Tree deleted.", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Master Clan Tree deleted.")
                             clanRefreshHandler.removeCallbacks(clanRefreshRunnable)
                             clanRefreshHandler.postDelayed(clanRefreshRunnable, 100L)
                         },
                         onFailure = { error ->
                             progressBarMerge.visibility = View.GONE
-                            Toast.makeText(this, "Failed to delete: ${error.message}", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Failed to delete: ${error.message}")
                         }
                     )
                 }
@@ -522,7 +533,7 @@ class MergeBranchesActivity : AppCompatActivity() {
     // =========================================================================
     private fun showSynthesizeClanTreeDialog() {
         if (allPersonalTrees.isEmpty()) {
-            Toast.makeText(this, "You need at least one family tree to synthesize a clan tree.", Toast.LENGTH_LONG).show()
+            KinTraceAlert.show(this, "You need at least one family tree to synthesize a clan tree.")
             return
         }
 
@@ -722,15 +733,15 @@ class MergeBranchesActivity : AppCompatActivity() {
 
                     if (req?.status == ClanMergeRequest.STATUS_REJECTED) {
                         tvMergeRequestStatus.text = "❌ Request was declined by the tree owner."
-                        tvMergeRequestStatus.setTextColor(Color.parseColor("#FF6B6B"))
+                        tvMergeRequestStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.danger))
                         tvMergeRequestSubtitle.text = "You may send a new request if needed."
                     } else if (req?.isExpired() == true) {
                         tvMergeRequestStatus.text = "⏰ Previous request expired."
-                        tvMergeRequestStatus.setTextColor(Color.parseColor("#FF6B6B"))
+                        tvMergeRequestStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.danger))
                         tvMergeRequestSubtitle.text = "Send a new request to request access."
                     } else {
                         tvMergeRequestStatus.text = "🔒 Approval Required: Target tree owner must authorize this merge."
-                        tvMergeRequestStatus.setTextColor(Color.parseColor("#E0A96D"))
+                        tvMergeRequestStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.gold_accent))
                         tvMergeRequestSubtitle.text = "Tap 'Send Merge Request' below to notify ${target?.ownerName?.ifBlank { "the tree owner" } ?: "the tree owner"}."
                     }
                     btnSendMergeRequest.visibility = View.VISIBLE
@@ -746,7 +757,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     btnExecuteSynthesis.isEnabled = false
 
                     tvMergeRequestStatus.text = "⏳ Request sent — waiting for the target tree owner's approval."
-                    tvMergeRequestStatus.setTextColor(Color.parseColor("#E0A96D"))
+                    tvMergeRequestStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.gold_accent))
                     tvMergeRequestSubtitle.text = "The target tree owner must approve this request before synthesis can proceed."
                     btnSendMergeRequest.visibility = View.GONE
                     btnCancelMergeRequest.visibility = View.VISIBLE
@@ -758,7 +769,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     activePendingRequestId = null
 
                     tvMergeRequestStatus.text = "✓ Approved by Owner: Tree B unlocked for synthesis."
-                    tvMergeRequestStatus.setTextColor(Color.parseColor("#4ECCA3"))
+                    tvMergeRequestStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.status_mint_text))
                     tvMergeRequestSubtitle.text = "You may now select anchor members and establish the clan bridge."
                     btnSendMergeRequest.visibility = View.GONE
                     btnCancelMergeRequest.visibility = View.GONE
@@ -776,7 +787,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     btnExecuteSynthesis.isEnabled = false
 
                     tvMergeRequestStatus.text = "✓ Authorization Already Completed."
-                    tvMergeRequestStatus.setTextColor(Color.parseColor("#4ECCA3"))
+                    tvMergeRequestStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.status_mint_text))
                     tvMergeRequestSubtitle.text = "A Master Clan Tree has already been created from this authorization."
                     btnSendMergeRequest.visibility = View.GONE
                     btnCancelMergeRequest.visibility = View.GONE
@@ -857,26 +868,26 @@ class MergeBranchesActivity : AppCompatActivity() {
             if (rawCode.length != 6) {
                 tvInviteCodeResult.visibility = View.VISIBLE
                 tvInviteCodeResult.text = "⚠️ Please enter a 6-character clan merge code."
-                tvInviteCodeResult.setTextColor(Color.parseColor("#FFB020"))
+                tvInviteCodeResult.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.audit_warning_text))
                 return@setOnClickListener
             }
             if (rawCode == myActiveMergeCode) {
                 tvInviteCodeResult.visibility = View.VISIBLE
                 tvInviteCodeResult.text = "⚠️ This is your own tree's merge code. Please select a different clan tree."
-                tvInviteCodeResult.setTextColor(Color.parseColor("#FFB020"))
+                tvInviteCodeResult.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.audit_warning_text))
                 return@setOnClickListener
             }
             btnLookupInviteCode.isEnabled = false
             tvInviteCodeResult.visibility = View.VISIBLE
             tvInviteCodeResult.text = "🔍 Looking up clan tree..."
-            tvInviteCodeResult.setTextColor(Color.parseColor("#E0A96D"))
+            tvInviteCodeResult.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.gold_accent))
 
             firestoreHelper.findTreeByMergeInviteCode(rawCode,
                 onSuccess = { tree ->
                     btnLookupInviteCode.isEnabled = true
                     if (tree == null) {
                         tvInviteCodeResult.text = "❌ No family tree found with merge code $rawCode."
-                        tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
+                        tvInviteCodeResult.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.danger))
                         verifiedExternalTree = null
                         layoutMergeRequestStatus.visibility = View.GONE
                         personsTree2 = emptyList()
@@ -889,7 +900,7 @@ class MergeBranchesActivity : AppCompatActivity() {
 
                         if (tree.id == myTreeId) {
                             tvInviteCodeResult.text = "⚠️ Tree '${tree.name}' is already selected as Primary Tree A."
-                            tvInviteCodeResult.setTextColor(Color.parseColor("#FFB020"))
+                            tvInviteCodeResult.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.audit_warning_text))
                             verifiedExternalTree = null
                             layoutMergeRequestStatus.visibility = View.GONE
                             personsTree2 = emptyList()
@@ -900,7 +911,7 @@ class MergeBranchesActivity : AppCompatActivity() {
 
                         verifiedExternalTree = tree
                         tvInviteCodeResult.text = "✓ Clan Tree: ${tree.name} (${tree.memberCount} members)"
-                        tvInviteCodeResult.setTextColor(Color.parseColor("#4ECCA3"))
+                        tvInviteCodeResult.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.status_mint_text))
                         updateDefaultMasterTreeName()
 
                         val currentUserId = authHelper.getCurrentUserId().orEmpty()
@@ -921,7 +932,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                 onFailure = { err ->
                     btnLookupInviteCode.isEnabled = true
                     tvInviteCodeResult.text = "❌ Lookup failed: ${err.message}"
-                    tvInviteCodeResult.setTextColor(Color.parseColor("#FF6B6B"))
+                    tvInviteCodeResult.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.danger))
                 }
             )
         }
@@ -947,12 +958,12 @@ class MergeBranchesActivity : AppCompatActivity() {
             btnSendMergeRequest.isEnabled = false
             firestoreHelper.createClanMergeRequest(newReq,
                 onSuccess = { createdReq ->
-                    Toast.makeText(this@MergeBranchesActivity, "📩 Merge request sent to ${target.ownerName.ifBlank { "tree owner" }}!", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this@MergeBranchesActivity, "📩 Merge request sent to ${target.ownerName.ifBlank { "tree owner" }}!")
                     applyRequestState(createdReq)
                 },
                 onFailure = { err ->
                     btnSendMergeRequest.isEnabled = true
-                    Toast.makeText(this@MergeBranchesActivity, "Failed to send request: ${err.message}", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this@MergeBranchesActivity, "Failed to send request: ${err.message}")
                 }
             )
         }
@@ -962,12 +973,12 @@ class MergeBranchesActivity : AppCompatActivity() {
             btnCancelMergeRequest.isEnabled = false
             firestoreHelper.updateClanMergeRequestStatus(reqId, ClanMergeRequest.STATUS_CANCELLED,
                 onSuccess = {
-                    Toast.makeText(this@MergeBranchesActivity, "Request cancelled.", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this@MergeBranchesActivity, "Request cancelled.")
                     applyRequestState(null)
                 },
                 onFailure = { err ->
                     btnCancelMergeRequest.isEnabled = true
-                    Toast.makeText(this@MergeBranchesActivity, "Failed to cancel: ${err.message}", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this@MergeBranchesActivity, "Failed to cancel: ${err.message}")
                 }
             )
         }
@@ -986,17 +997,17 @@ class MergeBranchesActivity : AppCompatActivity() {
         btnExecuteSynthesis.setOnClickListener {
             val masterTreeName = etMasterTreeName.text.toString().trim()
             if (masterTreeName.isBlank()) {
-                Toast.makeText(this, "Please enter a name for the Master Clan Tree.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Please enter a name for the Master Clan Tree.")
                 return@setOnClickListener
             }
 
             if (!rbTree2MyTrees.isChecked && activeApprovedRequestId == null) {
-                Toast.makeText(this, "Explicit approval from the target tree owner is required before synthesis.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Explicit approval from the target tree owner is required before synthesis.")
                 return@setOnClickListener
             }
 
             if (personsTree1.isEmpty() || personsTree2.isEmpty()) {
-                Toast.makeText(this, "Both trees must contain members to synthesize a clan tree.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Both trees must contain members to synthesize a clan tree.")
                 return@setOnClickListener
             }
 
@@ -1004,7 +1015,7 @@ class MergeBranchesActivity : AppCompatActivity() {
             val idx2 = spinnerAnchorPerson2.selectedItemPosition
 
             if (idx1 !in personsTree1.indices || idx2 !in personsTree2.indices) {
-                Toast.makeText(this, "Please select anchor connection members from both trees.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(this, "Please select anchor connection members from both trees.")
                 return@setOnClickListener
             }
 
@@ -1043,7 +1054,32 @@ class MergeBranchesActivity : AppCompatActivity() {
                 progressBarSynthesis.visibility = View.GONE
                 btnExecuteSynthesis.isEnabled = true
                 btnCancelSynthesis.isEnabled = true
-                Toast.makeText(this, "Cannot synthesize: ${simResult.blockReason}", Toast.LENGTH_LONG).show()
+
+                val selPos1Early = spinnerTree1.selectedItemPosition
+                val t1Early = allPersonalTrees.getOrNull(selPos1Early)
+                val t2Early = if (rbTree2MyTrees.isChecked) {
+                    val selPos2 = spinnerTree2.selectedItemPosition
+                    allPersonalTrees.getOrNull(selPos2)
+                } else externalTreeLoaded
+
+                val collisionRecord = com.example.btproject2.models.MergeCollisionRecord(
+                    sourceTree1Id = t1Early?.id.orEmpty(),
+                    sourceTree1Name = t1Early?.name ?: "Branch A",
+                    sourceTree2Id = t2Early?.id.orEmpty(),
+                    sourceTree2Name = t2Early?.name ?: "Branch B",
+                    personAId = anchor1.id,
+                    personAName = "${anchor1.firstName} ${anchor1.lastName}".trim(),
+                    personBId = anchor2.id,
+                    personBName = "${anchor2.firstName} ${anchor2.lastName}".trim(),
+                    conflictType = "LINEAGE_COLLISION",
+                    conflictSummary = simResult.blockReason.orEmpty(),
+                    conflictDetails = "Pre-flight validation blocked merge between ${t1Early?.name ?: "Branch A"} and ${t2Early?.name ?: "Branch B"}: ${simResult.blockReason.orEmpty()}",
+                    suggestedResolution = "Resolve conflicting lineage or relationship rule in System Admin Citadel.",
+                    escalatedBy = currentUserName
+                )
+                firestoreHelper.saveMergeCollision(collisionRecord)
+
+                KinTraceAlert.show(this, "Synthesis Blocked: ${simResult.blockReason.orEmpty()}\nEscalated to Ops & Recovery Desk.")
                 return@setOnClickListener
             }
 
@@ -1104,7 +1140,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                         )
                     }
                     dialog.dismiss()
-                    Toast.makeText(this, "Master Clan Tree synthesized successfully!", Toast.LENGTH_LONG).show()
+                    KinTraceAlert.show(this, "Master Clan Tree synthesized successfully!")
                     loadClanTrees()
 
                     AlertDialog.Builder(this)
@@ -1153,7 +1189,7 @@ class MergeBranchesActivity : AppCompatActivity() {
     // =========================================================================
     private fun showConnectBranchesDialog() {
         if (currentTreePersons.size < 2) {
-            Toast.makeText(this, "At least 2 members are required to connect internal branches.", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "At least 2 members are required to connect internal branches.")
             return
         }
 
@@ -1292,7 +1328,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                         firestoreHelper.updatePerson(updatedB, {
                             CentralTreeSynchronizer.getInstance().notifySpouseChanged(updatedA, updatedB)
                             dialog.dismiss()
-                            Toast.makeText(this, "Spousal link created!", Toast.LENGTH_SHORT).show()
+                            KinTraceAlert.show(this, "Spousal link created!")
                             loadPersonalTreesAndMembers()
                         }, { dialog.dismiss() })
                     }, { dialog.dismiss() })
@@ -1302,7 +1338,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     firestoreHelper.updatePerson(updatedB, {
                         CentralTreeSynchronizer.getInstance().notifyParentChildChanged(updatedB, pA, "father")
                         dialog.dismiss()
-                        Toast.makeText(this, "Paternal branch connected!", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Paternal branch connected!")
                         loadPersonalTreesAndMembers()
                     }, { dialog.dismiss() })
                 }
@@ -1311,7 +1347,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     firestoreHelper.updatePerson(updatedB, {
                         CentralTreeSynchronizer.getInstance().notifyParentChildChanged(updatedB, pA, "mother")
                         dialog.dismiss()
-                        Toast.makeText(this, "Maternal branch connected!", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Maternal branch connected!")
                         loadPersonalTreesAndMembers()
                     }, { dialog.dismiss() })
                 }
@@ -1324,7 +1360,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     firestoreHelper.updatePerson(updatedA, {
                         CentralTreeSynchronizer.getInstance().notifyParentChildChanged(updatedA, pB, "parent")
                         dialog.dismiss()
-                        Toast.makeText(this, "Branch connected!", Toast.LENGTH_SHORT).show()
+                        KinTraceAlert.show(this, "Branch connected!")
                         loadPersonalTreesAndMembers()
                     }, { dialog.dismiss() })
                 }

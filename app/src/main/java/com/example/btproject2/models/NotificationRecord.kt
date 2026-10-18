@@ -1,5 +1,8 @@
 package com.example.btproject2.models
 
+import com.google.firebase.firestore.IgnoreExtraProperties
+import com.google.firebase.firestore.PropertyName
+
 /**
  * NotificationRecord — Represents a system notification or alert (DFD Store D7).
  *
@@ -10,6 +13,7 @@ package com.example.btproject2.models
  * - "SECURITY": Role changes, privacy setting updates, password resets.
  * - "EDUCATIONAL": Academic notices, welcome disclosures, KinAcademy guidance.
  */
+@IgnoreExtraProperties
 data class NotificationRecord(
     val id: String = "",
     val treeId: String = "",
@@ -17,7 +21,7 @@ data class NotificationRecord(
     val title: String = "",
     val message: String = "",
     val type: String = "RECORDS",     // "ACCESS", "RECORDS", "VALIDATION", "SECURITY", "EDUCATIONAL"
-    val isRead: Boolean = false,
+    @get:PropertyName("isRead") @set:PropertyName("isRead") var isRead: Boolean = false,
     val targetId: String = "",        // Associated memberId, treeId, or traceId
     val timestamp: Long = System.currentTimeMillis()
 )

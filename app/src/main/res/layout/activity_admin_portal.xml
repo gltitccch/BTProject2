@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
@@ -21,59 +22,100 @@
             android:paddingEnd="20dp"
             android:paddingBottom="20dp">
 
+            <!-- iOS Frosted Glass Minimalist Chronometer Bar (Option 3) -->
             <LinearLayout
+                android:id="@+id/barCitadelHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="@drawable/bg_citadel_glass_header"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingStart="8dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="6dp">
 
-                <TextView
-                    android:id="@+id/btnBack"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_nav_back_pill"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="14dp"
-                    android:text="🚪 Sign Out"
-                    android:textColor="@color/danger"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                <!-- Avatar Circle with Status Dot -->
+                <FrameLayout
+                    android:layout_width="38dp"
+                    android:layout_height="38dp">
 
-                <TextView
-                    android:id="@+id/btnPreviewFeed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_nav_back_pill"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="14dp"
-                    android:text="👁️ Client Feed"
-                    android:textColor="@color/primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvCitadelAvatar"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_citadel_avatar_circle"
+                        android:gravity="center"
+                        android:text="A"
+                        android:textColor="@color/citadel_avatar_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
 
-                <View
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_gravity="bottom|end"
+                        android:background="@drawable/bg_citadel_online_dot" />
+                </FrameLayout>
+
+                <!-- Identity & Date Column -->
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvAdminBadge"
+                    <TextView
+                        android:id="@+id/tvCitadelDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.08"
+                        android:textColor="@color/citadel_date_color"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold"
+                        tools:text="THURSDAY, OCT 15" />
+
+                    <TextView
+                        android:id="@+id/tvCitadelGreeting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/citadel_greeting_color"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        tools:text="Hi, Super Admin" />
+                </LinearLayout>
+
+                <!-- Chronometer & Status Indicator -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/badge_pill_dark"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="5dp"
-                    android:text="🛡️ SUPER ADMIN"
-                    android:textColor="@color/mint_text"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
+                    android:gravity="end"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvCitadelClock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/citadel_clock_color"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        tools:text="11:42:05 PM" />
+
+                    <TextView
+                        android:id="@+id/tvCitadelSyncStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="● Online &amp; Synced"
+                        android:textColor="@color/citadel_sync_status_color"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
             <TextView
@@ -89,7 +131,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="FR-11 System Administration, Live Telemetry &amp; Quota Governance"
+                android:text="System Administration, Live Telemetry &amp; Quota Governance"
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
@@ -311,7 +353,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🧬 Nodes in Trees"
+                            android:text="👥 Members Across Trees"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
 
@@ -365,7 +407,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🧹 Inactive / Ghost Tree Capacity Pruner"
+                        android:text="🧹 Inactive Tree Storage Optimizer"
                         android:textColor="@color/text_primary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -374,7 +416,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Identifies empty trees (0 members created &gt;14d ago) and dormant trees (&gt;60d idle) to free document quota."
+                        android:text="Identifies empty trees and dormant lineages (&gt;60d idle) to maintain optimal database speed."
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
@@ -385,7 +427,7 @@
                         android:layout_marginTop="10dp"
                         android:background="@drawable/bg_admin_code_box"
                         android:padding="10dp"
-                        android:text="• Tree 'Test_Empty_01' (0 nodes, 18d inactive)&#10;• Tree 'Draft_Sandbox_A' (0 nodes, 24d inactive)&#10;• Tree 'Orphan_Tree_99' (1 node, 65d dormant)"
+                        android:text="• Tree 'Test_Empty_01' (0 members, 18d inactive)&#10;• Tree 'Draft_Sandbox_A' (0 members, 24d inactive)&#10;• Tree 'Orphan_Tree_99' (1 member, 65d dormant)"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
@@ -395,7 +437,7 @@
                         android:layout_height="44dp"
                         android:layout_marginTop="12dp"
                         android:backgroundTint="@color/primary"
-                        android:text="🗑️ Prune 3 Ghost Trees &amp; Reclaim Quota"
+                        android:text="🗑️ Purge Inactive Trees &amp; Free Storage"
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -796,13 +838,33 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="👑 Freemium 50-Member Cap &amp; Clan Expansion Queue"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="👑 Freemium 50-Member Cap &amp; Clan Expansion Queue"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/btnRefreshQuotaQueue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:text="🔄 Sync Queue"
+                            android:textColor="@color/primary"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -812,142 +874,54 @@
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
-                    <!-- Clan Request 1 -->
-                    <LinearLayout
+                    <!-- Dynamic Live Firestore Clan Expansion Queue -->
+                    <TextView
+                        android:id="@+id/tvEmptyQuotaQueue"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/bg_admin_code_box"
-                        android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="12dp"
+                        android:text="🔄 Scanning Firestore for clans at or near their member cap..."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                    <LinearLayout
+                        android:id="@+id/layoutQuotaQueueList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Malone Clan"
-                                android:textColor="@color/text_primary"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="1dp"
-                                android:layout_weight="1" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/badge_pill_dark"
-                                android:paddingHorizontal="6dp"
-                                android:paddingVertical="2dp"
-                                android:text="🛑 50/50 Capped"
-                                android:textColor="@color/warning"
-                                android:textSize="10sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Owner: karl.malone@gmail.com • Request: Tier 2 (200 Members)"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
+                    <!-- Legacy Fallback Stubs (Hidden for backwards compatibility) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:visibility="gone"
+                        android:orientation="vertical">
 
                         <Button
                             android:id="@+id/btnApproveMalone"
-                            android:layout_width="match_parent"
-                            android:layout_height="38dp"
-                            android:layout_marginTop="8dp"
-                            android:backgroundTint="@color/primary"
-                            android:text="⚡ Approve Clan Expansion (+150 Cap)"
-                            android:textColor="@color/white"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/tvMaloneStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Pending admin review."
-                            android:textColor="@color/text_secondary"
-                            android:textSize="10sp" />
-                    </LinearLayout>
-
-                    <!-- Clan Request 2 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_admin_code_box"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Santos-Reyes Heritage"
-                                android:textColor="@color/text_primary"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <View
-                                android:layout_width="0dp"
-                                android:layout_height="1dp"
-                                android:layout_weight="1" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/badge_pill_dark"
-                                android:paddingHorizontal="6dp"
-                                android:paddingVertical="2dp"
-                                android:text="⚠️ 48/50 Near Cap"
-                                android:textColor="@color/mint_text"
-                                android:textSize="10sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Owner: maria.santos@gmail.com • Approaching cap limit"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
 
                         <Button
                             android:id="@+id/btnApproveSantos"
-                            android:layout_width="match_parent"
-                            android:layout_height="38dp"
-                            android:layout_marginTop="8dp"
-                            android:backgroundTint="@color/forest_card"
-                            android:text="⚡ Approve Proactive Expansion"
-                            android:textColor="@color/primary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/tvSantosStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Proactive upgrade available."
-                            android:textColor="@color/text_secondary"
-                            android:textSize="10sp" />
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
                     </LinearLayout>
 
                     <!-- Reunion Pass Generator -->
@@ -1034,6 +1008,7 @@
 
                 <!-- Soft Delete Console -->
                 <LinearLayout
+                    android:id="@+id/cardDeletedRecovery"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_forest_card"
@@ -1043,7 +1018,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🩹 Soft-Delete Node Recovery Console"
+                        android:text="🩹 Deleted Member Recovery Console"
                         android:textColor="@color/text_primary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -1052,58 +1027,35 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Recovers inadvertently deleted nodes flagged with isDeleted: true to heal broken pedigree links."
+                        android:text="Restore accidentally deleted family members to reconnect pedigree branches."
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
+                    <!-- Dynamic List of Archived Deleted Members -->
                     <LinearLayout
+                        android:id="@+id/layoutDeletedMembersList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/tvNoDeletedMembers"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:background="@drawable/bg_admin_code_box"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Juan Dela Cruz (Grandfather)"
-                            android:textColor="@color/text_primary"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="ID: node_juan_delacruz • Deleted by Editor 'Karl' in Malone Clan"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-
-                        <Button
-                            android:id="@+id/btnRestoreNode"
-                            android:layout_width="match_parent"
-                            android:layout_height="38dp"
-                            android:layout_marginTop="8dp"
-                            android:backgroundTint="@color/primary"
-                            android:text="🩹 Restore Node &amp; Heal Graph"
-                            android:textColor="@color/white"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvRestoreStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Node is currently soft-deleted."
-                            android:textColor="@color/danger"
-                            android:textSize="10sp" />
-                    </LinearLayout>
+                        android:gravity="center"
+                        android:padding="14dp"
+                        android:text="🛡️ No archived deleted members. All lineages intact."
+                        android:textColor="@color/mint_text"
+                        android:textSize="11sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <!-- Merge Collision Escalation Desk -->
                 <LinearLayout
+                    android:id="@+id/cardMergeCollision"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
@@ -1127,50 +1079,26 @@
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
+                    <!-- Dynamic List of Collision Dockets -->
                     <LinearLayout
+                        android:id="@+id/layoutCollisionDocketsList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/tvNoCollisions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:background="@drawable/bg_admin_code_box"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Escalation #402: Maria Santos Conflict"
-                            android:textColor="@color/text_primary"
-                            android:textSize="13sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Branch A says Born: 1945 | Branch B says Born: 1948"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-
-                        <Button
-                            android:id="@+id/btnResolveCollision"
-                            android:layout_width="match_parent"
-                            android:layout_height="38dp"
-                            android:layout_marginTop="8dp"
-                            android:backgroundTint="@color/primary"
-                            android:text="⚖️ Resolve &amp; Force-Merge (Canonical 1945)"
-                            android:textColor="@color/white"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvCollisionStatus"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="Branch conflict unresolved."
-                            android:textColor="@color/warning"
-                            android:textSize="10sp" />
-                    </LinearLayout>
+                        android:gravity="center"
+                        android:padding="14dp"
+                        android:text="⚖️ No unresolved merge collisions. All clan branches synthesized."
+                        android:textColor="@color/mint_text"
+                        android:textSize="11sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <!-- Defense Demo Sandbox Vault -->
@@ -1204,7 +1132,7 @@
                         android:layout_height="42dp"
                         android:layout_marginTop="10dp"
                         android:backgroundTint="@color/primary"
-                        android:text="⚡ Seed 4-Gen Test Clan (24 Nodes)"
+                        android:text="⚡ Seed 4-Gen Sample Clan (24 Members)"
                         android:textColor="@color/white"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -1253,7 +1181,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📦 Over-The-Air (OTA) App Release Desk"
+                        android:text="📦 App Version Deployment Desk"
                         android:textColor="@color/text_primary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -1262,7 +1190,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Deploy new version increments to all client devices via Cloud Firestore."
+                        android:text="Deploy new version releases to all client devices."
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
@@ -1411,7 +1339,7 @@
                             android:layout_height="44dp"
                             android:layout_marginTop="10dp"
                             android:backgroundTint="@color/primary"
-                            android:text="🚀 Deploy OTA Increment to Client Devices"
+                            android:text="🚀 Deploy Update to Client Devices"
                             android:textColor="@color/white"
                             android:textSize="12sp"
                             android:textStyle="bold" />

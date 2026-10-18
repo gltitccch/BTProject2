@@ -141,12 +141,13 @@ class RelationshipPathActivity : AppCompatActivity() {
                         mb.strokeColor = ColorStateList.valueOf(Color.parseColor("#D4A359"))
                         mb.strokeWidth = (1.5f * density).toInt()
                         mb.cornerRadius = (24 * density).toInt()
-                        mb.setTextColor(Color.parseColor("#D4A359"))
+                        mb.setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.gold_accent))
                     } else {
-                        mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B45309"))
-                        mb.strokeWidth = 0
-                        mb.cornerRadius = (14 * density).toInt()
-                        mb.setTextColor(Color.WHITE)
+                        mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEF3C7"))
+                        mb.strokeColor = ColorStateList.valueOf(Color.parseColor("#B45309"))
+                        mb.strokeWidth = (1.5f * density).toInt()
+                        mb.cornerRadius = (24 * density).toInt()
+                        mb.setTextColor(Color.parseColor("#B45309"))
                     }
                 }
             }
@@ -254,7 +255,7 @@ class RelationshipPathActivity : AppCompatActivity() {
                 text = "No Common Ancestor Detected"
                 textSize = 16f
                 setTypeface(typeface, Typeface.BOLD)
-                setTextColor(Color.parseColor("#FF8A8A"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.danger))
                 gravity = Gravity.CENTER
                 val p = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 p.bottomMargin = 6
@@ -265,7 +266,7 @@ class RelationshipPathActivity : AppCompatActivity() {
             val tvNoDesc = TextView(this).apply {
                 text = result.explanation.ifBlank { "These two individuals do not share a common ancestor within the registered family tree records." }
                 textSize = 13f
-                setTextColor(Color.parseColor("#A3B899"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.text_secondary))
                 gravity = Gravity.CENTER
                 setLineSpacing(0f, 1.3f)
             }
@@ -318,7 +319,7 @@ class RelationshipPathActivity : AppCompatActivity() {
             text = "STEP $stepNum"
             textSize = 9f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(Color.parseColor("#A3B899"))
+            setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.text_secondary))
             setBackgroundResource(R.drawable.badge_pill_dark)
             setPadding(16, 4, 16, 4)
             gravity = Gravity.CENTER
@@ -342,13 +343,13 @@ class RelationshipPathActivity : AppCompatActivity() {
             layoutParams = lp
 
             if (isAncestor) {
-                setTextColor(Color.parseColor("#0A1B12"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.btn_gold_text))
                 setBackgroundResource(R.drawable.badge_pill_gold)
             } else if (isStarter || isTarget) {
-                setTextColor(Color.parseColor("#D4A359"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.gold_accent))
                 setBackgroundResource(R.drawable.badge_pill_dark)
             } else {
-                setTextColor(Color.parseColor("#4ECCA3"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.status_mint_text))
                 setBackgroundResource(R.drawable.badge_pill_dark)
             }
         }
@@ -365,13 +366,13 @@ class RelationshipPathActivity : AppCompatActivity() {
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
             if (isAncestor) {
-                setTextColor(Color.parseColor("#0A1B12"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.btn_gold_text))
                 setBackgroundResource(R.drawable.circle_gold_btn)
             } else if (person.gender.equals("Female", ignoreCase = true)) {
-                setTextColor(Color.parseColor("#F472B6"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.pink))
                 setBackgroundResource(R.drawable.avatar_circle_dark)
             } else {
-                setTextColor(Color.parseColor("#4ECCA3"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.status_mint_text))
                 setBackgroundResource(R.drawable.avatar_circle_dark)
             }
             val sizePx = (44 * resources.displayMetrics.density).toInt()
@@ -388,9 +389,9 @@ class RelationshipPathActivity : AppCompatActivity() {
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER
             if (isAncestor) {
-                setTextColor(Color.parseColor("#F5D77F"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.gold_accent))
             } else {
-                setTextColor(Color.parseColor("#FFFFFF"))
+                setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.text_primary))
             }
         }
         nodeLayout.addView(nameView)
@@ -400,7 +401,7 @@ class RelationshipPathActivity : AppCompatActivity() {
             text = subtitle
             textSize = 12f
             gravity = Gravity.CENTER
-            setTextColor(if (isAncestor) Color.parseColor("#D4A359") else Color.parseColor("#4ECCA3"))
+            setTextColor(if (isAncestor) androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.gold_accent) else androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.status_mint_text))
             val p = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -420,7 +421,7 @@ class RelationshipPathActivity : AppCompatActivity() {
             text = details.joinToString(" · ")
             textSize = 11f
             gravity = Gravity.CENTER
-            setTextColor(Color.parseColor("#A3B899"))
+            setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.text_secondary))
             val p = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -451,7 +452,7 @@ class RelationshipPathActivity : AppCompatActivity() {
             text = if (isAscending) "▲  $label" else "▼  $label"
             textSize = 10f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(Color.parseColor("#D4A359"))
+            setTextColor(androidx.core.content.ContextCompat.getColor(this@RelationshipPathActivity, R.color.gold_accent))
             setBackgroundResource(R.drawable.badge_pill_dark)
             setPadding(20, 6, 20, 6)
             gravity = Gravity.CENTER

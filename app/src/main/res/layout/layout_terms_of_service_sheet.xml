@@ -283,7 +283,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="You may request account deletion at any time in Account Profile settings. Upon execution, all private login credentials, tokens, and user profile data are permanently purged from Firebase Authentication and Firestore, while collaborative family trees transition to Clan Stewardship."
+                android:text="You may request account deletion at any time in Account Profile settings. Upon execution, all private login credentials, tokens, and user profile data are permanently purged from KinTrace secure cloud servers, while collaborative family trees transition to Clan Stewardship."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"

@@ -211,6 +211,7 @@ class BloodRelationshipEngine {
         val startPerson = personMap[personId] ?: return ancestors
 
         data class QueueItem(val person: Person, val depth: Int, val path: List<Person>)
+        val visited = mutableSetOf(startPerson.id)
         val queue = ArrayDeque<QueueItem>()
         queue.add(QueueItem(startPerson, 0, listOf(startPerson)))
 
@@ -222,7 +223,7 @@ class BloodRelationshipEngine {
             val isMotherBio = isBiological(current.person.motherRelationshipType)
             if (isMotherBio && !current.person.motherId.isNullOrBlank()) {
                 val mother = personMap[current.person.motherId]
-                if (mother != null && !ancestors.containsKey(mother.id)) {
+                if (mother != null && visited.add(mother.id) && !ancestors.containsKey(mother.id)) {
                     val nextDepth = current.depth + 1
                     val nextPath = current.path + mother
                     ancestors[mother.id] = Pair(nextDepth, nextPath)
@@ -234,7 +235,7 @@ class BloodRelationshipEngine {
             val isFatherBio = isBiological(current.person.fatherRelationshipType)
             if (isFatherBio && !current.person.fatherId.isNullOrBlank()) {
                 val father = personMap[current.person.fatherId]
-                if (father != null && !ancestors.containsKey(father.id)) {
+                if (father != null && visited.add(father.id) && !ancestors.containsKey(father.id)) {
                     val nextDepth = current.depth + 1
                     val nextPath = current.path + father
                     ancestors[father.id] = Pair(nextDepth, nextPath)

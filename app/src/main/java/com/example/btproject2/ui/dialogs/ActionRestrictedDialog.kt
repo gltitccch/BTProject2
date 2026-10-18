@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.dialogs
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -90,7 +92,7 @@ class ActionRestrictedDialog : DialogFragment() {
                     currentRole = "Viewer"
                 )
                 firestoreHelper.addNotification(notif)
-                Toast.makeText(context, "Access request sent to tree owner.", Toast.LENGTH_SHORT).show()
+                KinTraceAlert.show(context, "Access request sent to tree owner.")
             }
             onRequestAccess?.invoke()
             dismiss()

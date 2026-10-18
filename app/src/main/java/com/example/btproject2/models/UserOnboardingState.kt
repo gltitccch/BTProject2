@@ -1,5 +1,7 @@
 package com.example.btproject2.models
 
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
 
 /**
@@ -8,6 +10,7 @@ import com.google.firebase.firestore.PropertyName
  * Coordinates both Phase 1 (Pamana at Lahi Welcome Storybook Modal)
  * and Phase 2 (Clan Builder Quest HUD on Home Dashboard).
  */
+@IgnoreExtraProperties
 data class UserOnboardingState(
     @get:PropertyName("hasSeenWelcomeStory") @set:PropertyName("hasSeenWelcomeStory")
     var hasSeenWelcomeStory: Boolean = false,
@@ -36,6 +39,7 @@ data class UserOnboardingState(
     /**
      * Counts how many of the 4 core clan milestones are achieved.
      */
+    @Exclude
     fun getCompletedCount(): Int {
         var count = 0
         if (questRootsCompleted) count++
@@ -48,6 +52,7 @@ data class UserOnboardingState(
     /**
      * Calculates completion percentage (0%, 25%, 50%, 75%, or 100%).
      */
+    @Exclude
     fun getProgressPercentage(): Int {
         return (getCompletedCount() / 4.0 * 100).toInt()
     }
@@ -55,5 +60,6 @@ data class UserOnboardingState(
     /**
      * Returns true if all 4 milestones are complete.
      */
+    @Exclude
     fun isAllCompleted(): Boolean = getCompletedCount() >= 4
 }

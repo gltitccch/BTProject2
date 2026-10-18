@@ -43,12 +43,12 @@ class TreeAuditAdapter(
         // 1. Badge Styling
         if (issue.severity == AuditSeverity.CRITICAL_ERROR) {
             holder.tvIssueBadge.text = "CRITICAL ERROR"
-            holder.tvIssueBadge.setBackgroundColor(Color.parseColor("#991B1B")) // Crimson Red
-            holder.tvIssueBadge.setTextColor(Color.WHITE)
+            holder.tvIssueBadge.setBackgroundResource(R.drawable.bg_audit_critical_card)
+            holder.tvIssueBadge.setTextColor(androidx.core.content.ContextCompat.getColor(holder.itemView.context, R.color.audit_critical_text))
         } else {
             holder.tvIssueBadge.text = "WARNING"
-            holder.tvIssueBadge.setBackgroundColor(Color.parseColor("#B45309")) // Amber
-            holder.tvIssueBadge.setTextColor(Color.WHITE)
+            holder.tvIssueBadge.setBackgroundResource(R.drawable.bg_audit_warning_card)
+            holder.tvIssueBadge.setTextColor(androidx.core.content.ContextCompat.getColor(holder.itemView.context, R.color.audit_warning_text))
         }
 
         // 2. Title & Description

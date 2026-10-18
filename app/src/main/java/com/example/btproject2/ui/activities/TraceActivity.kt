@@ -38,6 +38,16 @@ class TraceActivity : AppCompatActivity() {
     private var lastPersonBId = ""
     private var lastTraceResult: TraceResult? = null
 
+    private val networkListener: (com.example.btproject2.utils.NetworkStateMonitor.NetworkState) -> Unit = { state ->
+        com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.updateNetworkState(this, state) {
+            val spinnerA = findViewById<android.widget.Spinner>(R.id.spinnerPersonA)
+            val spinnerB = findViewById<android.widget.Spinner>(R.id.spinnerPersonB)
+            if (spinnerA != null && spinnerB != null) {
+                loadFamilyMembers(spinnerA, spinnerB)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_trace)
@@ -63,7 +73,56 @@ class TraceActivity : AppCompatActivity() {
 
         resultContainer.visibility = View.GONE
 
+        // ── Floating Heritage Island Bottom Navigation Coordinator ──
+        com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.setup(
+            activity = this,
+            activeTab = com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.NavTab.TRACE,
+            treeIdProvider = { treeId },
+            onProfileClicked = {
+                // Return to home where account profile dialog is hosted
+                val intent = Intent(this, HomeActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                }
+                startActivity(intent)
+            }
+        )
+
         loadFamilyMembers(spinnerA, spinnerB)
+
+        val openSearchA = View.OnClickListener {
+            showSpotlightMemberSearchSheet(isPersonA = true, spinnerA = spinnerA, spinnerB = spinnerB)
+        }
+        val openSearchB = View.OnClickListener {
+            showSpotlightMemberSearchSheet(isPersonA = false, spinnerA = spinnerA, spinnerB = spinnerB)
+        }
+        findViewById<View>(R.id.cardSelectPersonA)?.setOnClickListener(openSearchA)
+        findViewById<View>(R.id.btnSpotlightPersonA)?.setOnClickListener(openSearchA)
+        findViewById<View>(R.id.cardSelectPersonB)?.setOnClickListener(openSearchB)
+        findViewById<View>(R.id.btnSpotlightPersonB)?.setOnClickListener(openSearchB)
+
+        spinnerA.setOnTouchListener { _, event ->
+            if (event.action == android.view.MotionEvent.ACTION_UP) {
+                showSpotlightMemberSearchSheet(isPersonA = true, spinnerA = spinnerA, spinnerB = spinnerB)
+            }
+            true
+        }
+        spinnerB.setOnTouchListener { _, event ->
+            if (event.action == android.view.MotionEvent.ACTION_UP) {
+                showSpotlightMemberSearchSheet(isPersonA = false, spinnerA = spinnerA, spinnerB = spinnerB)
+            }
+            true
+        }
+
+        findViewById<View>(R.id.btnSwapTracePersons)?.setOnClickListener {
+            if (familyMembers.isNotEmpty()) {
+                val idxA = spinnerA.selectedItemPosition
+                val idxB = spinnerB.selectedItemPosition
+                if (idxA >= 0 && idxB >= 0) {
+                    spinnerA.setSelection(idxB)
+                    spinnerB.setSelection(idxA)
+                }
+            }
+        }
 
         btnTrace.setOnClickListener {
             val indexA = spinnerA.selectedItemPosition
@@ -190,9 +249,20 @@ class TraceActivity : AppCompatActivity() {
         loadRecentTraceReports()
     }
 
+    override fun onStart() {
+        super.onStart()
+        com.example.btproject2.utils.NetworkStateMonitor.startMonitoring(this)
+        com.example.btproject2.utils.NetworkStateMonitor.addListener(networkListener)
+    }
+
     override fun onResume() {
         super.onResume()
         loadRecentTraceReports()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        com.example.btproject2.utils.NetworkStateMonitor.removeListener(networkListener)
     }
 
     private fun displayResult(result: TraceResult) {
@@ -233,27 +303,27 @@ class TraceActivity : AppCompatActivity() {
 
         if (result.isMarriageProhibited) {
             tvLegalBadge.text = "PROHIBITED"
-            tvLegalBadge.setTextColor(Color.parseColor("#FF5C5C"))
-            tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
-            tvLegalTitle.setTextColor(if (isDark) Color.parseColor("#FF8A8A") else Color.parseColor("#DC2626"))
+            tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.audit_critical_text))
+            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_invalid_pill)
+            tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.audit_critical_text))
         } else if (result.isRelated) {
             tvLegalBadge.text = "PERMISSIBLE"
-            tvLegalBadge.setTextColor(if (isDark) Color.parseColor("#4ECCA3") else Color.parseColor("#15803D"))
-            tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
-            tvLegalTitle.setTextColor(if (isDark) Color.parseColor("#D4A359") else Color.parseColor("#B45309"))
+            tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
+            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+            tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
         } else {
             tvLegalBadge.text = "NO IMPEDIMENT"
-            tvLegalBadge.setTextColor(if (isDark) Color.parseColor("#A3B899") else Color.parseColor("#15803D"))
-            tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
-            tvLegalTitle.setTextColor(if (isDark) Color.parseColor("#E0E0E0") else ContextCompat.getColor(this, R.color.text_primary))
+            tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
+            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+            tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
         }
 
         if (result.isRelated) {
             resultCard.setBackgroundResource(R.drawable.result_card_bg)
             tvResultLabel.text = "RELATIONSHIP FOUND"
-            tvResultLabel.setTextColor(if (isDark) Color.parseColor("#4ECCA3") else Color.parseColor("#065F46"))
+            tvResultLabel.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
             tvType.text = result.relationshipType
-            tvType.setTextColor(if (isDark) Color.parseColor("#D4A359") else Color.parseColor("#B45309"))
+            tvType.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
             tvExplanation.text = result.explanation
 
             if (result.commonAncestor != null) {
@@ -287,9 +357,9 @@ class TraceActivity : AppCompatActivity() {
         } else {
             resultCard.setBackgroundResource(R.drawable.result_card_danger_bg)
             tvResultLabel.text = "NO BLOOD RELATION DETECTED"
-            tvResultLabel.setTextColor(if (isDark) Color.parseColor("#FF5C5C") else Color.parseColor("#DC2626"))
+            tvResultLabel.setTextColor(ContextCompat.getColor(this, R.color.danger))
             tvType.text = "Not Related"
-            tvType.setTextColor(if (isDark) Color.parseColor("#E0E0E0") else ContextCompat.getColor(this, R.color.text_primary))
+            tvType.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
             tvExplanation.text = result.explanation
             ancestorContainer.visibility = View.GONE
             findViewById<LinearLayout>(R.id.cardInlineRoutePreview)?.visibility = View.GONE
@@ -460,10 +530,11 @@ class TraceActivity : AppCompatActivity() {
                 mb.cornerRadius = (24 * density).toInt()
                 mb.setTextColor(Color.parseColor("#D4A359"))
             } else {
-                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B45309"))
-                mb.strokeWidth = 0
-                mb.cornerRadius = (14 * density).toInt()
-                mb.setTextColor(Color.WHITE)
+                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEF3C7"))
+                mb.strokeColor = ColorStateList.valueOf(Color.parseColor("#B45309"))
+                mb.strokeWidth = (1.5f * density).toInt()
+                mb.cornerRadius = (24 * density).toInt()
+                mb.setTextColor(Color.parseColor("#B45309"))
             }
         }
 
@@ -476,10 +547,11 @@ class TraceActivity : AppCompatActivity() {
                 mb.cornerRadius = (14 * density).toInt()
                 mb.setTextColor(Color.WHITE)
             } else {
-                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B45309"))
-                mb.strokeWidth = 0
+                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F5F7F1"))
+                mb.strokeColor = ColorStateList.valueOf(Color.parseColor("#D2D9CE"))
+                mb.strokeWidth = (1 * density).toInt()
                 mb.cornerRadius = (14 * density).toInt()
-                mb.setTextColor(Color.WHITE)
+                mb.setTextColor(Color.parseColor("#0F172A"))
             }
         }
 
@@ -492,10 +564,11 @@ class TraceActivity : AppCompatActivity() {
                 mb.cornerRadius = (14 * density).toInt()
                 mb.setTextColor(Color.parseColor("#A3B899"))
             } else {
-                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B45309"))
-                mb.strokeWidth = 0
+                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F5F7F1"))
+                mb.strokeColor = ColorStateList.valueOf(Color.parseColor("#D2D9CE"))
+                mb.strokeWidth = (1 * density).toInt()
                 mb.cornerRadius = (14 * density).toInt()
-                mb.setTextColor(Color.WHITE)
+                mb.setTextColor(Color.parseColor("#475569"))
             }
         }
 
@@ -508,10 +581,385 @@ class TraceActivity : AppCompatActivity() {
                 mb.cornerRadius = (14 * density).toInt()
                 mb.setTextColor(Color.parseColor("#A3B899"))
             } else {
-                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B45309"))
-                mb.strokeWidth = 0
+                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F5F7F1"))
+                mb.strokeColor = ColorStateList.valueOf(Color.parseColor("#D2D9CE"))
+                mb.strokeWidth = (1 * density).toInt()
                 mb.cornerRadius = (14 * density).toInt()
-                mb.setTextColor(Color.WHITE)
+                mb.setTextColor(Color.parseColor("#475569"))
+            }
+        }
+    }
+
+    private fun showSpotlightMemberSearchSheet(isPersonA: Boolean, spinnerA: Spinner, spinnerB: Spinner) {
+        if (familyMembers.isEmpty()) {
+            showMessage("No Members", "Family members are still loading or the tree is empty.")
+            return
+        }
+
+        val density = resources.displayMetrics.density
+        fun dp(v: Int): Int = (v * density).toInt()
+
+        val colorBg = ContextCompat.getColor(this, R.color.forest_bg)
+        val colorCard = ContextCompat.getColor(this, R.color.forest_card)
+        val colorBorder = ContextCompat.getColor(this, R.color.forest_card_border)
+        val colorTextPrimary = ContextCompat.getColor(this, R.color.text_primary)
+        val colorTextSecondary = ContextCompat.getColor(this, R.color.text_secondary)
+        val colorTextHint = ContextCompat.getColor(this, R.color.text_hint)
+        val colorAccent = ContextCompat.getColor(this, R.color.gold_accent)
+        val colorPillBg = ContextCompat.getColor(this, R.color.primary_light)
+        val colorPillStroke = ContextCompat.getColor(this, R.color.primary_light_stroke)
+        val colorActivePillText = ContextCompat.getColor(this, R.color.btn_gold_text)
+
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(14), dp(18), dp(22))
+            val bgDrawable = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                cornerRadii = floatArrayOf(
+                    24 * density, 24 * density,
+                    24 * density, 24 * density,
+                    0f, 0f, 0f, 0f
+                )
+                setColor(colorBg)
+                setStroke(dp(1), colorBorder)
+            }
+            background = bgDrawable
+        }
+
+        // Drag handle
+        val handle = View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(42), dp(4)).apply {
+                gravity = android.view.Gravity.CENTER_HORIZONTAL
+                bottomMargin = dp(12)
+            }
+            background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = 4 * density
+                setColor(colorBorder)
+            }
+        }
+        root.addView(handle)
+
+        // Header Row
+        val headerRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = dp(10) }
+        }
+        val tvSheetTitle = TextView(this).apply {
+            text = if (isPersonA) "Select First Person (Person A)" else "Select Second Person (Person B)"
+            textSize = 15f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setTextColor(colorAccent)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        val btnCloseSheet = TextView(this).apply {
+            text = "✕"
+            textSize = 15f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setTextColor(colorTextSecondary)
+            setPadding(dp(10), dp(4), dp(10), dp(4))
+            setOnClickListener { dialog.dismiss() }
+        }
+        headerRow.addView(tvSheetTitle)
+        headerRow.addView(btnCloseSheet)
+        root.addView(headerRow)
+
+        // Search Box Row
+        val searchBox = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(dp(12), dp(8), dp(12), dp(8))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = dp(10) }
+            background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = 12 * density
+                setColor(colorCard)
+                setStroke((1.5f * density).toInt(), colorAccent)
+            }
+        }
+        val ivSearchIcon = android.widget.ImageView(this).apply {
+            setImageResource(R.drawable.ic_search_minimal)
+            layoutParams = LinearLayout.LayoutParams(dp(18), dp(18)).apply {
+                rightMargin = dp(10)
+            }
+        }
+        val etSearch = android.widget.EditText(this).apply {
+            id = R.id.etSearch
+            hint = "Type first name, last name, or birth year..."
+            textSize = 14f
+            setSingleLine(true)
+            background = null
+            setTextColor(colorTextPrimary)
+            setHintTextColor(colorTextHint)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        val btnClearQuery = TextView(this).apply {
+            text = "✕"
+            textSize = 13f
+            visibility = View.GONE
+            setPadding(dp(8), dp(2), dp(4), dp(2))
+            setTextColor(colorTextSecondary)
+        }
+        searchBox.addView(ivSearchIcon)
+        searchBox.addView(etSearch)
+        searchBox.addView(btnClearQuery)
+        root.addView(searchBox)
+
+        // Filter Pills Row
+        val filterScroll = android.widget.HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = dp(10) }
+        }
+        val filterRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        filterScroll.addView(filterRow)
+        root.addView(filterScroll)
+
+        var activeFilter = "ALL"
+        val filterOptions = listOf(
+            "ALL" to "All (${familyMembers.size})",
+            "LIVING" to "Living",
+            "DECEASED" to "Deceased",
+            "MALE" to "Male",
+            "FEMALE" to "Female"
+        )
+        val pillViews = mutableMapOf<String, TextView>()
+
+        // Result Count Subtitle
+        val tvMatchCount = TextView(this).apply {
+            textSize = 11f
+            setTextColor(colorTextSecondary)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = dp(6) }
+        }
+        root.addView(tvMatchCount)
+
+        // Scrollable Member List
+        val listScroll = android.widget.ScrollView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                (resources.displayMetrics.heightPixels * 0.48f).toInt()
+            )
+        }
+        val listContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        listScroll.addView(listContainer)
+        root.addView(listScroll)
+
+        fun styleFilterPills() {
+            pillViews.forEach { (key, pill) ->
+                val selected = key == activeFilter
+                pill.background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = 16 * density
+                    if (selected) {
+                        setColor(colorAccent)
+                    } else {
+                        setColor(colorCard)
+                        setStroke(dp(1), colorBorder)
+                    }
+                }
+                pill.setTextColor(if (selected) colorActivePillText else colorTextSecondary)
+            }
+        }
+
+        fun renderMembers() {
+            val query = etSearch.text?.toString().orEmpty()
+            btnClearQuery.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
+            val filtered = filterTraceMembers(familyMembers, query, activeFilter)
+            tvMatchCount.text = "Showing ${filtered.size} of ${familyMembers.size} family members"
+            listContainer.removeAllViews()
+
+            if (filtered.isEmpty()) {
+                val emptyTv = TextView(this).apply {
+                    text = "No family members match \"${query.trim()}\"."
+                    textSize = 13f
+                    gravity = android.view.Gravity.CENTER
+                    setPadding(dp(16), dp(28), dp(16), dp(28))
+                    setTextColor(colorTextSecondary)
+                }
+                listContainer.addView(emptyTv)
+                return
+            }
+
+            val currentOtherIndex = if (isPersonA) spinnerB.selectedItemPosition else spinnerA.selectedItemPosition
+            val currentOtherId = familyMembers.getOrNull(currentOtherIndex)?.id
+
+            filtered.forEach { person ->
+                val isOtherSelected = person.id == currentOtherId
+                val itemRow = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+                    setPadding(dp(12), dp(10), dp(12), dp(10))
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { bottomMargin = dp(8) }
+                    background = android.graphics.drawable.GradientDrawable().apply {
+                        cornerRadius = 12 * density
+                        setColor(colorCard)
+                        setStroke(dp(1), colorBorder)
+                    }
+                }
+
+                // Initials Avatar
+                val initials = listOfNotNull(
+                    person.firstName.firstOrNull()?.uppercaseChar(),
+                    person.lastName.firstOrNull()?.uppercaseChar()
+                ).joinToString("").ifEmpty { "?" }
+
+                val tvAvatar = TextView(this).apply {
+                    text = initials
+                    textSize = 13f
+                    gravity = android.view.Gravity.CENTER
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                    setTextColor(colorAccent)
+                    layoutParams = LinearLayout.LayoutParams(dp(38), dp(38)).apply {
+                        rightMargin = dp(12)
+                    }
+                    background = android.graphics.drawable.GradientDrawable().apply {
+                        shape = android.graphics.drawable.GradientDrawable.OVAL
+                        setColor(colorPillBg)
+                        setStroke(dp(1), colorPillStroke)
+                    }
+                }
+
+                // Name + Meta Column
+                val infoCol = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                }
+                val tvName = TextView(this).apply {
+                    text = "${person.firstName} ${person.lastName}".trim()
+                    textSize = 14f
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                    setTextColor(colorTextPrimary)
+                }
+                val birthYear = person.birthDate.takeLast(4).takeIf { it.all(Char::isDigit) && it.length == 4 }
+                    ?: person.birthDate.ifBlank { "Year N/A" }
+                val statusLabel = if (person.isLiving) "Living" else "Deceased"
+                val otherNote = if (isOtherSelected) " • Currently Person ${if (isPersonA) "B" else "A"}" else ""
+                val tvMeta = TextView(this).apply {
+                    text = "${person.gender.ifBlank { "Member" }} • b. $birthYear • $statusLabel$otherNote"
+                    textSize = 11.5f
+                    setTextColor(colorTextSecondary)
+                }
+                infoCol.addView(tvName)
+                infoCol.addView(tvMeta)
+
+                // Select Pill
+                val tvSelect = TextView(this).apply {
+                    text = "Select ›"
+                    textSize = 11.5f
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                    setPadding(dp(10), dp(5), dp(10), dp(5))
+                    setTextColor(colorAccent)
+                    background = android.graphics.drawable.GradientDrawable().apply {
+                        cornerRadius = 10 * density
+                        setColor(colorPillBg)
+                        setStroke(dp(1), colorPillStroke)
+                    }
+                }
+
+                itemRow.addView(tvAvatar)
+                itemRow.addView(infoCol)
+                itemRow.addView(tvSelect)
+
+                itemRow.setOnClickListener {
+                    val targetIdx = familyMembers.indexOfFirst { it.id == person.id }
+                    if (targetIdx >= 0) {
+                        if (isPersonA) {
+                            spinnerA.setSelection(targetIdx)
+                        } else {
+                            spinnerB.setSelection(targetIdx)
+                        }
+                    }
+                    dialog.dismiss()
+                }
+
+                listContainer.addView(itemRow)
+            }
+        }
+
+        filterOptions.forEach { (key, label) ->
+            val pill = TextView(this).apply {
+                text = label
+                textSize = 11.5f
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setPadding(dp(12), dp(6), dp(12), dp(6))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { rightMargin = dp(8) }
+                setOnClickListener {
+                    activeFilter = key
+                    styleFilterPills()
+                    renderMembers()
+                }
+            }
+            pillViews[key] = pill
+            filterRow.addView(pill)
+        }
+
+        btnClearQuery.setOnClickListener {
+            etSearch.setText("")
+        }
+
+        etSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                renderMembers()
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+
+        styleFilterPills()
+        renderMembers()
+
+        dialog.setContentView(root)
+        dialog.show()
+        etSearch.requestFocus()
+    }
+
+    companion object {
+        fun filterTraceMembers(
+            members: List<Person>,
+            query: String,
+            filter: String = "ALL"
+        ): List<Person> {
+            val trimmed = query.trim().lowercase(Locale.ROOT)
+            return members.filter { person ->
+                val matchesFilter = when (filter.uppercase(Locale.ROOT)) {
+                    "LIVING" -> person.isLiving
+                    "DECEASED" -> !person.isLiving
+                    "MALE" -> person.gender.equals("Male", ignoreCase = true)
+                    "FEMALE" -> person.gender.equals("Female", ignoreCase = true)
+                    else -> true
+                }
+                if (!matchesFilter) return@filter false
+
+                if (trimmed.isEmpty()) return@filter true
+
+                val fullName = "${person.firstName} ${person.lastName}".lowercase(Locale.ROOT)
+                val reverseName = "${person.lastName} ${person.firstName}".lowercase(Locale.ROOT)
+                val birth = person.birthDate.lowercase(Locale.ROOT)
+                val birthPlace = person.birthPlace.lowercase(Locale.ROOT)
+                fullName.contains(trimmed) ||
+                    reverseName.contains(trimmed) ||
+                    birth.contains(trimmed) ||
+                    birthPlace.contains(trimmed)
             }
         }
     }

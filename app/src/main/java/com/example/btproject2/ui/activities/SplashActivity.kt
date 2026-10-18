@@ -20,14 +20,26 @@ class SplashActivity : AppCompatActivity() {
             val user = authHelper.getCurrentUser()
             if (user != null) {
                 if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(user.email)) {
-                    startActivity(Intent(this, AdminPortalActivity::class.java))
+                    val intent = Intent(this, AdminPortalActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
                 } else if (user.isEmailVerified || com.example.btproject2.models.DemoAccountRepository.isDemoEmail(user.email)) {
-                    startActivity(Intent(this, HomeActivity::class.java))
+                    val intent = Intent(this, HomeActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
                 } else {
-                    startActivity(Intent(this, VerifyEmailActivity::class.java))
+                    val intent = Intent(this, VerifyEmailActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
                 }
             } else {
-                startActivity(Intent(this, LoginActivity::class.java))
+                val intent = Intent(this, LoginActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
             }
             finish()
         }, 2000)

@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -70,7 +72,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
                     val mailIntent = Intent(Intent.ACTION_VIEW, Uri.parse("mailto:"))
                     startActivity(mailIntent)
                 } catch (ex: Exception) {
-                    Toast.makeText(this, "Please open your email application manually", Toast.LENGTH_SHORT).show()
+                    KinTraceAlert.show(this, "Please open your email application manually")
                 }
             }
         }
@@ -93,7 +95,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
         }
 
         if (isResendCooldownActive) {
-            Toast.makeText(this, "Please wait before requesting another reset email", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Please wait before requesting another reset email")
             return
         }
 
@@ -114,7 +116,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
                 val notif = NotificationHelper.createAccountRecoveryNotification(email)
                 firestoreHelper.addNotification(notif)
 
-                Toast.makeText(this, "Password reset email sent! Check your Inbox and Spam/Junk.", Toast.LENGTH_LONG).show()
+                KinTraceAlert.show(this, "Password reset email sent! Check your Inbox and Spam/Junk.")
             },
             onFailure = { error ->
                 btnSendReset.isEnabled = true

@@ -145,7 +145,7 @@
                     android:text="1°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
@@ -177,7 +177,7 @@
                     android:text="VOID (Art. 37)"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#FF5C5C" />
+                    android:textColor="@color/danger" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -198,7 +198,7 @@
                     android:text="2°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
@@ -230,7 +230,7 @@
                     android:text="VOID (Art. 37)"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#FF5C5C" />
+                    android:textColor="@color/danger" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -251,7 +251,7 @@
                     android:text="3°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
@@ -283,7 +283,7 @@
                     android:text="VOID (Art. 37)"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#FF5C5C" />
+                    android:textColor="@color/danger" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -304,7 +304,7 @@
                     android:text="4°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
@@ -336,7 +336,7 @@
                     android:text="VOID (Art. 37)"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#FF5C5C" />
+                    android:textColor="@color/danger" />
             </LinearLayout>
         </LinearLayout>
 
@@ -393,7 +393,7 @@
                     android:text="2°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
@@ -425,7 +425,7 @@
                     android:text="VOID (Art. 37)"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#FF5C5C" />
+                    android:textColor="@color/danger" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -446,7 +446,7 @@
                     android:text="3°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
@@ -478,7 +478,7 @@
                     android:text="VOID (Art. 38)"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#FF8A8A" />
+                    android:textColor="@color/danger" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -499,7 +499,7 @@
                     android:text="4°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
@@ -531,7 +531,7 @@
                     android:text="VOID (Art. 38)"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#FF8A8A" />
+                    android:textColor="@color/danger" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -552,7 +552,7 @@
                     android:text="4°"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#0A1B12"
+                    android:textColor="@color/btn_gold_text"
                     android:background="@drawable/badge_pill_gold" />
 
                 <LinearLayout
@@ -584,7 +584,7 @@
                     android:text="VOID (Art. 38)"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#FF8A8A" />
+                    android:textColor="@color/danger" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -637,7 +637,7 @@
                     android:text="PERMISSIBLE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#4ECCA3" />
+                    android:textColor="@color/mint_text" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -690,7 +690,7 @@
                     android:text="PERMISSIBLE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#4ECCA3" />
+                    android:textColor="@color/mint_text" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -743,7 +743,7 @@
                     android:text="PERMISSIBLE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#4ECCA3" />
+                    android:textColor="@color/mint_text" />
             </LinearLayout>
         </LinearLayout>
 
@@ -772,7 +772,7 @@
                 android:text="Article 37: Incestuous Marriages (Void ab initio)"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="#FF5C5C"
+                android:textColor="@color/danger"
                 android:layout_marginBottom="4dp" />
 
             <TextView
@@ -791,7 +791,7 @@
                 android:text="Article 38(1): Void by Reason of Public Policy"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="#FF8A8A"
+                android:textColor="@color/danger"
                 android:layout_marginBottom="4dp" />
 
             <TextView
@@ -810,7 +810,7 @@
                 android:text="Beyond the Fourth Civil Degree"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="#4ECCA3"
+                android:textColor="@color/mint_text"
                 android:layout_marginBottom="4dp" />
 
             <TextView

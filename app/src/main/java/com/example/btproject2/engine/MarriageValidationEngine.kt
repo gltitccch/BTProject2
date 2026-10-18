@@ -723,7 +723,7 @@ class MarriageValidationEngine(
 
         data class SearchNode(val person: Person, val path: List<Person>)
         val queue = ArrayDeque<SearchNode>()
-        val visited = mutableSetOf<String>()
+        val visited = mutableSetOf(startDescendant.id.trim().lowercase())
 
         queue.add(SearchNode(startDescendant, listOf(startDescendant)))
 

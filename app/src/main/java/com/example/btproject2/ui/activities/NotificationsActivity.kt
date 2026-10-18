@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.btproject2.R
@@ -22,6 +23,13 @@ class NotificationsActivity : AppCompatActivity() {
     private var treeId = ""
     private var allNotifications = listOf<NotificationRecord>()
     private var selectedCategory = NotificationHelper.CATEGORY_ALL
+    private var announcementListener: com.google.firebase.firestore.ListenerRegistration? = null
+
+    override fun onDestroy() {
+        super.onDestroy()
+        announcementListener?.remove()
+        announcementListener = null
+    }
 
     private lateinit var adapter: NotificationAdapter
     private lateinit var rvNotifications: RecyclerView
@@ -100,10 +108,10 @@ class NotificationsActivity : AppCompatActivity() {
         chips.forEach { (view, cat) ->
             if (cat.equals(selectedCategory, ignoreCase = true)) {
                 view.setBackgroundResource(R.drawable.badge_pill_gold)
-                view.setTextColor(Color.parseColor("#0A1B12"))
+                view.setTextColor(ContextCompat.getColor(this, R.color.btn_gold_text))
             } else {
                 view.setBackgroundResource(R.drawable.badge_pill_dark)
-                view.setTextColor(Color.parseColor("#A3B899"))
+                view.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
             }
         }
     }
@@ -112,8 +120,7 @@ class NotificationsActivity : AppCompatActivity() {
         val currentUserId = authHelper.getCurrentUserId().orEmpty()
         firestoreHelper.getNotifications(treeId, currentUserId,
             onSuccess = { list ->
-                if (list.isEmpty()) {
-                    // Seed initial welcome notification if none exists
+                val baseList = list.ifEmpty {
                     val initialNotif = NotificationRecord(
                         treeId = treeId,
                         userId = currentUserId,
@@ -122,15 +129,38 @@ class NotificationsActivity : AppCompatActivity() {
                         type = NotificationHelper.CATEGORY_SECURITY,
                         isRead = false
                     )
-                    firestoreHelper.addNotification(initialNotif, onSuccess = { id ->
-                        allNotifications = listOf(initialNotif.copy(id = id))
+                    listOf(initialNotif)
+                }
+
+                announcementListener?.remove()
+                announcementListener = firestoreHelper.listenToActiveSystemAnnouncement { announcement ->
+                    runOnUiThread {
+                        if (isFinishing || isDestroyed) return@runOnUiThread
+                        var combinedList = baseList.filter { !it.id.startsWith("SYS_ANN_") }
+                        if (announcement != null && announcement.isActive && !announcement.isExpired) {
+                            val isRead = com.example.btproject2.utils.AnnouncementPreferences.isAdvisoryReadInNotifications(
+                                this@NotificationsActivity,
+                                announcement.id,
+                                announcement.createdAt
+                            )
+                            val windowText = if (announcement.timeWindow.isNotBlank()) "\n\n⏱️ Schedule: ${announcement.timeWindow}" else ""
+                            val advisoryNotif = NotificationRecord(
+                                id = "SYS_ANN_${announcement.id}_${announcement.createdAt}",
+                                treeId = treeId,
+                                userId = currentUserId,
+                                title = "⚠️ [SYSTEM ADVISORY] ${announcement.title}",
+                                message = "${announcement.message}$windowText",
+                                type = "ADVISORY",
+                                isRead = isRead,
+                                targetId = announcement.id,
+                                timestamp = announcement.createdAt
+                            )
+                            combinedList = listOf(advisoryNotif) + combinedList
+                        }
+                        allNotifications = combinedList
                         applyFilter()
                         checkInactivityReminders(currentUserId)
-                    })
-                } else {
-                    allNotifications = list
-                    applyFilter()
-                    checkInactivityReminders(currentUserId)
+                    }
                 }
             },
             onFailure = {
@@ -203,7 +233,15 @@ class NotificationsActivity : AppCompatActivity() {
 
     private fun showNotificationDetail(item: NotificationRecord) {
         if (!item.isRead) {
-            firestoreHelper.markNotificationAsRead(item.id)
+            if (item.id.startsWith("SYS_ANN_")) {
+                com.example.btproject2.utils.AnnouncementPreferences.setAdvisoryReadInNotifications(
+                    this,
+                    item.targetId,
+                    item.timestamp
+                )
+            } else {
+                firestoreHelper.markNotificationAsRead(item.id)
+            }
             allNotifications = allNotifications.map {
                 if (it.id == item.id) it.copy(isRead = true) else it
             }
@@ -222,7 +260,15 @@ class NotificationsActivity : AppCompatActivity() {
         if (unreadList.isEmpty()) return
 
         unreadList.forEach {
-            firestoreHelper.markNotificationAsRead(it.id)
+            if (it.id.startsWith("SYS_ANN_")) {
+                com.example.btproject2.utils.AnnouncementPreferences.setAdvisoryReadInNotifications(
+                    this,
+                    it.targetId,
+                    it.timestamp
+                )
+            } else {
+                firestoreHelper.markNotificationAsRead(it.id)
+            }
         }
         allNotifications = allNotifications.map { it.copy(isRead = true) }
         applyFilter()

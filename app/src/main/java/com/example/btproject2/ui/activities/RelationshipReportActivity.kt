@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.activities
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -43,7 +45,7 @@ class RelationshipReportActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
 
         if (personAId.isEmpty() || personBId.isEmpty()) {
-            Toast.makeText(this, "Invalid report parameters", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "Invalid report parameters")
             finish()
             return
         }
@@ -64,6 +66,7 @@ class RelationshipReportActivity : AppCompatActivity() {
             val intent = Intent(this, RelationshipPathActivity::class.java).apply {
                 putExtra("personAId", personAId)
                 putExtra("personBId", personBId)
+                putExtra("TREE_ID", treeId)
                 putExtra("treeId", treeId)
             }
             startActivity(intent)
@@ -83,6 +86,8 @@ class RelationshipReportActivity : AppCompatActivity() {
                     putExtra("mrcaId", r.commonAncestor?.id)
                     putStringArrayListExtra("highlightPathIds", pathIds)
                     putExtra("viewMode", "TRACE_HIGHLIGHT")
+                    putExtra("TREE_ID", treeId)
+                    putExtra("treeId", treeId)
                 }
                 startActivity(intent)
             } else {
@@ -90,6 +95,8 @@ class RelationshipReportActivity : AppCompatActivity() {
                     putExtra("highlightPersonAId", personAId)
                     putExtra("highlightPersonBId", personBId)
                     putExtra("viewMode", "TRACE_HIGHLIGHT")
+                    putExtra("TREE_ID", treeId)
+                    putExtra("treeId", treeId)
                 }
                 startActivity(intent)
             }
@@ -109,10 +116,11 @@ class RelationshipReportActivity : AppCompatActivity() {
                 mb.cornerRadius = (24 * density).toInt()
                 mb.setTextColor(Color.parseColor("#D4A359"))
             } else {
-                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B45309"))
-                mb.strokeWidth = 0
-                mb.cornerRadius = (14 * density).toInt()
-                mb.setTextColor(Color.WHITE)
+                mb.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FEF3C7"))
+                mb.strokeColor = ColorStateList.valueOf(Color.parseColor("#B45309"))
+                mb.strokeWidth = (1.5f * density).toInt()
+                mb.cornerRadius = (24 * density).toInt()
+                mb.setTextColor(Color.parseColor("#B45309"))
             }
         }
 
@@ -136,7 +144,7 @@ class RelationshipReportActivity : AppCompatActivity() {
                 displayReport(result)
             },
             onFailure = { error ->
-                Toast.makeText(this, "Failed to generate report: ${error.message}", Toast.LENGTH_LONG).show()
+                KinTraceAlert.show(this, "Failed to generate report: ${error.message}")
             }
         )
     }
@@ -172,7 +180,7 @@ class RelationshipReportActivity : AppCompatActivity() {
         // 4. Consanguinity Degree Hero
         val tvDegreePill = findViewById<TextView>(R.id.tvDegreePill)
         val tvRelTitle = findViewById<TextView>(R.id.tvRelationshipTitle)
-        val tvConsDetails = findViewById<TextView>(R.id.tvConsanguinityDetails)
+        val tvConsanguinityDetails = findViewById<TextView>(R.id.tvConsanguinityDetails)
 
         if (result.degreeOfConsanguinity > 0) {
             tvDegreePill.text = "${result.degreeOfConsanguinity}${getOrdinal(result.degreeOfConsanguinity)} Degree"
@@ -180,7 +188,7 @@ class RelationshipReportActivity : AppCompatActivity() {
             tvDegreePill.text = result.relationshipCategory
         }
         tvRelTitle.text = result.relationshipType
-        tvConsDetails.text = "${result.relationshipCategory} Line • ${result.degreeOfConsanguinity}${getOrdinal(result.degreeOfConsanguinity)} Civil Degree (Roman Civil Method, Art. 963)"
+        tvConsanguinityDetails.text = "${result.relationshipCategory} Line • ${result.degreeOfConsanguinity}${getOrdinal(result.degreeOfConsanguinity)} Civil Degree (Roman Civil Method, Art. 963)"
 
         // 5. Philippine Family Code Legal Assessment
         val tvLegalBadge = findViewById<TextView>(R.id.tvLegalBadge)
@@ -190,12 +198,12 @@ class RelationshipReportActivity : AppCompatActivity() {
 
         if (result.isMarriageProhibited) {
             tvLegalBadge.text = "PROHIBITED"
-            tvLegalBadge.setBackgroundColor(Color.parseColor("#7F1D1D")) // Deep dark red
-            tvLegalBadge.setTextColor(Color.parseColor("#FCA5A5"))
+            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_invalid_pill)
+            tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_critical_text))
         } else {
             tvLegalBadge.text = "PERMISSIBLE"
-            tvLegalBadge.setBackgroundColor(Color.parseColor("#064E3B")) // Deep emerald
-            tvLegalBadge.setTextColor(Color.parseColor("#6EE7B7"))
+            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+            tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
         }
 
         tvLegalTitle.text = result.legalStatus
@@ -273,7 +281,7 @@ class RelationshipReportActivity : AppCompatActivity() {
         val r = currentResult ?: return
         try {
             val (pdfFile, contentUri) = PdfReportGenerator.generateReport(this, r, treeName)
-            Toast.makeText(this, "PDF generated: ${pdfFile.name}", Toast.LENGTH_SHORT).show()
+            KinTraceAlert.show(this, "PDF generated: ${pdfFile.name}")
 
             // Open with View or Send Intent
             val viewIntent = Intent(Intent.ACTION_VIEW).apply {
@@ -285,7 +293,7 @@ class RelationshipReportActivity : AppCompatActivity() {
             val chooser = Intent.createChooser(viewIntent, "Open / Print PDF Report")
             startActivity(chooser)
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to generate PDF: ${e.message}", Toast.LENGTH_LONG).show()
+            KinTraceAlert.show(this, "Failed to generate PDF: ${e.message}")
         }
     }
 

@@ -1,5 +1,7 @@
 package com.example.btproject2.ui.dialogs
 
+import com.example.btproject2.utils.KinTraceAlert
+
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -40,6 +42,10 @@ class KinTraceQuickAssistBottomSheet : BottomSheetDialogFragment() {
             fragment.arguments = args
             return fragment
         }
+
+        fun show(activity: androidx.fragment.app.FragmentActivity, context: QuickAssistContext) {
+            newInstance(context).show(activity.supportFragmentManager, "KinTraceQuickAssist")
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,35 +85,68 @@ class KinTraceQuickAssistBottomSheet : BottomSheetDialogFragment() {
         tvSubtitle.text = payload.subtitle
         btnOpenAcademy.text = payload.actionCtaText
 
-        // Populate Pro Tips dynamically
+        // Populate Pro Tips dynamically as UI 1 Numbered Minimalist Cards
         layoutProTips.removeAllViews()
-        val textPrimaryColor = ContextCompat.getColor(requireContext(), R.color.text_primary)
-        val goldColor = ContextCompat.getColor(requireContext(), R.color.gold_accent)
+        val ctx = requireContext()
+        val textPrimaryColor = ContextCompat.getColor(ctx, R.color.text_primary)
+        val goldColor = ContextCompat.getColor(ctx, R.color.gold_accent)
+        val cardBgColor = ContextCompat.getColor(ctx, R.color.forest_card)
+        val cardBorderColor = ContextCompat.getColor(ctx, R.color.forest_card_border)
+        val numBgColor = ContextCompat.getColor(ctx, R.color.primary_light)
+        val numStrokeColor = ContextCompat.getColor(ctx, R.color.primary_light_stroke)
+        val density = resources.displayMetrics.density
 
         for ((index, tip) in payload.proTips.withIndex()) {
-            val row = LinearLayout(requireContext()).apply {
+            val rowCard = LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
+                setPadding(dpToPx(12), dpToPx(10), dpToPx(12), dpToPx(10))
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
                     if (index > 0) topMargin = dpToPx(8)
                 }
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = 12f * density
+                    setColor(cardBgColor)
+                    setStroke(dpToPx(1), cardBorderColor)
+                }
             }
 
-            val bullet = TextView(requireContext()).apply {
-                text = "• "
-                textSize = 14f
+            val numBadge = TextView(ctx).apply {
+                text = "%02d".format(index + 1)
+                textSize = 10.5f
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(goldColor)
+                setPadding(dpToPx(6), dpToPx(2), dpToPx(6), dpToPx(2))
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    rightMargin = dpToPx(10)
+                    topMargin = dpToPx(1)
+                }
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = 6f * density
+                    setColor(numBgColor)
+                    setStroke(dpToPx(1), numStrokeColor)
+                }
+            }
+
+            val spannableTip = android.text.SpannableString(tip)
+            val colonIdx = tip.indexOf(':')
+            if (colonIdx > 0) {
+                spannableTip.setSpan(
+                    android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                    0,
+                    colonIdx + 1,
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
             }
 
-            val tipText = TextView(requireContext()).apply {
-                text = tip
-                textSize = 12.5f
+            val tipText = TextView(ctx).apply {
+                text = spannableTip
+                textSize = 12f
                 setTextColor(textPrimaryColor)
                 setLineSpacing(dpToPx(2).toFloat(), 1.0f)
                 layoutParams = LinearLayout.LayoutParams(
@@ -117,15 +156,15 @@ class KinTraceQuickAssistBottomSheet : BottomSheetDialogFragment() {
                 )
             }
 
-            row.addView(bullet)
-            row.addView(tipText)
-            layoutProTips.addView(row)
+            rowCard.addView(numBadge)
+            rowCard.addView(tipText)
+            layoutProTips.addView(rowCard)
         }
 
-        // Populate Legal Guardrails if present
+        // Populate Legal Guardrails if present (UI 1 Left-Border Legal Bar)
         if (!payload.legalGuardrails.isNullOrEmpty()) {
             layoutLegal.visibility = View.VISIBLE
-            val legalJoined = payload.legalGuardrails.joinToString("\n\n• ", prefix = "• ")
+            val legalJoined = payload.legalGuardrails.joinToString("\n\n")
             tvLegalText.text = legalJoined
         } else {
             layoutLegal.visibility = View.GONE
@@ -136,21 +175,22 @@ class KinTraceQuickAssistBottomSheet : BottomSheetDialogFragment() {
             dismiss()
         }
 
-        // Deep-link to KinAcademy Masterclass screen
+        // Deep-link to KinAcademy Masterclass screen (preserving active TREE_ID / treeId)
         btnOpenAcademy.setOnClickListener {
             try {
+                val activeTreeId = activity?.intent?.getStringExtra("TREE_ID")
+                    ?: activity?.intent?.getStringExtra("treeId")
+                    ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(ctx)
                 val clazz = Class.forName("com.example.btproject2.ui.activities.KinAcademyActivity")
-                val intent = Intent(requireContext(), clazz).apply {
+                val intent = Intent(ctx, clazz).apply {
                     putExtra("TARGET_MODULE_ID", payload.targetAcademyModuleId)
+                    putExtra("TREE_ID", activeTreeId)
+                    putExtra("treeId", activeTreeId)
                 }
                 startActivity(intent)
                 dismiss()
             } catch (e: ClassNotFoundException) {
-                Toast.makeText(
-                    requireContext(),
-                    "Opening KinAcademy: Module ${payload.targetAcademyModuleId}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                KinTraceAlert.show(ctx, "Opening KinAcademy: Module ${payload.targetAcademyModuleId}")
                 dismiss()
             }
         }

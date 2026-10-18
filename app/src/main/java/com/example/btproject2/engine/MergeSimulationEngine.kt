@@ -174,25 +174,12 @@ class MergeSimulationEngine(
                     var updatedA = clonedList[idxA]
                     var updatedB = clonedList[idxB]
 
-                    if (!updatedA.fatherId.isNullOrEmpty() && updatedB.fatherId.isNullOrEmpty()) {
-                        // Inherit parents from A to B
-                        updatedB = updatedB.copy(
-                            fatherId = updatedA.fatherId,
-                            motherId = updatedA.motherId,
-                            fatherRelationshipType = "Biological",
-                            motherRelationshipType = "Biological"
-                        )
-                        clonedList[idxB] = updatedB
-                    } else if (!updatedB.fatherId.isNullOrEmpty() && updatedA.fatherId.isNullOrEmpty()) {
-                        // Inherit parents from B to A
-                        updatedA = updatedA.copy(
-                            fatherId = updatedB.fatherId,
-                            motherId = updatedB.motherId,
-                            fatherRelationshipType = "Biological",
-                            motherRelationshipType = "Biological"
-                        )
-                        clonedList[idxA] = updatedA
-                    } else if (updatedA.fatherId.isNullOrEmpty() && updatedB.fatherId.isNullOrEmpty()) {
+                    val aHasFather = !updatedA.fatherId.isNullOrEmpty()
+                    val aHasMother = !updatedA.motherId.isNullOrEmpty()
+                    val bHasFather = !updatedB.fatherId.isNullOrEmpty()
+                    val bHasMother = !updatedB.motherId.isNullOrEmpty()
+
+                    if (!aHasFather && !aHasMother && !bHasFather && !bHasMother) {
                         // Neither has parents: create shared parents in clan tree to anchor sibling bridge
                         val sharedSurname = if (updatedA.lastName.isNotBlank()) updatedA.lastName else updatedB.lastName
                         val sharedFatherId = UUID.randomUUID().toString()
@@ -233,6 +220,24 @@ class MergeSimulationEngine(
                             fatherRelationshipType = "Biological",
                             motherRelationshipType = "Biological"
                         )
+                        clonedList[idxA] = updatedA
+                        clonedList[idxB] = updatedB
+                    } else {
+                        val sharedFatherId = updatedA.fatherId?.takeIf { it.isNotEmpty() } ?: updatedB.fatherId?.takeIf { it.isNotEmpty() }
+                        val sharedMotherId = updatedA.motherId?.takeIf { it.isNotEmpty() } ?: updatedB.motherId?.takeIf { it.isNotEmpty() }
+
+                        if (updatedA.fatherId.isNullOrEmpty() && sharedFatherId != null) {
+                            updatedA = updatedA.copy(fatherId = sharedFatherId, fatherRelationshipType = "Biological")
+                        }
+                        if (updatedA.motherId.isNullOrEmpty() && sharedMotherId != null) {
+                            updatedA = updatedA.copy(motherId = sharedMotherId, motherRelationshipType = "Biological")
+                        }
+                        if (updatedB.fatherId.isNullOrEmpty() && sharedFatherId != null) {
+                            updatedB = updatedB.copy(fatherId = sharedFatherId, fatherRelationshipType = "Biological")
+                        }
+                        if (updatedB.motherId.isNullOrEmpty() && sharedMotherId != null) {
+                            updatedB = updatedB.copy(motherId = sharedMotherId, motherRelationshipType = "Biological")
+                        }
                         clonedList[idxA] = updatedA
                         clonedList[idxB] = updatedB
                     }
