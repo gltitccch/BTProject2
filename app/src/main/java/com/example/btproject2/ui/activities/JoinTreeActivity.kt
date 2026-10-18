@@ -70,7 +70,7 @@ class JoinTreeActivity : AppCompatActivity() {
             onSuccess = { record ->
                 if (record == null) {
                     resetButton()
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Invalid Code")
                         .setMessage("No family tree found with invite code \"$code\". Please check with the tree owner.")
                         .setPositiveButton("OK", null)
@@ -81,7 +81,7 @@ class JoinTreeActivity : AppCompatActivity() {
                 // Requirement 12: Specific error if revoked
                 if (record.isRevoked()) {
                     resetButton()
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Code Revoked")
                         .setMessage("This invite code has been revoked by the tree owner.")
                         .setPositiveButton("OK", null)
@@ -92,7 +92,7 @@ class JoinTreeActivity : AppCompatActivity() {
                 // Requirement 12: Specific error if expired
                 if (record.isExpired()) {
                     resetButton()
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Code Expired")
                         .setMessage("This invite code has expired. Please request a new invite code from the tree owner.")
                         .setPositiveButton("OK", null)
@@ -103,7 +103,7 @@ class JoinTreeActivity : AppCompatActivity() {
                 // Requirement 12: Specific error if usage limit reached
                 if (record.isUsageLimitReached()) {
                     resetButton()
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Usage Limit Reached")
                         .setMessage("This invite code has reached its maximum usage limit.")
                         .setPositiveButton("OK", null)
@@ -129,7 +129,7 @@ class JoinTreeActivity : AppCompatActivity() {
                         // Check if user is tree owner
                         if (ownerId == userId) {
                             resetButton()
-                            AlertDialog.Builder(this)
+                            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                                 .setTitle("Notice")
                                 .setMessage("You are already the owner of this family tree (\"$treeName\").")
                                 .setPositiveButton("OK", null)
@@ -142,7 +142,7 @@ class JoinTreeActivity : AppCompatActivity() {
                             onSuccess = { existing ->
                                 if (existing != null && existing.status.equals("Approved", ignoreCase = true)) {
                                     resetButton()
-                                    AlertDialog.Builder(this)
+                                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                                         .setTitle("Already a Member")
                                         .setMessage("You are already a member of this family tree (\"$treeName\").")
                                         .setPositiveButton("OK") { _, _ -> finish() }
@@ -247,7 +247,7 @@ class JoinTreeActivity : AppCompatActivity() {
                     else ->
                         "Network error: ${msg.ifEmpty { "Please check your network connection." }}"
                 }
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Connection Error")
                     .setMessage(friendlyMessage)
                     .setPositiveButton("OK", null)

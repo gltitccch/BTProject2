@@ -285,7 +285,7 @@ class CreateTreeActivity : AppCompatActivity() {
             onFailure = { error ->
                 btnCreateTree.isEnabled = true
                 btnCreateTree.text = "Create tree"
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Error")
                     .setMessage(error.message ?: "Failed to create family tree.")
                     .setPositiveButton("OK", null)

@@ -84,9 +84,11 @@ class FirestoreHelper {
                 ?: p.deathPlace
 
             val conflict = (data["hasTimelineConflict"] as? Boolean) ?: p.hasTimelineConflict
+            val createdAtVal = (data["createdAt"] as? Number)?.toLong() ?: 0L
 
             return p.copy(
                 id = doc.id,
+                createdAt = createdAtVal,
                 isLiving = isLivingVal,
                 deathDate = if (isLivingVal) "" else dDate,
                 deathPlace = if (isLivingVal) "" else dPlace,
@@ -261,40 +263,45 @@ class FirestoreHelper {
                 }
             }
 
-            // Asynchronously sync any fixed records to Firestore
-            if (dirtyIds.isNotEmpty()) {
-                try {
-                    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                    dirtyIds.forEach { id ->
-                        val fixed = byId[id.lowercase()]
-                        if (fixed != null && fixed.id.isNotBlank()) {
-                            val docRef = db.collection("persons").document(fixed.id)
-                            val map = mutableMapOf<String, Any?>()
-                            map["fatherId"] = fixed.fatherId
-                            map["motherId"] = fixed.motherId
-                            map["spouseId"] = fixed.spouseId
-                            map["maritalStatus"] = fixed.maritalStatus
-                            map["fatherRelationshipType"] = fixed.fatherRelationshipType
-                            map["motherRelationshipType"] = fixed.motherRelationshipType
-                            docRef.set(map, com.google.firebase.firestore.SetOptions.merge())
-                                .addOnSuccessListener {
-                                    CentralTreeSynchronizer.getInstance().notifyRelationshipCorrected(
-                                        primaryPerson = fixed,
-                                        issueDescription = "Sanitized invalid relationship in tree",
-                                        sourceScreen = "sanitizeTreeRecords"
-                                    )
+                // Asynchronously sync any fixed records to Firestore at most once per unique state signature per session
+                if (dirtyIds.isNotEmpty()) {
+                    try {
+                        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        dirtyIds.forEach { id ->
+                            val fixed = byId[id.lowercase()]
+                            if (fixed != null && fixed.id.isNotBlank()) {
+                                val signature = "${fixed.id.trim().lowercase()}|${fixed.fatherId.orEmpty()}|${fixed.motherId.orEmpty()}|${fixed.spouseId.orEmpty()}|${fixed.maritalStatus}"
+                                if (sanitizedRecordSignatures.add(signature)) {
+                                    val docRef = db.collection("persons").document(fixed.id)
+                                    val map = mutableMapOf<String, Any?>()
+                                    map["fatherId"] = fixed.fatherId
+                                    map["motherId"] = fixed.motherId
+                                    map["spouseId"] = fixed.spouseId
+                                    map["maritalStatus"] = fixed.maritalStatus
+                                    map["fatherRelationshipType"] = fixed.fatherRelationshipType
+                                    map["motherRelationshipType"] = fixed.motherRelationshipType
+                                    docRef.set(map, com.google.firebase.firestore.SetOptions.merge())
+                                        .addOnSuccessListener {
+                                            CentralTreeSynchronizer.getInstance().notifyRelationshipCorrected(
+                                                primaryPerson = fixed,
+                                                issueDescription = "Sanitized invalid relationship in tree",
+                                                sourceScreen = "sanitizeTreeRecords"
+                                            )
+                                        }
                                 }
+                            }
                         }
-                    }
-                } catch (_: Exception) {}
+                    } catch (_: Exception) {}
+                }
+
+                return byId.values.toList()
             }
 
-            return byId.values.toList()
-        }
+            private val sanitizedRecordSignatures = java.util.Collections.synchronizedSet(mutableSetOf<String>())
 
-        fun invalidateCache() {
-            inMemoryPersonsCache = null
-        }
+            fun invalidateCache() {
+                inMemoryPersonsCache = null
+            }
 
         fun updatePersonInCache(updated: Person, allowBlankOverwrite: Boolean = false) {
             val current = inMemoryPersonsCache.orEmpty()
@@ -483,39 +490,42 @@ class FirestoreHelper {
             return personToRestore
         }
 
+        fun hasPersonDiverged(op: Person, np: Person): Boolean {
+            return op.firstName != np.firstName ||
+                op.middleName != np.middleName ||
+                op.lastName != np.lastName ||
+                op.suffix != np.suffix ||
+                op.gender != np.gender ||
+                op.birthDate != np.birthDate ||
+                op.birthPlace != np.birthPlace ||
+                op.motherId != np.motherId ||
+                op.fatherId != np.fatherId ||
+                op.spouseId != np.spouseId ||
+                op.treeId != np.treeId ||
+                op.createdBy != np.createdBy ||
+                op.maritalStatus != np.maritalStatus ||
+                op.isLiving != np.isLiving ||
+                op.deathDate != np.deathDate ||
+                op.deathPlace != np.deathPlace ||
+                op.biography != np.biography ||
+                op.isPrivate != np.isPrivate ||
+                op.marriageDate != np.marriageDate ||
+                op.fatherRelationshipType != np.fatherRelationshipType ||
+                op.motherRelationshipType != np.motherRelationshipType ||
+                op.photoUri != np.photoUri ||
+                op.photoBase64 != np.photoBase64 ||
+                op.documents != np.documents ||
+                op.hasTimelineConflict != np.hasTimelineConflict ||
+                op.lineageRole != np.lineageRole
+        }
+
         fun hasListDiverged(oldList: List<Person>?, newList: List<Person>): Boolean {
             if (oldList == null) return true
             if (oldList.size != newList.size) return true
             val oldMap = oldList.associateBy { it.id.trim().lowercase() }
             for (np in newList) {
                 val op = oldMap[np.id.trim().lowercase()] ?: return true
-                if (op.firstName != np.firstName ||
-                    op.middleName != np.middleName ||
-                    op.lastName != np.lastName ||
-                    op.suffix != np.suffix ||
-                    op.gender != np.gender ||
-                    op.birthDate != np.birthDate ||
-                    op.birthPlace != np.birthPlace ||
-                    op.motherId != np.motherId ||
-                    op.fatherId != np.fatherId ||
-                    op.spouseId != np.spouseId ||
-                    op.treeId != np.treeId ||
-                    op.createdBy != np.createdBy ||
-                    op.maritalStatus != np.maritalStatus ||
-                    op.isLiving != np.isLiving ||
-                    op.deathDate != np.deathDate ||
-                    op.deathPlace != np.deathPlace ||
-                    op.biography != np.biography ||
-                    op.isPrivate != np.isPrivate ||
-                    op.marriageDate != np.marriageDate ||
-                    op.fatherRelationshipType != np.fatherRelationshipType ||
-                    op.motherRelationshipType != np.motherRelationshipType ||
-                    op.photoUri != np.photoUri ||
-                    op.photoBase64 != np.photoBase64 ||
-                    op.documents != np.documents ||
-                    op.hasTimelineConflict != np.hasTimelineConflict ||
-                    op.lineageRole != np.lineageRole
-                ) {
+                if (hasPersonDiverged(op, np)) {
                     return true
                 }
             }
@@ -1547,13 +1557,28 @@ class FirestoreHelper {
                     onFailure(Exception("Person not found"))
                     return@getPerson
                 }
-                val updatedDocs = p.documents + document
+                val existingBase64Len = p.documents.sumOf { it.fileBase64.length }
+                val safeDoc = if (document.fileBase64.isNotEmpty() &&
+                    (document.fileBase64.length > 260_000 || existingBase64Len + document.fileBase64.length > 450_000)
+                ) {
+                    document.copy(fileBase64 = "")
+                } else {
+                    document
+                }
+                val updatedDocs = p.documents + safeDoc
+                val now = System.currentTimeMillis()
                 db.collection("persons").document(personId)
-                    .update("documents", updatedDocs)
+                    .update(mapOf("documents" to updatedDocs, "updatedAt" to now))
                     .addOnSuccessListener {
+                        val updatedPerson = p.copy(documents = updatedDocs, updatedAt = now)
                         inMemoryPersonsCache = inMemoryPersonsCache?.map {
-                            if (it.id == personId) it.copy(documents = updatedDocs) else it
+                            if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId)) updatedPerson else it
                         }
+                        CentralTreeSynchronizer.getInstance().notifyProfileEdited(
+                            updatedPerson = updatedPerson,
+                            previousPerson = p,
+                            sourceScreen = "attachDocument"
+                        )
                         onSuccess()
                     }
                     .addOnFailureListener { onFailure(it) }
@@ -1575,12 +1600,19 @@ class FirestoreHelper {
                     return@getPerson
                 }
                 val updatedDocs = p.documents.filter { it.id != documentId }
+                val now = System.currentTimeMillis()
                 db.collection("persons").document(personId)
-                    .update("documents", updatedDocs)
+                    .update(mapOf("documents" to updatedDocs, "updatedAt" to now))
                     .addOnSuccessListener {
+                        val updatedPerson = p.copy(documents = updatedDocs, updatedAt = now)
                         inMemoryPersonsCache = inMemoryPersonsCache?.map {
-                            if (it.id == personId) it.copy(documents = updatedDocs) else it
+                            if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personId)) updatedPerson else it
                         }
+                        CentralTreeSynchronizer.getInstance().notifyProfileEdited(
+                            updatedPerson = updatedPerson,
+                            previousPerson = p,
+                            sourceScreen = "removeDocument"
+                        )
                         onSuccess()
                     }
                     .addOnFailureListener { onFailure(it) }
@@ -3698,7 +3730,11 @@ class FirestoreHelper {
     private fun documentToNotificationRecord(doc: com.google.firebase.firestore.DocumentSnapshot): NotificationRecord? {
         val parsed = doc.toObject(NotificationRecord::class.java) ?: return null
         val isReadFlag = doc.getBoolean("isRead") ?: doc.getBoolean("read") ?: parsed.isRead
-        return parsed.copy(id = doc.id, isRead = isReadFlag)
+        val cleanTitle = com.example.btproject2.utils.NotificationHelper.sanitizeNotificationTitle(parsed.title)
+        if (cleanTitle != parsed.title && doc.id.isNotBlank()) {
+            doc.reference.update("title", cleanTitle)
+        }
+        return parsed.copy(id = doc.id, title = cleanTitle, isRead = isReadFlag)
     }
 
     fun getNotifications(
@@ -4794,9 +4830,26 @@ class FirestoreHelper {
                 updatedPerson = updatedPerson.copy(motherId = null)
             }
             conflict.field == "spouseId" -> {
+                val oldSpouseId = person.spouseId ?: conflict.relatedPersonId
+                val oldSpouse = allPersons.find { it.id == oldSpouseId }
                 updates["spouseId"] = null
                 updates["maritalStatus"] = "Single"
                 updatedPerson = updatedPerson.copy(spouseId = null, maritalStatus = "Single")
+
+                if (oldSpouse != null && oldSpouse.spouseId == person.id) {
+                    val updatedSpouse = oldSpouse.copy(spouseId = null, maritalStatus = "Single", updatedAt = now)
+                    updatePersonInCache(updatedSpouse)
+                    db.collection("persons").document(oldSpouse.id)
+                        .set(mapOf("spouseId" to null, "maritalStatus" to "Single", "updatedAt" to now), SetOptions.merge())
+                        .addOnSuccessListener {
+                            updatePersonInCache(updatedSpouse)
+                            CentralTreeSynchronizer.getInstance().notifyProfileEdited(
+                                updatedPerson = updatedSpouse,
+                                previousPerson = oldSpouse,
+                                sourceScreen = "GuidedFamilyHelper"
+                            )
+                        }
+                }
             }
             conflict.field == "maritalStatus" || conflict.type == "status_mismatch" -> {
                 if (person.spouseId.isNullOrBlank()) {
@@ -4875,9 +4928,19 @@ class FirestoreHelper {
                     repairedCount++
                 }
                 conflict.field == "spouseId" -> {
+                    val oldSpouseId = current.spouseId ?: conflict.relatedPersonId
                     batch.set(ref, mapOf("spouseId" to null, "maritalStatus" to "Single", "updatedAt" to now), SetOptions.merge())
                     val updated = current.copy(spouseId = null, maritalStatus = "Single", updatedAt = now)
                     modifiedPersons[current.id] = (personById[current.id] ?: current) to updated
+                    if (oldSpouseId.isNotBlank()) {
+                        val other = modifiedPersons[oldSpouseId]?.second ?: personById[oldSpouseId]
+                        if (other != null && other.spouseId == current.id) {
+                            val otherRef = db.collection("persons").document(other.id)
+                            batch.set(otherRef, mapOf("spouseId" to null, "maritalStatus" to "Single", "updatedAt" to now), SetOptions.merge())
+                            val updatedOther = other.copy(spouseId = null, maritalStatus = "Single", updatedAt = now)
+                            modifiedPersons[other.id] = (personById[other.id] ?: other) to updatedOther
+                        }
+                    }
                     repairedCount++
                 }
                 conflict.field == "maritalStatus" || conflict.type == "status_mismatch" -> {

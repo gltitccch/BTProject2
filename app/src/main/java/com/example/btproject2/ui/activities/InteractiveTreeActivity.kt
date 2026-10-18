@@ -2,7 +2,7 @@ package com.example.btproject2.ui.activities
 
 import com.example.btproject2.utils.KinTraceAlert
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
@@ -95,44 +95,64 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     private val photoPickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null && !activeProfilePersonId.isNullOrEmpty()) {
-            val result = DocumentHelper.saveImageToInternal(this, uri, activeProfilePersonId!!)
-            if (result != null) {
-                val (filePath, base64) = result
-                firestoreHelper.updatePersonPhoto(
-                    activeProfilePersonId!!,
-                    base64,
-                    filePath,
-                    onSuccess = {
-                        KinTraceAlert.show(this, "Profile photo updated")
-                        loadTree(refreshProfile = true)
-                    },
-                    onFailure = {
-                        KinTraceAlert.show(this, "Failed to update photo: ${it.message}")
+        val targetPersonId = activeProfilePersonId
+        if (uri != null && !targetPersonId.isNullOrEmpty()) {
+            Thread {
+                val result = DocumentHelper.saveImageToInternal(applicationContext, uri, targetPersonId)
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    if (result != null) {
+                        val (filePath, base64) = result
+                        firestoreHelper.updatePersonPhoto(
+                            targetPersonId,
+                            base64,
+                            filePath,
+                            onSuccess = {
+                                KinTraceAlert.show(this, "Profile photo updated")
+                                if (activeProfilePersonId == null) {
+                                    activeProfilePersonId = targetPersonId
+                                }
+                                showMemberProfileDialog(targetPersonId)
+                            },
+                            onFailure = {
+                                KinTraceAlert.show(this, "Failed to update photo: ${it.message}")
+                            }
+                        )
                     }
-                )
-            }
+                }
+            }.start()
         }
     }
 
     private val documentPickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null && !activeProfilePersonId.isNullOrEmpty()) {
-            val doc = DocumentHelper.saveDocumentToInternal(this, uri, activeProfilePersonId!!)
-            if (doc != null) {
-                firestoreHelper.attachDocument(
-                    activeProfilePersonId!!,
-                    doc,
-                    onSuccess = {
-                        KinTraceAlert.show(this, "Document attached successfully")
-                        loadTree(refreshProfile = true)
-                    },
-                    onFailure = {
-                        KinTraceAlert.show(this, "Failed to attach document: ${it.message}")
+        val targetPersonId = activeProfilePersonId
+        if (uri != null && !targetPersonId.isNullOrEmpty()) {
+            Thread {
+                val doc = DocumentHelper.saveDocumentToInternal(applicationContext, uri, targetPersonId)
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    if (doc != null) {
+                        firestoreHelper.attachDocument(
+                            targetPersonId,
+                            doc,
+                            onSuccess = {
+                                KinTraceAlert.show(this, "Document attached successfully")
+                                if (activeProfilePersonId == null) {
+                                    activeProfilePersonId = targetPersonId
+                                }
+                                showMemberProfileDialog(targetPersonId)
+                            },
+                            onFailure = {
+                                KinTraceAlert.show(this, "Failed to attach document: ${it.message}")
+                            }
+                        )
+                    } else {
+                        KinTraceAlert.show(this, "Could not read the selected document file.")
                     }
-                )
-            }
+                }
+            }.start()
         }
     }
 
@@ -284,7 +304,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                             val existingName = if (isFather) existingParents.fatherName else existingParents.motherName
                             "It’s not possible to add another $role to $childName.\n\n$childName already has a $role defined in this family tree: $existingName.\n\nA person cannot have more than one biological $role."
                         }
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle("Cannot Add Parent")
                             .setMessage(msg)
                             .setPositiveButton("Understood", null)
@@ -368,7 +388,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             listenerKey = subscriberKey,
             allPersonsList = allPersonsList,
             focalPedigreePersonId = focalPedigreePersonId,
-            onTreeUpdated = { updatedList, _ ->
+            onTreeUpdated = { updatedList, requiresRelayout ->
                 allPersonsList = updatedList
                 if (highlightPersonAId?.let { id -> updatedList.none { it.id == id } } == true ||
                     highlightPersonBId?.let { id -> updatedList.none { it.id == id } } == true ||
@@ -379,7 +399,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     highlightPathIds = emptySet()
                     setMode("MAIN")
                 }
-                if (::spinnerPedigreeFocal.isInitialized) refreshFocalSpinner()
+                if (::spinnerPedigreeFocal.isInitialized && requiresRelayout) refreshFocalSpinner()
                 if (::treeView.isInitialized) {
                     treeView.setDataAndMode(
                         list = allPersonsList,
@@ -389,13 +409,13 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                         focalPedigreeId = focalPedigreePersonId,
                         personAId = highlightPersonAId,
                         personBId = highlightPersonBId,
-                        forceRefresh = true
+                        forceRefresh = requiresRelayout
                     )
                 }
                 if (currentMode == "TRACE_HIGHLIGHT" && ::layoutTraceBanner.isInitialized) {
                     updateTraceBannerText()
                 }
-                if (::layoutConflictBanner.isInitialized) {
+                if (::layoutConflictBanner.isInitialized && requiresRelayout) {
                     checkForTreeConflicts(allPersonsList)
                 }
             },
@@ -404,16 +424,19 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             },
             onActiveProfileDismissed = { id ->
                 if (activeProfilePersonId == id) {
-                    activeProfileDialog?.dismiss()
+                    val dialogToClose = activeProfileDialog
                     activeProfileDialog = null
                     activeProfilePersonId = null
+                    dialogToClose?.setOnDismissListener(null)
+                    dialogToClose?.dismiss()
                 }
             },
             onActiveProfileRefreshed = { id ->
-                if (activeProfilePersonId == id) {
-                    activeProfilePersonId = null
-                    activeProfileDialog?.dismiss()
+                if (activeProfilePersonId == id && activeProfileDialog?.isShowing == true) {
+                    val dialogToClose = activeProfileDialog
                     activeProfileDialog = null
+                    dialogToClose?.setOnDismissListener(null)
+                    dialogToClose?.dismiss()
                     showMemberProfileDialog(id)
                 }
             }
@@ -469,6 +492,20 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
     private fun setMode(mode: String) {
         currentMode = mode
+        if (mode == "PEDIGREE" && allPersonsList.isNotEmpty()) {
+            val byId = allPersonsList.associateBy { it.id }
+            val currentFocal = focalPedigreePersonId?.let { byId[it] }
+            val currentHasParents = currentFocal != null &&
+                ((!currentFocal.fatherId.isNullOrBlank() && byId.containsKey(currentFocal.fatherId)) ||
+                 (!currentFocal.motherId.isNullOrBlank() && byId.containsKey(currentFocal.motherId)))
+            if (!currentHasParents) {
+                val bestPedigreeFocal = findBestPedigreeFocalMember(allPersonsList)
+                if (bestPedigreeFocal != null) {
+                    focalPedigreePersonId = bestPedigreeFocal.id
+                    refreshFocalSpinner()
+                }
+            }
+        }
         updateModeChips(mode)
         treeView.setMode(
             mode = mode,
@@ -477,6 +514,41 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             focalPedigreeId = focalPedigreePersonId,
             personAId = highlightPersonAId,
             personBId = highlightPersonBId
+        )
+    }
+
+    private fun computeUpwardAncestorDepth(person: Person, byId: Map<String, Person>, visited: MutableSet<String> = mutableSetOf()): Int {
+        if (!visited.add(person.id) || visited.size > 6) return 0
+        val fDepth = person.fatherId?.takeIf { it.isNotBlank() }?.let { byId[it] }?.let { 1 + computeUpwardAncestorDepth(it, byId, visited.toMutableSet()) } ?: 0
+        val mDepth = person.motherId?.takeIf { it.isNotBlank() }?.let { byId[it] }?.let { 1 + computeUpwardAncestorDepth(it, byId, visited.toMutableSet()) } ?: 0
+        return maxOf(fDepth, mDepth).coerceAtMost(4)
+    }
+
+    private fun countUpwardAncestorsWithin4Degrees(person: Person, byId: Map<String, Person>): Int {
+        val ancestors = mutableSetOf<String>()
+        var frontier = listOf(person)
+        for (deg in 1..4) {
+            val next = mutableListOf<Person>()
+            for (curr in frontier) {
+                curr.fatherId?.takeIf { it.isNotBlank() }?.let { byId[it] }?.let {
+                    if (ancestors.add(it.id)) next.add(it)
+                }
+                curr.motherId?.takeIf { it.isNotBlank() }?.let { byId[it] }?.let {
+                    if (ancestors.add(it.id)) next.add(it)
+                }
+            }
+            frontier = next
+            if (frontier.isEmpty()) break
+        }
+        return ancestors.size
+    }
+
+    private fun findBestPedigreeFocalMember(list: List<Person>): Person? {
+        if (list.isEmpty()) return null
+        val byId = list.associateBy { it.id }
+        return list.maxWithOrNull(
+            compareBy<Person> { computeUpwardAncestorDepth(it, byId) }
+                .thenBy { countUpwardAncestorsWithin4Degrees(it, byId) }
         )
     }
 
@@ -537,7 +609,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
     private fun showTreeLegendDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_tree_legend, null)
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(dialogView)
             .create()
 
@@ -552,11 +624,22 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     private fun refreshFocalSpinner() {
         val list = allPersonsList
         if (list.isEmpty()) return
-        val names = list.map { "${it.firstName} ${it.lastName}" }
+        val byId = list.associateBy { it.id }
+        val names = list.map { p ->
+            val depth = computeUpwardAncestorDepth(p, byId)
+            if (depth > 0) {
+                "${p.firstName} ${p.lastName} ($depth° Ancestors)"
+            } else {
+                "${p.firstName} ${p.lastName} (Founder / Root)"
+            }
+        }
         spinnerPedigreeFocal.setDarkAdapter(this, names)
 
         val defaultIdx = if (!focalPedigreePersonId.isNullOrEmpty()) {
             list.indexOfFirst { it.id == focalPedigreePersonId }.coerceAtLeast(0)
+        } else if (currentMode == "PEDIGREE") {
+            val best = findBestPedigreeFocalMember(list)
+            best?.let { b -> list.indexOfFirst { it.id == b.id }.coerceAtLeast(0) } ?: 0
         } else 0
 
         if (focalPedigreePersonId.isNullOrEmpty()) {
@@ -619,12 +702,14 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     personBId = highlightPersonBId
                 )
                 checkForTreeConflicts(list)
+                DocumentHelper.compactOversizedInlineDocuments(this, list)
 
                 if (refreshProfile && !activeProfilePersonId.isNullOrEmpty()) {
                     val activeId = activeProfilePersonId
-                    activeProfilePersonId = null
-                    activeProfileDialog?.dismiss()
+                    val dialogToClose = activeProfileDialog
                     activeProfileDialog = null
+                    dialogToClose?.setOnDismissListener(null)
+                    dialogToClose?.dismiss()
                     if (activeId != null) {
                         showMemberProfileDialog(activeId)
                     }
@@ -726,29 +811,60 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         }
     }
 
+    @Volatile
+    private var conflictScanToken: Int = 0
+    @Volatile
+    private var isScanningConflicts: Boolean = false
+    @Volatile
+    private var pendingConflictScanPersons: List<Person>? = null
+
     private fun checkForTreeConflicts(persons: List<Person>) {
         if (persons.isEmpty()) {
             layoutConflictBanner.visibility = View.GONE
             return
         }
+        val token = ++conflictScanToken
+        if (isScanningConflicts) {
+            pendingConflictScanPersons = persons
+            return
+        }
+        isScanningConflicts = true
         Thread {
-            val conflicts = com.example.btproject2.engine.ConflictScanner().scanAll(persons)
-            runOnUiThread {
-                if (isFinishing || isDestroyed) return@runOnUiThread
-                if (conflicts.isNotEmpty()) {
-                    val totalCount = conflicts.size
-                    layoutConflictBanner.visibility = View.VISIBLE
-                    tvConflictBannerText.text = if (totalCount == 1) {
-                        "🧭 1 family question to check • Tap for step-by-step guide"
+            try {
+                var currentList = persons
+                var currentToken = token
+                while (true) {
+                    val conflicts = com.example.btproject2.engine.ConflictScanner().scanAll(currentList)
+                    if (currentToken == conflictScanToken) {
+                        runOnUiThread {
+                            if (isFinishing || isDestroyed || currentToken != conflictScanToken) return@runOnUiThread
+                            if (conflicts.isNotEmpty()) {
+                                val totalCount = conflicts.size
+                                layoutConflictBanner.visibility = View.VISIBLE
+                                tvConflictBannerText.text = if (totalCount == 1) {
+                                    "🧭 1 family question to check • Tap for step-by-step guide"
+                                } else {
+                                    "🧭 $totalCount family questions to check • Tap for step-by-step guide"
+                                }
+                                layoutConflictBanner.setOnClickListener {
+                                    showTreeConflictsDialog(conflicts)
+                                }
+                            } else {
+                                layoutConflictBanner.visibility = View.GONE
+                            }
+                        }
+                    }
+                    val nextList = pendingConflictScanPersons
+                    if (nextList != null) {
+                        pendingConflictScanPersons = null
+                        currentList = nextList
+                        currentToken = conflictScanToken
                     } else {
-                        "🧭 $totalCount family questions to check • Tap for step-by-step guide"
+                        break
                     }
-                    layoutConflictBanner.setOnClickListener {
-                        showTreeConflictsDialog(conflicts)
-                    }
-                } else {
-                    layoutConflictBanner.visibility = View.GONE
                 }
+            } finally {
+                isScanningConflicts = false
             }
         }.start()
     }
@@ -757,7 +873,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         if (conflicts.isEmpty()) return
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_tree_conflict_wizard, null, false)
-        val dialog = AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(dialogView)
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -992,11 +1108,18 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     // Automatic Profile Reveal Modal with Photos & Document Proofs
     // ══════════════════════════════════════════════════════════════════
     private fun showMemberProfileDialog(personId: String) {
+        if (isFinishing || isDestroyed) return
         val person = allPersonsList.find { it.id == personId } ?: return
+        activeProfileDialog?.let { prevDialog ->
+            if (prevDialog.isShowing) {
+                prevDialog.setOnDismissListener(null)
+                prevDialog.dismiss()
+            }
+        }
         activeProfilePersonId = personId
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_tree_member_profile, null)
-        val dialog = AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(dialogView)
             .create()
 
@@ -1032,9 +1155,8 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         // Bind Avatar
         val initials = "${person.firstName.firstOrNull() ?: ""}${person.lastName.firstOrNull() ?: ""}".uppercase()
         tvAvatar.text = initials
-        val rawBmp = DocumentHelper.decodeBase64Bitmap(person.photoBase64)
-        if (rawBmp != null) {
-            val circ = DocumentHelper.getCircularBitmap(rawBmp, 144)
+        val circ = DocumentHelper.getCachedCircularAvatar(person.photoBase64, 144)
+        if (circ != null) {
             ivPhoto.setImageBitmap(circ)
             ivPhoto.visibility = View.VISIBLE
             tvAvatar.visibility = View.GONE
@@ -1229,11 +1351,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         }
 
         dialog.setOnDismissListener {
-            if (activeProfilePersonId == person.id) {
-                activeProfilePersonId = null
-            }
-            if (activeProfileDialog == dialog) {
+            if (activeProfileDialog === dialog) {
                 activeProfileDialog = null
+                if (activeProfilePersonId == person.id) {
+                    activeProfilePersonId = null
+                }
             }
         }
 
@@ -1272,7 +1394,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 datePicker.show()
             }
 
-            val alertDialog = AlertDialog.Builder(this)
+            val alertDialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setView(dialogView)
                 .create()
 
@@ -1329,7 +1451,10 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     deathPlace = deathPlace,
                     onSuccess = { updated ->
                         alertDialog.dismiss()
+                        activeProfileDialog?.setOnDismissListener(null)
                         activeProfileDialog?.dismiss()
+                        activeProfileDialog = null
+                        activeProfilePersonId = person.id
                         KinTraceAlert.show(this, "Marked as Deceased")
                         loadTree(refreshProfile = true)
                     },
@@ -1343,7 +1468,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             alertDialog.show()
         } else {
             val pName = "${person.firstName} ${person.lastName}".trim()
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("Mark as Living")
                 .setMessage("Are you sure you want to mark $pName as Living?\n\nThe recorded date and place of passing will be cleared, and if their spouse was marked as Widowed, their status will be restored to Married.")
                 .setPositiveButton("Mark Living") { dialog, _ ->
@@ -1354,7 +1479,10 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                         deathPlace = "",
                         onSuccess = { updated ->
                             dialog.dismiss()
+                            activeProfileDialog?.setOnDismissListener(null)
                             activeProfileDialog?.dismiss()
+                            activeProfileDialog = null
+                            activeProfilePersonId = person.id
                             KinTraceAlert.show(this, "Marked as Living")
                             loadTree(refreshProfile = true)
                         },
@@ -1388,7 +1516,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
         if (existingSpouse != null && existingSpouse.isLiving && person.maritalStatus.equals("Married", ignoreCase = true)) {
             val spouseName = "${existingSpouse.firstName} ${existingSpouse.lastName}".trim()
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("Active Spouse Already Linked")
                 .setMessage("Unable to add this person as a spouse because $personName already has an active spouse relationship with $spouseName.\n\nUnder Philippine law (Family Code Articles 35(4) and 40), bigamous or polygamous marriages are void from the beginning.")
                 .setPositiveButton("View Spouse") { _, _ ->
@@ -1404,7 +1532,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             "Add New Member as Spouse"
         )
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Add Spouse for $personName")
             .setItems(choices) { _, which ->
                 when (which) {
@@ -1439,7 +1567,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             "${candidate.firstName} ${candidate.lastName}$genderTag$ageTag"
         }.toTypedArray()
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Select Spouse for $personName")
             .setItems(candidateNames) { _, which ->
                 val candidate = candidates[which]
@@ -1469,7 +1597,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     )
                     firestoreHelper.addNotification(notif)
 
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Spouse")
                         .setMessage(formattedError)
                         .setPositiveButton("Understood", null)
@@ -1511,7 +1639,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             "Add the spouse of an existing child"
         )
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Add Child Connection ($parentName)")
             .setItems(choices) { _, which ->
                 when (which) {
@@ -1556,7 +1684,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         }
 
         if (children.isEmpty()) {
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("No Registered Children")
                 .setMessage("$parentName does not have any children registered in the family tree yet.\n\nUnder Philippine law and genealogical rules, a son-in-law or daughter-in-law must be connected as the spouse of an existing child. They must never be connected directly as a biological child of the parent-in-law.\n\nPlease add a child to $parentName first.")
                 .setPositiveButton("Add Child First") { _, _ ->
@@ -1581,14 +1709,14 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             "${child.firstName} ${child.lastName}$spouseNote"
         }.toTypedArray()
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Select Existing Child of $parentName")
             .setItems(childNames) { _, which ->
                 val selectedChild = children[which]
                 if (!selectedChild.spouseId.isNullOrBlank()) {
                     val sp = allPersonsList.find { it.id == selectedChild.spouseId }
                     val spName = sp?.let { "${it.firstName} ${it.lastName}" } ?: "another spouse"
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Child Already Married")
                         .setMessage("Unable to add this person as a spouse because one member already has an active spouse relationship.\n\n${selectedChild.firstName} ${selectedChild.lastName} is already married to $spName (Philippine Family Code Articles 35(4) and 40).")
                         .setPositiveButton("Understood", null)
@@ -1651,14 +1779,18 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                         KinTraceAlert.warning(this, "Read-Only Access", "Read-only Viewers cannot remove attached documents.")
                         return@setOnClickListener
                     }
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Remove Document")
                         .setMessage("Remove \"${doc.name}\" from ${person.firstName}'s profile?")
                         .setPositiveButton("Remove") { _, _ ->
-                            firestoreHelper.removeDocument(person.id, doc.id,
+                            val targetPersonId = person.id
+                            firestoreHelper.removeDocument(targetPersonId, doc.id,
                                 onSuccess = {
                                     KinTraceAlert.show(this, "Document removed")
-                                    loadTree(refreshProfile = true)
+                                    if (activeProfilePersonId == null) {
+                                        activeProfilePersonId = targetPersonId
+                                    }
+                                    showMemberProfileDialog(targetPersonId)
                                 },
                                 onFailure = {
                                     KinTraceAlert.show(this, "Failed to remove: ${it.message}")
@@ -2246,7 +2378,25 @@ class FamilyTreeView @JvmOverloads constructor(
 
     fun zoomIn() { scaleFactor = (scaleFactor * 1.3f).coerceIn(0.25f, 3.5f); invalidate() }
     fun zoomOut() { scaleFactor = (scaleFactor / 1.3f).coerceIn(0.25f, 3.5f); invalidate() }
-    fun resetView() { scaleFactor = 1.0f; offsetX = 0f; offsetY = 0f; invalidate() }
+    fun resetView() {
+        if (posMap.isNotEmpty() && width > 0 && height > 0) {
+            val minX = posMap.values.minOf { it.x } - CARD_W
+            val maxX = posMap.values.maxOf { it.x } + CARD_W
+            val minY = posMap.values.minOf { it.y } - CARD_H
+            val maxY = posMap.values.maxOf { it.y } + CARD_H
+            val treeW = maxOf(maxX - minX, CARD_W * 2)
+            val treeH = maxOf(maxY - minY, CARD_H * 2)
+            val fitScale = minOf(width * 0.92f / treeW, height * 0.85f / treeH).coerceIn(0.45f, 1.0f)
+            scaleFactor = if (posMap.size > 16) fitScale else 1.0f
+            offsetX = 0f
+            offsetY = 0f
+        } else {
+            scaleFactor = 1.0f
+            offsetX = 0f
+            offsetY = 0f
+        }
+        invalidate()
+    }
 
     fun frameTracePath() {
         val targetIds = highlightIds + listOfNotNull(mrcaPersonId, tracePersonAId, tracePersonBId)
@@ -2274,6 +2424,24 @@ class FamilyTreeView @JvmOverloads constructor(
         invalidate()
     }
 
+    private fun hasSameTopology(oldList: List<Person>, newList: List<Person>): Boolean {
+        if (oldList.size != newList.size) return false
+        val oldMap = oldList.associateBy { it.id }
+        for (np in newList) {
+            val op = oldMap[np.id] ?: return false
+            if (op.fatherId != np.fatherId ||
+                op.motherId != np.motherId ||
+                op.spouseId != np.spouseId ||
+                op.gender != np.gender ||
+                op.fatherRelationshipType != np.fatherRelationshipType ||
+                op.motherRelationshipType != np.motherRelationshipType
+            ) {
+                return false
+            }
+        }
+        return true
+    }
+
     fun setDataAndMode(
         list: List<Person>,
         mode: String,
@@ -2284,14 +2452,19 @@ class FamilyTreeView @JvmOverloads constructor(
         personBId: String? = null,
         forceRefresh: Boolean = false
     ) {
-        val sameData = !forceRefresh &&
-                allPersons == list &&
+        val sameModeAndHighlights =
                 this.mode == mode &&
                 this.highlightIds == highlightIds &&
                 this.mrcaPersonId == mrcaId &&
                 this.focalPersonId == focalPedigreeId &&
                 this.tracePersonAId == personAId &&
                 this.tracePersonBId == personBId
+        val sameData = !forceRefresh && allPersons == list && sameModeAndHighlights
+        val sameTopologyOnly = !forceRefresh &&
+                sameModeAndHighlights &&
+                displayPersons.isNotEmpty() &&
+                posMap.isNotEmpty() &&
+                hasSameTopology(allPersons, list)
 
         allPersons = list
         this.mode = mode
@@ -2315,7 +2488,12 @@ class FamilyTreeView @JvmOverloads constructor(
         }
         updateAvatarBitmaps(list)
 
-        if (!sameData || displayPersons.isEmpty()) {
+        if (sameTopologyOnly) {
+            val byId = allPersons.associateBy { it.id }
+            displayPersons = displayPersons.map { byId[it.id] ?: it }
+            precomputeCardDisplayData()
+            invalidate()
+        } else if (!sameData || displayPersons.isEmpty()) {
             updateDisplayPersons()
         }
         if (mode == "TRACE_HIGHLIGHT") {
@@ -2673,18 +2851,31 @@ class FamilyTreeView @JvmOverloads constructor(
             }
         }
 
+        fun isValidCanvasPair(a: Person, b: Person): Boolean {
+            if (canon(a.id) == canon(b.id)) return false
+            if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(a.id, b.fatherId) ||
+                com.example.btproject2.engine.FamilyLinkValidator.isSameId(a.id, b.motherId) ||
+                com.example.btproject2.engine.FamilyLinkValidator.isSameId(b.id, a.fatherId) ||
+                com.example.btproject2.engine.FamilyLinkValidator.isSameId(b.id, a.motherId)
+            ) return false
+            if (com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(a.id, b.id, byCanonId) ||
+                com.example.btproject2.engine.FamilyLinkValidator.isAncestorOf(b.id, a.id, byCanonId)
+            ) return false
+            val sameFather = !a.fatherId.isNullOrBlank() && com.example.btproject2.engine.FamilyLinkValidator.isSameId(a.fatherId, b.fatherId)
+            val sameMother = !a.motherId.isNullOrBlank() && com.example.btproject2.engine.FamilyLinkValidator.isSameId(a.motherId, b.motherId)
+            if (sameFather || sameMother) return false
+            return true
+        }
+
         // Mutual spouse resolution (explicit takes priority, inferred shared children only if valid and not prohibited)
         val spouseMap = mutableMapOf<String, String>()
         displayPersons.forEach { p ->
             val sId = p.spouseId?.trim()
             if (!sId.isNullOrBlank()) {
-                val spObj = displayPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, sId) }
-                if (spObj != null) {
-                    val spCheck = com.example.btproject2.engine.FamilyLinkValidator.validateSpouse(p, spObj, displayPersons)
-                    if (spCheck.isValid) {
-                        spouseMap[p.id] = spObj.id
-                        spouseMap[spObj.id] = p.id
-                    }
+                val spObj = byCanonId[canon(sId)]
+                if (spObj != null && isValidCanvasPair(p, spObj)) {
+                    spouseMap[p.id] = spObj.id
+                    spouseMap[spObj.id] = p.id
                 }
             }
         }
@@ -2692,12 +2883,11 @@ class FamilyTreeView @JvmOverloads constructor(
             val fId = p.fatherId?.trim()
             val mId = p.motherId?.trim()
             if (!fId.isNullOrBlank() && !mId.isNullOrBlank()) {
-                val fObj = displayPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, fId) }
-                val mObj = displayPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, mId) }
+                val fObj = byCanonId[canon(fId)]
+                val mObj = byCanonId[canon(mId)]
                 if (fObj != null && mObj != null) {
                     if (!spouseMap.containsKey(fObj.id) && !spouseMap.containsKey(mObj.id)) {
-                        val coParentCheck = com.example.btproject2.engine.FamilyLinkValidator.validateCoParents(fObj, mObj, displayPersons)
-                        if (coParentCheck.isValid) {
+                        if (isValidCanvasPair(fObj, mObj)) {
                             spouseMap[fObj.id] = mObj.id
                             spouseMap[mObj.id] = fObj.id
                         }
@@ -3044,7 +3234,8 @@ class FamilyTreeView @JvmOverloads constructor(
                         val pY = pPos.y + CARD_H / 2f
                         val cY = cPos.y - CARD_H / 2f
                         val isStep = cY > pY
-                        val midY = (pY + cY) / 2f
+                        val laneOffset = ((precomputedFallbackLines.size % 3) - 1) * 14f - 18f
+                        val midY = (pY + cY) / 2f + laneOffset
                         precomputedFallbackLines.add(
                             PrecomputedFallbackLine(
                                 parentId = pid,

@@ -180,13 +180,13 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                 return@setOnClickListener
             }
 
-            AlertDialog.Builder(requireContext())
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(requireContext())
                 .setTitle("Send Password Reset Link")
                 .setMessage("A reset link will be sent to $email.\n\n⚠️ Note: Automated emails may arrive in your Spam / Junk folder. If found in Junk, please tap 'Report not spam'.")
                 .setPositiveButton("Send Email") { _, _ ->
                     authHelper.sendPasswordResetEmail(email,
                         onSuccess = {
-                            AlertDialog.Builder(requireContext())
+                            com.example.btproject2.utils.KinTraceModalDialog.Builder(requireContext())
                                 .setTitle("Email Sent")
                                 .setMessage("Password reset email sent to $email.\n\nPlease check your Inbox and Spam / Junk folder.")
                                 .setPositiveButton("OK", null)
@@ -247,7 +247,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         // Sign Out Action
         val btnProfileSignOut = view.findViewById<View?>(R.id.btnProfileSignOut)
         btnProfileSignOut?.setOnClickListener {
-            AlertDialog.Builder(requireContext())
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(requireContext())
                 .setTitle("Sign Out")
                 .setMessage("Are you sure you want to sign out of KinTrace?")
                 .setPositiveButton("Sign Out") { _, _ ->
@@ -274,7 +274,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
 
     private fun executeAccountDeletion(userId: String) {
         val context = context ?: return
-        val progressDialog = AlertDialog.Builder(context)
+        val progressDialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
             .setTitle("Processing Account Deletion")
             .setMessage("Invoking Clan Stewardship and safely removing personal credentials...")
             .setCancelable(false)
@@ -293,7 +293,7 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                     },
                     onFailure = { err ->
                         progressDialog.dismiss()
-                        AlertDialog.Builder(context)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
                             .setTitle("Security Re-Authentication Required")
                             .setMessage("Your profile and personal records have been removed under Clan Stewardship. However, for security, KinTrace requires a recent sign-in before permanently deleting your login session.\n\nPlease sign out and sign in again to complete account removal:\n${err.message}")
                             .setPositiveButton("Sign Out") { _, _ ->
@@ -319,14 +319,14 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         val etConfirmPassword = view.findViewById<EditText>(R.id.etDialogConfirmPassword)
         val tvPasswordError = view.findViewById<TextView>(R.id.tvDialogPasswordError)
 
-        val dialog = AlertDialog.Builder(context)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
             .setView(view)
             .setPositiveButton("Update Password", null)
             .setNegativeButton("Cancel", null)
             .create()
 
         dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            (dialog.findViewById<View>(R.id.btnModalPositive) ?: dialog.getButton(AlertDialog.BUTTON_POSITIVE)).setOnClickListener {
                 val newPass = etNewPassword.text.toString().trim()
                 val confirmPass = etConfirmPassword.text.toString().trim()
 

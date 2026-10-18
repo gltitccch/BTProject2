@@ -4,8 +4,9 @@
 
 Before implementing or proposing code for any new feature, rule, or bug fix on the KinTrace project, you must always ask the user to confirm its architectural scope first.
 
-### 1. Clarify Scope First
+### 1. Clarify Scope First & Always Highlight the `(Recommended)` Option
 Explicitly ask whether the requested change should be applied **Globally** (affecting the entire app and all interconnected modules) or **Locally** (restricted only to that specific screen or component).
+- **Always Provide a Recommendation**: Whenever presenting scope choices (`Globally` vs `Locally`), design directions, or architectural options, you must **always explicitly mark which choice is `(Recommended)` first and briefly explain why** so the user never has to guess which option is best.
 
 ### 2. Map Connected Modules
 Briefly list all connected tools and layers that will be impacted if the change is made global, specifically:

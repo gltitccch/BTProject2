@@ -1350,7 +1350,7 @@ class AdminPortalActivity : AppCompatActivity() {
     }
 
     private fun showSignOutDialog() {
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Sign Out of Admin Session")
             .setMessage("Are you sure you want to sign out of the System Admin Citadel?")
             .setPositiveButton("Sign Out") { _, _ ->

@@ -421,10 +421,27 @@ object KinshipTitleHelper {
         }
         if (isGreatGreatGrandparent) {
             val title = if (isMale) "GR-GREAT-GRANDFATHER" else if (isFemale) "GR-GREAT-GRANDMOTHER" else "GR-GREAT-GRANDPARENT"
-            return title to "Great-Great-Grandparent of $focalName"
+            val label = if (isMale) "Great-Great-Grandfather" else if (isFemale) "Great-Great-Grandmother" else "Great-Great-Grandparent"
+            return title to "$label of $focalName"
         }
 
-        // 11. Aunts & Uncles (Parent's Siblings)
+        // 10b. Great-Great-Grandchildren (4th Degree Descendant)
+        val isGreatGreatGrandchild = focalChildIds.any { cId ->
+            val gKids = childrenOf[cId] ?: emptySet()
+            gKids.any { gId ->
+                val ggKids = childrenOf[gId] ?: emptySet()
+                ggKids.any { ggId ->
+                    (childrenOf[ggId] ?: emptySet()).contains(target.id)
+                }
+            }
+        }
+        if (isGreatGreatGrandchild) {
+            val title = if (isMale) "GR-GREAT-GRANDSON" else if (isFemale) "GR-GREAT-GRANDDAUGHTER" else "GR-GREAT-GRANDCHILD"
+            val label = if (isMale) "Great-Great-Grandson" else if (isFemale) "Great-Great-Granddaughter" else "Great-Great-Grandchild"
+            return title to "$label of $focalName"
+        }
+
+        // 11. Aunts & Uncles (3rd Degree Collateral: Parent's Siblings)
         val parentSiblingIds = mutableSetOf<String>()
         focalFather?.let { f ->
             f.fatherId?.let { childrenOf[it]?.let { s -> parentSiblingIds.addAll(s) } }
@@ -442,7 +459,20 @@ object KinshipTitleHelper {
             return title to "$label of $focalName"
         }
 
-        // 12. Nieces & Nephews (Sibling's Children)
+        // 11b. Great-Aunts & Great-Uncles (4th Degree Collateral: Grandparent's Siblings)
+        val grandparentSiblingIds = mutableSetOf<String>()
+        grandparents.forEach { gp ->
+            gp.fatherId?.let { childrenOf[it]?.let { s -> grandparentSiblingIds.addAll(s) } }
+            gp.motherId?.let { childrenOf[it]?.let { s -> grandparentSiblingIds.addAll(s) } }
+            grandparentSiblingIds.remove(gp.id)
+        }
+        if (grandparentSiblingIds.contains(target.id)) {
+            val title = if (isMale) "GREAT-UNCLE" else if (isFemale) "GREAT-AUNT" else "GREAT-AUNT/UNCLE"
+            val label = if (isMale) "Great-Uncle" else if (isFemale) "Great-Aunt" else "Great-Aunt/Uncle"
+            return title to "$label of $focalName"
+        }
+
+        // 12. Nieces & Nephews (3rd Degree Collateral: Sibling's Children)
         val focalSiblingIds = mutableSetOf<String>()
         focal.fatherId?.let { childrenOf[it]?.let { s -> focalSiblingIds.addAll(s) } }
         focal.motherId?.let { childrenOf[it]?.let { s -> focalSiblingIds.addAll(s) } }
@@ -457,7 +487,20 @@ object KinshipTitleHelper {
             return title to "$label of $focalName"
         }
 
-        // 13. First Cousins (Aunt/Uncle's Children)
+        // 12b. Grandnieces & Grandnephews (4th Degree Collateral: Sibling's Grandchildren)
+        val isGrandnephewOrGrandniece = focalSiblingIds.any { sibId ->
+            val niblingIds = childrenOf[sibId] ?: emptySet()
+            niblingIds.any { nibId ->
+                (childrenOf[nibId] ?: emptySet()).contains(target.id)
+            }
+        }
+        if (isGrandnephewOrGrandniece) {
+            val title = if (isMale) "GRANDNEPHEW" else if (isFemale) "GRANDNIECE" else "GRANDNEPHEW/NIECE"
+            val label = if (isMale) "Grandnephew" else if (isFemale) "Grandniece" else "Grandnephew/Grandniece"
+            return title to "$label of $focalName"
+        }
+
+        // 13. First Cousins (4th Degree Collateral: Aunt/Uncle's Children)
         val isCousin = parentSiblingIds.any { auntUncleId ->
             (childrenOf[auntUncleId] ?: emptySet()).contains(target.id)
         }

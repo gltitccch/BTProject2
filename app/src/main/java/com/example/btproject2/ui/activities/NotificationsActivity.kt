@@ -248,10 +248,10 @@ class NotificationsActivity : AppCompatActivity() {
             applyFilter()
         }
 
-        AlertDialog.Builder(this)
-            .setTitle(item.title)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+            .setTitle(com.example.btproject2.utils.NotificationHelper.sanitizeNotificationTitle(item.title))
             .setMessage(item.message)
-            .setPositiveButton("OK") { d, _ -> d.dismiss() }
+            .setPositiveButton("Got It") { d, _ -> d.dismiss() }
             .show()
     }
 

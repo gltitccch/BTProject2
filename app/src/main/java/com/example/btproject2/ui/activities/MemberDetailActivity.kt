@@ -70,73 +70,95 @@ class MemberDetailActivity : AppCompatActivity() {
         }
     }
 
+    private val repairedSpousePairKeys = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+
     private val detailPhotoPickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
-        if (uri != null && currentPerson != null) {
-            val result = com.example.btproject2.utils.DocumentHelper.saveImageToInternal(this, uri, currentPerson!!.id)
-            if (result != null) {
-                val (filePath, base64) = result
-                firestoreHelper.updatePersonPhoto(
-                    currentPerson!!.id,
-                    base64,
-                    filePath,
-                    onSuccess = {
-                        val currentUserId = authHelper.getCurrentUserId().orEmpty()
-                        val currentUserName = authHelper.getCurrentUser()?.displayName ?: "User"
-                        val pName = "${currentPerson!!.firstName} ${currentPerson!!.lastName}".trim()
-                        firestoreHelper.logActivity(
-                            treeId = treeId,
-                            userId = currentUserId,
-                            userName = currentUserName,
-                            type = "PHOTO",
-                            description = "Updated profile photo for $pName",
-                            targetId = currentPerson!!.id,
-                            targetName = pName
+        val personSnapshot = currentPerson
+        if (uri != null && personSnapshot != null) {
+            val appCtx = applicationContext
+            val personIdSnapshot = personSnapshot.id
+            val pName = "${personSnapshot.firstName} ${personSnapshot.lastName}".trim()
+            Thread {
+                val result = com.example.btproject2.utils.DocumentHelper.saveImageToInternal(appCtx, uri, personIdSnapshot)
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    if (result != null) {
+                        val (filePath, base64) = result
+                        firestoreHelper.updatePersonPhoto(
+                            personIdSnapshot,
+                            base64,
+                            filePath,
+                            onSuccess = {
+                                val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                                val currentUserName = authHelper.getCurrentUser()?.displayName ?: "User"
+                                firestoreHelper.logActivity(
+                                    treeId = treeId,
+                                    userId = currentUserId,
+                                    userName = currentUserName,
+                                    type = "PHOTO",
+                                    description = "Updated profile photo for $pName",
+                                    targetId = personIdSnapshot,
+                                    targetName = pName
+                                )
+                                KinTraceAlert.show(this, "Profile photo updated")
+                                setResult(RESULT_OK)
+                                loadAllAndDisplay()
+                            },
+                            onFailure = {
+                                KinTraceAlert.show(this, "Failed to update photo: ${it.message}")
+                            }
                         )
-                        KinTraceAlert.show(this, "Profile photo updated")
-                        setResult(RESULT_OK)
-                        loadAllAndDisplay()
-                    },
-                    onFailure = {
-                        KinTraceAlert.show(this, "Failed to update photo: ${it.message}")
+                    } else {
+                        KinTraceAlert.show(this, "Could not process selected photo.")
                     }
-                )
-            }
+                }
+            }.start()
         }
     }
 
     private val detailDocPickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
-        if (uri != null && currentPerson != null) {
-            val doc = com.example.btproject2.utils.DocumentHelper.saveDocumentToInternal(this, uri, currentPerson!!.id)
-            if (doc != null) {
-                firestoreHelper.attachDocument(
-                    currentPerson!!.id,
-                    doc,
-                    onSuccess = {
-                        val currentUserId = authHelper.getCurrentUserId().orEmpty()
-                        val currentUserName = authHelper.getCurrentUser()?.displayName ?: "User"
-                        val pName = "${currentPerson!!.firstName} ${currentPerson!!.lastName}".trim()
-                        firestoreHelper.logActivity(
-                            treeId = treeId,
-                            userId = currentUserId,
-                            userName = currentUserName,
-                            type = "DOCUMENT",
-                            description = "Attached document '${doc.name}' to $pName",
-                            targetId = currentPerson!!.id,
-                            targetName = pName
+        val personSnapshot = currentPerson
+        if (uri != null && personSnapshot != null) {
+            val appCtx = applicationContext
+            val personIdSnapshot = personSnapshot.id
+            val pName = "${personSnapshot.firstName} ${personSnapshot.lastName}".trim()
+            Thread {
+                val doc = com.example.btproject2.utils.DocumentHelper.saveDocumentToInternal(appCtx, uri, personIdSnapshot)
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    if (doc != null) {
+                        firestoreHelper.attachDocument(
+                            personIdSnapshot,
+                            doc,
+                            onSuccess = {
+                                val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                                val currentUserName = authHelper.getCurrentUser()?.displayName ?: "User"
+                                firestoreHelper.logActivity(
+                                    treeId = treeId,
+                                    userId = currentUserId,
+                                    userName = currentUserName,
+                                    type = "DOCUMENT",
+                                    description = "Attached document '${doc.name}' to $pName",
+                                    targetId = personIdSnapshot,
+                                    targetName = pName
+                                )
+                                KinTraceAlert.show(this, "Document attached successfully")
+                                setResult(RESULT_OK)
+                                loadAllAndDisplay()
+                            },
+                            onFailure = {
+                                KinTraceAlert.show(this, "Failed to attach document: ${it.message}")
+                            }
                         )
-                        KinTraceAlert.show(this, "Document attached successfully")
-                        setResult(RESULT_OK)
-                        loadAllAndDisplay()
-                    },
-                    onFailure = {
-                        KinTraceAlert.show(this, "Failed to attach document: ${it.message}")
+                    } else {
+                        KinTraceAlert.show(this, "Could not attach selected document.")
                     }
-                )
-            }
+                }
+            }.start()
         }
     }
 
@@ -584,9 +606,8 @@ class MemberDetailActivity : AppCompatActivity() {
         // ── Avatar initials & Profile Photo ───────────────────────
         val initials = "${person.firstName.firstOrNull() ?: ""}${person.lastName.firstOrNull() ?: ""}".uppercase()
         tvAvatar.text = initials
-        val rawBmp = com.example.btproject2.utils.DocumentHelper.decodeBase64Bitmap(person.photoBase64)
-        if (rawBmp != null) {
-            val circ = com.example.btproject2.utils.DocumentHelper.getCircularBitmap(rawBmp, 112)
+        val circ = com.example.btproject2.utils.DocumentHelper.getCachedCircularAvatar(person.photoBase64, 112)
+        if (circ != null) {
             ivDetailPhoto.setImageBitmap(circ)
             ivDetailPhoto.visibility = View.VISIBLE
             tvAvatar.visibility = View.GONE
@@ -775,9 +796,15 @@ class MemberDetailActivity : AppCompatActivity() {
                 if (effectiveMarriageDate.isNotEmpty()) effectiveMarriageDate
                 else "Tap to set date"
 
-            // Self-healing: if person's record in database was missing reciprocal spouseId or status, silently repair it
-            if (person.spouseId.isNullOrEmpty() || !com.example.btproject2.engine.FamilyLinkValidator.isSameId(person.spouseId, spouse.id) || !person.maritalStatus.equals("Married", ignoreCase = true)) {
-                firestoreHelper.updateSpouse(person.id, spouse.id, "Married", onSuccess = {}, onFailure = {})
+            // Self-healing: if person's record in database was missing reciprocal spouseId or status, silently repair it once (never for Viewers)
+            val needsReciprocalRepair = person.spouseId.isNullOrEmpty() ||
+                !com.example.btproject2.engine.FamilyLinkValidator.isSameId(person.spouseId, spouse.id) ||
+                !person.maritalStatus.equals("Married", ignoreCase = true)
+            if (!isViewer && needsReciprocalRepair) {
+                val repairKey = "${person.id.trim().lowercase()}:${spouse.id.trim().lowercase()}"
+                if (repairedSpousePairKeys.add(repairKey)) {
+                    firestoreHelper.updateSpouse(person.id, spouse.id, "Married", onSuccess = {}, onFailure = {})
+                }
             }
         } else {
             tvSpouseName.text          = "Tap to select"
@@ -875,7 +902,7 @@ class MemberDetailActivity : AppCompatActivity() {
             }
         }.trim()
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("${person.firstName}'s Siblings")
             .setMessage(message)
             .setPositiveButton("Close", null)
@@ -933,7 +960,7 @@ class MemberDetailActivity : AppCompatActivity() {
                         KinTraceAlert.warning(this, "Read-Only Access", "Read-only Viewers cannot remove attached documents.")
                         return@setOnClickListener
                     }
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Remove Document")
                         .setMessage("Remove \"${doc.name}\" from ${person.firstName}'s profile?")
                         .setPositiveButton("Remove") { _, _ ->
@@ -973,7 +1000,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val names = mutableListOf("(None — remove father)")
         names.addAll(candidates.map { "${it.firstName} ${it.lastName}" })
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Select Father")
             .setItems(names.toTypedArray()) { _, which ->
                 if (which == 0) {
@@ -1017,7 +1044,7 @@ class MemberDetailActivity : AppCompatActivity() {
                             conflictDetails = "Father link blocked: ${serviceCheck.reason}"
                         )
                         firestoreHelper.addNotification(notif)
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle("Cannot Link Father")
                             .setMessage("${serviceCheck.reason}\n\n${serviceCheck.legalBasis}")
                             .setPositiveButton("Understood", null)
@@ -1041,7 +1068,7 @@ class MemberDetailActivity : AppCompatActivity() {
                             conflictDetails = "Father link blocked: ${firstIssue.message}"
                         )
                         firestoreHelper.addNotification(notif)
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle(firstIssue.title)
                             .setMessage(firstIssue.message)
                             .setPositiveButton("Understood", null)
@@ -1091,7 +1118,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val names = mutableListOf("(None — remove mother)")
         names.addAll(candidates.map { "${it.firstName} ${it.lastName}" })
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Select Mother")
             .setItems(names.toTypedArray()) { _, which ->
                 if (which == 0) {
@@ -1135,7 +1162,7 @@ class MemberDetailActivity : AppCompatActivity() {
                             conflictDetails = "Mother link blocked: ${serviceCheck.reason}"
                         )
                         firestoreHelper.addNotification(notif)
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle("Cannot Link Mother")
                             .setMessage("${serviceCheck.reason}\n\n${serviceCheck.legalBasis}")
                             .setPositiveButton("Understood", null)
@@ -1159,7 +1186,7 @@ class MemberDetailActivity : AppCompatActivity() {
                             conflictDetails = "Mother link blocked: ${firstIssue.message}"
                         )
                         firestoreHelper.addNotification(notif)
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle(firstIssue.title)
                             .setMessage(firstIssue.message)
                             .setPositiveButton("Understood", null)
@@ -1215,7 +1242,7 @@ class MemberDetailActivity : AppCompatActivity() {
             "${candidate.firstName} ${candidate.lastName}$genderTag$ageTag"
         })
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Select Spouse for ${person.firstName} ${person.lastName}")
             .setItems(names.toTypedArray()) { _, which ->
                 if (which == 0) {
@@ -1269,7 +1296,7 @@ class MemberDetailActivity : AppCompatActivity() {
                         )
                         firestoreHelper.addNotification(notif)
 
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle("Cannot Link Spouse")
                             .setMessage(formattedError)
                             .setPositiveButton("Understood", null)
@@ -1288,7 +1315,7 @@ class MemberDetailActivity : AppCompatActivity() {
                             conflictDetails = "Spouse link blocked: ${firstIssue.message}"
                         )
                         firestoreHelper.addNotification(notif)
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle(firstIssue.title)
                             .setMessage(firstIssue.message)
                             .setPositiveButton("Understood", null)
@@ -1432,7 +1459,7 @@ class MemberDetailActivity : AppCompatActivity() {
         }
 
         var dialogRef: AlertDialog? = null
-        val builder = AlertDialog.Builder(this)
+        val builder = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Manage Children (${person.firstName})")
             .setMultiChoiceItems(names, checked) { _, which, isChecked ->
                 if (isChecked) {
@@ -1457,7 +1484,7 @@ class MemberDetailActivity : AppCompatActivity() {
                                 conflictDetails = cCheck.reason
                             )
                             firestoreHelper.addNotification(notif)
-                            AlertDialog.Builder(this)
+                            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                                 .setTitle("Cannot Link Child")
                                 .setMessage(cCheck.reason)
                                 .setPositiveButton("Understood", null)
@@ -1487,7 +1514,7 @@ class MemberDetailActivity : AppCompatActivity() {
                                 conflictDetails = firstIssue.message
                             )
                             firestoreHelper.addNotification(notif)
-                            AlertDialog.Builder(this)
+                            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                                 .setTitle(firstIssue.title)
                                 .setMessage(firstIssue.message)
                                 .setPositiveButton("Understood", null)
@@ -1530,7 +1557,7 @@ class MemberDetailActivity : AppCompatActivity() {
                             conflictDetails = "Child link blocked: ${firstIssue.message}"
                         )
                         firestoreHelper.addNotification(notif)
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle(firstIssue.title)
                             .setMessage(firstIssue.message)
                             .setPositiveButton("Understood", null)
@@ -1739,7 +1766,7 @@ class MemberDetailActivity : AppCompatActivity() {
             return
         }
         val name = if (p != null) "${p.firstName} ${p.lastName}".trim().ifEmpty { "this member" } else "this member"
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Delete Member")
             .setMessage("Are you sure you want to delete $name from the family tree? This action cannot be undone.")
             .setPositiveButton("Delete") { _, _ ->
@@ -1877,7 +1904,7 @@ class MemberDetailActivity : AppCompatActivity() {
             "Add the spouse of an existing child"
         )
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Add Child Connection ($parentName)")
             .setItems(choices) { _, which ->
                 when (which) {
@@ -1925,7 +1952,7 @@ class MemberDetailActivity : AppCompatActivity() {
         }
 
         if (children.isEmpty()) {
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("No Registered Children")
                 .setMessage("$parentName does not have any children registered in the family tree yet.\n\nUnder Philippine law and genealogical rules, a son-in-law or daughter-in-law must be connected as the spouse of an existing child. They must never be connected directly as a biological child of the parent-in-law.\n\nPlease add a child to $parentName first.")
                 .setPositiveButton("Add Child First") { _, _ ->
@@ -1951,14 +1978,14 @@ class MemberDetailActivity : AppCompatActivity() {
             "${child.firstName} ${child.lastName}$spouseNote"
         }.toTypedArray()
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Select Existing Child of $parentName")
             .setItems(childNames) { _, which ->
                 val selectedChild = children[which]
                 if (!selectedChild.spouseId.isNullOrBlank()) {
                     val sp = allMembers.find { it.id == selectedChild.spouseId }
                     val spName = sp?.let { "${it.firstName} ${it.lastName}" } ?: "another spouse"
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Child Already Married")
                         .setMessage("Unable to add this person as a spouse because one member already has an active spouse relationship.\n\n${selectedChild.firstName} ${selectedChild.lastName} is already married to $spName (Philippine Family Code Articles 35(4) and 40).")
                         .setPositiveButton("Understood", null)
@@ -2011,7 +2038,7 @@ class MemberDetailActivity : AppCompatActivity() {
                 datePicker.show()
             }
 
-            val alertDialog = AlertDialog.Builder(this)
+            val alertDialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setView(dialogView)
                 .create()
 
@@ -2083,7 +2110,7 @@ class MemberDetailActivity : AppCompatActivity() {
         } else {
             // Already Deceased -> Confirm revert to Living
             val pName = "${person.firstName} ${person.lastName}".trim()
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("Mark as Living")
                 .setMessage("Are you sure you want to mark $pName as Living?\n\nThe recorded date and place of passing will be cleared, and if their spouse was marked as Widowed, their status will be restored to Married.")
                 .setPositiveButton("Mark Living") { dialog, _ ->

@@ -175,35 +175,33 @@ class ExportTreeActivity : AppCompatActivity() {
         if (isExporting) return
         setExporting(true, "Generating visual tree PNG...")
 
-        try {
-            // Instantiate View and render bitmap on Main Thread
-            val treeView = FamilyTreeView(this)
-            val bmp = treeView.exportToBitmap(persons, treeName)
-            val fileName = getSafeTreeFileName("Chart.png")
+        val personsSnapshot = persons.toList()
+        val treeNameSnapshot = treeName
+        val fileName = getSafeTreeFileName("Chart.png")
+        val treeView = FamilyTreeView(this)
 
-            Thread {
-                try {
-                    saveFile(fileName, "image/png") { out ->
-                        bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
-                    }
-                    if (!bmp.isRecycled) {
-                        bmp.recycle()
-                    }
-                    runOnUiThread {
-                        setExporting(false)
-                        toast("✅ Visual Tree saved to Downloads: $fileName")
-                    }
-                } catch (e: Exception) {
-                    runOnUiThread {
-                        setExporting(false)
-                        toast("Export failed: ${e.message}")
-                    }
+        Thread {
+            try {
+                val bmp = treeView.exportToBitmap(personsSnapshot, treeNameSnapshot)
+                saveFile(fileName, "image/png") { out ->
+                    bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
                 }
-            }.start()
-        } catch (e: Exception) {
-            setExporting(false)
-            toast("Export failed: ${e.message}")
-        }
+                if (!bmp.isRecycled) {
+                    bmp.recycle()
+                }
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    setExporting(false)
+                    toast("✅ Visual Tree saved to Downloads: $fileName")
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    setExporting(false)
+                    toast("Export failed: ${e.message}")
+                }
+            }
+        }.start()
     }
 
     private fun exportPdf() {
@@ -211,20 +209,20 @@ class ExportTreeActivity : AppCompatActivity() {
         if (isExporting) return
         setExporting(true, "Generating comprehensive PDF report...")
 
-        try {
-            // Pre-render visual tree bitmap on Main Thread
-            val treeView = FamilyTreeView(this)
-            val treeBmp = treeView.exportToBitmap(persons, treeName)
+        val personsSnapshot = persons.toList()
+        val treeNameSnapshot = treeName
+        val treeView = FamilyTreeView(this)
 
-            Thread {
-                try {
-                    val pdfDoc = PdfDocument()
-                    val pageWidth = 595
-                    val pageHeight = 842
+        Thread {
+            try {
+                val treeBmp = treeView.exportToBitmap(personsSnapshot, treeNameSnapshot)
+                val pdfDoc = PdfDocument()
+                val pageWidth = 595
+                val pageHeight = 842
 
-                    // Calculate metrics
-                    val totalMembers = persons.size
-                    val livingCount = persons.count { it.isLiving }
+                // Calculate metrics
+                val totalMembers = personsSnapshot.size
+                val livingCount = personsSnapshot.count { it.isLiving }
                     val deceasedCount = totalMembers - livingCount
                     val parentLinks = persons.count { !it.fatherId.isNullOrBlank() || !it.motherId.isNullOrBlank() }
                     val marriageCount = persons.count { !it.spouseId.isNullOrBlank() } / 2
@@ -478,20 +476,18 @@ class ExportTreeActivity : AppCompatActivity() {
                     }
 
                     runOnUiThread {
+                        if (isFinishing || isDestroyed) return@runOnUiThread
                         setExporting(false)
                         toast("✅ Comprehensive PDF Report saved: $fileName")
                     }
                 } catch (e: Exception) {
                     runOnUiThread {
+                        if (isFinishing || isDestroyed) return@runOnUiThread
                         setExporting(false)
                         toast("PDF export failed: ${e.message}")
                     }
                 }
             }.start()
-        } catch (e: Exception) {
-            setExporting(false)
-            toast("PDF export failed: ${e.message}")
-        }
     }
 
     private fun exportGedcom() {

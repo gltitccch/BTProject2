@@ -87,7 +87,7 @@ object AddChildBiologicalParentDialogHelper {
             "3. Another person\n   (Select existing person or create new person)"
         )
 
-        AlertDialog.Builder(context)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
             .setTitle("Identify Other Biological Parent")
             .setMessage("$parentName is currently linked with spouse $spouseName.\n\nWho is the other biological parent of this child?")
             .setItems(choices) { _, which ->
@@ -159,7 +159,7 @@ object AddChildBiologicalParentDialogHelper {
         val options = mutableListOf("+ Create New Person")
         options.addAll(candidates.map { "${it.firstName} ${it.lastName}" })
 
-        AlertDialog.Builder(context)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
             .setTitle("Select Second Biological Parent")
             .setMessage("Select the other biological parent of $parentName's child:")
             .setItems(options.toTypedArray()) { _, which ->
@@ -238,7 +238,7 @@ object AddChildBiologicalParentDialogHelper {
             ).also { it.datePicker.maxDate = System.currentTimeMillis() }.show()
         }
 
-        AlertDialog.Builder(context)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
             .setTitle("Create Second Biological Parent")
             .setView(view)
             .setPositiveButton("Create & Connect") { _, _ ->

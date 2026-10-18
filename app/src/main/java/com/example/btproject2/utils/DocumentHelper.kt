@@ -116,8 +116,10 @@ object DocumentHelper {
                 fileSizeStr = formatFileSize(destFile.length())
             }
 
-            // Encode portable Base64 payload for files up to 512 KB so documents survive reinstallation and cross-device sync
-            val portableBase64 = if (destFile.exists() && destFile.length() in 1..(512 * 1024L)) {
+            // Encode portable Base64 payload for compact files up to 180 KB (~240 KB Base64) so documents survive
+            // reinstallation and cross-device sync without exceeding Firestore's 1 MB document limit or CursorWindow limits.
+            // Larger PDFs remain stored intact on internal storage (destFile.absolutePath).
+            val portableBase64 = if (destFile.exists() && destFile.length() in 1..(180 * 1024L)) {
                 try {
                     Base64.encodeToString(destFile.readBytes(), Base64.NO_WRAP)
                 } catch (_: Exception) {
@@ -177,6 +179,45 @@ object DocumentHelper {
         } catch (_: Exception) {
             null
         }
+    }
+
+    /**
+     * Ensures any legacy/existing [AttachedDocument] with an oversized inline Base64 payload (>260 KB)
+     * is reconstructed into [context.filesDir]/documents and its Firestore inline Base64 is trimmed
+     * so future tree snapshots remain fast and well below Firestore's 1 MB document limit.
+     */
+    fun compactOversizedInlineDocuments(
+        context: Context,
+        persons: List<com.example.btproject2.models.Person>
+    ) {
+        val oversizedPersons = persons.filter { p -> p.documents.any { it.fileBase64.length > 260_000 } }
+        if (oversizedPersons.isEmpty()) return
+        val appCtx = context.applicationContext
+        Thread {
+            try {
+                val fallbackDir = File(appCtx.filesDir, "documents")
+                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                for (p in oversizedPersons) {
+                    var changed = false
+                    val compactedDocs = p.documents.map { doc ->
+                        if (doc.fileBase64.length > 260_000) {
+                            val localFile = reconstructFileIfMissing(fallbackDir, doc)
+                            changed = true
+                            doc.copy(
+                                fileUri = localFile?.absolutePath ?: doc.fileUri,
+                                fileBase64 = ""
+                            )
+                        } else {
+                            doc
+                        }
+                    }
+                    if (changed && p.id.isNotBlank()) {
+                        db.collection("persons").document(p.id)
+                            .update("documents", compactedDocs)
+                    }
+                }
+            } catch (_: Exception) {}
+        }.start()
     }
 
     fun openDocument(context: Context, document: AttachedDocument) {
@@ -269,6 +310,34 @@ object DocumentHelper {
             }
         }
         return null
+    }
+
+    private val avatarBitmapLruCache = object : android.util.LruCache<String, Bitmap>(160) {
+        override fun sizeOf(key: String, value: Bitmap): Int = 1
+    }
+
+    /**
+     * Returns a cached circular [Bitmap] of [size] px for [base64], decoding and cropping only on cache miss.
+     * Safe to call from both UI and background threads.
+     */
+    fun getCachedCircularAvatar(base64: String, size: Int): Bitmap? {
+        if (base64.isBlank() || size <= 0) return null
+        val cacheKey = "${base64.hashCode()}_${base64.length}_$size"
+        synchronized(avatarBitmapLruCache) {
+            val cached = avatarBitmapLruCache.get(cacheKey)
+            if (cached != null && !cached.isRecycled) {
+                return cached
+            }
+        }
+        val raw = decodeBase64Bitmap(base64, targetSize = size.coerceAtLeast(112)) ?: return null
+        val circular = getCircularBitmap(raw, size)
+        if (raw != circular && !raw.isRecycled) {
+            raw.recycle()
+        }
+        synchronized(avatarBitmapLruCache) {
+            avatarBitmapLruCache.put(cacheKey, circular)
+        }
+        return circular
     }
 
     fun decodeBase64Bitmap(base64: String, targetSize: Int = 256): Bitmap? {

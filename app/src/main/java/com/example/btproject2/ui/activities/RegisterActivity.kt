@@ -227,7 +227,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun showMessage(title: String, message: String, onDismiss: (() -> Unit)? = null) {
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton("OK") { dialog, _ ->

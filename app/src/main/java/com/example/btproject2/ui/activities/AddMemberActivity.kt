@@ -51,6 +51,7 @@ class AddMemberActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (isFinishing || isDestroyed) return@runOnUiThread
                     allMembers = updatedAll
+                    refreshQuotaBadge(treeId, allMembers.size)
                     refreshCandidateSpinners()
                 }
             },
@@ -125,14 +126,23 @@ class AddMemberActivity : AppCompatActivity() {
         ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
+            val appCtx = applicationContext
             val tempId = "temp_${System.currentTimeMillis()}"
-            val res = com.example.btproject2.utils.DocumentHelper.saveImageToInternal(this, uri, tempId)
-            if (res != null) {
-                attachedPhotoUri = res.first
-                attachedPhotoBase64 = res.second
-                tvAttachedPhotoStatus.text = "✓ Profile Photo Selected"
-                tvAttachedPhotoStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
-            }
+            tvAttachedPhotoStatus.text = "⏳ Processing photo..."
+            Thread {
+                val res = com.example.btproject2.utils.DocumentHelper.saveImageToInternal(appCtx, uri, tempId)
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    if (res != null) {
+                        attachedPhotoUri = res.first
+                        attachedPhotoBase64 = res.second
+                        tvAttachedPhotoStatus.text = "✓ Profile Photo Selected"
+                        tvAttachedPhotoStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
+                    } else {
+                        tvAttachedPhotoStatus.text = "⚠️ Failed to load photo"
+                    }
+                }
+            }.start()
         }
     }
 
@@ -140,13 +150,22 @@ class AddMemberActivity : AppCompatActivity() {
         ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
+            val appCtx = applicationContext
             val tempId = "temp_${System.currentTimeMillis()}"
-            val doc = com.example.btproject2.utils.DocumentHelper.saveDocumentToInternal(this, uri, tempId)
-            if (doc != null) {
-                attachedDocumentsList.add(doc)
-                tvAttachedDocStatus.text = "✓ ${doc.name} Attached"
-                tvAttachedDocStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
-            }
+            tvAttachedDocStatus.text = "⏳ Attaching document..."
+            Thread {
+                val doc = com.example.btproject2.utils.DocumentHelper.saveDocumentToInternal(appCtx, uri, tempId)
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    if (doc != null) {
+                        attachedDocumentsList.add(doc)
+                        tvAttachedDocStatus.text = "✓ ${doc.name} Attached"
+                        tvAttachedDocStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
+                    } else {
+                        tvAttachedDocStatus.text = "⚠️ Failed to attach document"
+                    }
+                }
+            }.start()
         }
     }
 
@@ -371,7 +390,7 @@ class AddMemberActivity : AppCompatActivity() {
                 val child = effectiveMembers.find { it.id == presetSpouseId }
                 val inLawIds = setOfNotNull(inLawParentId, child?.fatherId, child?.motherId)
                 if (fatherId in inLawIds || motherId in inLawIds) {
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Invalid In-Law Connection")
                         .setMessage("A son-in-law or daughter-in-law must be connected as the spouse of an existing child. They must never be connected as a biological child of the parent-in-law.")
                         .setPositiveButton("Understood", null)
@@ -382,7 +401,7 @@ class AddMemberActivity : AppCompatActivity() {
 
             // Mandatory Step-Parent Rule: Step-parent cannot be saved as biological parent
             if (fatherRelationshipType.equals("Step", ignoreCase = true) || motherRelationshipType.equals("Step", ignoreCase = true)) {
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Cannot Save Step-Parent as Direct Parent")
                     .setMessage("Under Philippine family law and application rules, a step-parent must not be saved as a biological parent. A step-parent relationship arises automatically from marriage to the child's biological parent.\n\nA step-parent can only be recorded as a direct parent if there is an explicit legal adoption. If this person was legally adopted, please select 'Adoptive'.")
                     .setPositiveButton("Understood", null)
@@ -396,7 +415,7 @@ class AddMemberActivity : AppCompatActivity() {
                 val isSpouseFather = fatherId != null && fatherId == spouseOfPreset.id && fatherRelationshipType.equals("Biological", ignoreCase = true)
                 val isSpouseMother = motherId != null && motherId == spouseOfPreset.id && motherRelationshipType.equals("Biological", ignoreCase = true)
                 if (isSpouseFather || isSpouseMother) {
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Step-Parent as Biological Parent")
                         .setMessage("${spouseOfPreset.firstName} ${spouseOfPreset.lastName} is the spouse of biological parent ${presetParent.firstName}. Under application rules, a step-parent must not be connected as a biological parent when the other parent is recorded as unknown, unless there is a separate legal adoption (choose 'Adoptive').")
                         .setPositiveButton("Understood", null)
@@ -419,7 +438,7 @@ class AddMemberActivity : AppCompatActivity() {
                     role = com.example.btproject2.service.FamilyRelationshipService.ParentRole.FATHER
                 )
                 if (!fValidation.isAllowed) {
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Father")
                         .setMessage("${fValidation.reason}\n\n${fValidation.legalBasis}")
                         .setPositiveButton("Understood", null)
@@ -442,7 +461,7 @@ class AddMemberActivity : AppCompatActivity() {
                     role = com.example.btproject2.service.FamilyRelationshipService.ParentRole.MOTHER
                 )
                 if (!mValidation.isAllowed) {
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Mother")
                         .setMessage("${mValidation.reason}\n\n${mValidation.legalBasis}")
                         .setPositiveButton("Understood", null)
@@ -462,7 +481,7 @@ class AddMemberActivity : AppCompatActivity() {
                 if (!sValidation.isAllowed) {
                     val spouseCandidate = effectiveMembers.find { it.id == spouseId } ?: Person(id = spouseId)
                     val errorMsg = com.example.btproject2.utils.SpouseValidationMessageHelper.formatErrorMessage(tempPerson, spouseCandidate, sValidation)
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Spouse")
                         .setMessage(errorMsg)
                         .setPositiveButton("Understood", null)
@@ -480,7 +499,7 @@ class AddMemberActivity : AppCompatActivity() {
                     tree = treeMap
                 )
                 if (!cValidation.isAllowed) {
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Child (${child.firstName})")
                         .setMessage(cValidation.reason)
                         .setPositiveButton("Understood", null)
@@ -505,7 +524,7 @@ class AddMemberActivity : AppCompatActivity() {
                         conflictDetails = "Prohibited Co-Parents: ${firstError.message}"
                     )
                     firestoreHelper.addNotification(notif)
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle(firstError.title)
                         .setMessage(allErrors)
                         .setPositiveButton("Understood", null)
@@ -528,7 +547,7 @@ class AddMemberActivity : AppCompatActivity() {
                         conflictDetails = "Prohibited Spouse: ${firstError.message}"
                     )
                     firestoreHelper.addNotification(notif)
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle(firstError.title)
                         .setMessage(allErrors)
                         .setPositiveButton("Understood", null)
@@ -554,7 +573,7 @@ class AddMemberActivity : AppCompatActivity() {
                     conflictDetails = "Genealogical Conflict: ${firstError.message}"
                 )
                 firestoreHelper.addNotification(notif)
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle(firstError.title)
                     .setMessage(allErrors)
                     .setPositiveButton("Understood", null)
@@ -567,7 +586,7 @@ class AddMemberActivity : AppCompatActivity() {
 
             if (!result.isValid) {
                 val errorText = result.errors.joinToString("\n\n") { "❌ ${it.message}" }
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Cannot Save Member")
                     .setMessage(errorText)
                     .setPositiveButton("Understood", null)
@@ -591,7 +610,7 @@ class AddMemberActivity : AppCompatActivity() {
             if (combinedWarnings.isNotEmpty()) {
                 val hasPosthumous = linkResult.warnings.any { it.title.contains("Posthumous", ignoreCase = true) }
                 val warningText = combinedWarnings.joinToString("\n") { "⚠️ $it" }
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Warnings Found")
                     .setMessage("$warningText\n\nDo you still want to save?")
                     .setPositiveButton("Save Anyway") { _, _ ->
@@ -639,6 +658,36 @@ class AddMemberActivity : AppCompatActivity() {
             .distinctBy { it.id.trim().lowercase() }
     }
 
+    private fun refreshQuotaBadge(effectiveTreeId: String, currentCount: Int) {
+        val tvBadge = findViewById<TextView>(R.id.tvAddMemberQuotaBadge) ?: return
+        if (effectiveTreeId.isBlank() || effectiveTreeId == "default_tree") {
+            tvBadge.text = "👥 Clan Capacity: $currentCount / 50 Members • Free Tier"
+            return
+        }
+        firestoreHelper.getTree(
+            effectiveTreeId,
+            onSuccess = { tree ->
+                if (isFinishing || isDestroyed) return@getTree
+                val maxCap = tree?.effectiveQuota ?: 50
+                val tierLabel = if (maxCap >= 200) "Extended Clan Tier" else "Free Tier"
+                tvBadge.text = "👥 Clan Capacity: $currentCount / $maxCap Members • $tierLabel"
+                val colorRes = if (currentCount >= maxCap) {
+                    R.color.danger
+                } else if (currentCount >= maxCap - 5) {
+                    R.color.warning
+                } else {
+                    R.color.gold_accent
+                }
+                tvBadge.setTextColor(ContextCompat.getColor(this, colorRes))
+            },
+            onFailure = {
+                if (!isFinishing && !isDestroyed) {
+                    tvBadge.text = "👥 Clan Capacity: $currentCount / 50 Members"
+                }
+            }
+        )
+    }
+
     private fun loadFamilyMembers() {
         val effectiveTreeId = treeId.ifBlank {
             com.example.btproject2.utils.TreePreferences.getActiveTreeId(this)
@@ -655,6 +704,7 @@ class AddMemberActivity : AppCompatActivity() {
             }
             allMembers = treeFiltered
             syncCoordinator.allMembersList = allMembers
+            refreshQuotaBadge(effectiveTreeId, allMembers.size)
 
                 val presetChildId = intent.getStringExtra("presetChildId")
                 val presetGender = intent.getStringExtra("presetGender")
@@ -682,7 +732,7 @@ class AddMemberActivity : AppCompatActivity() {
                                 "It’s not possible to add another $role to $childName.\n\n$childName already has a $role defined in this family tree: $existingName.\n\nA person cannot have more than one biological $role."
                             }
 
-                            AlertDialog.Builder(this)
+                            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                                 .setTitle("Cannot Add Parent")
                                 .setMessage(msg)
                                 .setPositiveButton("Understood") { _, _ -> finish() }
@@ -1038,7 +1088,7 @@ class AddMemberActivity : AppCompatActivity() {
         }
 
         var dialogRef: AlertDialog? = null
-        dialogRef = AlertDialog.Builder(this)
+        dialogRef = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Link Children (Optional)")
             .setMultiChoiceItems(names, checked) { _, which, isChecked ->
                 if (isChecked) {
@@ -1057,7 +1107,7 @@ class AddMemberActivity : AppCompatActivity() {
                         )
                         firestoreHelper.addNotification(notif)
 
-                        AlertDialog.Builder(this@AddMemberActivity)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this@AddMemberActivity)
                             .setTitle(parentCheck.errorTitle)
                             .setMessage(parentCheck.errorMessage)
                             .setPositiveButton("Understood", null)
@@ -1221,7 +1271,7 @@ class AddMemberActivity : AppCompatActivity() {
             "\n\nYou can request a free Tier Expansion (+${com.example.btproject2.models.FamilyTree.EXPANSION_STEP} capacity, up to $nextTierCap members) from the System Admin Citadel."
         }
 
-        val builder = AlertDialog.Builder(this)
+        val builder = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("👑 Freemium Cap Reached ($liveCount/$quota)")
             .setMessage(
                 "'$currentTreeName' has reached its current capacity of $quota family members ($liveCount/$quota recorded)." +
@@ -1593,7 +1643,7 @@ class AddMemberActivity : AppCompatActivity() {
         firestoreHelper.addNotification(notif)
 
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_duplicate_compare, null)
-        val dialog = AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(dialogView)
             .create()
 
@@ -1651,7 +1701,7 @@ class AddMemberActivity : AppCompatActivity() {
     }
 
     private fun showMessage(title: String, message: String, onDismiss: (() -> Unit)? = null) {
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton("OK") { d, _ ->

@@ -53,6 +53,9 @@ class TreeAuditActivity : AppCompatActivity() {
     private lateinit var auditAdapter: TreeAuditAdapter
     private var currentReport: TreeAuditReport? = null
     private var currentFilter: String = "ALL" // "ALL", "CRITICAL", "WARNINGS"
+    private var currentPersons: List<com.example.btproject2.models.Person> = emptyList()
+    private var currentWizardConflicts: List<com.example.btproject2.engine.ConflictScanner.Conflict> = emptyList()
+    private var btnLaunchConflictWizard: android.widget.Button? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +70,13 @@ class TreeAuditActivity : AppCompatActivity() {
         setupRecyclerView()
 
         runTreeAudit()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (currentReport != null) {
+            runTreeAudit()
+        }
     }
 
     private fun initViews() {
@@ -84,11 +94,16 @@ class TreeAuditActivity : AppCompatActivity() {
         rvAuditIssues = findViewById(R.id.rvAuditIssues)
         layoutCleanTreeState = findViewById(R.id.layoutCleanTreeState)
         progressBar = findViewById(R.id.progressBarAudit)
+        btnLaunchConflictWizard = findViewById(R.id.btnLaunchConflictWizard)
     }
 
     private fun setupListeners() {
         btnBack.setOnClickListener { finish() }
         btnRescan.setOnClickListener { runTreeAudit() }
+
+        btnLaunchConflictWizard?.setOnClickListener {
+            showTreeConflictsDialog(currentWizardConflicts)
+        }
 
         findViewById<TextView>(R.id.btnQuickAssistAudit)?.setOnClickListener {
             com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
@@ -135,29 +150,40 @@ class TreeAuditActivity : AppCompatActivity() {
         firestoreHelper.getPersonsByTree(
             treeId = treeId,
             onSuccess = { persons ->
-                val cached = FirestoreHelper.getCachedPersons(treeId).orEmpty()
-                val mergedPersons = (persons + cached).distinctBy { it.id.trim().lowercase() }
-                val treeMap = mergedPersons.associateBy { it.id }
+                Thread {
+                    val cached = FirestoreHelper.getCachedPersons(treeId).orEmpty()
+                    val mergedPersons = (persons + cached).distinctBy { it.id.trim().lowercase() }
+                    val treeMap = mergedPersons.associateBy { it.id }
 
-                // Authoritative Central Service Audit
-                val report = familyService.auditFamilyTree(treeMap)
-                currentReport = report
+                    val report = familyService.auditFamilyTree(treeMap)
+                    val wizardConflicts = com.example.btproject2.engine.ConflictScanner().scanAll(mergedPersons)
 
-                runOnUiThread {
-                    progressBar.visibility = View.GONE
-                    displayAuditReport(report)
-                }
+                    runOnUiThread {
+                        if (isFinishing || isDestroyed) return@runOnUiThread
+                        currentPersons = mergedPersons
+                        currentReport = report
+                        currentWizardConflicts = wizardConflicts
+                        progressBar.visibility = View.GONE
+                        displayAuditReport(report)
+                    }
+                }.start()
             },
             onFailure = {
-                val cached = FirestoreHelper.getCachedPersons(treeId).orEmpty()
-                val treeMap = cached.associateBy { it.id }
-                val report = familyService.auditFamilyTree(treeMap)
-                currentReport = report
+                Thread {
+                    val cached = FirestoreHelper.getCachedPersons(treeId).orEmpty()
+                    val treeMap = cached.associateBy { it.id }
+                    val report = familyService.auditFamilyTree(treeMap)
+                    val wizardConflicts = com.example.btproject2.engine.ConflictScanner().scanAll(cached)
 
-                runOnUiThread {
-                    progressBar.visibility = View.GONE
-                    displayAuditReport(report)
-                }
+                    runOnUiThread {
+                        if (isFinishing || isDestroyed) return@runOnUiThread
+                        currentPersons = cached
+                        currentReport = report
+                        currentWizardConflicts = wizardConflicts
+                        progressBar.visibility = View.GONE
+                        displayAuditReport(report)
+                    }
+                }.start()
             }
         )
     }
@@ -167,18 +193,215 @@ class TreeAuditActivity : AppCompatActivity() {
         tvCriticalErrorCount.text = report.criticalErrorCount.toString()
         tvWarningCount.text = report.warningCount.toString()
 
+        if (currentWizardConflicts.isNotEmpty()) {
+            btnLaunchConflictWizard?.visibility = View.VISIBLE
+            btnLaunchConflictWizard?.text = "✨ Fix ${currentWizardConflicts.size} Family Question(s) Step-by-Step"
+        } else {
+            btnLaunchConflictWizard?.visibility = View.GONE
+        }
+
         if (report.criticalErrorCount > 0) {
-            tvSummaryHeadline.text = "❌ Critical Legal or Structural Violations (${report.criticalErrorCount})"
+            tvSummaryHeadline.text = "🧭 Family Connections Need Review (${report.criticalErrorCount})"
             tvSummaryHeadline.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_critical_text))
         } else if (report.warningCount > 0) {
-            tvSummaryHeadline.text = "⚠️ Lineage Warnings Detected (${report.warningCount})"
+            tvSummaryHeadline.text = "⚠️ Lineage Suggestions Detected (${report.warningCount})"
             tvSummaryHeadline.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_warning_text))
         } else {
-            tvSummaryHeadline.text = "✅ 100% Compliant with Philippine Family Code"
+            tvSummaryHeadline.text = "✅ All Family Tree Connections Look Healthy"
             tvSummaryHeadline.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
         }
 
         applyFilter()
+    }
+
+    private fun showTreeConflictsDialog(conflicts: List<com.example.btproject2.engine.ConflictScanner.Conflict>) {
+        if (conflicts.isEmpty()) return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_tree_conflict_wizard, null, false)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val tvHeaderBadge = dialogView.findViewById<TextView>(R.id.tvWizardHeaderBadge)
+        val btnFixAll = dialogView.findViewById<TextView>(R.id.btnWizardFixAll)
+        val tvModalTitle = dialogView.findViewById<TextView>(R.id.tvWizardModalTitle)
+        val tvModalSub = dialogView.findViewById<TextView>(R.id.tvWizardModalSub)
+        val tvStepCounter = dialogView.findViewById<TextView>(R.id.tvWizardStepCounter)
+        val tvStepPercent = dialogView.findViewById<TextView>(R.id.tvWizardStepPercent)
+        val progressSteps = dialogView.findViewById<ProgressBar>(R.id.progressWizardSteps)
+
+        val tvPersonName = dialogView.findViewById<TextView>(R.id.tvWizardPersonName)
+        val tvStepTag = dialogView.findViewById<TextView>(R.id.tvWizardStepTag)
+        val tvHeadline = dialogView.findViewById<TextView>(R.id.tvWizardQuestionHeadline)
+        val tvExplain = dialogView.findViewById<TextView>(R.id.tvWizardQuestionExplain)
+        val tvHelper = dialogView.findViewById<TextView>(R.id.tvWizardHelperPrompt)
+        val btnPrimary = dialogView.findViewById<android.widget.Button>(R.id.btnWizardPrimaryChoice)
+        val btnSecondary = dialogView.findViewById<android.widget.Button>(R.id.btnWizardSecondaryChoice)
+        val btnPrev = dialogView.findViewById<android.widget.Button>(R.id.btnWizardPrev)
+        val btnSkip = dialogView.findViewById<android.widget.Button>(R.id.btnWizardSkip)
+
+        val activeConflicts = conflicts.toMutableList()
+        var currentIndex = 0
+
+        fun renderCompleteState() {
+            tvHeaderBadge.text = "✓ ALL TIDIED UP"
+            tvHeaderBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+            btnFixAll.visibility = View.GONE
+            tvModalTitle.text = "Everything Is Tidied Up!"
+            tvModalSub.text = "Your family tree connections are clean and up to date."
+            tvStepCounter.text = "All Steps Complete!"
+            tvStepPercent.text = "100% Done"
+            progressSteps.progress = 100
+
+            tvPersonName.text = "🎉 Family Tree Healthy"
+            tvStepTag.text = "✓ Done"
+            tvStepTag.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+            tvHeadline.text = "“Your family tree looks great!”"
+            tvExplain.text = "All missing parent and spouse spots have been cleaned up."
+            tvHelper.text = "✨ 0 issues remaining."
+
+            btnPrimary.isEnabled = true
+            btnPrimary.text = "✓ Back to Audit Report"
+            btnPrimary.setOnClickListener {
+                dialog.dismiss()
+                runTreeAudit()
+            }
+            btnSecondary.visibility = View.GONE
+            btnPrev.visibility = View.GONE
+            btnSkip.text = "Close"
+            btnSkip.setOnClickListener {
+                dialog.dismiss()
+                runTreeAudit()
+            }
+        }
+
+        fun renderCurrentStep() {
+            if (activeConflicts.isEmpty()) {
+                renderCompleteState()
+                return
+            }
+            if (currentIndex >= activeConflicts.size) currentIndex = activeConflicts.size - 1
+            if (currentIndex < 0) currentIndex = 0
+
+            val total = activeConflicts.size
+            val item = activeConflicts[currentIndex]
+            val pct = (((currentIndex + 1) * 100) / total).coerceIn(1, 100)
+
+            tvStepCounter.text = "Step ${currentIndex + 1} of $total"
+            tvStepPercent.text = "$pct% Done"
+            progressSteps.progress = pct
+
+            tvPersonName.text = "👤 ${item.personName}"
+            tvStepTag.text = "Question ${currentIndex + 1}"
+            tvHeadline.text = item.questionHeadline
+            tvExplain.text = item.simpleExplanation
+            tvHelper.text = item.helperPrompt
+
+            btnPrimary.isEnabled = true
+            btnSecondary.isEnabled = true
+            btnSecondary.visibility = View.VISIBLE
+            btnPrimary.text = item.primaryActionLabel
+            btnSecondary.text = item.secondaryActionLabel
+
+            btnPrev.visibility = if (total > 1) View.VISIBLE else View.GONE
+            btnPrev.isEnabled = currentIndex > 0
+            btnPrev.alpha = if (currentIndex > 0) 1.0f else 0.45f
+            btnSkip.text = if (currentIndex < total - 1) "Skip for Now →" else "Close"
+
+            btnPrimary.setOnClickListener {
+                if (item.canAutoFix) {
+                    btnPrimary.isEnabled = false
+                    btnPrimary.text = "⏳ Saving..."
+                    firestoreHelper.autoRepairConflict(
+                        conflict = item,
+                        allPersons = currentPersons,
+                        onSuccess = { updatedPerson ->
+                            runOnUiThread {
+                                if (updatedPerson != null) {
+                                    currentPersons = currentPersons.map { if (it.id == updatedPerson.id) updatedPerson else it }
+                                }
+                                activeConflicts.removeAt(currentIndex)
+                                runTreeAudit()
+                                renderCurrentStep()
+                            }
+                        },
+                        onFailure = { err ->
+                            runOnUiThread {
+                                btnPrimary.isEnabled = true
+                                btnPrimary.text = item.primaryActionLabel
+                                com.example.btproject2.utils.KinTraceAlert.warning(this, "Could Not Save", err.message ?: "Please try again.")
+                            }
+                        }
+                    )
+                } else {
+                    dialog.dismiss()
+                    val intent = Intent(this, EditMemberActivity::class.java).apply {
+                        putExtra("personId", item.personId)
+                        putExtra("TREE_ID", treeId)
+                    }
+                    startActivity(intent)
+                }
+            }
+
+            btnSecondary.setOnClickListener {
+                dialog.dismiss()
+                val intent = Intent(this, EditMemberActivity::class.java).apply {
+                    putExtra("personId", item.personId)
+                    putExtra("TREE_ID", treeId)
+                }
+                startActivity(intent)
+            }
+        }
+
+        btnPrev.setOnClickListener {
+            if (currentIndex > 0) {
+                currentIndex--
+                renderCurrentStep()
+            }
+        }
+
+        btnSkip.setOnClickListener {
+            if (currentIndex < activeConflicts.size - 1) {
+                currentIndex++
+                renderCurrentStep()
+            } else {
+                dialog.dismiss()
+            }
+        }
+
+        btnFixAll.setOnClickListener {
+            val fixable = activeConflicts.filter { it.canAutoFix }
+            if (fixable.isEmpty()) {
+                com.example.btproject2.utils.KinTraceAlert.show(this, "Please open the member's page to review birth dates.")
+                return@setOnClickListener
+            }
+            btnFixAll.isEnabled = false
+            btnFixAll.text = "⏳ Fixing..."
+            btnPrimary.isEnabled = false
+            firestoreHelper.autoRepairAllConflicts(
+                conflicts = fixable,
+                allPersons = currentPersons,
+                onSuccess = {
+                    runOnUiThread {
+                        activeConflicts.removeAll(fixable.toSet())
+                        runTreeAudit()
+                        renderCurrentStep()
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnFixAll.isEnabled = true
+                        btnFixAll.text = "✨ Fix All at Once"
+                        btnPrimary.isEnabled = true
+                        com.example.btproject2.utils.KinTraceAlert.warning(this, "Auto-Fix Failed", err.message ?: "Please try again.")
+                    }
+                }
+            )
+        }
+
+        renderCurrentStep()
+        dialog.show()
     }
 
     private fun updateFilterChipUI() {

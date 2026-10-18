@@ -53,7 +53,7 @@ class RecentActivitiesActivity : AppCompatActivity() {
                     }
                     startActivity(intent)
                 } else {
-                    androidx.appcompat.app.AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Archived Record Notice")
                         .setMessage("${activity.description}\n\nDeleted member recovery is managed in the System Administrator Citadel.")
                         .setPositiveButton("OK", null)
@@ -67,7 +67,7 @@ class RecentActivitiesActivity : AppCompatActivity() {
                     }
                     startActivity(intent)
                 } else {
-                    androidx.appcompat.app.AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Merge Collision Notice")
                         .setMessage("${activity.description}\n\nMerge collision dockets are reviewed by the System Administrator.")
                         .setPositiveButton("OK", null)

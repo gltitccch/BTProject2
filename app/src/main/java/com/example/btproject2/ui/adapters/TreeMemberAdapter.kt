@@ -25,10 +25,17 @@ class TreeMemberAdapter(
     private val items = mutableListOf<TreeItem>()
     var allMembers: List<Person> = emptyList()
     var focalPerson: Person? = null
+    private var cachedTitles: Map<String, String> = emptyMap()
 
     fun submitItems(newItems: List<TreeItem>, members: List<Person> = allMembers, focal: Person? = focalPerson) {
         allMembers = members
         focalPerson = focal
+        val effectiveFocal = focal ?: members.firstOrNull()
+        cachedTitles = if (members.isNotEmpty() && effectiveFocal != null) {
+            com.example.btproject2.engine.KinshipTitleHelper.resolveAllTitles(members, effectiveFocal)
+        } else {
+            emptyMap()
+        }
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
@@ -55,7 +62,7 @@ class TreeMemberAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = items[position]) {
             is TreeItem.Header -> (holder as HeaderViewHolder).bind(item.generation, item.count)
-            is TreeItem.Member -> (holder as MemberViewHolder).bind(item.person, allMembers, focalPerson, onMemberClick)
+            is TreeItem.Member -> (holder as MemberViewHolder).bind(item.person, allMembers, focalPerson, cachedTitles, onMemberClick)
         }
     }
 
@@ -80,6 +87,7 @@ class TreeMemberAdapter(
             person: Person,
             allMembers: List<Person>,
             focalPerson: Person?,
+            cachedTitles: Map<String, String> = emptyMap(),
             onClick: (Person) -> Unit
         ) {
             val initials = "${person.firstName.firstOrNull() ?: ""}${person.lastName.firstOrNull() ?: ""}".uppercase()
@@ -100,7 +108,7 @@ class TreeMemberAdapter(
 
             val effectiveFocal = focalPerson ?: allMembers.firstOrNull()
             val kinship = if (effectiveFocal != null && effectiveFocal.id != person.id && allMembers.isNotEmpty()) {
-                com.example.btproject2.engine.KinshipTitleHelper.resolveTitle(person, effectiveFocal, allMembers)
+                cachedTitles[person.id] ?: com.example.btproject2.engine.KinshipTitleHelper.resolveTitle(person, effectiveFocal, allMembers)
             } else if (person.lineageRole.isNotBlank() && !person.lineageRole.equals("MEMBER", ignoreCase = true)) {
                 person.lineageRole
             } else if (effectiveFocal?.id == person.id) {

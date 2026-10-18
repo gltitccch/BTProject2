@@ -239,5 +239,47 @@ class NotificationModuleTest {
         assertEquals(1, filtered.size)
         assertEquals(notif.id, filtered[0].id)
     }
+
+    @Test
+    fun testTitleSanitizationAndModalSemanticStyleResolution() {
+        // 1. Verify corrupted prefix "s  Clan Quota Expanded" is stripped cleanly
+        assertEquals(
+            "Clan Quota Expanded",
+            NotificationHelper.sanitizeNotificationTitle("s  Clan Quota Expanded")
+        )
+        assertEquals(
+            "Clan Quota Expanded",
+            com.example.btproject2.utils.KinTraceModalDialog.sanitizeTitle("?   Clan Quota Expanded")
+        )
+        // Normal titles remain intact
+        assertEquals(
+            "Sign Out",
+            com.example.btproject2.utils.KinTraceModalDialog.sanitizeTitle("Sign Out")
+        )
+        assertEquals(
+            "Clan Capacity Expanded (200 Cap)",
+            NotificationHelper.sanitizeNotificationTitle("Clan Capacity Expanded (200 Cap)")
+        )
+
+        // 2. Verify Direction 1 Minimalist Centered Crest Card semantic styling
+        val signOutStyle = com.example.btproject2.utils.KinTraceModalDialog.resolveSemanticStyle(
+            title = "Sign Out",
+            positiveText = "Sign Out"
+        )
+        assertEquals("🚪", signOutStyle.icon)
+        assertEquals("ACCOUNT SESSION", signOutStyle.kicker)
+        assertTrue(signOutStyle.isDangerCrest)
+        assertTrue(signOutStyle.isDangerPrimaryButton)
+
+        val quotaStyle = com.example.btproject2.utils.KinTraceModalDialog.resolveSemanticStyle(
+            title = "Clan Quota Expanded",
+            positiveText = "Got It"
+        )
+        assertEquals("📜", quotaStyle.icon)
+        assertEquals("CLAN CAPACITY UPDATE", quotaStyle.kicker)
+        assertFalse(quotaStyle.isDangerCrest)
+        assertFalse(quotaStyle.isDangerPrimaryButton)
+    }
 }
+
 

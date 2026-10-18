@@ -166,7 +166,7 @@
                         android:id="@+id/tvCertDetails"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="KinTrace Certification • Family Code Verification"
+                        android:text="KinTrace Certification • Consanguinity Scope Verification"
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary"
                         android:layout_marginTop="2dp" />
@@ -363,7 +363,7 @@
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
-            <!-- Philippine Family Code Legal Assessment Card -->
+            <!-- Consanguinity Scope & Degree Card -->
             <LinearLayout
                 android:id="@+id/layoutLegalCard"
                 android:layout_width="match_parent"
@@ -384,7 +384,7 @@
                         android:id="@+id/tvLegalBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="PROHIBITED"
+                        android:text="WITHIN 4TH DEGREE"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:textColor="#FFFFFF"
@@ -400,7 +400,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Void ab initio (Public Policy)"
+                        android:text="Within 4th Degree of Consanguinity"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
@@ -410,7 +410,7 @@
                     android:id="@+id/tvLegalDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Under Article 38, Paragraph 1 of the Family Code of the Philippines, marriage between collateral blood relatives up to the 4th civil degree is void for reasons of public policy."
+                    android:text="Computed via the Roman Civil Method (Articles 963–966, Civil Code of the Philippines) by counting generational steps up to the closest common ancestor and down to the relative."
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
                     android:lineSpacingExtra="3dp" />
@@ -419,7 +419,7 @@
                     android:id="@+id/tvLegalArticle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Statutory Article: Article 38 (1), Family Code of the Philippines"
+                    android:text="Computation Basis: Roman Civil Method (Articles 963–966)"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:textColor="@color/gold_accent"

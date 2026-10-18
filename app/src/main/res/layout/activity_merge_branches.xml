@@ -6,15 +6,15 @@
     android:orientation="vertical"
     android:background="@color/forest_bg">
 
-    <!-- Top Bar -->
+    <!-- Top Bar (Direction 2: Minimalist Center-Title App Bar) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="44dp"
-        android:paddingBottom="16dp"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
+        android:paddingTop="38dp"
+        android:paddingBottom="14dp"
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
         android:background="@drawable/dashboard_header_bg">
 
         <LinearLayout
@@ -25,14 +25,14 @@
 
             <TextView
                 android:id="@+id/btnBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/avatar_circle_dark"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_nav_back_pill"
                 android:gravity="center"
                 android:text="←"
-                android:textSize="20sp"
-                android:textColor="@color/text_primary"
-                android:layout_marginEnd="14dp"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
                 android:clickable="true"
                 android:focusable="true" />
 
@@ -40,6 +40,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -48,47 +51,55 @@
                     android:text="Merged Clan Space"
                     android:textSize="18sp"
                     android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:textColor="@color/text_primary" />
 
-                <TextView
-                    android:id="@+id/tvSubtitle"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Multi-family clan unions &amp; cross-tree synergies"
-                    android:textSize="11sp"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginTop="2dp" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="2dp">
+
+                    <TextView
+                        android:id="@+id/tvMergeRoleBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="★ Owner"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" · "
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Multi-family clan unions"
+                        android:textSize="11sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
             </LinearLayout>
 
             <TextView
-                android:id="@+id/tvMergeRoleBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="★ Owner"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp" />
-
-            <TextView
                 android:id="@+id/btnQuickAssistMerge"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:gravity="center_vertical"
-                android:drawableStart="@drawable/ic_help_minimal"
-                android:drawablePadding="5dp"
-                android:text="Help"
-                android:textSize="11.5sp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:gravity="center"
+                android:text="?"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@color/primary"
                 android:background="@drawable/bg_nav_back_pill"
-                android:paddingStart="10dp"
-                android:paddingEnd="12dp"
-                android:layout_marginStart="8dp"
                 android:clickable="true"
                 android:focusable="true" />
         </LinearLayout>
@@ -221,18 +232,6 @@
                         android:textStyle="bold"
                         android:textColor="@color/gold_accent"
                         android:letterSpacing="0.08" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="PROPOSAL 15 &amp; 16"
-                        android:textSize="10sp"
-                        android:textColor="@color/text_secondary"
-                        android:background="@drawable/badge_pill_dark"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="8dp"
-                        android:paddingTop="3dp"
-                        android:paddingBottom="3dp" />
                 </LinearLayout>
 
                 <TextView

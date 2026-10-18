@@ -384,7 +384,7 @@ class FamilyRecordsActivity : AppCompatActivity() {
                     syncCoordinator.allMembersList = allMembers
                     applyFilter(etSearch.text?.toString().orEmpty())
                 } else if (allMembers.isEmpty()) {
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Offline Archive")
                         .setMessage("Unable to reach cloud servers. Connect to the internet to fetch latest records.")
                         .setPositiveButton("OK") { d, _ -> d.dismiss() }
@@ -396,7 +396,7 @@ class FamilyRecordsActivity : AppCompatActivity() {
 
     private fun confirmDeletePerson(person: Person) {
         val fullName = "${person.firstName} ${person.lastName}".trim().ifEmpty { "this member" }
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Delete Member")
             .setMessage("Are you sure you want to delete $fullName from the family tree? This action cannot be undone.")
             .setPositiveButton("Delete") { _, _ ->

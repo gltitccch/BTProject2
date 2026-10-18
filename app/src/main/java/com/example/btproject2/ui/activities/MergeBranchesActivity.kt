@@ -303,7 +303,7 @@ class MergeBranchesActivity : AppCompatActivity() {
             KinTraceAlert.show(this, "Permission restricted: Only owners can regenerate merge codes.")
             return
         }
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Regenerate Clan Merge Code?")
             .setMessage("Generating a new Clan Merge Code will invalidate the previous code ($myActiveMergeCode). Anyone wanting to merge with this tree will need the new code.")
             .setPositiveButton("Regenerate") { _, _ ->
@@ -358,7 +358,7 @@ class MergeBranchesActivity : AppCompatActivity() {
             showReviewSingleRequestDialog(pendingIncomingRequests.first())
         } else {
             val names = pendingIncomingRequests.map { "${it.requesterTreeName} (from ${it.requesterOwnerName})" }.toTypedArray()
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("Incoming Clan Merge Requests")
                 .setItems(names) { _, which ->
                     showReviewSingleRequestDialog(pendingIncomingRequests[which])
@@ -370,7 +370,7 @@ class MergeBranchesActivity : AppCompatActivity() {
 
     private fun showReviewSingleRequestDialog(request: ClanMergeRequest) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_review_merge_request, null)
-        val dialog = AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(dialogView)
             .create()
 
@@ -501,7 +501,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                 KinTraceAlert.warning(this, "Permission Restricted", "Only the Clan Tree owner can delete a Master Clan Tree.")
                 return@setOnClickListener
             }
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("Delete Master Clan Tree?")
                 .setMessage("Are you sure you want to remove '${tree.name}'?\n\n🛡️ 100% Safe: Your original family trees will NOT be modified or deleted.")
                 .setPositiveButton("Delete") { _, _ ->
@@ -538,7 +538,7 @@ class MergeBranchesActivity : AppCompatActivity() {
         }
 
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_synthesize_clan_tree, null)
-        val dialog = AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(dialogView)
             .create()
 
@@ -1143,7 +1143,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     KinTraceAlert.show(this, "Master Clan Tree synthesized successfully!")
                     loadClanTrees()
 
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Master Clan Tree Created!")
                         .setMessage("'${createdTree.name}' has been created with ${createdTree.memberCount} members in your Merged Clan Space.\n\n🛡️ Your original family trees remain completely untouched.\n\nWould you like to explore the Clan Canvas now?")
                         .setPositiveButton("👁️ View Clan Canvas") { _, _ ->
@@ -1167,7 +1167,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                     progressBarSynthesis.visibility = View.GONE
                     btnExecuteSynthesis.isEnabled = true
                     btnCancelSynthesis.isEnabled = true
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Synthesis Failed")
                         .setMessage("An error occurred while saving the Master Clan Tree: ${err.message}")
                         .setPositiveButton("OK", null)
@@ -1194,7 +1194,7 @@ class MergeBranchesActivity : AppCompatActivity() {
         }
 
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_connect_branches, null)
-        val dialog = AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(dialogView)
             .create()
 

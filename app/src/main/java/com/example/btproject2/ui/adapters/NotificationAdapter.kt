@@ -62,7 +62,7 @@ class NotificationAdapter(
             }
         }
 
-        holder.tvTitle.text = item.title
+        holder.tvTitle.text = com.example.btproject2.utils.NotificationHelper.sanitizeNotificationTitle(item.title)
         holder.tvMessage.text = item.message
         holder.tvTime.text = formatTimestamp(item.timestamp)
         holder.viewUnreadDot.visibility = if (item.isRead) View.GONE else View.VISIBLE

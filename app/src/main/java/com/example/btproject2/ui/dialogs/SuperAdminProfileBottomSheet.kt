@@ -179,7 +179,7 @@ class SuperAdminProfileBottomSheet : BottomSheetDialogFragment() {
         // Session Termination
         btnSignOut.setOnClickListener {
             val ctx = context ?: return@setOnClickListener
-            AlertDialog.Builder(ctx)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(ctx)
                 .setTitle("Sign Out Super Admin Session")
                 .setMessage("Are you sure you want to terminate your Root Sovereign administrative session?")
                 .setPositiveButton("Sign Out") { _, _ ->

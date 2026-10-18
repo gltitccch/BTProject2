@@ -79,7 +79,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tree Audit &amp; Legal Verification"
+            android:text="Tree Health &amp; Lineage Audit"
             android:textSize="21sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
@@ -89,7 +89,7 @@
             android:id="@+id/tvAuditSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Philippine Family Code &amp; Lineage Integrity Engine"
+            android:text="Guided Family Connection &amp; Lineage Integrity Checker"
             android:textSize="12sp"
             android:textColor="@color/text_secondary" />
     </LinearLayout>
@@ -186,7 +186,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Critical Errors"
+                            android:text="Needs Check"
                             android:textSize="11sp"
                             android:textColor="@color/audit_critical_text" />
                     </LinearLayout>
@@ -213,11 +213,24 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Warnings"
+                            android:text="Suggestions"
                             android:textSize="11sp"
                             android:textColor="@color/audit_warning_text" />
                     </LinearLayout>
                 </LinearLayout>
+
+                <!-- Step-by-Step Friendly Question Wizard Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLaunchConflictWizard"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="12dp"
+                    android:text="✨ Fix Family Questions Step-by-Step"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/btn_gold_text"
+                    android:background="@drawable/btn_gold_primary"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- Filter Chips Row -->

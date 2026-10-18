@@ -59,12 +59,22 @@ class TreeHealthCalculator {
             deductions.add("$missingBirth member(s) missing birth dates (-$penalty)")
         }
 
-        // Missing parents: -1 per member, max -15
-        val missingParents = total - withParents
-        if (missingParents > 1) { // allow 1 root
-            val penalty = ((missingParents - 1) * 1).coerceAtMost(15)
+        // Missing parents: only count members without parents who are neither founding ancestors nor married-in spouses
+        val effectiveMissingParents = allPersons.count { p ->
+            val hasNoParents = p.fatherId.isNullOrBlank() && p.motherId.isNullOrBlank()
+            if (!hasNoParents) return@count false
+            val isFoundingAncestor = p.id in childIds
+            val isMarriedInSpouse = (!p.spouseId.isNullOrBlank() || p.id in spouseTargetIds) &&
+                allPersons.any { sp ->
+                    (sp.id == p.spouseId || sp.spouseId == p.id) &&
+                        (!sp.fatherId.isNullOrBlank() || !sp.motherId.isNullOrBlank() || sp.id in childIds)
+                }
+            !isFoundingAncestor && !isMarriedInSpouse
+        }
+        if (effectiveMissingParents > 0) {
+            val penalty = (effectiveMissingParents * 1).coerceAtMost(15)
             score -= penalty
-            deductions.add("${missingParents - 1} member(s) missing parent links (-$penalty)")
+            deductions.add("$effectiveMissingParents member(s) missing parent links (-$penalty)")
         }
 
         // Orphans (no parents, no children pointing to them, and no spouse): -2 each, max -10
@@ -126,12 +136,38 @@ class TreeHealthCalculator {
         val checked = mutableSetOf<String>()
         for (i in persons.indices) {
             for (j in i + 1 until persons.size) {
-                val key = "${persons[i].id}-${persons[j].id}"
+                val pA = persons[i]
+                val pB = persons[j]
+                val key = "${pA.id}-${pB.id}"
                 if (checked.contains(key)) continue
                 checked.add(key)
-                val nameA = "${persons[i].firstName} ${persons[i].lastName}".lowercase().trim()
-                val nameB = "${persons[j].firstName} ${persons[j].lastName}".lowercase().trim()
-                if (nameA == nameB || levenshteinSimilarity(nameA, nameB) >= 0.85) {
+
+                val firstA = pA.firstName.lowercase().trim()
+                val firstB = pB.firstName.lowercase().trim()
+                val lastA = pA.lastName.lowercase().trim()
+                val lastB = pB.lastName.lowercase().trim()
+                if (firstA.isEmpty() || firstB.isEmpty()) continue
+
+                // If genders are both known and different (e.g. "Maria" vs "Mario"), they are not duplicates
+                if (pA.gender.isNotBlank() && pB.gender.isNotBlank() && !pA.gender.equals(pB.gender, ignoreCase = true)) {
+                    continue
+                }
+
+                // If names have distinct numeric or Roman numeral suffixes (e.g. "Juan II" vs "Juan III" or "Member 1" vs "Member 2"), not duplicates
+                val numA = Regex("""(\d+|\b(?:ii|iii|iv|jr|sr)\b)$""").find(firstA)?.value
+                val numB = Regex("""(\d+|\b(?:ii|iii|iv|jr|sr)\b)$""").find(firstB)?.value
+                if (numA != null && numB != null && numA != numB) {
+                    continue
+                }
+
+                // Compare first names and last names separately so a long shared surname doesn't inflate similarity
+                val firstSim = levenshteinSimilarity(firstA, firstB)
+                val lastMatch = lastA == lastB || levenshteinSimilarity(lastA, lastB) >= 0.85
+                val yearA = FamilyLinkValidator.extractYear(pA.birthDate)
+                val yearB = FamilyLinkValidator.extractYear(pB.birthDate)
+                val closeBirthYear = yearA == null || yearB == null || kotlin.math.abs(yearA - yearB) <= 3
+
+                if (lastMatch && firstSim >= 0.88 && closeBirthYear) {
                     count++
                 }
             }

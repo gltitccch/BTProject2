@@ -287,7 +287,7 @@ class TraceActivity : AppCompatActivity() {
         detailsCard.visibility = if (result.isRelated) View.VISIBLE else View.GONE
         findViewById<Button>(R.id.btnViewPath).visibility = if (result.isRelated) View.VISIBLE else View.GONE
 
-        // Family Code Legal Assessment Card
+        // Consanguinity Scope & Degree Assessment Card
         val legalCard = findViewById<LinearLayout>(R.id.legalCard)
         val tvLegalBadge = findViewById<TextView>(R.id.tvLegalBadge)
         val tvLegalTitle = findViewById<TextView>(R.id.tvLegalTitle)
@@ -295,27 +295,50 @@ class TraceActivity : AppCompatActivity() {
         val tvLegalArticle = findViewById<TextView>(R.id.tvLegalArticle)
 
         legalCard.visibility = View.VISIBLE
-        tvLegalTitle.text = result.legalStatus
-        tvLegalDescription.text = result.legalDescription
-        tvLegalArticle.text = result.legalArticle
+        val deg = result.degreeOfConsanguinity
+        val ord = getOrdinalSuffix(deg)
 
-        val isDark = ThemePreferences.isDarkTheme(this)
-
-        if (result.isMarriageProhibited) {
-            tvLegalBadge.text = "PROHIBITED"
-            tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.audit_critical_text))
-            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_invalid_pill)
-            tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.audit_critical_text))
-        } else if (result.isRelated) {
-            tvLegalBadge.text = "PERMISSIBLE"
-            tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
-            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
-            tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
-        } else {
-            tvLegalBadge.text = "NO IMPEDIMENT"
-            tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
-            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
-            tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+        when {
+            result.isRelated && deg in 1..4 -> {
+                tvLegalBadge.text = "WITHIN 4TH DEGREE ($deg°)"
+                tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
+                tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+                tvLegalTitle.text = "Within 4th Degree of Consanguinity ($deg$ord Degree)"
+                tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
+                tvLegalDescription.text = if (result.relationshipCategory.equals("Lineal", ignoreCase = true)) {
+                    "${result.personA.firstName} and ${result.personB.firstName} are connected in the direct Lineal Line at the $deg$ord Civil Degree (${maxOf(result.distanceA, result.distanceB)} generational step(s) apart)."
+                } else {
+                    "${result.personA.firstName} and ${result.personB.firstName} are within the 1st–4th Degree Consanguinity scope ($deg$ord Civil Degree: ${result.distanceA} step(s) up to their shared ancestor + ${result.distanceB} step(s) down)."
+                }
+                tvLegalArticle.text = "Computation Basis: Roman Civil Method (Articles 963–966, Civil Code of the Philippines)"
+            }
+            result.isRelated && deg > 4 -> {
+                tvLegalBadge.text = "BEYOND 4TH DEGREE ($deg°)"
+                tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
+                tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
+                tvLegalTitle.text = "Beyond 4th Degree of Consanguinity ($deg$ord Degree)"
+                tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
+                tvLegalDescription.text = "${result.personA.firstName} and ${result.personB.firstName} share a common family ancestor (${result.distanceA} step(s) up + ${result.distanceB} step(s) down = $deg$ord Civil Degree), which is beyond the 1st–4th degree core consanguinity scope."
+                tvLegalArticle.text = "Extended Clan Lineage • Beyond 4th Civil Degree Scope (Articles 963–966)"
+            }
+            result.isRelated -> {
+                tvLegalBadge.text = "DIRECT / AFFINITY"
+                tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
+                tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+                tvLegalTitle.text = "${result.relationshipType} (${result.relationshipCategory} Connection)"
+                tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
+                tvLegalDescription.text = "${result.personA.firstName} and ${result.personB.firstName} are connected through ${result.relationshipCategory.lowercase()} family ties (${result.relationshipType}) rather than biological consanguinity degrees."
+                tvLegalArticle.text = "Family Record Connection • Non-Consanguineous / Direct Link"
+            }
+            else -> {
+                tvLegalBadge.text = "UNCONNECTED"
+                tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+                tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
+                tvLegalTitle.text = "No Shared Consanguinity Path Found"
+                tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+                tvLegalDescription.text = "No biological ancestor or bloodline path connects ${result.personA.firstName} and ${result.personB.firstName} in the current family tree."
+                tvLegalArticle.text = "Scope Check: 0 Shared Ancestors Detected"
+            }
         }
 
         if (result.isRelated) {
@@ -417,7 +440,7 @@ class TraceActivity : AppCompatActivity() {
     }
 
     private fun showMessage(title: String, message: String) {
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }

@@ -90,7 +90,7 @@ class InteractiveTreeSyncCoordinator(
                     onActiveProfileRefreshed?.invoke(updatedPerson.id)
                 }
 
-                onTreeUpdated?.invoke(allPersonsList, true)
+                onTreeUpdated?.invoke(allPersonsList, event.scope.requiresStructuralRelayout)
             }
 
             SyncChangeType.MEMBER_ADDED -> {
@@ -122,7 +122,7 @@ class InteractiveTreeSyncCoordinator(
 
                 event.primaryPerson?.let { onActiveProfileRefreshed?.invoke(it.id) }
 
-                onTreeUpdated?.invoke(allPersonsList, true)
+                onTreeUpdated?.invoke(allPersonsList, event.scope.requiresStructuralRelayout)
             }
 
             SyncChangeType.TREE_DELETED -> {

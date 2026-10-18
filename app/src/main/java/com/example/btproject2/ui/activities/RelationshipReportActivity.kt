@@ -190,25 +190,52 @@ class RelationshipReportActivity : AppCompatActivity() {
         tvRelTitle.text = result.relationshipType
         tvConsanguinityDetails.text = "${result.relationshipCategory} Line • ${result.degreeOfConsanguinity}${getOrdinal(result.degreeOfConsanguinity)} Civil Degree (Roman Civil Method, Art. 963)"
 
-        // 5. Philippine Family Code Legal Assessment
+        // 5. Consanguinity Scope & Degree Breakdown
         val tvLegalBadge = findViewById<TextView>(R.id.tvLegalBadge)
         val tvLegalTitle = findViewById<TextView>(R.id.tvLegalTitle)
         val tvLegalDesc = findViewById<TextView>(R.id.tvLegalDescription)
         val tvLegalArticle = findViewById<TextView>(R.id.tvLegalArticle)
 
-        if (result.isMarriageProhibited) {
-            tvLegalBadge.text = "PROHIBITED"
-            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_invalid_pill)
-            tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_critical_text))
-        } else {
-            tvLegalBadge.text = "PERMISSIBLE"
-            tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
-            tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
+        val deg = result.degreeOfConsanguinity
+        val ord = getOrdinal(deg)
+        when {
+            result.isRelated && deg in 1..4 -> {
+                tvLegalBadge.text = "WITHIN 4TH DEGREE ($deg°)"
+                tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+                tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
+                tvLegalTitle.text = "Within 4th Degree of Consanguinity ($deg$ord Degree)"
+                tvLegalDesc.text = if (result.relationshipCategory.equals("Lineal", ignoreCase = true)) {
+                    "${pA.firstName} and ${pB.firstName} are connected in the direct Lineal Line at the $deg$ord Civil Degree (${maxOf(result.distanceA, result.distanceB)} generational step(s) apart)."
+                } else {
+                    "${pA.firstName} and ${pB.firstName} are within the 1st–4th Degree Consanguinity scope ($deg$ord Civil Degree: ${result.distanceA} step(s) up to their shared ancestor + ${result.distanceB} step(s) down)."
+                }
+                tvLegalArticle.text = "Computation Basis: Roman Civil Method (Articles 963–966, Civil Code)"
+            }
+            result.isRelated && deg > 4 -> {
+                tvLegalBadge.text = "BEYOND 4TH DEGREE ($deg°)"
+                tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
+                tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.gold_accent))
+                tvLegalTitle.text = "Beyond 4th Degree of Consanguinity ($deg$ord Degree)"
+                tvLegalDesc.text = "${pA.firstName} and ${pB.firstName} share a common family ancestor (${result.distanceA} step(s) up + ${result.distanceB} step(s) down = $deg$ord Civil Degree), which is beyond the 1st–4th degree core consanguinity scope."
+                tvLegalArticle.text = "Extended Clan Lineage • Beyond 4th Civil Degree Scope (Articles 963–966)"
+            }
+            result.isRelated -> {
+                tvLegalBadge.text = "DIRECT / AFFINITY"
+                tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+                tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
+                tvLegalTitle.text = "${result.relationshipType} (${result.relationshipCategory} Connection)"
+                tvLegalDesc.text = "${pA.firstName} and ${pB.firstName} are connected through ${result.relationshipCategory.lowercase()} family ties (${result.relationshipType})."
+                tvLegalArticle.text = "Family Record Connection • Direct / Affine Link"
+            }
+            else -> {
+                tvLegalBadge.text = "UNCONNECTED"
+                tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
+                tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.text_secondary))
+                tvLegalTitle.text = "No Shared Consanguinity Path Found"
+                tvLegalDesc.text = "No biological common ancestor connects ${pA.firstName} and ${pB.firstName} in this family tree."
+                tvLegalArticle.text = "Scope Check: 0 Shared Ancestors Detected"
+            }
         }
-
-        tvLegalTitle.text = result.legalStatus
-        tvLegalDesc.text = result.legalDescription
-        tvLegalArticle.text = "Statutory Citation: ${result.legalArticle}"
 
         // 6. Closest Common Ancestor (MRCA)
         val tvMrcaName = findViewById<TextView>(R.id.tvMrcaName)
@@ -242,25 +269,28 @@ class RelationshipReportActivity : AppCompatActivity() {
         val r = currentResult ?: return
         val pA = r.personA
         val pB = r.personB
+        val deg = r.degreeOfConsanguinity
+        val ord = getOrdinal(deg)
+        val scopeLabel = when {
+            r.isRelated && deg in 1..4 -> "WITHIN 4TH DEGREE OF CONSANGUINITY ($deg$ord Degree)"
+            r.isRelated && deg > 4 -> "BEYOND 4TH DEGREE OF CONSANGUINITY ($deg$ord Degree)"
+            r.isRelated -> "DIRECT / AFFINE CONNECTION (${r.relationshipType})"
+            else -> "NO SHARED BLOODLINE DETECTED"
+        }
 
         val shareContent = buildString {
             appendLine("═══════════════════════════════════════════════")
-            appendLine("       KINTRACE GENEALOGICAL & LEGAL REPORT    ")
+            appendLine("       KINTRACE BLOODLINE TRACING REPORT       ")
             appendLine("═══════════════════════════════════════════════")
             appendLine("• Subjects: ${pA.firstName} ${pA.lastName} & ${pB.firstName} ${pB.lastName}")
             appendLine("• Relationship: ${r.relationshipType}")
-            appendLine("• Degree of Consanguinity: ${r.degreeOfConsanguinity}${getOrdinal(r.degreeOfConsanguinity)} Civil Degree (Roman Method)")
+            appendLine("• Degree of Consanguinity: ${deg}${ord} Civil Degree (Roman Method)")
+            appendLine("• Consanguinity Scope: $scopeLabel")
             appendLine("• Line: ${r.relationshipCategory} Line")
             if (r.commonAncestor != null) {
                 appendLine("• Closest Common Ancestor: ★ ${r.commonAncestor.firstName} ${r.commonAncestor.lastName}")
                 appendLine("• Generational Steps: ${r.distanceA} from ${pA.firstName}, ${r.distanceB} from ${pB.firstName}")
             }
-            appendLine("───────────────────────────────────────────────")
-            appendLine("PHILIPPINE FAMILY CODE VERDICT:")
-            appendLine("• Status: ${if (r.isMarriageProhibited) "MARRIAGE PROHIBITED" else "PERMISSIBLE"}")
-            appendLine("• Legal Ground: ${r.legalStatus}")
-            appendLine("• Article: ${r.legalArticle}")
-            appendLine("• Description: ${r.legalDescription}")
             appendLine("───────────────────────────────────────────────")
             appendLine("STEP-BY-STEP EXPLANATION:")
             appendLine(r.explanation)

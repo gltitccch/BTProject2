@@ -226,7 +226,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun showMessage(title: String, message: String) {
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }

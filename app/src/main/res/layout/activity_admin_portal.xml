@@ -427,7 +427,7 @@
                         android:layout_marginTop="10dp"
                         android:background="@drawable/bg_admin_code_box"
                         android:padding="10dp"
-                        android:text="• Tree 'Test_Empty_01' (0 members, 18d inactive)&#10;• Tree 'Draft_Sandbox_A' (0 members, 24d inactive)&#10;• Tree 'Orphan_Tree_99' (1 member, 65d dormant)"
+                        android:text="🔄 Scanning Firestore for unpopulated or dormant trees (&gt;60d idle)..."
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 

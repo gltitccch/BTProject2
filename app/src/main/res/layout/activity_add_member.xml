@@ -77,7 +77,20 @@
             android:text="Enter the family member's details."
             android:textSize="13sp"
             android:textColor="@color/text_secondary"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:id="@+id/tvAddMemberQuotaBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text="👥 Clan Capacity: Checking..."
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:layout_marginBottom="16dp" />
 
         <!-- Parent Context Banner (Shown when presetParentId is provided) -->
         <LinearLayout
@@ -112,7 +125,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Direct Line Descendant · Family Code Art. 37"
+                android:text="Direct Line Descendant · Within 4th Degree Scope (1° Step)"
                 android:textSize="11sp"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="2dp" />

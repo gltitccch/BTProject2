@@ -512,7 +512,7 @@ class HomeActivity : AppCompatActivity() {
         val currentActiveId = TreePreferences.getActiveTreeId(this)
         val checkedItem = userOwnedTrees.indexOfFirst { it.id == currentActiveId }.let { if (it >= 0) it else 0 }
 
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Select Family Tree")
             .setSingleChoiceItems(treeNames, checkedItem) { dialog, which ->
                 val selectedTree = userOwnedTrees[which]
@@ -799,7 +799,7 @@ class HomeActivity : AppCompatActivity() {
                         }
                         startActivity(intent)
                     } else {
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle("Archived Record Notice")
                             .setMessage("${activity.description}\n\nDeleted member recovery is managed in the System Administrator Citadel.")
                             .setPositiveButton("OK", null)
@@ -815,7 +815,7 @@ class HomeActivity : AppCompatActivity() {
                         }
                         startActivity(intent)
                     } else {
-                        AlertDialog.Builder(this)
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                             .setTitle("Merge Collision Notice")
                             .setMessage("${activity.description}\n\nMerge collision dockets are reviewed by the System Administrator.")
                             .setPositiveButton("OK", null)
@@ -942,14 +942,14 @@ class HomeActivity : AppCompatActivity() {
         val etConfirmPassword = view.findViewById<EditText>(R.id.etDialogConfirmPassword)
         val tvPasswordError = view.findViewById<TextView>(R.id.tvDialogPasswordError)
 
-        val dialog = AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(view)
             .setPositiveButton("Update Password", null)
             .setNegativeButton("Cancel", null)
             .create()
 
         dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            (dialog.findViewById<View>(R.id.btnModalPositive) ?: dialog.getButton(AlertDialog.BUTTON_POSITIVE)).setOnClickListener {
                 val newPass = etNewPassword.text.toString().trim()
                 val confirmPass = etConfirmPassword.text.toString().trim()
 
@@ -1207,7 +1207,7 @@ class HomeActivity : AppCompatActivity() {
             }
             refreshQuestHudUi()
 
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("Clan Invite Code: $code")
                 .setMessage("Your 6-character clan code has been copied to your clipboard!\n\nShare this code with family members so they can join your tree.")
                 .setPositiveButton("Share via App...") { _, _ ->

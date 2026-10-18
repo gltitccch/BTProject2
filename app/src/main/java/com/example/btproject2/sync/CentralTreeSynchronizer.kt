@@ -604,25 +604,71 @@ class CentralTreeSynchronizer private constructor() {
             authoritativeTreeId = treeId,
             isAuthoritativeServerSnapshot = true
         )
+        val normalizedNewList = FirestoreHelper.getCachedPersons(treeId).orEmpty().ifEmpty { updatedPersons }
 
         val oldMap = oldList.associateBy { it.id }
-        val newMap = updatedPersons.associateBy { it.id }
+        val newMap = normalizedNewList.associateBy { it.id }
 
         // Avoid event storm when an entire tree is loaded for the first time
-        if (oldList.isEmpty() && updatedPersons.size > 1) {
-            val focal = updatedPersons.firstOrNull()
+        if (oldList.isEmpty() && normalizedNewList.size > 1) {
+            val focal = normalizedNewList.firstOrNull()
             if (focal != null) {
                 notifyMemberAdded(focal, sourceScreen = "RealtimeListenerInitialLoad")
             }
             return
         }
 
-        // Broadcast additions and modifications
-        for (person in updatedPersons) {
+        val addedPersons = mutableListOf<Person>()
+        val modifiedPairs = mutableListOf<Pair<Person, Person>>()
+
+        // Collect additions and meaningful content modifications (ignoring createdAt/updatedAt noise)
+        for (person in normalizedNewList) {
             val prev = oldMap[person.id]
             if (prev == null) {
+                addedPersons.add(person)
+            } else if (FirestoreHelper.hasPersonDiverged(prev, person)) {
+                modifiedPairs.add(person to prev)
+            }
+        }
+
+        if (addedPersons.size > 3) {
+            // Coalesce bulk additions into a single event with affectedPersons
+            val primary = addedPersons.first()
+            val scope = SyncScopeResolver.resolveMemberAdded(primary, normalizedNewList)
+            publishConfirmedEvent(
+                TreeSyncEvent(
+                    changeType = SyncChangeType.MEMBER_ADDED,
+                    treeId = primary.treeId.ifBlank { treeId },
+                    scope = scope,
+                    primaryPerson = primary,
+                    affectedPersons = addedPersons,
+                    sourceScreenDescription = "RealtimeListenerBulkAdd",
+                    isConfirmedSave = true
+                )
+            )
+        } else {
+            for (person in addedPersons) {
                 notifyMemberAdded(person, sourceScreen = "RealtimeListener")
-            } else if (prev != person) {
+            }
+        }
+
+        if (modifiedPairs.size > 3) {
+            // Coalesce bulk edits into a single event to prevent O(N^2) UI relayout storms
+            val (primary, prevPrimary) = modifiedPairs.first()
+            val scope = SyncScopeResolver.resolveProfileEdited(primary, prevPrimary, normalizedNewList)
+            publishConfirmedEvent(
+                TreeSyncEvent(
+                    changeType = SyncChangeType.PROFILE_EDITED,
+                    treeId = primary.treeId.ifBlank { treeId },
+                    scope = scope,
+                    primaryPerson = primary,
+                    affectedPersons = modifiedPairs.map { it.first },
+                    sourceScreenDescription = "RealtimeListenerBulkEdit",
+                    isConfirmedSave = true
+                )
+            )
+        } else {
+            for ((person, prev) in modifiedPairs) {
                 notifyProfileEdited(person, previousPerson = prev, sourceScreen = "RealtimeListener")
             }
         }

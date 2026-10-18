@@ -601,14 +601,14 @@ object FamilyLinkValidator {
                 map[mother.id.trim()] = mother
                 val trace = bloodlineTracer.trace(father.id.trim(), mother.id.trim(), map)
                 val isMutualSpouses = areSpouses(father.id, mother.id, allPersons) || trace.relationshipType.contains("Spouse", ignoreCase = true)
+                val isLinealRelative = trace.relationshipCategory.equals("Lineal", ignoreCase = true) ||
+                        trace.relationshipType.contains("Parent", ignoreCase = true) ||
+                        trace.relationshipType.contains("Child", ignoreCase = true)
+                val isWithinFourthDegree = trace.isRelated && trace.degreeOfConsanguinity in 1..4
                 if (!isMutualSpouses && (trace.isMarriageProhibited ||
                     trace.relationshipType.contains("Sibling", ignoreCase = true) ||
-                    trace.relationshipType.contains("Cousin", ignoreCase = true) ||
-                    trace.relationshipType.contains("Uncle", ignoreCase = true) ||
-                    trace.relationshipType.contains("Aunt", ignoreCase = true) ||
-                    trace.relationshipType.contains("Parent", ignoreCase = true) ||
-                    trace.relationshipType.contains("Child", ignoreCase = true) ||
-                    (trace.isRelated && trace.degreeOfConsanguinity in 1..4))
+                    isLinealRelative ||
+                    isWithinFourthDegree)
                 ) {
                     val reason = buildString {
                         append("${father.firstName} ${father.lastName} and ${mother.firstName} ${mother.lastName} ")
@@ -1262,10 +1262,36 @@ object FamilyLinkValidator {
         person: Person,
         allPersons: List<Person>
     ): List<Person> {
+        val baseMap = normalizePersonMap(allPersons)
+        val pGender = person.gender.trim().lowercase()
+        val aId = if (person.id.isNotBlank()) person.id.trim().lowercase() else "temp_a"
+
         return allPersons.filter { candidate ->
             if (person.id.isNotBlank() && isSameId(candidate.id, person.id)) return@filter false
-            val spouseCheck = validateSpouse(person, candidate, allPersons)
-            spouseCheck.isValid
+
+            // Fast gender pre-filter before running full bloodline consanguinity traversal
+            if (!marriageValidationEngine.allowSameGenderSpouse && pGender.isNotEmpty()) {
+                val cGender = candidate.gender.trim().lowercase()
+                if (cGender.isEmpty() || cGender == pGender) return@filter false
+            }
+
+            val effectiveMDate = person.marriageDate.ifBlank { candidate.marriageDate }
+            if (!validateMarriageDeathChronology(person, candidate, effectiveMDate).isValid) {
+                return@filter false
+            }
+
+            val sId = if (candidate.id.isNotBlank()) candidate.id.trim().lowercase() else "temp_s"
+            val prevA = baseMap[aId]
+            val prevS = baseMap[sId]
+            baseMap[aId] = person.copy(id = aId, marriageDate = effectiveMDate)
+            baseMap[sId] = candidate.copy(id = sId, marriageDate = effectiveMDate)
+
+            val allowed = marriageValidationEngine.validateSpouseConnection(aId, sId, baseMap).isAllowed
+
+            if (prevA != null) baseMap[aId] = prevA else baseMap.remove(aId)
+            if (prevS != null) baseMap[sId] = prevS else baseMap.remove(sId)
+
+            allowed
         }
     }
 

@@ -122,5 +122,173 @@ class DocumentAndPhotoTest {
         assertEquals(16, greatGreatGrandparents.size)
         assertEquals((16..31).toList(), greatGreatGrandparents)
     }
+
+    @Test
+    fun testPdfAttachmentSnapshotDoesNotTrigger72MemberEventStorm() {
+        val sync = com.example.btproject2.sync.CentralTreeSynchronizer.getInstance()
+        sync.resetForTesting()
+        com.example.btproject2.firebase.FirestoreHelper.clearCache()
+
+        val treeId = "bugarin_tree_72"
+        val initialMembers = (1..72).map { idx ->
+            Person(
+                id = "m_$idx",
+                firstName = if (idx == 4) "Victoria" else "Member$idx",
+                lastName = "Bugarin",
+                gender = if (idx % 2 == 0) "Female" else "Male",
+                treeId = treeId,
+                createdAt = 1000L + idx
+            )
+        }
+        com.example.btproject2.firebase.FirestoreHelper.setCachedPersons(
+            initialMembers,
+            authoritativeTreeId = treeId,
+            isAuthoritativeServerSnapshot = true
+        )
+
+        val receivedEvents = mutableListOf<com.example.btproject2.sync.TreeSyncEvent>()
+        var lastRequiresRelayout: Boolean? = null
+        val coordinator = com.example.btproject2.sync.InteractiveTreeSyncCoordinator(
+            treeId = treeId,
+            allPersonsList = com.example.btproject2.firebase.FirestoreHelper.getCachedPersons(treeId).orEmpty(),
+            onTreeUpdated = { _, requiresRelayout ->
+                lastRequiresRelayout = requiresRelayout
+            }
+        )
+        val countingListener = object : com.example.btproject2.sync.SyncEventListener {
+            override val subscriberKey: String = "TestCountingListener"
+            override val screenType = com.example.btproject2.sync.AffectedScreen.INTERACTIVE_TREE
+            override val interestedTreeId: String = treeId
+            override fun onSyncEvent(event: com.example.btproject2.sync.TreeSyncEvent) {
+                receivedEvents.add(event)
+                coordinator.onSyncEvent(event)
+            }
+        }
+        sync.registerListener(countingListener)
+
+        // Simulate Firestore snapshot where all 72 members get a fresh createdAt timestamp
+        // (as happens when createdAt is missing in Firestore) and ONLY Victoria (m_4) has a new PDF attached
+        val attachedPdf = AttachedDocument(
+            id = "pdf_1",
+            name = "Bugarin_Family_Report.pdf",
+            fileUri = "/data/user/0/com.example.btproject2/files/documents/Bugarin_Family_Report.pdf",
+            fileType = "pdf",
+            category = "Birth Certificate",
+            fileSize = "495 KB"
+        )
+        val snapshotMembers = initialMembers.map { m ->
+            if (m.id == "m_4") {
+                m.copy(createdAt = 9999999L, documents = listOf(attachedPdf))
+            } else {
+                m.copy(createdAt = 9999999L)
+            }
+        }
+
+        sync.processRealtimeSnapshotUpdate(treeId, snapshotMembers)
+
+        // Must emit EXACTLY 1 event (for m_4), NOT 72 events!
+        assertEquals(1, receivedEvents.size)
+        val event = receivedEvents.first()
+        assertEquals("m_4", event.primaryPerson?.id)
+        assertTrue(event.scope.affectedFields.contains("documents"))
+        assertFalse(event.scope.requiresStructuralRelayout)
+        assertEquals(false, lastRequiresRelayout)
+        assertEquals(1, coordinator.allPersonsList.find { it.id == "m_4" }?.documents?.size)
+
+        sync.resetForTesting()
+        com.example.btproject2.firebase.FirestoreHelper.clearCache()
+    }
+
+    @Test
+    fun testLarge200MemberKinshipPrecomputationAndSpouseFilteringPerformance() {
+        val treeId = "clan_200_stress"
+        val members = mutableListOf<Person>()
+
+        // Founding Patriarch & Matriarch
+        members.add(
+            Person(
+                id = "p_1",
+                firstName = "Founder",
+                lastName = "Bugarin",
+                gender = "Male",
+                birthDate = "1940-01-01",
+                spouseId = "p_2",
+                maritalStatus = "Married",
+                treeId = treeId
+            )
+        )
+        members.add(
+            Person(
+                id = "p_2",
+                firstName = "Matriarch",
+                lastName = "Bugarin",
+                gender = "Female",
+                birthDate = "1942-05-10",
+                spouseId = "p_1",
+                maritalStatus = "Married",
+                treeId = treeId
+            )
+        )
+
+        // Children of founders (p_3 .. p_12)
+        for (i in 3..12) {
+            members.add(
+                Person(
+                    id = "p_$i",
+                    firstName = "Child$i",
+                    lastName = "Bugarin",
+                    gender = if (i % 2 == 0) "Female" else "Male",
+                    birthDate = "1968-03-15",
+                    fatherId = "p_1",
+                    motherId = "p_2",
+                    treeId = treeId
+                )
+            )
+        }
+
+        // Fill up to 200 members with extended clan and unrelated eligible adults
+        for (i in 13..200) {
+            val isUnrelatedAdult = i > 150
+            members.add(
+                Person(
+                    id = "p_$i",
+                    firstName = "Member$i",
+                    lastName = if (isUnrelatedAdult) "Santos" else "Bugarin",
+                    gender = if (i % 2 == 0) "Female" else "Male",
+                    birthDate = "1995-07-20",
+                    fatherId = if (isUnrelatedAdult) null else "p_3",
+                    treeId = treeId
+                )
+            )
+        }
+
+        val focal = members.first { it.id == "p_3" }
+
+        // 1. Validate KinshipTitleHelper.resolveAllTitles precomputation on 200 members
+        val startTitles = System.currentTimeMillis()
+        val allTitles = com.example.btproject2.engine.KinshipTitleHelper.resolveAllTitles(members, focal)
+        val elapsedTitlesMs = System.currentTimeMillis() - startTitles
+
+        assertEquals(200, allTitles.size)
+        assertEquals("FATHER", allTitles["p_1"])
+        assertEquals("MOTHER", allTitles["p_2"])
+        assertEquals("FULL SISTER", allTitles["p_4"])
+        assertEquals("FULL BROTHER", allTitles["p_5"])
+        assertTrue("Precomputing 200 kinship titles took too long: ${elapsedTitlesMs}ms", elapsedTitlesMs < 1500L)
+
+        // 2. Validate FamilyLinkValidator.getEligibleSpouses on 200 members
+        val startSpouses = System.currentTimeMillis()
+        val eligibleSpouses = com.example.btproject2.engine.FamilyLinkValidator.getEligibleSpouses(focal, members)
+        val elapsedSpousesMs = System.currentTimeMillis() - startSpouses
+
+        // Focal p_3 is Male -> all eligible spouses must be Female, not p_2 (Mother), not p_4 (Sister), not daughters
+        assertTrue(eligibleSpouses.isNotEmpty())
+        assertTrue(eligibleSpouses.all { it.gender.equals("Female", ignoreCase = true) })
+        assertFalse(eligibleSpouses.any { it.id == "p_2" }) // Mother excluded
+        assertFalse(eligibleSpouses.any { it.id == "p_4" }) // Sister excluded
+        assertFalse(eligibleSpouses.any { it.fatherId == "p_3" }) // Daughters excluded
+        assertTrue("Filtering 200 spouse candidates took too long: ${elapsedSpousesMs}ms", elapsedSpousesMs < 2000L)
+    }
 }
+
 

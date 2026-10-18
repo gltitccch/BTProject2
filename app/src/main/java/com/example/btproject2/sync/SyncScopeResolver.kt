@@ -54,8 +54,11 @@ object SyncScopeResolver {
             if (updatedPerson.biography != previousPerson.biography) {
                 affectedFields.add("biography")
             }
+            if (updatedPerson.documents != previousPerson.documents) {
+                affectedFields.add("documents")
+            }
         } else {
-            affectedFields.addAll(listOf("name", "birth", "gender", "photo"))
+            affectedFields.addAll(listOf("name", "birth", "gender", "photo", "documents"))
         }
 
         // Profile edits do NOT change graph topology (no re-layout needed)

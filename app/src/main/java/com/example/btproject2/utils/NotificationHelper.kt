@@ -25,6 +25,15 @@ object NotificationHelper {
     const val CATEGORY_EDUCATIONAL = "EDUCATIONAL"
 
     /**
+     * Cleans any stray corrupted leading prefix characters (e.g. `"s  Clan Quota Expanded"`)
+     * from notification titles.
+     */
+    fun sanitizeNotificationTitle(rawTitle: String?): String {
+        return KinTraceModalDialog.sanitizeTitle(rawTitle)
+    }
+
+
+    /**
      * Creates an official Academic & Educational Welcome Notification upon email verification.
      */
     fun createEducationalWelcomeNotification(userId: String, userEmail: String): NotificationRecord {

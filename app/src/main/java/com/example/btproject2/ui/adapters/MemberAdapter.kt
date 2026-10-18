@@ -50,6 +50,26 @@ class MemberAdapter(
 
     var allMembers: List<Person> = emptyList()
     var focalPerson: Person? = null
+    private var cachedKinshipTitles: Map<String, String> = emptyMap()
+    private var lastTitleFocalId: String? = null
+    private var lastTitleMembersRef: List<Person>? = null
+
+    private fun getPrecomputedKinshipTitle(person: Person, effectiveFocal: Person?): String? {
+        if (effectiveFocal != null && effectiveFocal.id != person.id && allMembers.isNotEmpty()) {
+            if (lastTitleFocalId != effectiveFocal.id || lastTitleMembersRef !== allMembers) {
+                cachedKinshipTitles = com.example.btproject2.engine.KinshipTitleHelper.resolveAllTitles(
+                    allMembers,
+                    effectiveFocal
+                )
+                lastTitleFocalId = effectiveFocal.id
+                lastTitleMembersRef = allMembers
+            }
+            return cachedKinshipTitles[person.id]
+        } else if (person.lineageRole.isNotBlank() && !person.lineageRole.equals("MEMBER", ignoreCase = true)) {
+            return person.lineageRole.uppercase()
+        }
+        return null
+    }
 
     override fun onBindViewHolder(holder: MemberViewHolder, position: Int) {
         val person = members[position]
@@ -72,11 +92,7 @@ class MemberAdapter(
         }
 
         val effectiveFocal = focalPerson ?: allMembers.firstOrNull() ?: members.firstOrNull()
-        val kinship = if (effectiveFocal != null && effectiveFocal.id != person.id && allMembers.isNotEmpty()) {
-            com.example.btproject2.engine.KinshipTitleHelper.resolveTitle(person, effectiveFocal, allMembers)
-        } else if (person.lineageRole.isNotBlank() && !person.lineageRole.equals("MEMBER", ignoreCase = true)) {
-            person.lineageRole.uppercase()
-        } else null
+        val kinship = getPrecomputedKinshipTitle(person, effectiveFocal)
         val kinshipPrefix = if (!kinship.isNullOrEmpty()) "$kinship · " else ""
 
         // Set info with Direction 1 Subtle Shield privacy masking
@@ -136,6 +152,19 @@ class MemberAdapter(
         focalPerson = focal
         isViewer = viewerMode
         treePrivacy = privacy
+        val effectiveFocal = focalPerson ?: allMembers.firstOrNull() ?: members.firstOrNull()
+        if (effectiveFocal != null && allMembers.isNotEmpty()) {
+            cachedKinshipTitles = com.example.btproject2.engine.KinshipTitleHelper.resolveAllTitles(
+                allMembers,
+                effectiveFocal
+            )
+            lastTitleFocalId = effectiveFocal.id
+            lastTitleMembersRef = allMembers
+        } else {
+            cachedKinshipTitles = emptyMap()
+            lastTitleFocalId = null
+            lastTitleMembersRef = null
+        }
         notifyDataSetChanged()
     }
 }

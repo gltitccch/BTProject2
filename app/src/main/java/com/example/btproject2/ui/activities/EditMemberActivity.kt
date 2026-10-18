@@ -299,7 +299,7 @@ class EditMemberActivity : AppCompatActivity() {
             if ((fatherId != null && fatherRelationshipType.equals("Step", ignoreCase = true)) ||
                 (motherId != null && motherRelationshipType.equals("Step", ignoreCase = true))
             ) {
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Cannot Save Step-Parent as Direct Parent")
                     .setMessage("Under Philippine family law and application rules, a step-parent must not be saved as a biological parent. A step-parent relationship arises automatically from marriage to the child's biological parent.\n\nA step-parent can only be recorded as a direct parent if there is an explicit legal adoption. If this person was legally adopted, please select 'Adoptive'.")
                     .setPositiveButton("Understood", null)
@@ -321,7 +321,7 @@ class EditMemberActivity : AppCompatActivity() {
                     role = com.example.btproject2.service.FamilyRelationshipService.ParentRole.FATHER
                 )
                 if (!fValidation.isAllowed) {
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Father")
                         .setMessage("${fValidation.reason}\n\n${fValidation.legalBasis}")
                         .setPositiveButton("Understood", null)
@@ -344,7 +344,7 @@ class EditMemberActivity : AppCompatActivity() {
                     role = com.example.btproject2.service.FamilyRelationshipService.ParentRole.MOTHER
                 )
                 if (!mValidation.isAllowed) {
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Mother")
                         .setMessage("${mValidation.reason}\n\n${mValidation.legalBasis}")
                         .setPositiveButton("Understood", null)
@@ -364,7 +364,7 @@ class EditMemberActivity : AppCompatActivity() {
                 if (!sValidation.isAllowed) {
                     val spouseCandidate = effectiveMembers.find { it.id == spouseId } ?: Person(id = spouseId)
                     val errorMsg = com.example.btproject2.utils.SpouseValidationMessageHelper.formatErrorMessage(updated, spouseCandidate, sValidation)
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle("Cannot Link Spouse")
                         .setMessage(errorMsg)
                         .setPositiveButton("Understood", null)
@@ -389,7 +389,7 @@ class EditMemberActivity : AppCompatActivity() {
                         conflictDetails = "Prohibited Co-Parents: ${firstError.message}"
                     )
                     firestoreHelper.addNotification(notif)
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle(firstError.title)
                         .setMessage(allErrors)
                         .setPositiveButton("Understood", null)
@@ -412,7 +412,7 @@ class EditMemberActivity : AppCompatActivity() {
                         conflictDetails = "Prohibited Spouse: ${firstError.message}"
                     )
                     firestoreHelper.addNotification(notif)
-                    AlertDialog.Builder(this)
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                         .setTitle(firstError.title)
                         .setMessage(allErrors)
                         .setPositiveButton("Understood", null)
@@ -437,7 +437,7 @@ class EditMemberActivity : AppCompatActivity() {
                     conflictDetails = "Genealogical Conflict: ${firstError.message}"
                 )
                 firestoreHelper.addNotification(notif)
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle(firstError.title)
                     .setMessage(allErrors)
                     .setPositiveButton("Understood", null)
@@ -448,7 +448,7 @@ class EditMemberActivity : AppCompatActivity() {
             if (linkResult.hasWarnings) {
                 val hasPosthumousWarning = linkResult.warnings.any { it.title.contains("Posthumous", ignoreCase = true) }
                 val warningText = linkResult.warnings.joinToString("\n") { "⚠️ ${it.message}" }
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Warnings Found")
                     .setMessage("$warningText\n\nDo you still want to save?")
                     .setPositiveButton("Save Anyway") { _, _ ->
@@ -858,7 +858,7 @@ class EditMemberActivity : AppCompatActivity() {
     }
 
     private fun showMessage(title: String, message: String) {
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton("OK", null)

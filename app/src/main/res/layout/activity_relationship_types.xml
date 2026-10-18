@@ -174,10 +174,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOID (Art. 37)"
+                    android:text="WITHIN 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="@color/danger" />
+                    android:textColor="@color/gold_accent" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -227,10 +227,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOID (Art. 37)"
+                    android:text="WITHIN 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="@color/danger" />
+                    android:textColor="@color/gold_accent" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -280,10 +280,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOID (Art. 37)"
+                    android:text="WITHIN 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="@color/danger" />
+                    android:textColor="@color/gold_accent" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -333,10 +333,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOID (Art. 37)"
+                    android:text="WITHIN 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="@color/danger" />
+                    android:textColor="@color/gold_accent" />
             </LinearLayout>
         </LinearLayout>
 
@@ -422,10 +422,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOID (Art. 37)"
+                    android:text="WITHIN 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="@color/danger" />
+                    android:textColor="@color/gold_accent" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -475,10 +475,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOID (Art. 38)"
+                    android:text="WITHIN 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="@color/danger" />
+                    android:textColor="@color/gold_accent" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -528,10 +528,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOID (Art. 38)"
+                    android:text="WITHIN 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="@color/danger" />
+                    android:textColor="@color/gold_accent" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -581,10 +581,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOID (Art. 38)"
+                    android:text="WITHIN 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="@color/danger" />
+                    android:textColor="@color/gold_accent" />
             </LinearLayout>
 
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/forest_card_border" />
@@ -634,7 +634,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PERMISSIBLE"
+                    android:text="BEYOND 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:textColor="@color/mint_text" />
@@ -687,7 +687,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PERMISSIBLE"
+                    android:text="BEYOND 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:textColor="@color/mint_text" />
@@ -740,18 +740,18 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PERMISSIBLE"
+                    android:text="BEYOND 4TH DEGREE"
                     android:textSize="10sp"
                     android:textStyle="bold"
                     android:textColor="@color/mint_text" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- SECTION 3: LEGAL STATUTES REFERENCE -->
+        <!-- SECTION 3: CONSANGUINITY SCOPE REFERENCE -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="3. FAMILY CODE OF THE PHILIPPINES (ARTS. 37 &amp; 38)"
+            android:text="3. HOW CONSANGUINITY DEGREES ARE COUNTED (ARTS. 963–966)"
             android:textSize="11sp"
             android:textStyle="bold"
             android:textColor="@color/gold_accent"
@@ -765,39 +765,39 @@
             android:background="@drawable/bg_forest_card"
             android:padding="18dp">
 
-            <!-- Art 37 -->
+            <!-- Direct Line -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Article 37: Incestuous Marriages (Void ab initio)"
+                android:text="Direct Lineal Consanguinity (1st to 4th Degree)"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/danger"
+                android:textColor="@color/gold_accent"
                 android:layout_marginBottom="4dp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Marriages between the following are incestuous and void from the beginning, whether relationship between the parties be legitimate or illegitimate:\n(1) Between ascendants and descendants of any degree;\n(2) Between brothers and sisters, whether of full or half blood."
+                android:text="In the direct line, degrees are counted by the number of generations separating the two family members:\n• 1st Degree: Parent and Child\n• 2nd Degree: Grandparent and Grandchild\n• 3rd Degree: Great-Grandparent and Great-Grandchild\n• 4th Degree: Great-Great-Grandparent and Great-Great-Grandchild"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingMultiplier="1.3"
                 android:layout_marginBottom="14dp" />
 
-            <!-- Art 38 -->
+            <!-- Collateral Line -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Article 38(1): Void by Reason of Public Policy"
+                android:text="Collateral Consanguinity Within the 4th Degree"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/danger"
+                android:textColor="@color/gold_accent"
                 android:layout_marginBottom="4dp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="The following marriages shall be void from the beginning for reasons of public policy:\n(1) Between collateral blood relatives, whether legitimate or illegitimate, up to the fourth civil degree (includes uncles/aunts and nieces/nephews, and first cousins)."
+                android:text="In the collateral line, count the generational steps up from Person A to the Closest Common Ancestor (MRCA), then down to Person B:\n• 2nd Degree: Full / Half Siblings (1 up + 1 down)\n• 3rd Degree: Uncle / Aunt and Niece / Nephew (1 up + 2 down)\n• 4th Degree: First Cousins (2 up + 2 down) &amp; Great-Uncle/Aunt and Grandniece/Nephew (1 up + 3 down)"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingMultiplier="1.3"
@@ -807,7 +807,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Beyond the Fourth Civil Degree"
+                android:text="Beyond the 4th Degree of Consanguinity (5th Degree+)"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/mint_text"
@@ -816,7 +816,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Relationships at the fifth civil degree or beyond (such as first cousins once removed, or second cousins) are NOT prohibited by reason of blood relationship under Philippine law."
+                android:text="In large multi-generational clan trees (up to 200 members), connections requiring 5 or more generational steps (such as First Cousins Once Removed at 5° or Second Cousins at 6°) are traced and labeled as Beyond the 4th Degree of Consanguinity."
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingMultiplier="1.3" />

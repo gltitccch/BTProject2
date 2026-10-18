@@ -338,7 +338,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
 
         tvCode.text = code
 
-        val dialog = AlertDialog.Builder(this)
+        val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(view)
             .setPositiveButton("Done", null)
             .create()
@@ -355,7 +355,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
 
     private fun showMemberRoleDialog(member: TreeMember) {
         val options = arrayOf("Editor (Can add/edit)", "Viewer (View only)", "Remove from tree")
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("${member.userName.ifBlank { member.userEmail }}'s Access")
             .setItems(options) { _, which ->
                 when (which) {
@@ -393,7 +393,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
     }
 
     private fun removeMember(member: TreeMember) {
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Remove Member")
             .setMessage("Are you sure you want to remove ${member.userName} from this tree?")
             .setPositiveButton("Remove") { _, _ ->
@@ -428,7 +428,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
 
     private fun approveMember(member: TreeMember) {
         val roles = arrayOf("Editor (Can add/edit)", "Viewer (View only)")
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Approve ${member.userName}")
             .setItems(roles) { _, which ->
                 val assignedRole = if (which == 0) "Editor" else "Viewer"
@@ -460,7 +460,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
     }
 
     private fun rejectMember(member: TreeMember) {
-        AlertDialog.Builder(this)
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Reject Request")
             .setMessage("Reject access request from ${member.userName}?")
             .setPositiveButton("Reject") { _, _ ->

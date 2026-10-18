@@ -396,7 +396,7 @@
                     android:textColor="@color/text_secondary" />
             </LinearLayout>
 
-            <!-- Philippine Family Code Legal Assessment Card -->
+            <!-- Consanguinity Scope & Degree Card -->
             <LinearLayout
                 android:id="@+id/legalCard"
                 android:layout_width="match_parent"
@@ -417,7 +417,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Family Code Assessment"
+                        android:text="Consanguinity Scope &amp; Degree"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
@@ -426,7 +426,7 @@
                         android:id="@+id/tvLegalBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="LEGAL STATUS"
+                        android:text="1°–4° SCOPE"
                         android:textSize="10sp"
                         android:textStyle="bold"
                         android:paddingStart="8dp"
@@ -440,7 +440,7 @@
                     android:id="@+id/tvLegalTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Marriage Impediment Analysis"
+                    android:text="Bloodline Degree Analysis"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="@color/gold_accent"

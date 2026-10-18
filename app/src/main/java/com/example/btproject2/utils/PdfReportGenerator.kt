@@ -83,7 +83,7 @@ object PdfReportGenerator {
         var curY = margin + 10f
 
         // 1. Header Banner
-        canvas.drawText("KINTRACE GENEALOGICAL & LEGAL RELATIONSHIP REPORT", margin, curY, pHeader)
+        canvas.drawText("KINTRACE BLOODLINE TRACING & CONSANGUINITY REPORT", margin, curY, pHeader)
         curY += 15f
         canvas.drawText("STI College Marikina — Bachelor of Science in Information Technology", margin, curY, pSubHeader)
         curY += 12f
@@ -120,9 +120,12 @@ object PdfReportGenerator {
 
         curY += 86f
 
-        // 3. Official Consanguinity & Legal Verdict Hero Box
-        val verdictBgColor = if (result.isMarriageProhibited) Color.parseColor("#FEF2F2") else Color.parseColor("#F0FDF4")
-        val verdictBorderColor = if (result.isMarriageProhibited) Color.parseColor("#FCA5A5") else Color.parseColor("#86EFAC")
+        // 3. Official Consanguinity Classification & Scope Hero Box
+        val deg = result.degreeOfConsanguinity
+        val ord = getOrdinal(deg)
+        val isWithin4th = result.isRelated && deg in 1..4
+        val verdictBgColor = Color.parseColor("#F0FDF4")
+        val verdictBorderColor = if (isWithin4th) Color.parseColor("#86EFAC") else Color.parseColor("#D4A359")
         val pVerdictBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = verdictBgColor; style = Paint.Style.FILL }
         val pVerdictBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = verdictBorderColor; style = Paint.Style.STROKE; strokeWidth = 1.5f }
 
@@ -131,11 +134,11 @@ object PdfReportGenerator {
         canvas.drawRoundRect(verdictRect, 10f, 10f, pVerdictBorder)
 
         // Title line
-        canvas.drawText("CONSANGUINITY CLASSIFICATION & LEGAL ASSESSMENT", margin + 14f, curY + 20f, pSectionTitle)
+        canvas.drawText("CONSANGUINITY CLASSIFICATION & DEGREE SCOPE", margin + 14f, curY + 20f, pSectionTitle)
 
         // Degree and Relationship Type
-        val degreeLabel = if (result.degreeOfConsanguinity > 0) {
-            "${result.relationshipType} (${result.degreeOfConsanguinity}${getOrdinal(result.degreeOfConsanguinity)} Civil Degree)"
+        val degreeLabel = if (deg > 0) {
+            "${result.relationshipType} ($deg$ord Civil Degree)"
         } else {
             result.relationshipType
         }
@@ -150,9 +153,14 @@ object PdfReportGenerator {
         val categoryText = "Line of Consanguinity: ${result.relationshipCategory} Line (Roman Civil Method — Art. 963 NCC)"
         canvas.drawText(categoryText, margin + 14f, curY + 58f, pSubHeader)
 
-        // Status Badge
-        val statusText = if (result.isMarriageProhibited) "MARRIAGE PROHIBITED" else "NO LEGAL IMPEDIMENT"
-        val statusColor = if (result.isMarriageProhibited) Color.parseColor("#DC2626") else Color.parseColor("#16A34A")
+        // Scope Badge
+        val statusText = when {
+            result.isRelated && deg in 1..4 -> "WITHIN 4TH DEGREE ($deg°)"
+            result.isRelated && deg > 4 -> "BEYOND 4TH DEGREE ($deg°)"
+            result.isRelated -> "DIRECT / AFFINITY"
+            else -> "UNCONNECTED"
+        }
+        val statusColor = if (isWithin4th) Color.parseColor("#16A34A") else Color.parseColor("#9A6F29")
         val pStatus = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = statusColor
             textSize = 11f
@@ -166,8 +174,14 @@ object PdfReportGenerator {
             textSize = 9f
             textAlign = Paint.Align.RIGHT
         }
-        canvas.drawText(result.legalArticle, pageWidth - margin - 16f, curY + 54f, pArticle)
-        canvas.drawText(result.legalStatus, pageWidth - margin - 16f, curY + 68f, pArticle)
+        val scopeSubLabel = when {
+            result.isRelated && deg in 1..4 -> "1st–4th Degree Core Consanguinity Scope"
+            result.isRelated && deg > 4 -> "Extended Clan Lineage (5th+ Degree)"
+            result.isRelated -> "${result.relationshipCategory} Family Tie"
+            else -> "No Shared Biological Ancestor"
+        }
+        canvas.drawText("Articles 963–966, Civil Code of the Philippines", pageWidth - margin - 16f, curY + 54f, pArticle)
+        canvas.drawText(scopeSubLabel, pageWidth - margin - 16f, curY + 68f, pArticle)
 
         curY += 106f
 
@@ -211,13 +225,17 @@ object PdfReportGenerator {
 
         curY += staticLayout.height + 20f
 
-        // 6. Philippine Law Statutory Basis Box
+        // 6. Consanguinity Degree Computation Basis Box
         val lawRect = RectF(margin, curY, pageWidth - margin, curY + 70f)
         canvas.drawRoundRect(lawRect, 8f, 8f, pCardBg)
         canvas.drawRoundRect(lawRect, 8f, 8f, pCardBorder)
 
-        canvas.drawText("PHILIPPINE STATUTORY BASIS & ARTICLE CITATION", margin + 14f, curY + 18f, pSectionTitle)
-        val lawDetails = "${result.legalArticle}: ${result.legalDescription}"
+        canvas.drawText("CONSANGUINITY DEGREE COMPUTATION (ROMAN CIVIL METHOD)", margin + 14f, curY + 18f, pSectionTitle)
+        val lawDetails = when {
+            result.isRelated && deg in 1..4 -> "Articles 963–966 (Civil Code): Computed at the $deg$ord Civil Degree (${result.distanceA} generational step(s) from ${result.personA.firstName} and ${result.distanceB} step(s) from ${result.personB.firstName}), falling within the 1st–4th Degree Consanguinity scope."
+            result.isRelated && deg > 4 -> "Articles 963–966 (Civil Code): Computed at the $deg$ord Civil Degree (${result.distanceA} step(s) up to the shared ancestor + ${result.distanceB} step(s) down), which is beyond the 4th Degree of Consanguinity."
+            else -> "Direct or non-consanguineous family record connection (${result.relationshipType})."
+        }
         val lawLayout = StaticLayout.Builder.obtain(lawDetails, 0, lawDetails.length, textPaint, (contentWidth - 28f).toInt())
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
             .setLineSpacing(2f, 1f)

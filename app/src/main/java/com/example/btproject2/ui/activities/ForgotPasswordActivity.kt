@@ -86,7 +86,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
     private fun attemptPasswordReset() {
         val email = etEmail.text.toString().trim()
         if (email.isEmpty()) {
-            AlertDialog.Builder(this)
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                 .setTitle("Error")
                 .setMessage("Please enter your registered email address.")
                 .setPositiveButton("OK", null)
@@ -121,7 +121,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
             onFailure = { error ->
                 btnSendReset.isEnabled = true
                 btnSendReset.text = "Send reset link"
-                AlertDialog.Builder(this)
+                com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Error")
                     .setMessage(error.message ?: "Failed to send reset email. Please verify your address.")
                     .setPositiveButton("OK", null)
