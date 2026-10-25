@@ -88,7 +88,7 @@ class AppVersionConfigTest {
             versionCode = 4L,
             versionName = "v1.3.1",
             apkDownloadUrl = releaseUrl,
-            releaseNotes = "• Heart-Throbbing Golden Focal Perspective Glide & Auto-Fade\n• Dynamic Perspective Reset Button & Matrix Profile Modal"
+            releaseNotes = "• Advanced Bloodline & Affinity Graph Traversal (Multi-MRCA & Consanguinity Degree)\n• Interactive Tree Zero-Allocation Engine & Viewport Frustum Culling (200+ Members)"
         )
 
         val isUpdateAvailable = remoteV131Config.versionCode > friendInstalledCode &&

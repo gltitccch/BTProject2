@@ -86,13 +86,16 @@ object InAppUpdateManager {
                 val hasValidRemoteApk = rawUrl.startsWith("https://", ignoreCase = true) &&
                     !rawUrl.contains("app-debug.apk", ignoreCase = true)
 
+                val targetReleaseNotes = "• Advanced Bloodline & Affinity Graph Traversal (Multi-MRCA & Consanguinity Degree)\n• Interactive Tree Zero-Allocation Engine & Viewport Frustum Culling (200+ Members)\n• Heart-Throbbing Golden Focal Perspective Glide & 3s Auto-Fade Timer\n• One-Tap Perspective Reset Button & 2-Tier Matrix Profile Modal\n• Multi-Device & Tablet Responsive Layout Adaptations"
+
                 // If remote code is < 4L OR remote record lacks a valid release HTTPS APK link,
+                // OR remote releaseNotes need updating to include the algorithm breakthroughs,
                 // align Firestore to the active v1.3.1 (versionCode = 4) release pointing to GitHub Releases.
-                if (currentRemoteCode < 4L || (currentRemoteCode == 4L && !hasValidRemoteApk)) {
+                if (currentRemoteCode < 4L || (currentRemoteCode == 4L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
                     val currentConfig = AppVersionConfig(
                         versionCode = 4L,
                         versionName = "v1.3.1",
-                        releaseNotes = "• Heart-Throbbing Golden Focal Perspective Glide & Auto-Fade\n• Dynamic Perspective Reset Button & Matrix Profile Modal\n• Tablet & Multi-Device Adaptive Layout Optimizations\n• 200-Member Clan Performance & Viewport Culling",
+                        releaseNotes = targetReleaseNotes,
                         apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.1"),
                         isMandatory = false,
                         publishedBy = "system@kintrace.ph"
