@@ -74,4 +74,25 @@ class AppVersionConfigTest {
             remoteV130Config.apkDownloadUrl.startsWith("https://")
         assertTrue(isUpdateAvailable)
     }
+
+    @Test
+    fun v130Client_detectsV131Increment_andResolvesGitHubReleaseApkUrl() {
+        val friendInstalledCode = 3L // Friend on v1.3.0
+        val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.1")
+        assertEquals(
+            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.1/app-release.apk",
+            releaseUrl
+        )
+
+        val remoteV131Config = AppVersionConfig(
+            versionCode = 4L,
+            versionName = "v1.3.1",
+            apkDownloadUrl = releaseUrl,
+            releaseNotes = "• Heart-Throbbing Golden Focal Perspective Glide & Auto-Fade\n• Dynamic Perspective Reset Button & Matrix Profile Modal"
+        )
+
+        val isUpdateAvailable = remoteV131Config.versionCode > friendInstalledCode &&
+            remoteV131Config.apkDownloadUrl.startsWith("https://")
+        assertTrue(isUpdateAvailable)
+    }
 }

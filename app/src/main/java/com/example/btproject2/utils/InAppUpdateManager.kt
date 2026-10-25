@@ -86,14 +86,14 @@ object InAppUpdateManager {
                 val hasValidRemoteApk = rawUrl.startsWith("https://", ignoreCase = true) &&
                     !rawUrl.contains("app-debug.apk", ignoreCase = true)
 
-                // If remote code is < 3L OR remote record lacks a valid release HTTPS APK link,
-                // align Firestore to the active v1.3.0 (versionCode = 3) release pointing to GitHub Releases.
-                if (currentRemoteCode < 3L || (currentRemoteCode == 3L && !hasValidRemoteApk)) {
+                // If remote code is < 4L OR remote record lacks a valid release HTTPS APK link,
+                // align Firestore to the active v1.3.1 (versionCode = 4) release pointing to GitHub Releases.
+                if (currentRemoteCode < 4L || (currentRemoteCode == 4L && !hasValidRemoteApk)) {
                     val currentConfig = AppVersionConfig(
-                        versionCode = 3L,
-                        versionName = "v1.3.0",
-                        releaseNotes = "• Global Freemium 50-Member Cap & Clan Expansion Queue\n• Step-by-Step Friendly Question Tree Health Wizard\n• Categorized Tools Dock & Adaptive Dark/Light Palette\n• Zero-Cost GitHub Releases OTA Auto-Updater",
-                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.0"),
+                        versionCode = 4L,
+                        versionName = "v1.3.1",
+                        releaseNotes = "• Heart-Throbbing Golden Focal Perspective Glide & Auto-Fade\n• Dynamic Perspective Reset Button & Matrix Profile Modal\n• Tablet & Multi-Device Adaptive Layout Optimizations\n• 200-Member Clan Performance & Viewport Culling",
+                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.1"),
                         isMandatory = false,
                         publishedBy = "system@kintrace.ph"
                     )
@@ -118,7 +118,7 @@ object InAppUpdateManager {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionCode.toLong()
             }
         } catch (_: Exception) {
-            3L
+            4L
         }
     }
 

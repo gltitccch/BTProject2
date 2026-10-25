@@ -2063,6 +2063,12 @@ class FamilyTreeView @JvmOverloads constructor(
     private val pFocalPillBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#2A1F08"); style = Paint.Style.FILL
     }
+    private val pFocalGoldBeaconHalo = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#FDE68A"); style = Paint.Style.STROKE; strokeWidth = 5f
+    }
+    private val pFocalRestingBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#D4AF37"); style = Paint.Style.STROKE; strokeWidth = 2.5f
+    }
 
     // Rectangular Node Card Paints (Matching Reference Diagram & Tree Legend)
     private val pCardBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -2490,7 +2496,27 @@ class FamilyTreeView @JvmOverloads constructor(
     private var mrcaPersonIds: Set<String> = emptySet()
     private var isAffinityTraceMode: Boolean = false
     private var focalPersonId: String? = null
+    private var focalBeaconStartTime: Long = 0L
     private var tracePersonAId: String? = null
+
+    private fun getFocalBeaconMetrics(): Pair<Float, Float> {
+        val elapsed = if (!focalPersonId.isNullOrEmpty() && focalBeaconStartTime > 0L) {
+            System.currentTimeMillis() - focalBeaconStartTime
+        } else {
+            Long.MAX_VALUE
+        }
+        if (elapsed >= 3600L) {
+            return Pair(0f, 0f)
+        }
+        val fadeAlpha = when {
+            elapsed <= 3000L -> 1.0f
+            else -> (1.0f - (elapsed - 3000L) / 600f).coerceIn(0f, 1f)
+        }
+        // Heart-throbbing organic rhythm (~75 bpm -> 800ms cycle)
+        val cycleFrac = ((elapsed % 800L) / 800.0) * 2.0 * Math.PI
+        val throb = kotlin.math.sin(cycleFrac).toFloat().coerceIn(-1f, 1f)
+        return Pair(fadeAlpha, throb)
+    }
     private var tracePersonBId: String? = null
 
     data class FamilyUnit(
@@ -2589,6 +2615,10 @@ class FamilyTreeView @JvmOverloads constructor(
             post { centerOnPerson(personId, animate) }
             return
         }
+
+        focalPersonId = personId
+        focalBeaconStartTime = System.currentTimeMillis()
+        postInvalidateOnAnimation()
 
         val targetScale = 1.05f.coerceIn(0.6f, 1.4f)
         val targetOffsetX = (width / 2f - pt.x) - (width - canvasW) / 2f
@@ -2721,6 +2751,11 @@ class FamilyTreeView @JvmOverloads constructor(
         this.mrcaPersonId = mrcaId
         this.mrcaPersonIds = resolvedMrcaIds
         this.isAffinityTraceMode = isAffinityTrace
+        if (focalPedigreeId != null && focalPedigreeId != this.focalPersonId) {
+            this.focalBeaconStartTime = System.currentTimeMillis()
+        } else if (focalPedigreeId == null) {
+            this.focalBeaconStartTime = 0L
+        }
         this.focalPersonId = focalPedigreeId
         this.tracePersonAId = personAId
         this.tracePersonBId = personBId
@@ -2839,6 +2874,11 @@ class FamilyTreeView @JvmOverloads constructor(
         this.mrcaPersonId = mrcaId
         this.mrcaPersonIds = resolvedMrcaIds
         this.isAffinityTraceMode = isAffinityTrace
+        if (focalPedigreeId != null && focalPedigreeId != this.focalPersonId) {
+            this.focalBeaconStartTime = System.currentTimeMillis()
+        } else if (focalPedigreeId == null) {
+            this.focalBeaconStartTime = 0L
+        }
         this.focalPersonId = focalPedigreeId
         this.tracePersonAId = personAId
         this.tracePersonBId = personBId
@@ -3810,6 +3850,14 @@ class FamilyTreeView @JvmOverloads constructor(
                 canvas.drawText("+", pos.x, btnY + pAddIcon.textSize / 3f, pAddIcon)
             }
         }
+
+        // Continuous redraw for smooth 60/120fps heart-throbbing beacon & fade
+        if (!focalPersonId.isNullOrEmpty() && focalBeaconStartTime > 0L) {
+            val elapsed = System.currentTimeMillis() - focalBeaconStartTime
+            if (elapsed < 3600L) {
+                postInvalidateOnAnimation()
+            }
+        }
     }
 
     private fun getBiologicalChild(parentUnit: FamilyUnit, childUnit: FamilyUnit): Person {
@@ -3866,8 +3914,15 @@ class FamilyTreeView @JvmOverloads constructor(
         canvas.drawRoundRect(tempShadowRect, CARD_CORNER, CARD_CORNER, pCardShadow)
 
         if (isFocal) {
-            tempHaloRect.set(cardLeft - 5f, cardTop - 5f, cardRight + 5f, cardBottom + 5f)
-            canvas.drawRoundRect(tempHaloRect, CARD_CORNER + 4f, CARD_CORNER + 4f, pMrcaGoldHalo)
+            val (beaconAlpha, throb) = getFocalBeaconMetrics()
+            if (beaconAlpha > 0.01f) {
+                val expand = 4f + 3.5f * ((throb + 1f) / 2f)
+                val alpha = (beaconAlpha * (0.6f + 0.4f * ((throb + 1f) / 2f)) * 255).toInt().coerceIn(0, 255)
+                pFocalGoldBeaconHalo.alpha = alpha
+                pFocalGoldBeaconHalo.strokeWidth = 3.5f + 2f * ((throb + 1f) / 2f)
+                tempHaloRect.set(cardLeft - expand, cardTop - expand, cardRight + expand, cardBottom + expand)
+                canvas.drawRoundRect(tempHaloRect, CARD_CORNER + 4f, CARD_CORNER + 4f, pFocalGoldBeaconHalo)
+            }
         }
 
         // 2. Card Background & Border
@@ -3881,7 +3936,7 @@ class FamilyTreeView @JvmOverloads constructor(
         }
         val borderPaint = when {
             isMrca -> pCardMrcaBorder
-            isFocal -> pGoldHighlightBorder
+            isFocal -> pFocalRestingBorder
             isOnPath && isTraceMode -> pCardHighlightBorder
             !p.isLiving && shouldDim -> pCardDeceasedBorderDim
             !p.isLiving -> pCardDeceasedBorder
@@ -3895,8 +3950,17 @@ class FamilyTreeView @JvmOverloads constructor(
         val avatarCy = cardTop + 14f + NODE_RADIUS
         canvas.drawCircle(cx, avatarCy + 2f, NODE_RADIUS + 1f, pNodeShadow)
 
-        if (isMrca || isFocal) {
+        if (isMrca) {
             canvas.drawCircle(cx, avatarCy, NODE_RADIUS + 6f, pMrcaGoldHalo)
+        } else if (isFocal) {
+            val (beaconAlpha, throb) = getFocalBeaconMetrics()
+            if (beaconAlpha > 0.01f) {
+                val avatarExpand = 4f + 3f * ((throb + 1f) / 2f)
+                val alpha = (beaconAlpha * (0.6f + 0.4f * ((throb + 1f) / 2f)) * 255).toInt().coerceIn(0, 255)
+                pFocalGoldBeaconHalo.alpha = alpha
+                pFocalGoldBeaconHalo.strokeWidth = 3.5f + 1.5f * ((throb + 1f) / 2f)
+                canvas.drawCircle(cx, avatarCy, NODE_RADIUS + avatarExpand, pFocalGoldBeaconHalo)
+            }
         }
 
         val photoBitmap = avatarBitmapCache[p.id]
@@ -3916,7 +3980,8 @@ class FamilyTreeView @JvmOverloads constructor(
         }
 
         val avatarBorderPaint = when {
-            isMrca || isFocal -> pMrcaGoldHalo
+            isMrca -> pMrcaGoldHalo
+            isFocal -> pFocalRestingBorder
             isOnPath && isTraceMode -> pGoldHighlightBorder
             !p.isLiving -> if (shouldDim) pDeceasedBorderDim else pDeceasedBorder
             else -> if (shouldDim) pBorderDim else pBorder
@@ -4004,7 +4069,13 @@ class FamilyTreeView @JvmOverloads constructor(
         } else if (isMrca) {
             canvas.drawText(mrcaBadgeLabel, cx, cardTop - 8f, pMrcaBadge)
         } else if (isFocal) {
-            canvas.drawText("\u2605 YOU / FOCAL CENTER", cx, cardTop - 8f, pMrcaBadge)
+            val (beaconAlpha, _) = getFocalBeaconMetrics()
+            if (beaconAlpha > 0.05f) {
+                val prevAlpha = pMrcaBadge.alpha
+                pMrcaBadge.alpha = (beaconAlpha * 255).toInt()
+                canvas.drawText("\u2605 YOU / FOCAL CENTER", cx, cardTop - 8f, pMrcaBadge)
+                pMrcaBadge.alpha = prevAlpha
+            }
         }
     }
 
@@ -4016,11 +4087,18 @@ class FamilyTreeView @JvmOverloads constructor(
             isFemale -> pFemale
             else -> pMale
         }
-        val borderPaint = if (!p.isLiving) pDeceasedBorder else pBorder
+        val borderPaint = if (!p.isLiving) pDeceasedBorder else if (p.id == focalPersonId) pFocalRestingBorder else pBorder
 
         canvas.drawCircle(cx, cy + 4f, NODE_RADIUS + 2f, pNodeShadow)
         if (p.id == focalPersonId) {
-            canvas.drawCircle(cx, cy, NODE_RADIUS + 6f, pMrcaGoldHalo)
+            val (beaconAlpha, throb) = getFocalBeaconMetrics()
+            if (beaconAlpha > 0.01f) {
+                val nodeExpand = 4f + 3f * ((throb + 1f) / 2f)
+                val alpha = (beaconAlpha * (0.6f + 0.4f * ((throb + 1f) / 2f)) * 255).toInt().coerceIn(0, 255)
+                pFocalGoldBeaconHalo.alpha = alpha
+                pFocalGoldBeaconHalo.strokeWidth = 3.5f + 1.5f * ((throb + 1f) / 2f)
+                canvas.drawCircle(cx, cy, NODE_RADIUS + nodeExpand, pFocalGoldBeaconHalo)
+            }
         }
 
         val photoBitmap = avatarBitmapCache[p.id]
