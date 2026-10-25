@@ -174,9 +174,9 @@ class MarriageValidationEngine(
         personBId: String,
         personMap: Map<String, Person>
     ): RelationshipValidationResult {
-        val personA = personMap[personAId]
+        val personA = personMap[personAId] ?: personMap[personAId.trim().lowercase()] ?: personMap.values.find { it.id.trim().equals(personAId.trim(), ignoreCase = true) }
             ?: throw IllegalArgumentException("Person A ($personAId) not found in family tree.")
-        val personB = personMap[personBId]
+        val personB = personMap[personBId] ?: personMap[personBId.trim().lowercase()] ?: personMap.values.find { it.id.trim().equals(personBId.trim(), ignoreCase = true) }
             ?: throw IllegalArgumentException("Person B ($personBId) not found in family tree.")
 
         // ---------------------------------------------------------------------

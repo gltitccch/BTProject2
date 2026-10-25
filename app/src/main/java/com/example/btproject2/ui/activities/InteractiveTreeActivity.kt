@@ -1052,6 +1052,14 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         val btnPrev = dialogView.findViewById<Button>(R.id.btnWizardPrev)
         val btnSkip = dialogView.findViewById<Button>(R.id.btnWizardSkip)
 
+        // Hide reckless blind bulk fix; always guide user through verified steps
+        btnFixAll.visibility = View.GONE
+
+        tvHeaderBadge.text = "🛡️ GUIDED RESOLUTION STEPPER"
+        tvHeaderBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.warning))
+        tvModalTitle.text = "Guided Family Tree Resolution"
+        tvModalSub.text = "Step through relationship details with guided instructions."
+
         val activeConflicts = conflicts.toMutableList()
         var currentIndex = 0
 
@@ -1074,19 +1082,19 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         }
 
         fun renderCompleteState() {
-            tvHeaderBadge.text = "✓ ALL TIDIED UP"
+            tvHeaderBadge.text = "🏆 ALL ISSUES RESOLVED"
             tvHeaderBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
             btnFixAll.visibility = View.GONE
-            tvModalTitle.text = "Everything Is Tidied Up!"
-            tvModalSub.text = "Your family tree connections are clean and up to date."
-            tvStepCounter.text = "All Steps Complete!"
-            tvStepPercent.text = "100% Done"
+            tvModalTitle.text = "Tree Integrity Verified!"
+            tvModalSub.text = "All relationship connections, spouses, and parent links are clean."
+            tvStepCounter.text = "All Steps Complete"
+            tvStepPercent.text = "100% Verified"
             progressSteps.progress = 100
 
             tvPersonName.text = "🎉 Family Tree Healthy"
-            tvStepTag.text = "✓ Done"
+            tvStepTag.text = "✓ Flawless"
             tvStepTag.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
-            tvHeadline.text = "“Your family tree looks great!”"
+            tvHeadline.text = "“Tree Integrity Verified!”"
             tvExplain.text = "All missing parent and spouse spots have been cleaned up. You can go back to exploring your family tree now."
             tvHelper.text = "✨ 0 issues remaining."
 
@@ -1115,21 +1123,27 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             val item = activeConflicts[currentIndex]
             val pct = (((currentIndex + 1) * 100) / total).coerceIn(1, 100)
 
-            tvStepCounter.text = "Step ${currentIndex + 1} of $total"
+            tvStepCounter.text = "Issue ${currentIndex + 1} of $total"
             tvStepPercent.text = "$pct% Done"
             progressSteps.progress = pct
 
             tvPersonName.text = "👤 ${item.personName}"
-            tvStepTag.text = "Question ${currentIndex + 1}"
+            tvStepTag.text = "Issue ${currentIndex + 1}"
             tvHeadline.text = item.questionHeadline
             tvExplain.text = item.simpleExplanation
             tvHelper.text = item.helperPrompt
 
             btnPrimary.isEnabled = true
             btnSecondary.isEnabled = true
-            btnSecondary.visibility = View.VISIBLE
-            btnPrimary.text = item.primaryActionLabel
-            btnSecondary.text = item.secondaryActionLabel
+            btnSecondary.visibility = if (item.canAutoFix) View.GONE else View.VISIBLE
+
+            if (item.canAutoFix) {
+                val cleanLabel = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim()
+                btnPrimary.text = "⚡ Apply Safe Fix: $cleanLabel"
+            } else {
+                btnPrimary.text = item.primaryActionLabel
+                btnSecondary.text = item.secondaryActionLabel
+            }
 
             btnPrev.visibility = if (total > 1) View.VISIBLE else View.GONE
             btnPrev.isEnabled = currentIndex > 0
@@ -1165,7 +1179,8 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                         onFailure = { err ->
                             runOnUiThread {
                                 btnPrimary.isEnabled = true
-                                btnPrimary.text = item.primaryActionLabel
+                                val cleanLabel = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim()
+                                btnPrimary.text = if (item.canAutoFix) "⚡ Apply Safe Fix: $cleanLabel" else item.primaryActionLabel
                                 KinTraceAlert.warning(this, "Could Not Save", err.message ?: "Please try again.")
                             }
                         }
@@ -2108,6 +2123,10 @@ class FamilyTreeView @JvmOverloads constructor(
     private val pLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#1D9E75"); style = Paint.Style.STROKE; strokeWidth = 3.5f
     }
+    private val pLineAdoptive = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#64748B"); style = Paint.Style.STROKE
+        strokeWidth = 3.0f; pathEffect = DashPathEffect(floatArrayOf(10f, 7f), 0f)
+    }
     private val pGoldPathLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#D4A359"); style = Paint.Style.STROKE; strokeWidth = 6f
     }
@@ -2227,6 +2246,7 @@ class FamilyTreeView @JvmOverloads constructor(
     private val pYearDeceased = Paint(pYear).apply { textSize = 11.5f; color = Color.parseColor("#94A3B8") }
     private val pYearDeceasedDim = Paint(pYearDeceased).apply { alpha = 80 }
     private val pLineDim = Paint(pLine).apply { alpha = 70 }
+    private val pLineAdoptiveDim = Paint(pLineAdoptive).apply { alpha = 70 }
     private val pSpouseLineDim = Paint(pSpouseLine).apply { alpha = 70 }
     private val pMaritalPillBgDim = Paint(pMaritalPillBg).apply { alpha = 80 }
     private val pMaritalPillBorderDim = Paint(pMaritalPillBorder).apply { alpha = 80 }
@@ -2307,6 +2327,8 @@ class FamilyTreeView @JvmOverloads constructor(
         pDashedLabel.color = Color.parseColor("#7A9A88")
         pLine.color = Color.parseColor("#1D9E75")
         pLineDim.color = Color.parseColor("#1D9E75"); pLineDim.alpha = 70
+        pLineAdoptive.color = Color.parseColor("#64748B")
+        pLineAdoptiveDim.color = Color.parseColor("#64748B"); pLineAdoptiveDim.alpha = 70
         pSpouseLine.color = Color.parseColor("#D4A359")
         pSpouseLineDim.color = Color.parseColor("#D4A359"); pSpouseLineDim.alpha = 70
         pGoldPathLine.color = Color.parseColor("#D4A359")
@@ -2372,6 +2394,8 @@ class FamilyTreeView @JvmOverloads constructor(
             pDashedLabel.color = Color.parseColor("#64748B")
             pLine.color = Color.parseColor("#B45309")
             pLineDim.color = Color.parseColor("#B45309"); pLineDim.alpha = 90
+            pLineAdoptive.color = Color.parseColor("#64748B")
+            pLineAdoptiveDim.color = Color.parseColor("#64748B"); pLineAdoptiveDim.alpha = 90
             pSpouseLine.color = Color.parseColor("#B45309")
             pSpouseLineDim.color = Color.parseColor("#B45309"); pSpouseLineDim.alpha = 90
             pGoldPathLine.color = Color.parseColor("#B45309")
@@ -2444,7 +2468,8 @@ class FamilyTreeView @JvmOverloads constructor(
         val childId: String,
         val x: Float,
         val yBus: Float,
-        val targetY: Float
+        val targetY: Float,
+        val isNonBiological: Boolean = false
     )
 
     private data class PrecomputedFamilyBus(
@@ -2467,7 +2492,8 @@ class FamilyTreeView @JvmOverloads constructor(
         val cX: Float,
         val cY: Float,
         val isStep: Boolean,
-        val midY: Float
+        val midY: Float,
+        val isNonBiological: Boolean = false
     )
 
     private data class PrecomputedPedigreeConnector(
@@ -3415,6 +3441,27 @@ class FamilyTreeView @JvmOverloads constructor(
         precomputeMainTreeConnectorsAndHitAreas()
     }
 
+    private fun isNonBiologicalLink(child: Person, parentId1: String?, parentId2: String?): Boolean {
+        val fType = child.fatherRelationshipType.trim()
+        val mType = child.motherRelationshipType.trim()
+        val isFatherNonBio = fType.equals("Adoptive", ignoreCase = true) || fType.equals("Step", ignoreCase = true)
+        val isMotherNonBio = mType.equals("Adoptive", ignoreCase = true) || mType.equals("Step", ignoreCase = true)
+
+        if (parentId1 != null && com.example.btproject2.engine.FamilyLinkValidator.isSameId(parentId1, child.fatherId) && isFatherNonBio) return true
+        if (parentId1 != null && com.example.btproject2.engine.FamilyLinkValidator.isSameId(parentId1, child.motherId) && isMotherNonBio) return true
+        if (parentId2 != null && com.example.btproject2.engine.FamilyLinkValidator.isSameId(parentId2, child.fatherId) && isFatherNonBio) return true
+        if (parentId2 != null && com.example.btproject2.engine.FamilyLinkValidator.isSameId(parentId2, child.motherId) && isMotherNonBio) return true
+
+        // Fallback: if connected to either parent in this unit, check if either parent type is non-biological
+        if (parentId1 != null && (com.example.btproject2.engine.FamilyLinkValidator.isSameId(parentId1, child.fatherId) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(parentId1, child.motherId))) {
+            if (isFatherNonBio || isMotherNonBio) return true
+        }
+        if (parentId2 != null && (com.example.btproject2.engine.FamilyLinkValidator.isSameId(parentId2, child.fatherId) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(parentId2, child.motherId))) {
+            if (isFatherNonBio || isMotherNonBio) return true
+        }
+        return false
+    }
+
     private fun precomputeMainTreeConnectorsAndHitAreas() {
         precomputedMaritalLines.clear()
         precomputedBuses.clear()
@@ -3426,7 +3473,7 @@ class FamilyTreeView @JvmOverloads constructor(
             val pPos = posMap[unit.primary.id] ?: return@forEach
             val sPos = unit.spouse?.let { posMap[it.id] }
 
-            if (sPos != null && mode == "MAIN") {
+            if (sPos != null && mode != "PEDIGREE") {
                 val leftCardX = minOf(pPos.x, sPos.x)
                 val rightCardX = maxOf(pPos.x, sPos.x)
                 val leftX = leftCardX + CARD_W / 2f
@@ -3468,12 +3515,14 @@ class FamilyTreeView @JvmOverloads constructor(
                         val cPos = posMap[targetPerson.id]
                         if (cPos != null) {
                             val targetY = cPos.y - CARD_H / 2f
+                            val isNonBio = isNonBiologicalLink(targetPerson, unit.primary.id, unit.spouse?.id)
                             childDrops.add(
                                 PrecomputedChildDrop(
                                     childId = targetPerson.id,
                                     x = cPos.x,
                                     yBus = yBus,
-                                    targetY = targetY
+                                    targetY = targetY,
+                                    isNonBiological = isNonBio
                                 )
                             )
                             if (cPos.x < busLeft) busLeft = cPos.x
@@ -3554,6 +3603,7 @@ class FamilyTreeView @JvmOverloads constructor(
                     // Route cleanly in the lower bus channel below the + buttons (+14f) and main bus (+34f)
                     val laneShift = (precomputedFallbackLines.size % 2) * 8f
                     val midY = parentCardBottom + V_GAP * 0.68f + laneShift
+                    val isNonBio = isNonBiologicalLink(p, sharedUnit.primary.id, sharedUnit.spouse?.id)
                     precomputedFallbackLines.add(
                         PrecomputedFallbackLine(
                             parentId = sharedUnit.primary.id,
@@ -3564,7 +3614,8 @@ class FamilyTreeView @JvmOverloads constructor(
                             cX = cPos.x,
                             cY = cY,
                             isStep = isStep,
-                            midY = midY
+                            midY = midY,
+                            isNonBiological = isNonBio
                         )
                     )
                 }
@@ -3578,6 +3629,7 @@ class FamilyTreeView @JvmOverloads constructor(
                         val isStep = cY > parentCardBottom
                         val laneShift = (precomputedFallbackLines.size % 2) * 8f
                         val midY = parentCardBottom + V_GAP * 0.68f + laneShift
+                        val isNonBioFallback = isNonBiologicalLink(p, pid, null)
                         precomputedFallbackLines.add(
                             PrecomputedFallbackLine(
                                 parentId = pid,
@@ -3588,7 +3640,8 @@ class FamilyTreeView @JvmOverloads constructor(
                                 cX = cPos.x,
                                 cY = cY,
                                 isStep = isStep,
-                                midY = midY
+                                midY = midY,
+                                isNonBiological = isNonBioFallback
                             )
                         )
                     }
@@ -3779,7 +3832,11 @@ class FamilyTreeView @JvmOverloads constructor(
                     canvas.drawPath(sharedTracePath, pGoldPathLine)
                 } else {
                     if (drop.targetY > drop.yBus) {
-                        val cLinePaint = if (isTraceMode) pLineDim else pLine
+                        val cLinePaint = when {
+                            drop.isNonBiological -> if (isTraceMode) pLineAdoptiveDim else pLineAdoptive
+                            isTraceMode -> pLineDim
+                            else -> pLine
+                        }
                         canvas.drawLine(drop.x, drop.yBus, drop.x, drop.targetY, cLinePaint)
                     }
                 }
@@ -3822,7 +3879,11 @@ class FamilyTreeView @JvmOverloads constructor(
                 canvas.drawPath(sharedLinePath, pGoldPathGlow)
                 canvas.drawPath(sharedLinePath, pGoldPathLine)
             } else {
-                val currentLinePaint = if (isTraceMode) pLineDim else pLine
+                val currentLinePaint = when {
+                    f.isNonBiological -> if (isTraceMode) pLineAdoptiveDim else pLineAdoptive
+                    isTraceMode -> pLineDim
+                    else -> pLine
+                }
                 canvas.drawPath(sharedLinePath, currentLinePaint)
             }
         }

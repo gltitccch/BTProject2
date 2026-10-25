@@ -20,6 +20,26 @@ class TreeMemberAdapter(
     companion object {
         private const val TYPE_HEADER = 0
         private const val TYPE_MEMBER = 1
+
+        /**
+         * Resolves the best default focal person for calculating relative kinship titles:
+         * 1. Multi-generational family hub (has parents & children/spouse)
+         * 2. First member in list as fallback
+         */
+        fun resolveDefaultFocal(members: List<Person>): Person? {
+            if (members.isEmpty()) return null
+            val byId = members.associateBy { it.id }
+            return members.maxWithOrNull(
+                compareBy<Person> { p ->
+                    val hasParents = (!p.fatherId.isNullOrBlank() && byId.containsKey(p.fatherId)) ||
+                        (!p.motherId.isNullOrBlank() && byId.containsKey(p.motherId))
+                    val childCount = members.count { it.fatherId == p.id || it.motherId == p.id }
+                    val hasSpouse = !p.spouseId.isNullOrBlank() && byId.containsKey(p.spouseId)
+                    val hubBonus = if (hasParents && childCount > 0) 10 else 0
+                    hubBonus + childCount * 2 + (if (hasSpouse) 2 else 0)
+                }.thenBy { it.firstName }
+            ) ?: members.firstOrNull()
+        }
     }
 
     private val items = mutableListOf<TreeItem>()
@@ -30,7 +50,7 @@ class TreeMemberAdapter(
     fun submitItems(newItems: List<TreeItem>, members: List<Person> = allMembers, focal: Person? = focalPerson) {
         allMembers = members
         focalPerson = focal
-        val effectiveFocal = focal ?: members.firstOrNull()
+        val effectiveFocal = focal ?: resolveDefaultFocal(members)
         cachedTitles = if (members.isNotEmpty() && effectiveFocal != null) {
             com.example.btproject2.engine.KinshipTitleHelper.resolveAllTitles(members, effectiveFocal)
         } else {
@@ -82,6 +102,7 @@ class TreeMemberAdapter(
         private val tvName: TextView   = view.findViewById(R.id.tvName)
         private val tvInfo: TextView   = view.findViewById(R.id.tvInfo)
         private val tvKinshipPill: TextView? = view.findViewById(R.id.tvKinshipPill)
+        private val layoutMemberCard: View? = view.findViewById(R.id.layoutMemberCard)
 
         fun bind(
             person: Person,
@@ -106,19 +127,34 @@ class TreeMemberAdapter(
 
             tvName.text = "${person.firstName} ${person.lastName}".trim()
 
-            val effectiveFocal = focalPerson ?: allMembers.firstOrNull()
-            val kinship = if (effectiveFocal != null && effectiveFocal.id != person.id && allMembers.isNotEmpty()) {
+            val effectiveFocal = focalPerson ?: resolveDefaultFocal(allMembers)
+            val isSelf = effectiveFocal != null && effectiveFocal.id == person.id
+            val kinship = if (isSelf) {
+                if (person.lineageRole.isNotBlank() && !person.lineageRole.equals("MEMBER", ignoreCase = true)) {
+                    person.lineageRole.uppercase()
+                } else {
+                    "★ YOU (SELF)"
+                }
+            } else if (effectiveFocal != null && allMembers.isNotEmpty()) {
                 cachedTitles[person.id] ?: com.example.btproject2.engine.KinshipTitleHelper.resolveTitle(person, effectiveFocal, allMembers)
             } else if (person.lineageRole.isNotBlank() && !person.lineageRole.equals("MEMBER", ignoreCase = true)) {
-                person.lineageRole
-            } else if (effectiveFocal?.id == person.id) {
-                "Root"
+                person.lineageRole.uppercase()
             } else null
 
             if (tvKinshipPill != null) {
-                val roleLabel = kinship?.takeIf { it.isNotBlank() } ?: if (person.fatherId.isNullOrBlank() && person.motherId.isNullOrBlank()) "Founder" else "Relative"
+                val roleLabel = kinship?.takeIf { it.isNotBlank() } ?: if (person.fatherId.isNullOrBlank() && person.motherId.isNullOrBlank()) "FOUNDER" else "RELATIVE"
                 tvKinshipPill.text = roleLabel
                 tvKinshipPill.visibility = View.VISIBLE
+
+                if (isSelf) {
+                    tvKinshipPill.setBackgroundResource(R.drawable.badge_pill_gold)
+                    tvKinshipPill.setTextColor(android.graphics.Color.parseColor("#060D09"))
+                    layoutMemberCard?.setBackgroundResource(R.drawable.bg_forest_card_highlight_gold)
+                } else {
+                    tvKinshipPill.setBackgroundResource(R.drawable.badge_pill_dark)
+                    tvKinshipPill.setTextColor(androidx.core.content.ContextCompat.getColor(itemView.context, R.color.gold_accent))
+                    layoutMemberCard?.setBackgroundResource(R.drawable.bg_forest_card)
+                }
             }
 
             tvInfo.text = buildString {

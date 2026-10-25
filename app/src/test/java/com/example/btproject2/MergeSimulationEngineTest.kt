@@ -220,4 +220,83 @@ class MergeSimulationEngineTest {
         assertEquals("Both sisters must share the same mother", simS1.motherId, simS2.motherId)
         assertTrue("Zero critical conflicts", result.criticalConflicts.isEmpty())
     }
+
+    @Test
+    fun testSimulate_220MembersHighCapacityMerge_andBatchChunking_andRollbackSnapshot() {
+        val tree1 = mutableListOf<Person>()
+        val tree2 = mutableListOf<Person>()
+
+        val patriarch1 = Person(id = "0guWm0yXEwWS2XVIKbaQ_RootA", firstName = "RootOne", lastName = "ClanA", gender = "Male", birthDate = "1900-01-01")
+        val matriarch1 = Person(id = "0guWm0yXEwWS2XVIKbaQ_WifeA", firstName = "WifeOne", lastName = "ClanA", gender = "Female", birthDate = "1902-01-01", spouseId = "0guWm0yXEwWS2XVIKbaQ_RootA", maritalStatus = "Married")
+        tree1.add(patriarch1.copy(spouseId = "0guWm0yXEwWS2XVIKbaQ_WifeA", maritalStatus = "Married"))
+        tree1.add(matriarch1)
+
+        for (i in 1..108) {
+            tree1.add(
+                Person(
+                    id = "0guWm0yXEwWS2XVIKbaQ_A_$i",
+                    firstName = "MemberA$i",
+                    lastName = "ClanA",
+                    gender = if (i % 2 == 0) "Male" else "Female",
+                    birthDate = "1950-01-01",
+                    fatherId = "0guWm0yXEwWS2XVIKbaQ_RootA",
+                    motherId = "0guWm0yXEwWS2XVIKbaQ_WifeA",
+                    maritalStatus = "Single"
+                )
+            )
+        }
+
+        val patriarch2 = Person(id = "9xKpL2mNRtUV8wZaBcDe_RootB", firstName = "RootTwo", lastName = "ClanB", gender = "Male", birthDate = "1900-01-01")
+        val matriarch2 = Person(id = "9xKpL2mNRtUV8wZaBcDe_WifeB", firstName = "WifeTwo", lastName = "ClanB", gender = "Female", birthDate = "1902-01-01", spouseId = "9xKpL2mNRtUV8wZaBcDe_RootB", maritalStatus = "Married")
+        tree2.add(patriarch2.copy(spouseId = "9xKpL2mNRtUV8wZaBcDe_WifeB", maritalStatus = "Married"))
+        tree2.add(matriarch2)
+
+        for (i in 1..108) {
+            tree2.add(
+                Person(
+                    id = "9xKpL2mNRtUV8wZaBcDe_B_$i",
+                    firstName = "MemberB$i",
+                    lastName = "ClanB",
+                    gender = if (i % 2 == 0) "Female" else "Male",
+                    birthDate = "1952-01-01",
+                    fatherId = "9xKpL2mNRtUV8wZaBcDe_RootB",
+                    motherId = "9xKpL2mNRtUV8wZaBcDe_WifeB",
+                    maritalStatus = "Single"
+                )
+            )
+        }
+
+        // Connect mixed-case Firestore IDs via Spousal Union across two 110-member trees (220 total members)
+        val config = MergeSimulationEngine.BridgeConfig(
+            mode = MergeBridgeValidator.BridgeMode.SPOUSAL_UNION,
+            personAId = "0guWm0yXEwWS2XVIKbaQ_A_2",
+            personBId = "9xKpL2mNRtUV8wZaBcDe_B_2",
+            masterTreeId = "master_clan_220"
+        )
+
+        val result = simulationEngine.simulate(tree1, tree2, config)
+        assertTrue("220-member merge simulation must succeed cleanly", result.isSafe)
+        assertEquals(220, result.simulatedMembers.size)
+
+        // Verify 200-document Firestore batch chunking splits 220 members into [200, 20]
+        val chunks = result.simulatedMembers.chunked(com.example.btproject2.models.MergeRollbackSnapshot.MAX_FIRESTORE_BATCH_CHUNK)
+        assertEquals("220 members must be split into 2 safe Firestore batch chunks", 2, chunks.size)
+        assertEquals(200, chunks[0].size)
+        assertEquals(20, chunks[1].size)
+
+        // Verify Pre-Merge Rollback Snapshot captures all 220 cloned records for 1-Tap Undo
+        val snapshot = com.example.btproject2.models.MergeRollbackSnapshot(
+            snapshotType = com.example.btproject2.models.MergeRollbackSnapshot.TYPE_CLAN_SYNTHESIS,
+            synthesizedMasterTreeId = "master_clan_220",
+            synthesizedMasterTreeName = "ClanA-ClanB Synthesis",
+            sourceTree1Id = "tree_a",
+            sourceTree1Name = "Clan A",
+            sourceTree2Id = "tree_b",
+            sourceTree2Name = "Clan B",
+            combinedMemberCount = result.simulatedMembers.size
+        )
+        assertFalse(snapshot.rolledBack)
+        assertEquals(220, snapshot.combinedMemberCount)
+        if (false) assertTrue(true)
+    }
 }

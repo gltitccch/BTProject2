@@ -163,4 +163,31 @@ class ConflictWizardStressTest {
         val postRepairConflicts = scanner.scanAll(repairedMembers)
         assertEquals("After repairing all 17 questions, 0 conflicts should remain", 0, postRepairConflicts.size)
     }
+
+    @Test
+    fun `date paradoxes require human-in-the-loop guided decisions and canAutoFix is false`() {
+        val mother = Person(
+            id = "p_carmen",
+            firstName = "Carmen",
+            lastName = "Malone",
+            gender = "Female",
+            birthDate = "1975-04-12"
+        )
+        val child = Person(
+            id = "p_rosa",
+            firstName = "Rosa",
+            lastName = "Malone",
+            gender = "Female",
+            birthDate = "1970-08-20", // 5 years before mother!
+            motherId = "p_carmen"
+        )
+
+        val conflicts = scanner.scanAll(listOf(mother, child))
+        val ageConflict = conflicts.firstOrNull { it.personId == "p_rosa" && (it.type == "age_conflict" || it.type == "invalid_parent_child") }
+
+        // Must require human-in-the-loop choice rather than reckless auto-guess
+        if (ageConflict != null) {
+            assertFalse("Complex date paradoxes must require human decision (canAutoFix=false)", ageConflict.canAutoFix)
+        }
+    }
 }

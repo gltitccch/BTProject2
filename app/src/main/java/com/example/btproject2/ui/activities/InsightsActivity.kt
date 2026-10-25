@@ -171,9 +171,9 @@ class InsightsActivity : AppCompatActivity() {
         // 4. Data Quality & Profile Completeness Scorecard
         findViewById<TextView>(R.id.tvHealthScore)?.text = "${avgCompleteness}%"
         val qualityLabel = when {
-            avgCompleteness >= 85 -> "Excellent Profile Completeness"
-            avgCompleteness >= 60 -> "Good Profile Completeness"
-            avgCompleteness > 0 -> "Needs More Lineage Details"
+            avgCompleteness >= 85 -> "Comprehensive Member Records"
+            avgCompleteness >= 60 -> "Good Record Completeness"
+            avgCompleteness > 0 -> "Basic Records (Details Incomplete)"
             else -> "No Members Added Yet"
         }
         findViewById<TextView>(R.id.tvHealthLabel)?.text = qualityLabel

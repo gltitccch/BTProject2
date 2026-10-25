@@ -7,6 +7,7 @@ import com.example.btproject2.models.ClanMergeRequest
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.InviteCodeRecord
 import com.example.btproject2.models.MergeCollisionRecord
+import com.example.btproject2.models.MergeRollbackSnapshot
 import com.example.btproject2.models.NotificationRecord
 import com.example.btproject2.models.ReunionPassRecord
 import com.example.btproject2.models.SystemAnnouncement
@@ -37,6 +38,9 @@ class FirestoreHelper {
     companion object {
         @Volatile
         private var inMemoryPersonsCache: List<Person>? = null
+
+        @Volatile
+        var lastActiveMergeSnapshot: MergeRollbackSnapshot? = null
 
         fun getCachedPersons(treeId: String? = null): List<Person>? {
             val list = inMemoryPersonsCache ?: return null
@@ -3601,15 +3605,37 @@ class FirestoreHelper {
             batch.set(partnerMemberDoc, partnerMember)
         }
 
-        // Set all cloned persons in persons collection
-        for (person in members) {
+        // Set all cloned persons in persons collection, chunked by 200 to prevent Firestore 500-op batch crash
+        val chunks = members.chunked(MergeRollbackSnapshot.MAX_FIRESTORE_BATCH_CHUNK)
+        val firstChunk = chunks.firstOrNull().orEmpty()
+        for (person in firstChunk) {
             val personDocRef = db.collection("persons").document(person.id)
             batch.set(personDocRef, person.copy(treeId = finalTree.id))
         }
 
         batch.commit()
             .addOnSuccessListener {
-                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeCreated(finalTree)
+                val remainingChunks = chunks.drop(1)
+                if (remainingChunks.isEmpty()) {
+                    com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeCreated(finalTree)
+                    onSuccess(finalTree)
+                } else {
+                    val extraTasks = remainingChunks.map { extraChunk ->
+                        val extraBatch = db.batch()
+                        for (person in extraChunk) {
+                            val personDocRef = db.collection("persons").document(person.id)
+                            extraBatch.set(personDocRef, person.copy(treeId = finalTree.id))
+                        }
+                        extraBatch.commit()
+                    }
+                    com.google.android.gms.tasks.Tasks.whenAllComplete(extraTasks)
+                        .addOnSuccessListener {
+                            com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeCreated(finalTree)
+                            onSuccess(finalTree)
+                        }
+                        .addOnFailureListener { onFailure(it) }
+                }
+                if (false)
                 onSuccess(finalTree)
             }
             .addOnFailureListener { onFailure(it) }
@@ -3625,6 +3651,117 @@ class FirestoreHelper {
         onFailure: (Exception) -> Unit
     ) {
         saveMasterTreeAndMembers(masterTree, members, null, null, onSuccess, onFailure)
+    }
+
+    // =========================================================================
+    // PRE-MERGE SNAPSHOT & 1-TAP UNDO ROLLBACK ENGINE (PILLAR 2 - ITEM 7)
+    // =========================================================================
+
+    fun saveMergeRollbackSnapshot(
+        snapshot: MergeRollbackSnapshot,
+        onSuccess: (MergeRollbackSnapshot) -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val docRef = if (snapshot.id.isNotBlank()) db.collection("merge_snapshots").document(snapshot.id)
+                     else db.collection("merge_snapshots").document()
+        val finalSnapshot = snapshot.copy(id = docRef.id, rolledBack = false)
+        lastActiveMergeSnapshot = finalSnapshot
+        docRef.set(finalSnapshot)
+            .addOnSuccessListener { onSuccess(finalSnapshot) }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun fetchLatestActiveMergeSnapshot(
+        ownerId: String,
+        onSuccess: (MergeRollbackSnapshot?) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val cached = lastActiveMergeSnapshot
+        if (cached != null && !cached.rolledBack && (ownerId.isBlank() || cached.ownerId == ownerId)) {
+            onSuccess(cached)
+        }
+        if (ownerId.isBlank()) {
+            if (cached == null) onSuccess(null)
+            return
+        }
+        db.collection("merge_snapshots")
+            .whereEqualTo("ownerId", ownerId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val active = querySnapshot.documents
+                    .mapNotNull { doc ->
+                        val obj = doc.toObject(MergeRollbackSnapshot::class.java)
+                        val rb = (doc.getBoolean("rolledBack")) ?: obj?.rolledBack ?: false
+                        obj?.copy(id = doc.id, rolledBack = rb)
+                    }
+                    .filter { !it.rolledBack }
+                    .maxByOrNull { it.createdAt }
+                lastActiveMergeSnapshot = active
+                onSuccess(active)
+            }
+            .addOnFailureListener { err ->
+                if (cached == null) onFailure(err)
+            }
+    }
+
+    fun executeMergeRollback(
+        snapshot: MergeRollbackSnapshot,
+        context: Context? = null,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        fun markSnapshotRolledBackAndFinish() {
+            val rolledBackCopy = snapshot.copy(rolledBack = true)
+            if (lastActiveMergeSnapshot?.id == snapshot.id) {
+                lastActiveMergeSnapshot = null
+            }
+            if (snapshot.id.isNotBlank()) {
+                db.collection("merge_snapshots").document(snapshot.id)
+                    .set(rolledBackCopy, SetOptions.merge())
+                    .addOnCompleteListener { onSuccess() }
+            } else {
+                onSuccess()
+            }
+        }
+
+        if (snapshot.snapshotType == MergeRollbackSnapshot.TYPE_INTRA_BRANCH) {
+            val prevA = snapshot.previousPersonA
+            val prevB = snapshot.previousPersonB
+            if (prevA != null && prevB != null) {
+                updatePerson(prevA, onSuccess = {
+                    updatePerson(prevB, onSuccess = {
+                        CentralTreeSynchronizer.getInstance().notifyRelationshipCorrected(
+                            primaryPerson = prevA,
+                            affectedRelatives = setOf(prevB.id),
+                            sourceScreen = "MergeRollbackEngine"
+                        )
+                        markSnapshotRolledBackAndFinish()
+                    }, onFailure = onFailure)
+                }, onFailure = onFailure)
+            } else if (prevA != null) {
+                updatePerson(prevA, onSuccess = {
+                    CentralTreeSynchronizer.getInstance().notifyRelationshipCorrected(
+                        primaryPerson = prevA,
+                        sourceScreen = "MergeRollbackEngine"
+                    )
+                    markSnapshotRolledBackAndFinish()
+                }, onFailure = onFailure)
+            } else {
+                markSnapshotRolledBackAndFinish()
+            }
+        } else {
+            val targetTreeId = snapshot.synthesizedMasterTreeId
+            if (targetTreeId.isNotBlank()) {
+                deleteTree(
+                    treeId = targetTreeId,
+                    context = context,
+                    onSuccess = { markSnapshotRolledBackAndFinish() },
+                    onFailure = onFailure
+                )
+            } else {
+                markSnapshotRolledBackAndFinish()
+            }
+        }
     }
 
     /**

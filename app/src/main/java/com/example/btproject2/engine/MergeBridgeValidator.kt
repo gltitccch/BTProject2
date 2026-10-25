@@ -264,8 +264,8 @@ class MergeBridgeValidator(
         val mbId = personB.motherId?.trim()
 
         if (!faId.isNullOrEmpty() && !fbId.isNullOrEmpty() && !FamilyLinkValidator.isSameId(faId, fbId)) {
-            val fa = combinedMap[faId.lowercase()]
-            val fb = combinedMap[fbId.lowercase()]
+            val fa = combinedMap[faId] ?: combinedMap[faId.lowercase()]
+            val fb = combinedMap[fbId] ?: combinedMap[fbId.lowercase()]
             if (fa != null && fb != null && !fa.firstName.equals(fb.firstName, ignoreCase = true)) {
                 return ValidationResult.prohibited(
                     "Conflicting Parental Lineage: ${personA.firstName} has father ${fa.firstName} ${fa.lastName}, but ${personB.firstName} has father ${fb.firstName} ${fb.lastName}. Deduplicating these records would corrupt ancestral lineage."
@@ -274,8 +274,8 @@ class MergeBridgeValidator(
         }
 
         if (!maId.isNullOrEmpty() && !mbId.isNullOrEmpty() && !FamilyLinkValidator.isSameId(maId, mbId)) {
-            val ma = combinedMap[maId.lowercase()]
-            val mb = combinedMap[mbId.lowercase()]
+            val ma = combinedMap[maId] ?: combinedMap[maId.lowercase()]
+            val mb = combinedMap[mbId] ?: combinedMap[mbId.lowercase()]
             if (ma != null && mb != null && !ma.firstName.equals(mb.firstName, ignoreCase = true)) {
                 return ValidationResult.prohibited(
                     "Conflicting Parental Lineage: ${personA.firstName} has mother ${ma.firstName} ${ma.lastName}, but ${personB.firstName} has mother ${mb.firstName} ${mb.lastName}. Deduplicating these records would corrupt ancestral lineage."

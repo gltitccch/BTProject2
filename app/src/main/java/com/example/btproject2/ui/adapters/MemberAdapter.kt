@@ -65,6 +65,12 @@ class MemberAdapter(
                 lastTitleMembersRef = allMembers
             }
             return cachedKinshipTitles[person.id]
+        } else if (effectiveFocal != null && effectiveFocal.id == person.id) {
+            return if (person.lineageRole.isNotBlank() && !person.lineageRole.equals("MEMBER", ignoreCase = true)) {
+                person.lineageRole.uppercase()
+            } else {
+                "★ YOU (SELF)"
+            }
         } else if (person.lineageRole.isNotBlank() && !person.lineageRole.equals("MEMBER", ignoreCase = true)) {
             return person.lineageRole.uppercase()
         }

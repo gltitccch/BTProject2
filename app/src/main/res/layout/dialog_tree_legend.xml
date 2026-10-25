@@ -69,18 +69,18 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="460dp">
+        android:maxHeight="480dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Section 1: Member Nodes -->
+            <!-- Section 1: Member Nodes & Badges -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MEMBER CARD COLORS"
+                android:text="1. MEMBER NODES &amp; BADGES"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -192,7 +192,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Slate gray badge with memorial cross symbol (†)"
+                        android:text="Slate gray memorial badge with cross symbol (†) &amp; lifespan"
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary" />
                 </LinearLayout>
@@ -204,7 +204,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="10dp">
 
                 <View
                     android:layout_width="26dp"
@@ -235,11 +235,95 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Section 2: Connector Lines -->
+            <!-- In-Law Branch Node -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="48dp"
+                    android:layout_height="22dp"
+                    android:background="@drawable/badge_inlaw_sample"
+                    android:gravity="center"
+                    android:text="IN-LAW"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:textColor="#55E4AD" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="In-Law Branch Member"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dark teal card badge for relatives linked via marriage or tree merge"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Identity Verification Document Checkmark -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="@drawable/node_verified_sample"
+                    android:gravity="center"
+                    android:text="✓"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Verified Identity Record (✓)"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PSA birth, marriage, or death certificate attached"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Section 2: Connector Lines & Unions -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CONNECTOR LINES"
+                android:text="2. CONNECTOR LINES &amp; UNIONS"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -283,7 +367,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Spousal Line -->
+            <!-- Adoptive / Step Line -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -291,47 +375,17 @@
                 android:gravity="center_vertical"
                 android:layout_marginBottom="10dp">
 
-                <View
-                    android:layout_width="32dp"
-                    android:layout_height="3dp"
-                    android:background="@drawable/dash_line_gold" />
-
                 <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="12dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Dashed Warm Gold Line"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Spousal / Marital union"
-                        android:textSize="11sp"
-                        android:textColor="@color/text_secondary" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Adoptive / Step Line -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-
-                <View
                     android:layout_width="32dp"
-                    android:layout_height="3dp"
-                    android:background="@drawable/dash_line_slate" />
+                    android:layout_height="14dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <View android:layout_width="7dp" android:layout_height="3dp" android:background="#64748B" />
+                    <View android:layout_width="4dp" android:layout_height="3dp" />
+                    <View android:layout_width="7dp" android:layout_height="3dp" android:background="#64748B" />
+                    <View android:layout_width="4dp" android:layout_height="3dp" />
+                    <View android:layout_width="7dp" android:layout_height="3dp" android:background="#64748B" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -357,42 +411,170 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Section 3: Navigation Gestures -->
+            <!-- Spousal Line with Ring Pill -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <LinearLayout
+                    android:layout_width="36dp"
+                    android:layout_height="22dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <View android:layout_width="4dp" android:layout_height="2.5dp" android:background="#D4A359" />
+                    <View android:layout_width="2dp" android:layout_height="2.5dp" />
+                    <TextView
+                        android:layout_width="22dp"
+                        android:layout_height="18dp"
+                        android:background="@drawable/badge_marital_ring_sample"
+                        android:gravity="center"
+                        android:text="💍"
+                        android:textSize="9sp" />
+                    <View android:layout_width="2dp" android:layout_height="2.5dp" />
+                    <View android:layout_width="4dp" android:layout_height="2.5dp" android:background="#D4A359" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dashed Warm Gold Line + [ 💍 ] Pill"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Spousal / Marital union with centered alliance ring badge"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Radiant Golden Path Glow (Trace Mode) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <View
+                    android:layout_width="32dp"
+                    android:layout_height="5dp"
+                    android:background="@drawable/line_trace_gold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Radiant Golden Path Glow"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Double-pass route highlighting bloodline or common ancestry"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Section 3: Pedigree & Gestures -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CANVAS GESTURES &amp; ACTIONS"
+                android:text="3. PEDIGREE &amp; CANVAS GESTURES"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
                 android:letterSpacing="0.08"
                 android:layout_marginBottom="10dp" />
 
+            <!-- Pedigree Empty Ancestor Slot -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/node_pedigree_empty_sample"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textSize="14sp"
+                    android:textColor="#A3B899" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Empty Ancestor Slot (Pedigree View)"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dashed circle placeholder for unrecorded biological father or mother"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="• Pinch to Zoom: Two fingers to zoom between 0.25x and 3.5x.\n• Drag to Pan: One finger to navigate around generations.\n• Tap Member: Inspect personal timeline, dates, and biography.\n• Tap Green '+' under Member: Quick-add a child to that parent."
+                android:text="• Pinch to Zoom: Two fingers to zoom between 0.25x and 3.5x.\n• Drag to Pan: One finger to navigate around generations.\n• Tap Member Card: Inspect personal timeline, dates, and biography.\n• Tap Green '+' under Member: Quick-add a child to that parent."
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="3dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="20dp" />
+
+            <!-- Close button inside scrollable flow -->
+            <TextView
+                android:id="@+id/btnGotItLegend"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="Got It"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/btn_gold_text"
+                android:background="@drawable/btn_gold_primary"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="8dp" />
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- Close button -->
-    <TextView
-        android:id="@+id/btnGotItLegend"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:gravity="center"
-        android:text="Got It"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/btn_gold_text"
-        android:background="@drawable/btn_gold_primary"
-        android:clickable="true"
-        android:focusable="true" />
-
 </LinearLayout>
-

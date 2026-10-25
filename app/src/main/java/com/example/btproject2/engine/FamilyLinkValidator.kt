@@ -117,13 +117,17 @@ object FamilyLinkValidator {
     // DATE & YEAR PARSING UTILITIES
     // ══════════════════════════════════════════════════════════════
 
+    private val YEAR_REGEX = Regex("""\b(18|19|20)\d{2}\b""")
+
     fun extractYear(dateStr: String?): Int? {
         if (dateStr.isNullOrBlank()) return null
         val trimmed = dateStr.trim()
 
-        if (trimmed.matches(Regex("""^\d{4}$"""))) {
-            return trimmed.toIntOrNull()
+        if (trimmed.length == 4) {
+            trimmed.toIntOrNull()?.let { return it }
         }
+
+        YEAR_REGEX.find(trimmed)?.value?.toIntOrNull()?.let { return it }
 
         val patterns = listOf(
             "yyyy-MM-dd",
@@ -149,8 +153,7 @@ object FamilyLinkValidator {
             }
         }
 
-        val match = Regex("""\b(18|19|20)\d{2}\b""").find(trimmed)
-        return match?.value?.toIntOrNull()
+        return null
     }
 
     fun parseDateToCalendar(dateStr: String?): Calendar? {
@@ -649,7 +652,8 @@ object FamilyLinkValidator {
         parent: Person,
         child: Person,
         role: String = "parent",
-        allPersons: List<Person> = emptyList()
+        allPersons: List<Person> = emptyList(),
+        checkCoParents: Boolean = true
     ): ValidationResult {
         val issues = mutableListOf<LinkIssue>()
 
@@ -728,7 +732,7 @@ object FamilyLinkValidator {
 
         // 2d. Co-Parent Compatibility with Child's Existing Other Parent
         val otherParent = if (isFatherRole) existingMother else existingFather
-        if (otherParent != null && !isSameId(otherParent.id, parent.id)) {
+        if (checkCoParents && otherParent != null && !isSameId(otherParent.id, parent.id)) {
             val f = if (isFatherRole) parent else otherParent
             val m = if (isFatherRole) otherParent else parent
             val coParentCheck = validateCoParents(f, m, allPersons)
@@ -853,18 +857,15 @@ object FamilyLinkValidator {
                 (existingMother != null && isSameId(sibling.motherId, existingMother.id))
             ) &&
             (
-                (sibling.fatherId != null && isSiblingOf(parent, findPersonInList(sibling.fatherId, allPersons) ?: Person(), allPersons)) ||
-                (sibling.motherId != null && isSiblingOf(parent, findPersonInList(sibling.motherId, allPersons) ?: Person(), allPersons))
+                (sibling.fatherId != null && isSiblingOf(parent, personMap[sibling.fatherId.trim().lowercase()] ?: Person(), allPersons)) ||
+                (sibling.motherId != null && isSiblingOf(parent, personMap[sibling.motherId.trim().lowercase()] ?: Person(), allPersons))
             )
         }
 
         var isCollateralUncleAuntViaTrace = false
-        if (parent.id.isNotBlank() && child.id.isNotBlank()) {
+        if (!isAlreadyChildOfProposedParent && parent.id.isNotBlank() && child.id.isNotBlank()) {
             try {
-                val map = allPersons.associateBy { it.id.trim() }.toMutableMap()
-                map[parent.id.trim()] = parent
-                map[child.id.trim()] = child
-                val trace = bloodlineTracer.trace(parent.id.trim(), child.id.trim(), map)
+                val trace = bloodlineTracer.trace(pId, cId, validationMap)
                 if (trace.isRelated && (trace.relationshipType.contains("Uncle", ignoreCase = true) || trace.relationshipType.contains("Aunt", ignoreCase = true))) {
                     isCollateralUncleAuntViaTrace = true
                 }
@@ -974,21 +975,6 @@ object FamilyLinkValidator {
                     field = role
                 )
             )
-        }
-
-        // 8. Co-parent feasibility with child's existing other parent
-        val isMotherRole = role.equals("mother", ignoreCase = true) || parent.gender.equals("female", ignoreCase = true)
-        val otherParentId = if (isMotherRole) child.fatherId else child.motherId
-        if (!otherParentId.isNullOrBlank()) {
-            val otherParent = findPersonInList(otherParentId, allPersons)
-            if (otherParent != null) {
-                val f = if (isMotherRole) otherParent else parent
-                val m = if (isMotherRole) parent else otherParent
-                val coParentCheck = validateCoParents(f, m, allPersons)
-                if (!coParentCheck.isValid) {
-                    issues.addAll(coParentCheck.issues)
-                }
-            }
         }
 
         return ValidationResult(issues)

@@ -26,6 +26,12 @@ class ConflictScanner {
 
     fun scanAll(allPersons: List<Person>): List<Conflict> {
         val conflicts = mutableListOf<Conflict>()
+        val personById = allPersons.associateBy { it.id.trim().lowercase() }
+        fun findPerson(id: String?): Person? =
+            id?.trim()?.takeIf { it.isNotEmpty() }?.lowercase()?.let { personById[it] }
+
+        val checkedCoParentPairs = mutableMapOf<String, FamilyLinkValidator.ValidationResult>()
+        val checkedSpousePairs = mutableSetOf<String>()
 
         allPersons.forEach { person ->
             val first = person.firstName.trim().ifBlank { "this member" }
@@ -43,7 +49,7 @@ class ConflictScanner {
 
             // 1. Broken father link
             person.fatherId?.takeIf { it.isNotBlank() }?.let { fid ->
-                if (FamilyLinkValidator.findPersonInList(fid, allPersons) == null) {
+                if (findPerson(fid) == null) {
                     val q = "“Who is $first’s father?”"
                     val exp = "The father $first had before was deleted from the tree, so we aren’t sure who to show as $pronounPossessive dad right now."
                     conflicts.add(
@@ -68,7 +74,7 @@ class ConflictScanner {
 
             // 2. Broken mother link
             person.motherId?.takeIf { it.isNotBlank() }?.let { mid ->
-                if (FamilyLinkValidator.findPersonInList(mid, allPersons) == null) {
+                if (findPerson(mid) == null) {
                     val q = "“Who is $first’s mother?”"
                     val exp = "The mother $first had before was deleted from the tree, so we aren’t sure who to show as $pronounPossessive mom right now."
                     conflicts.add(
@@ -93,7 +99,7 @@ class ConflictScanner {
 
             // 3. Broken spouse link
             person.spouseId?.takeIf { it.isNotBlank() }?.let { sid ->
-                if (FamilyLinkValidator.findPersonInList(sid, allPersons) == null) {
+                if (findPerson(sid) == null) {
                     val q = "“Who is $first married to?”"
                     val exp = "The husband or wife $first had before was deleted from the tree, so we aren’t sure who $pronounSubject is married to."
                     conflicts.add(
@@ -118,7 +124,7 @@ class ConflictScanner {
 
             // 4. Non-reciprocal spouse
             person.spouseId?.takeIf { it.isNotBlank() }?.let { sid ->
-                val spouse = FamilyLinkValidator.findPersonInList(sid, allPersons)
+                val spouse = findPerson(sid)
                 if (spouse != null && !FamilyLinkValidator.isSameId(spouse.spouseId, person.id)) {
                     val spFirst = spouse.firstName.ifBlank { "their spouse" }
                     val q = "“Are $first and $spFirst married to each other?”"
@@ -229,7 +235,7 @@ class ConflictScanner {
 
             // 7. Parent younger than child
             person.fatherId?.takeIf { it.isNotBlank() }?.let { fid ->
-                val father = FamilyLinkValidator.findPersonInList(fid, allPersons)
+                val father = findPerson(fid)
                 if (father != null && father.birthDate.isNotEmpty() && person.birthDate.isNotEmpty()) {
                     val gap = yearsBetween(father.birthDate, person.birthDate)
                     if (gap < 0) {
@@ -256,7 +262,7 @@ class ConflictScanner {
                 }
             }
             person.motherId?.takeIf { it.isNotBlank() }?.let { mid ->
-                val mother = FamilyLinkValidator.findPersonInList(mid, allPersons)
+                val mother = findPerson(mid)
                 if (mother != null && mother.birthDate.isNotEmpty() && person.birthDate.isNotEmpty()) {
                     val gap = yearsBetween(mother.birthDate, person.birthDate)
                     if (gap < 0) {
@@ -305,7 +311,7 @@ class ConflictScanner {
                 )
             }
             if (person.maritalStatus == "Single" && !person.spouseId.isNullOrBlank()) {
-                val spouse = FamilyLinkValidator.findPersonInList(person.spouseId, allPersons)
+                val spouse = findPerson(person.spouseId)
                 val spName = spouse?.firstName ?: "a spouse"
                 val q = "“Is $first currently married to $spName?”"
                 val exp = "$first has $spName picked as spouse, but $pronounPossessive civil status still says Single."
@@ -330,10 +336,13 @@ class ConflictScanner {
 
             // 9. Incestuous / Prohibited Co-Parents validation
             if (!person.fatherId.isNullOrEmpty() && !person.motherId.isNullOrEmpty()) {
-                val father = FamilyLinkValidator.findPersonInList(person.fatherId, allPersons)
-                val mother = FamilyLinkValidator.findPersonInList(person.motherId, allPersons)
+                val father = findPerson(person.fatherId)
+                val mother = findPerson(person.motherId)
                 if (father != null && mother != null) {
-                    val coParentCheck = FamilyLinkValidator.validateCoParents(father, mother, allPersons)
+                    val pairKey = "${father.id.trim().lowercase()}|${mother.id.trim().lowercase()}"
+                    val coParentCheck = checkedCoParentPairs.getOrPut(pairKey) {
+                        FamilyLinkValidator.validateCoParents(father, mother, allPersons)
+                    }
                     if (!coParentCheck.isValid) {
                         val q = "“Are ${father.firstName} and ${mother.firstName} the right parents for $first?”"
                         val exp = "${father.firstName} and ${mother.firstName} are already close blood relatives in the tree, so they can’t be set as co-parents."
@@ -360,14 +369,10 @@ class ConflictScanner {
 
             // 10. Prohibited Spouse validation (deduplicated per couple pair)
             person.spouseId?.takeIf { it.isNotBlank() }?.let { sid ->
-                val spouse = FamilyLinkValidator.findPersonInList(sid, allPersons)
+                val spouse = findPerson(sid)
                 if (spouse != null) {
-                    val alreadyHasCoupleConflict = conflicts.any {
-                        it.type == "prohibited_spouse" &&
-                            ((it.personId == person.id && it.relatedPersonId == spouse.id) ||
-                             (it.personId == spouse.id && it.relatedPersonId == person.id))
-                    }
-                    if (!alreadyHasCoupleConflict) {
+                    val coupleKey = listOf(person.id.trim().lowercase(), spouse.id.trim().lowercase()).sorted().joinToString("|")
+                    if (checkedSpousePairs.add(coupleKey)) {
                         val sCheck = FamilyLinkValidator.validateSpouse(person, spouse, allPersons)
                         if (!sCheck.isValid) {
                             val q = "“Can we double-check $first and ${spouse.firstName}’s marriage?”"
@@ -397,9 +402,15 @@ class ConflictScanner {
             // 11. Parent-Child validity check (only if not already flagged by earlier specific checks)
             person.fatherId?.takeIf { it.isNotBlank() }?.let { fid ->
                 val alreadyFlaggedFather = conflicts.any { it.personId == person.id && it.field == "fatherId" }
-                val father = FamilyLinkValidator.findPersonInList(fid, allPersons)
+                val father = findPerson(fid)
                 if (!alreadyFlaggedFather && father != null) {
-                    val fCheck = FamilyLinkValidator.validateParentChild(parent = father, child = person, role = "father", allPersons = allPersons)
+                    val fCheck = FamilyLinkValidator.validateParentChild(
+                        parent = father,
+                        child = person,
+                        role = "father",
+                        allPersons = allPersons,
+                        checkCoParents = false
+                    )
                     if (!fCheck.isValid) {
                         val q = "“Is ${father.firstName} really $first’s father?”"
                         val exp = fCheck.errors.firstOrNull()?.message
@@ -426,9 +437,15 @@ class ConflictScanner {
             }
             person.motherId?.takeIf { it.isNotBlank() }?.let { mid ->
                 val alreadyFlaggedMother = conflicts.any { it.personId == person.id && it.field == "motherId" }
-                val mother = FamilyLinkValidator.findPersonInList(mid, allPersons)
+                val mother = findPerson(mid)
                 if (!alreadyFlaggedMother && mother != null) {
-                    val mCheck = FamilyLinkValidator.validateParentChild(parent = mother, child = person, role = "mother", allPersons = allPersons)
+                    val mCheck = FamilyLinkValidator.validateParentChild(
+                        parent = mother,
+                        child = person,
+                        role = "mother",
+                        allPersons = allPersons,
+                        checkCoParents = false
+                    )
                     if (!mCheck.isValid) {
                         val q = "“Is ${mother.firstName} really $first’s mother?”"
                         val exp = mCheck.errors.firstOrNull()?.message

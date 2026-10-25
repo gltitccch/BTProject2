@@ -16,7 +16,12 @@ import com.example.btproject2.service.FamilyRelationshipService
 import com.example.btproject2.service.FamilyRelationshipService.AuditSeverity
 import com.example.btproject2.service.FamilyRelationshipService.TreeAuditIssue
 import com.example.btproject2.service.FamilyRelationshipService.TreeAuditReport
+import com.example.btproject2.sync.AffectedScreen
+import com.example.btproject2.sync.CentralTreeSynchronizer
+import com.example.btproject2.sync.SyncEventListener
+import com.example.btproject2.sync.TreeSyncEvent
 import com.example.btproject2.ui.adapters.TreeAuditAdapter
+import com.example.btproject2.utils.KinTraceModalDialog
 
 /**
  * TreeAuditActivity: Authoritative screen that audits the entire family tree for:
@@ -29,7 +34,19 @@ import com.example.btproject2.ui.adapters.TreeAuditAdapter
  * - A son-in-law or daughter-in-law incorrectly saved as a biological child instead of spouse of existing child
  * - Asymmetric or dangling references
  */
-class TreeAuditActivity : AppCompatActivity() {
+class TreeAuditActivity : AppCompatActivity(), SyncEventListener {
+
+    override val subscriberKey: String get() = "TreeAuditActivity_${treeId}"
+    override val screenType: AffectedScreen get() = AffectedScreen.ALL_SCREENS
+    override val interestedTreeId: String? get() = treeId.ifBlank { null }
+
+    override fun onSyncEvent(event: TreeSyncEvent) {
+        runOnUiThread {
+            if (!isFinishing && !isDestroyed) {
+                runTreeAudit()
+            }
+        }
+    }
 
     private val firestoreHelper = FirestoreHelper()
     private val familyService = FamilyRelationshipService()
@@ -70,6 +87,16 @@ class TreeAuditActivity : AppCompatActivity() {
         setupRecyclerView()
 
         runTreeAudit()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        CentralTreeSynchronizer.getInstance().registerListener(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        CentralTreeSynchronizer.getInstance().unregisterListener(this)
     }
 
     override fun onResume() {
@@ -198,22 +225,31 @@ class TreeAuditActivity : AppCompatActivity() {
     }
 
     private fun displayAuditReport(report: TreeAuditReport) {
-        tvTotalScannedCount.text = report.totalPersonsScanned.toString()
-        tvCriticalErrorCount.text = report.criticalErrorCount.toString()
-        tvWarningCount.text = report.warningCount.toString()
+        val totalMembers = if (currentPersons.isNotEmpty()) currentPersons.size else report.totalPersonsScanned
+        tvTotalScannedCount.text = totalMembers.toString()
+
+        val conflictCritical = currentWizardConflicts.count { it.severity.equals("error", ignoreCase = true) }
+        val conflictWarning = currentWizardConflicts.count { it.severity.equals("warning", ignoreCase = true) }
+
+        val effectiveCritical = maxOf(report.criticalErrorCount, conflictCritical)
+        val effectiveWarning = maxOf(report.warningCount, conflictWarning)
+
+        tvCriticalErrorCount.text = effectiveCritical.toString()
+        tvWarningCount.text = effectiveWarning.toString()
 
         if (currentWizardConflicts.isNotEmpty()) {
             btnLaunchConflictWizard?.visibility = View.VISIBLE
-            btnLaunchConflictWizard?.text = "✨ Fix ${currentWizardConflicts.size} Family Question(s) Step-by-Step"
+            val count = currentWizardConflicts.size
+            btnLaunchConflictWizard?.text = "✨ Start Guided Resolution ($count Issue${if (count > 1) "s" else ""})"
         } else {
             btnLaunchConflictWizard?.visibility = View.GONE
         }
 
-        if (report.criticalErrorCount > 0) {
-            tvSummaryHeadline.text = "🧭 Family Connections Need Review (${report.criticalErrorCount})"
+        if (effectiveCritical > 0) {
+            tvSummaryHeadline.text = "🧭 Family Connections Need Review ($effectiveCritical)"
             tvSummaryHeadline.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_critical_text))
-        } else if (report.warningCount > 0) {
-            tvSummaryHeadline.text = "⚠️ Lineage Suggestions Detected (${report.warningCount})"
+        } else if (effectiveWarning > 0) {
+            tvSummaryHeadline.text = "⚠️ Lineage Suggestions Detected ($effectiveWarning)"
             tvSummaryHeadline.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.audit_warning_text))
         } else {
             tvSummaryHeadline.text = "✅ All Family Tree Connections Look Healthy"
@@ -227,7 +263,7 @@ class TreeAuditActivity : AppCompatActivity() {
         if (conflicts.isEmpty()) return
 
         val dialogView = layoutInflater.inflate(R.layout.dialog_tree_conflict_wizard, null, false)
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+        val dialog = KinTraceModalDialog.Builder(this)
             .setView(dialogView)
             .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -250,28 +286,36 @@ class TreeAuditActivity : AppCompatActivity() {
         val btnPrev = dialogView.findViewById<android.widget.Button>(R.id.btnWizardPrev)
         val btnSkip = dialogView.findViewById<android.widget.Button>(R.id.btnWizardSkip)
 
+        // Hide reckless blind bulk fix; always guide user through verified steps
+        btnFixAll.visibility = View.GONE
+
+        tvHeaderBadge.text = "🛡️ GUIDED RESOLUTION STEPPER"
+        tvHeaderBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.warning))
+        tvModalTitle.text = "Guided Family Tree Resolution"
+        tvModalSub.text = "Step through relationship details with guided instructions."
+
         val activeConflicts = conflicts.toMutableList()
         var currentIndex = 0
 
         fun renderCompleteState() {
-            tvHeaderBadge.text = "✓ ALL TIDIED UP"
+            tvHeaderBadge.text = "🏆 ALL ISSUES RESOLVED"
             tvHeaderBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
             btnFixAll.visibility = View.GONE
-            tvModalTitle.text = "Everything Is Tidied Up!"
-            tvModalSub.text = "Your family tree connections are clean and up to date."
-            tvStepCounter.text = "All Steps Complete!"
-            tvStepPercent.text = "100% Done"
+            tvModalTitle.text = "Tree Integrity Verified!"
+            tvModalSub.text = "Your family tree connections are healthy, verified, and complete."
+            tvStepCounter.text = "All Steps Complete"
+            tvStepPercent.text = "100% Verified"
             progressSteps.progress = 100
 
             tvPersonName.text = "🎉 Family Tree Healthy"
-            tvStepTag.text = "✓ Done"
+            tvStepTag.text = "✓ Flawless"
             tvStepTag.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
-            tvHeadline.text = "“Your family tree looks great!”"
-            tvExplain.text = "All missing parent and spouse spots have been cleaned up."
+            tvHeadline.text = "“Tree Integrity Verified!”"
+            tvExplain.text = "All relationship connections, spouses, and parent links have been validated."
             tvHelper.text = "✨ 0 issues remaining."
 
             btnPrimary.isEnabled = true
-            btnPrimary.text = "✓ Back to Audit Report"
+            btnPrimary.text = "✓ Return to Audit Report"
             btnPrimary.setOnClickListener {
                 dialog.dismiss()
                 runTreeAudit()
@@ -297,21 +341,27 @@ class TreeAuditActivity : AppCompatActivity() {
             val item = activeConflicts[currentIndex]
             val pct = (((currentIndex + 1) * 100) / total).coerceIn(1, 100)
 
-            tvStepCounter.text = "Step ${currentIndex + 1} of $total"
+            tvStepCounter.text = "Issue ${currentIndex + 1} of $total"
             tvStepPercent.text = "$pct% Done"
             progressSteps.progress = pct
 
             tvPersonName.text = "👤 ${item.personName}"
-            tvStepTag.text = "Question ${currentIndex + 1}"
+            tvStepTag.text = "Issue ${currentIndex + 1}"
             tvHeadline.text = item.questionHeadline
             tvExplain.text = item.simpleExplanation
             tvHelper.text = item.helperPrompt
 
             btnPrimary.isEnabled = true
             btnSecondary.isEnabled = true
-            btnSecondary.visibility = View.VISIBLE
-            btnPrimary.text = item.primaryActionLabel
-            btnSecondary.text = item.secondaryActionLabel
+            btnSecondary.visibility = if (item.canAutoFix) View.GONE else View.VISIBLE
+
+            if (item.canAutoFix) {
+                val cleanLabel = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim()
+                btnPrimary.text = "⚡ Apply Safe Fix: $cleanLabel"
+            } else {
+                btnPrimary.text = item.primaryActionLabel
+                btnSecondary.text = item.secondaryActionLabel
+            }
 
             btnPrev.visibility = if (total > 1) View.VISIBLE else View.GONE
             btnPrev.isEnabled = currentIndex > 0
@@ -331,6 +381,12 @@ class TreeAuditActivity : AppCompatActivity() {
                                     currentPersons = currentPersons.map { if (it.id == updatedPerson.id) updatedPerson else it }
                                 }
                                 activeConflicts.removeAt(currentIndex)
+                                if (updatedPerson != null) {
+                                    CentralTreeSynchronizer.getInstance().notifyRelationshipCorrected(
+                                        primaryPerson = updatedPerson,
+                                        sourceScreen = "GuidedTreeAudit"
+                                    )
+                                }
                                 runTreeAudit()
                                 renderCurrentStep()
                             }
@@ -338,7 +394,8 @@ class TreeAuditActivity : AppCompatActivity() {
                         onFailure = { err ->
                             runOnUiThread {
                                 btnPrimary.isEnabled = true
-                                btnPrimary.text = item.primaryActionLabel
+                                val cleanLabel = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim()
+                                btnPrimary.text = "⚡ Apply Safe Fix: $cleanLabel"
                                 com.example.btproject2.utils.KinTraceAlert.warning(this, "Could Not Save", err.message ?: "Please try again.")
                             }
                         }
@@ -377,36 +434,6 @@ class TreeAuditActivity : AppCompatActivity() {
             } else {
                 dialog.dismiss()
             }
-        }
-
-        btnFixAll.setOnClickListener {
-            val fixable = activeConflicts.filter { it.canAutoFix }
-            if (fixable.isEmpty()) {
-                com.example.btproject2.utils.KinTraceAlert.show(this, "Please open the member's page to review birth dates.")
-                return@setOnClickListener
-            }
-            btnFixAll.isEnabled = false
-            btnFixAll.text = "⏳ Fixing..."
-            btnPrimary.isEnabled = false
-            firestoreHelper.autoRepairAllConflicts(
-                conflicts = fixable,
-                allPersons = currentPersons,
-                onSuccess = {
-                    runOnUiThread {
-                        activeConflicts.removeAll(fixable.toSet())
-                        runTreeAudit()
-                        renderCurrentStep()
-                    }
-                },
-                onFailure = { err ->
-                    runOnUiThread {
-                        btnFixAll.isEnabled = true
-                        btnFixAll.text = "✨ Fix All at Once"
-                        btnPrimary.isEnabled = true
-                        com.example.btproject2.utils.KinTraceAlert.warning(this, "Auto-Fix Failed", err.message ?: "Please try again.")
-                    }
-                }
-            )
         }
 
         renderCurrentStep()

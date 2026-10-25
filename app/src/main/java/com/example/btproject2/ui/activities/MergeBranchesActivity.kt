@@ -31,6 +31,7 @@ import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.ClanMergeRequest
 import com.example.btproject2.models.FamilyTree
+import com.example.btproject2.models.MergeRollbackSnapshot
 import com.example.btproject2.models.Person
 import com.example.btproject2.sync.CentralTreeSynchronizer
 import com.example.btproject2.sync.SyncChangeType
@@ -75,6 +76,13 @@ class MergeBranchesActivity : AppCompatActivity() {
     private lateinit var btnRegenerateMyMergeCode: Button
     private var myActiveMergeCode: String = ""
 
+    private var cardRollbackSnapshot: LinearLayout? = null
+    private var tvRollbackTimestamp: TextView? = null
+    private var tvRollbackTitle: TextView? = null
+    private var tvRollbackDetails: TextView? = null
+    private var btnExecuteMergeRollback: Button? = null
+    private var activeRollbackSnapshot: MergeRollbackSnapshot? = null
+
     private val clanRefreshHandler = Handler(Looper.getMainLooper())
     private val clanRefreshRunnable = Runnable {
         loadClanTrees()
@@ -106,6 +114,7 @@ class MergeBranchesActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         loadClanTrees()
+        refreshMergeRollbackBanner()
         com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
             this,
             com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.MERGE_CLAN_SPACE,
@@ -206,6 +215,94 @@ class MergeBranchesActivity : AppCompatActivity() {
         }
 
         checkRoleAndLoadData()
+        bindAndLoadRollbackBanner()
+    }
+
+    private fun bindAndLoadRollbackBanner() {
+        cardRollbackSnapshot = findViewById(R.id.cardRollbackSnapshot)
+        tvRollbackTimestamp = findViewById(R.id.tvRollbackTimestamp)
+        tvRollbackTitle = findViewById(R.id.tvRollbackTitle)
+        tvRollbackDetails = findViewById(R.id.tvRollbackDetails)
+        btnExecuteMergeRollback = findViewById(R.id.btnExecuteMergeRollback)
+
+        btnExecuteMergeRollback?.setOnClickListener {
+            val snapshot = activeRollbackSnapshot ?: return@setOnClickListener
+            if (isViewerOnly) {
+                KinTraceAlert.show(this, "Permission restricted: Viewers cannot undo merges.")
+                return@setOnClickListener
+            }
+            confirmAndExecuteMergeRollback(snapshot)
+        }
+        refreshMergeRollbackBanner()
+    }
+
+    private fun refreshMergeRollbackBanner() {
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        firestoreHelper.fetchLatestActiveMergeSnapshot(
+            ownerId = currentUserId,
+            onSuccess = { snapshot ->
+                runOnUiThread {
+                    activeRollbackSnapshot = snapshot
+                    if (snapshot == null || snapshot.rolledBack || isViewerOnly) {
+                        cardRollbackSnapshot?.visibility = View.GONE
+                    } else {
+                        cardRollbackSnapshot?.visibility = View.VISIBLE
+                        val elapsedMinutes = ((System.currentTimeMillis() - snapshot.createdAt) / 60000L).coerceAtLeast(0L)
+                        tvRollbackTimestamp?.text = if (elapsedMinutes == 0L) "Just now" else "${elapsedMinutes}m ago"
+                        if (snapshot.snapshotType == MergeRollbackSnapshot.TYPE_CLAN_SYNTHESIS) {
+                            tvRollbackTitle?.text = "Synthesized: ${snapshot.synthesizedMasterTreeName.ifBlank { "Master Clan Tree" }}"
+                            tvRollbackDetails?.text = "Combined ${snapshot.sourceTree1Name} + ${snapshot.sourceTree2Name} (${snapshot.combinedMemberCount} cloned records). Tap below to safely undo and dismantle this Clan Tree while keeping your original trees 100% untouched."
+                        } else {
+                            tvRollbackTitle?.text = "Internal Branch Link: ${snapshot.bridgeDescription.ifBlank { "Connected Branches" }}"
+                            tvRollbackDetails?.text = "Saved pre-merge relationship pointers before connecting internal branches. Tap below to restore the exact prior parent/spouse links."
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    private fun confirmAndExecuteMergeRollback(snapshot: MergeRollbackSnapshot) {
+        val summaryMsg = if (snapshot.snapshotType == MergeRollbackSnapshot.TYPE_CLAN_SYNTHESIS) {
+            "Are you sure you want to undo the synthesis of '${snapshot.synthesizedMasterTreeName}'?\n\n" +
+                "• All ${snapshot.combinedMemberCount} cloned Clan members and the merged tree container will be cleanly removed.\n" +
+                "• Your original source family trees (${snapshot.sourceTree1Name} & ${snapshot.sourceTree2Name}) remain 100% intact."
+        } else {
+            "Are you sure you want to undo the internal branch connection (${snapshot.bridgeDescription})?\n\n" +
+                "• Both family members will be restored to their exact pre-merge parent and spouse pointers."
+        }
+
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+            .setTitle("⏪ Undo Last Merge?")
+            .setMessage(summaryMsg)
+            .setPositiveButton("Yes, Restore Pre-Merge State") { _, _ ->
+                btnExecuteMergeRollback?.isEnabled = false
+                btnExecuteMergeRollback?.text = "Restoring Pre-Merge State..."
+                firestoreHelper.executeMergeRollback(
+                    snapshot = snapshot,
+                    context = this,
+                    onSuccess = {
+                        runOnUiThread {
+                            btnExecuteMergeRollback?.isEnabled = true
+                            btnExecuteMergeRollback?.text = "⏪ Undo Last Merge & Restore State"
+                            cardRollbackSnapshot?.visibility = View.GONE
+                            activeRollbackSnapshot = null
+                            KinTraceAlert.show(this, "Pre-merge state restored! All connected screens updated.")
+                            loadClanTrees()
+                            loadPersonalTreesAndMembers()
+                        }
+                    },
+                    onFailure = { err ->
+                        runOnUiThread {
+                            btnExecuteMergeRollback?.isEnabled = true
+                            btnExecuteMergeRollback?.text = "⏪ Undo Last Merge & Restore State"
+                            KinTraceAlert.show(this, "Rollback failed: ${err.message}")
+                        }
+                    }
+                )
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun checkRoleAndLoadData() {
@@ -621,6 +718,9 @@ class MergeBranchesActivity : AppCompatActivity() {
             }
         }
 
+        val previewExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
+        var previewGeneration = 0
+
         fun updateSummaryAndValidation() {
             layoutValidationWarning.visibility = View.GONE
             val count1 = personsTree1.size
@@ -635,6 +735,8 @@ class MergeBranchesActivity : AppCompatActivity() {
             if (idx1 in personsTree1.indices && idx2 in personsTree2.indices) {
                 val p1 = personsTree1[idx1]
                 val p2 = personsTree2[idx2]
+                val snapTree1 = personsTree1.toList()
+                val snapTree2 = personsTree2.toList()
 
                 val mode = when {
                     rbBridgeSpouse.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
@@ -650,19 +752,28 @@ class MergeBranchesActivity : AppCompatActivity() {
                     personBId = p2.id
                 )
 
-                val simResult = mergeSimulationEngine.simulate(personsTree1, personsTree2, config)
-
-                if (!simResult.isSafe) {
-                    layoutValidationWarning.visibility = View.VISIBLE
-                    tvValidationWarningText.text = "⚠️ ${simResult.blockReason ?: "Genealogical conflict detected"}"
-                    btnExecuteSynthesis.isEnabled = false
-                    btnExecuteSynthesis.alpha = 0.5f
-                } else {
-                    layoutValidationWarning.visibility = View.GONE
-                    btnExecuteSynthesis.isEnabled = true
-                    btnExecuteSynthesis.alpha = 1.0f
+                val currentGen = ++previewGeneration
+                try {
+                    previewExecutor.execute {
+                        val simResult = mergeSimulationEngine.simulate(snapTree1, snapTree2, config)
+                        runOnUiThread {
+                            if (currentGen != previewGeneration || isFinishing || isDestroyed) return@runOnUiThread
+                            if (!simResult.isSafe) {
+                                layoutValidationWarning.visibility = View.VISIBLE
+                                tvValidationWarningText.text = "⚠️ ${simResult.blockReason ?: "Genealogical conflict detected"}"
+                                btnExecuteSynthesis.isEnabled = false
+                                btnExecuteSynthesis.alpha = 0.5f
+                            } else {
+                                layoutValidationWarning.visibility = View.GONE
+                                btnExecuteSynthesis.isEnabled = true
+                                btnExecuteSynthesis.alpha = 1.0f
+                            }
+                        }
+                    }
+                } catch (_: Exception) {
                 }
             } else {
+                ++previewGeneration
                 btnExecuteSynthesis.isEnabled = false
                 btnExecuteSynthesis.alpha = 0.5f
             }
@@ -990,6 +1101,7 @@ class MergeBranchesActivity : AppCompatActivity() {
 
         dialog.setOnDismissListener {
             dialogRequestRegistration?.remove()
+            previewExecutor.shutdownNow()
         }
 
         // Initial loads
@@ -1054,43 +1166,6 @@ class MergeBranchesActivity : AppCompatActivity() {
                 currentUserId = currentUserId
             )
 
-            val simResult = mergeSimulationEngine.simulate(personsTree1, personsTree2, config)
-            if (!simResult.isSafe) {
-                progressBarSynthesis.visibility = View.GONE
-                btnExecuteSynthesis.isEnabled = true
-                btnCancelSynthesis.isEnabled = true
-
-                val selPos1Early = spinnerTree1.selectedItemPosition
-                val t1Early = allPersonalTrees.getOrNull(selPos1Early)
-                val t2Early = if (rbTree2MyTrees.isChecked) {
-                    val selPos2 = spinnerTree2.selectedItemPosition
-                    allPersonalTrees.getOrNull(selPos2)
-                } else externalTreeLoaded
-
-                val collisionRecord = com.example.btproject2.models.MergeCollisionRecord(
-                    sourceTree1Id = t1Early?.id.orEmpty(),
-                    sourceTree1Name = t1Early?.name ?: "Branch A",
-                    sourceTree2Id = t2Early?.id.orEmpty(),
-                    sourceTree2Name = t2Early?.name ?: "Branch B",
-                    personAId = anchor1.id,
-                    personAName = "${anchor1.firstName} ${anchor1.lastName}".trim(),
-                    personBId = anchor2.id,
-                    personBName = "${anchor2.firstName} ${anchor2.lastName}".trim(),
-                    conflictType = "LINEAGE_COLLISION",
-                    conflictSummary = simResult.blockReason.orEmpty(),
-                    conflictDetails = "Pre-flight validation blocked merge between ${t1Early?.name ?: "Branch A"} and ${t2Early?.name ?: "Branch B"}: ${simResult.blockReason.orEmpty()}",
-                    suggestedResolution = "Resolve conflicting lineage or relationship rule in System Admin Citadel.",
-                    escalatedBy = currentUserName
-                )
-                firestoreHelper.saveMergeCollision(collisionRecord)
-
-                KinTraceAlert.show(this, "Synthesis Blocked: ${simResult.blockReason.orEmpty()}\nEscalated to Ops & Recovery Desk.")
-                return@setOnClickListener
-            }
-
-            val clonedList = simResult.simulatedMembers.toMutableList()
-            val bridgeDesc = simResult.bridgeDescription
-
             val selPos1 = spinnerTree1.selectedItemPosition
             val tree1 = allPersonalTrees.getOrNull(selPos1)
             val tree2 = if (rbTree2MyTrees.isChecked) {
@@ -1100,85 +1175,141 @@ class MergeBranchesActivity : AppCompatActivity() {
                 externalTreeLoaded
             }
 
-            val owner1Id = tree1?.ownerId?.takeIf { it.isNotBlank() } ?: currentUserId
-            val owner1Name = tree1?.ownerName?.takeIf { it.isNotBlank() } ?: currentUserName
-            val owner2Id = tree2?.ownerId?.takeIf { it.isNotBlank() } ?: ""
-            val owner2Name = tree2?.ownerName?.takeIf { it.isNotBlank() } ?: ""
+            // Phase 1: Run pre-flight 200+ member simulation on a background worker thread to prevent UI ANRs
+            Thread {
+                val simResult = mergeSimulationEngine.simulate(personsTree1, personsTree2, config)
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    if (!simResult.isSafe) {
+                        progressBarSynthesis.visibility = View.GONE
+                        btnExecuteSynthesis.isEnabled = true
+                        btnCancelSynthesis.isEnabled = true
 
-            val coOwners = listOfNotNull(owner1Id, owner2Id).filter { it.isNotBlank() }.distinct()
-
-            // 4. Create Master Tree C record
-            val masterTree = FamilyTree(
-                id = masterTreeId,
-                name = masterTreeName,
-                ownerId = currentUserId,
-                ownerName = currentUserName,
-                memberCount = clonedList.size,
-                createdAt = System.currentTimeMillis(),
-                treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
-                bridgeDescription = bridgeDesc,
-                sourceTree1Id = tree1?.id ?: "",
-                sourceTree2Id = tree2?.id ?: "",
-                coOwnerIds = coOwners
-            )
-
-            // Determine partner tree owner
-            val partnerOwnerId = if (owner2Id.isNotBlank() && owner2Id != currentUserId) owner2Id
-                                 else if (owner1Id.isNotBlank() && owner1Id != currentUserId) owner1Id
-                                 else null
-            val partnerOwnerName = if (partnerOwnerId == owner2Id) owner2Name else owner1Name
-
-            val reqIdToComplete = activeApprovedRequestId
-
-            // 5. Commit atomic batch write
-            firestoreHelper.saveMasterTreeAndMembers(
-                masterTree = masterTree,
-                members = clonedList,
-                partnerTreeOwnerId = partnerOwnerId,
-                partnerTreeOwnerName = partnerOwnerName,
-                onSuccess = { createdTree ->
-                    if (reqIdToComplete != null) {
-                        firestoreHelper.updateClanMergeRequestStatus(
-                            requestId = reqIdToComplete,
-                            newStatus = ClanMergeRequest.STATUS_COMPLETED,
-                            masterTreeId = createdTree.id
+                        val collisionRecord = com.example.btproject2.models.MergeCollisionRecord(
+                            sourceTree1Id = tree1?.id.orEmpty(),
+                            sourceTree1Name = tree1?.name ?: "Branch A",
+                            sourceTree2Id = tree2?.id.orEmpty(),
+                            sourceTree2Name = tree2?.name ?: "Branch B",
+                            personAId = anchor1.id,
+                            personAName = "${anchor1.firstName} ${anchor1.lastName}".trim(),
+                            personBId = anchor2.id,
+                            personBName = "${anchor2.firstName} ${anchor2.lastName}".trim(),
+                            conflictType = "LINEAGE_COLLISION",
+                            conflictSummary = simResult.blockReason.orEmpty(),
+                            conflictDetails = "Pre-flight validation blocked merge between ${tree1?.name ?: "Branch A"} and ${tree2?.name ?: "Branch B"}: ${simResult.blockReason.orEmpty()}",
+                            suggestedResolution = "Resolve conflicting lineage or relationship rule in System Admin Citadel.",
+                            escalatedBy = currentUserName
                         )
-                    }
-                    dialog.dismiss()
-                    KinTraceAlert.show(this, "Master Clan Tree synthesized successfully!")
-                    loadClanTrees()
+                        firestoreHelper.saveMergeCollision(collisionRecord)
 
-                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                        .setTitle("Master Clan Tree Created!")
-                        .setMessage("'${createdTree.name}' has been created with ${createdTree.memberCount} members in your Merged Clan Space.\n\n🛡️ Your original family trees remain completely untouched.\n\nWould you like to explore the Clan Canvas now?")
-                        .setPositiveButton("👁️ View Clan Canvas") { _, _ ->
-                            val intent = Intent(this, InteractiveTreeActivity::class.java).apply {
-                                putExtra("TREE_ID", createdTree.id)
-                                putExtra("treeId", createdTree.id)
-                                putExtra("IS_CLAN_SPACE", true)
+                        KinTraceAlert.show(this, "Synthesis Blocked: ${simResult.blockReason.orEmpty()}\nEscalated to Ops & Recovery Desk.")
+                        return@runOnUiThread
+                    }
+
+                    val clonedList = simResult.simulatedMembers.toMutableList()
+                    val bridgeDesc = simResult.bridgeDescription
+
+                    val owner1Id = tree1?.ownerId?.takeIf { it.isNotBlank() } ?: currentUserId
+                    val owner1Name = tree1?.ownerName?.takeIf { it.isNotBlank() } ?: currentUserName
+                    val owner2Id = tree2?.ownerId?.takeIf { it.isNotBlank() } ?: ""
+                    val owner2Name = tree2?.ownerName?.takeIf { it.isNotBlank() } ?: ""
+
+                    val coOwners = listOfNotNull(owner1Id, owner2Id).filter { it.isNotBlank() }.distinct()
+
+                    // 4. Create Master Tree C record
+                    val masterTree = FamilyTree(
+                        id = masterTreeId,
+                        name = masterTreeName,
+                        ownerId = currentUserId,
+                        ownerName = currentUserName,
+                        memberCount = clonedList.size,
+                        createdAt = System.currentTimeMillis(),
+                        treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
+                        bridgeDescription = bridgeDesc,
+                        sourceTree1Id = tree1?.id ?: "",
+                        sourceTree2Id = tree2?.id ?: "",
+                        coOwnerIds = coOwners
+                    )
+
+                    // Determine partner tree owner
+                    val partnerOwnerId = if (owner2Id.isNotBlank() && owner2Id != currentUserId) owner2Id
+                                         else if (owner1Id.isNotBlank() && owner1Id != currentUserId) owner1Id
+                                         else null
+                    val partnerOwnerName = if (partnerOwnerId == owner2Id) owner2Name else owner1Name
+
+                    val reqIdToComplete = activeApprovedRequestId
+
+                    // 5. Commit chunked batch write (200 docs per batch)
+                    firestoreHelper.saveMasterTreeAndMembers(
+                        masterTree = masterTree,
+                        members = clonedList,
+                        partnerTreeOwnerId = partnerOwnerId,
+                        partnerTreeOwnerName = partnerOwnerName,
+                        onSuccess = { createdTree ->
+                            if (reqIdToComplete != null) {
+                                firestoreHelper.updateClanMergeRequestStatus(
+                                    requestId = reqIdToComplete,
+                                    newStatus = ClanMergeRequest.STATUS_COMPLETED,
+                                    masterTreeId = createdTree.id
+                                )
                             }
-                            startActivity(intent)
+
+                            // Save Pre-Merge Snapshot for 1-Tap Undo Rollback
+                            val snapshot = MergeRollbackSnapshot(
+                                ownerId = currentUserId,
+                                snapshotType = MergeRollbackSnapshot.TYPE_CLAN_SYNTHESIS,
+                                titleSummary = "Synthesized: ${createdTree.name}",
+                                synthesizedMasterTreeId = createdTree.id,
+                                synthesizedMasterTreeName = createdTree.name,
+                                sourceTree1Id = tree1?.id.orEmpty(),
+                                sourceTree1Name = tree1?.name ?: "Tree 1",
+                                sourceTree2Id = tree2?.id.orEmpty(),
+                                sourceTree2Name = tree2?.name ?: "Tree 2",
+                                combinedMemberCount = clonedList.size,
+                                bridgeDescription = bridgeDesc
+                            )
+                            firestoreHelper.saveMergeRollbackSnapshot(snapshot, onSuccess = {
+                                refreshMergeRollbackBanner()
+                            })
+                            refreshMergeRollbackBanner()
+
+                            dialog.dismiss()
+                            KinTraceAlert.show(this, "Master Clan Tree synthesized! Pre-Merge Snapshot saved.")
+                            loadClanTrees()
+
+                            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                                .setTitle("Master Clan Tree Created!")
+                                .setMessage("'${createdTree.name}' has been created with ${createdTree.memberCount} members in your Merged Clan Space.\n\n🛡️ Pre-Merge Snapshot Active: Your original family trees remain untouched, and you can undo this synthesis in 1 tap from the Merge screen.\n\nWould you like to explore the Clan Canvas now?")
+                                .setPositiveButton("👁️ View Clan Canvas") { _, _ ->
+                                    val intent = Intent(this, InteractiveTreeActivity::class.java).apply {
+                                        putExtra("TREE_ID", createdTree.id)
+                                        putExtra("treeId", createdTree.id)
+                                        putExtra("IS_CLAN_SPACE", true)
+                                    }
+                                    startActivity(intent)
+                                }
+                                .setNegativeButton("Done", null)
+                                .show()
+                        },
+                        onFailure = { err ->
+                            if (reqIdToComplete != null) {
+                                firestoreHelper.updateClanMergeRequestStatus(
+                                    requestId = reqIdToComplete,
+                                    newStatus = ClanMergeRequest.STATUS_FAILED
+                                )
+                            }
+                            progressBarSynthesis.visibility = View.GONE
+                            btnExecuteSynthesis.isEnabled = true
+                            btnCancelSynthesis.isEnabled = true
+                            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                                .setTitle("Synthesis Failed")
+                                .setMessage("An error occurred while saving the Master Clan Tree: ${err.message}")
+                                .setPositiveButton("OK", null)
+                                .show()
                         }
-                        .setNegativeButton("Done", null)
-                        .show()
-                },
-                onFailure = { err ->
-                    if (reqIdToComplete != null) {
-                        firestoreHelper.updateClanMergeRequestStatus(
-                            requestId = reqIdToComplete,
-                            newStatus = ClanMergeRequest.STATUS_FAILED
-                        )
-                    }
-                    progressBarSynthesis.visibility = View.GONE
-                    btnExecuteSynthesis.isEnabled = true
-                    btnCancelSynthesis.isEnabled = true
-                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                        .setTitle("Synthesis Failed")
-                        .setMessage("An error occurred while saving the Master Clan Tree: ${err.message}")
-                        .setPositiveButton("OK", null)
-                        .show()
+                    )
                 }
-            )
+            }.start()
         }
 
         dialog.setOnDismissListener {
@@ -1325,15 +1456,35 @@ class MergeBranchesActivity : AppCompatActivity() {
             btnConfirm.isEnabled = false
             btnConfirm.text = "Connecting..."
 
+            val currentUserId = authHelper.getCurrentUserId().orEmpty()
+            val connDesc = "${pA.firstName} ${pA.lastName} ↔ ${pB.firstName} ${pB.lastName} (${connOptions.getOrElse(connPos) { "Branch Link" }})"
+            val intraSnapshot = MergeRollbackSnapshot(
+                ownerId = currentUserId,
+                snapshotType = MergeRollbackSnapshot.TYPE_INTRA_BRANCH,
+                titleSummary = "Internal Branch Link: $connDesc",
+                bridgeDescription = connDesc,
+                intraTreeId = activeTreeId,
+                previousPersonA = pA.copy(),
+                previousPersonB = pB.copy()
+            )
+
+            fun saveIntraSnapshotAndRefresh() {
+                firestoreHelper.saveMergeRollbackSnapshot(intraSnapshot, onSuccess = {
+                    refreshMergeRollbackBanner()
+                })
+                refreshMergeRollbackBanner()
+            }
+
             when (connPos) {
                 0 -> { // Spouse
                     val updatedA = pA.copy(spouseId = pB.id)
                     val updatedB = pB.copy(spouseId = pA.id)
                     firestoreHelper.updatePerson(updatedA, {
                         firestoreHelper.updatePerson(updatedB, {
+                            saveIntraSnapshotAndRefresh()
                             CentralTreeSynchronizer.getInstance().notifySpouseChanged(updatedA, updatedB)
                             dialog.dismiss()
-                            KinTraceAlert.show(this, "Spousal link created!")
+                            KinTraceAlert.show(this, "Spousal link created! Pre-Merge Snapshot saved.")
                             loadPersonalTreesAndMembers()
                         }, { dialog.dismiss() })
                     }, { dialog.dismiss() })
@@ -1341,18 +1492,20 @@ class MergeBranchesActivity : AppCompatActivity() {
                 1 -> { // A is Father of B
                     val updatedB = pB.copy(fatherId = pA.id)
                     firestoreHelper.updatePerson(updatedB, {
+                        saveIntraSnapshotAndRefresh()
                         CentralTreeSynchronizer.getInstance().notifyParentChildChanged(updatedB, pA, "father")
                         dialog.dismiss()
-                        KinTraceAlert.show(this, "Paternal branch connected!")
+                        KinTraceAlert.show(this, "Paternal branch connected! Pre-Merge Snapshot saved.")
                         loadPersonalTreesAndMembers()
                     }, { dialog.dismiss() })
                 }
                 2 -> { // A is Mother of B
                     val updatedB = pB.copy(motherId = pA.id)
                     firestoreHelper.updatePerson(updatedB, {
+                        saveIntraSnapshotAndRefresh()
                         CentralTreeSynchronizer.getInstance().notifyParentChildChanged(updatedB, pA, "mother")
                         dialog.dismiss()
-                        KinTraceAlert.show(this, "Maternal branch connected!")
+                        KinTraceAlert.show(this, "Maternal branch connected! Pre-Merge Snapshot saved.")
                         loadPersonalTreesAndMembers()
                     }, { dialog.dismiss() })
                 }
@@ -1363,9 +1516,10 @@ class MergeBranchesActivity : AppCompatActivity() {
                         pA.copy(fatherId = pB.id)
                     }
                     firestoreHelper.updatePerson(updatedA, {
+                        saveIntraSnapshotAndRefresh()
                         CentralTreeSynchronizer.getInstance().notifyParentChildChanged(updatedA, pB, "parent")
                         dialog.dismiss()
-                        KinTraceAlert.show(this, "Branch connected!")
+                        KinTraceAlert.show(this, "Branch connected! Pre-Merge Snapshot saved.")
                         loadPersonalTreesAndMembers()
                     }, { dialog.dismiss() })
                 }

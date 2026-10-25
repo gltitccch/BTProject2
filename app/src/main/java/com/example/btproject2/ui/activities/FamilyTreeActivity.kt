@@ -54,9 +54,10 @@ class FamilyTreeActivity : AppCompatActivity() {
                     Thread {
                         val genMap = computeGenerationMap(allPersons)
                         val items = buildGenerationItems(allPersons, genMap)
+                        val focal = findDefaultFocalPerson(allPersons)
                         runOnUiThread {
                             if (isFinishing || isDestroyed) return@runOnUiThread
-                            treeAdapter.submitItems(items, allPersons, null)
+                            treeAdapter.submitItems(items, allPersons, focal)
                             scrollState?.let { layoutManager?.onRestoreInstanceState(it) }
 
                             if (webViewFan.visibility == android.view.View.VISIBLE) {
@@ -83,7 +84,8 @@ class FamilyTreeActivity : AppCompatActivity() {
                 syncCoordinator.allPersonsList = allPersons
                 tvMemberCount.text = "${allPersons.size} members"
                 val items = buildGenerationItems(allPersons)
-                treeAdapter.submitItems(items, allPersons, null)
+                val focal = findDefaultFocalPerson(allPersons)
+                treeAdapter.submitItems(items, allPersons, focal)
                 if (webViewFan.visibility == android.view.View.VISIBLE) {
                     renderFanChart(allPersons)
                 }
@@ -379,6 +381,22 @@ class FamilyTreeActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    private fun findDefaultFocalPerson(persons: List<Person>): Person? {
+        if (persons.isEmpty()) return null
+        val currentUser = try { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser } catch (_: Throwable) { null }
+        val uName = (currentUser?.displayName ?: "").lowercase().trim()
+
+        if (uName.isNotEmpty()) {
+            val userMatch = persons.find {
+                val fName = "${it.firstName} ${it.lastName}".lowercase()
+                fName.contains(uName) || uName.contains(it.firstName.lowercase())
+            }
+            if (userMatch != null) return userMatch
+        }
+
+        return TreeMemberAdapter.resolveDefaultFocal(persons)
+    }
+
     private fun loadTree() {
         val cached = FirestoreHelper.getCachedPersons(treeId)
         if (!cached.isNullOrEmpty() && allPersons.isEmpty()) {
@@ -389,9 +407,10 @@ class FamilyTreeActivity : AppCompatActivity() {
             Thread {
                 val genMap = computeGenerationMap(activePersons)
                 val items = buildGenerationItems(activePersons, genMap)
+                val focal = findDefaultFocalPerson(activePersons)
                 runOnUiThread {
                     if (isFinishing || isDestroyed) return@runOnUiThread
-                    treeAdapter.submitItems(items, activePersons, null)
+                    treeAdapter.submitItems(items, activePersons, focal)
                     if (webViewFan.visibility == android.view.View.VISIBLE) {
                         renderFanChart(activePersons, genMap)
                     }
@@ -408,9 +427,10 @@ class FamilyTreeActivity : AppCompatActivity() {
                 Thread {
                     val genMap = computeGenerationMap(activePersons)
                     val items = buildGenerationItems(activePersons, genMap)
+                    val focal = findDefaultFocalPerson(activePersons)
                     runOnUiThread {
                         if (isFinishing || isDestroyed) return@runOnUiThread
-                        treeAdapter.submitItems(items, activePersons, null)
+                        treeAdapter.submitItems(items, activePersons, focal)
                         if (webViewFan.visibility == android.view.View.VISIBLE) {
                             renderFanChart(activePersons, genMap)
                         }
@@ -427,9 +447,10 @@ class FamilyTreeActivity : AppCompatActivity() {
                     Thread {
                         val genMap = computeGenerationMap(activePersons)
                         val items = buildGenerationItems(activePersons, genMap)
+                        val focal = findDefaultFocalPerson(activePersons)
                         runOnUiThread {
                             if (isFinishing || isDestroyed) return@runOnUiThread
-                            treeAdapter.submitItems(items, activePersons, null)
+                            treeAdapter.submitItems(items, activePersons, focal)
                             if (webViewFan.visibility == android.view.View.VISIBLE) {
                                 renderFanChart(activePersons, genMap)
                             }

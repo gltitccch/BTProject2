@@ -67,7 +67,7 @@ class MergeSimulationEngine(
             )
         }
 
-        val combinedInputMap = (tree1Members + tree2Members).associateBy { it.id.trim().lowercase() }
+        val combinedInputMap = (tree1Members + tree2Members).associateBy { it.id.trim() }
 
         // 1. Run domain validation for the requested bridge mode
         val valResult = when (config.mode) {
