@@ -85,7 +85,10 @@
             android:paddingEnd="8dp"
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
-            android:layout_marginStart="8dp" />
+            android:layout_marginStart="8dp"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
     </LinearLayout>
 

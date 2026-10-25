@@ -1306,7 +1306,7 @@
                             android:layout_height="40dp"
                             android:layout_marginTop="2dp"
                             android:background="@drawable/bg_input_dark"
-                            android:hint="https://.../app-debug.apk"
+                            android:hint="https://.../app-release.apk"
                             android:inputType="textUri"
                             android:paddingHorizontal="10dp"
                             android:textColor="@color/text_primary"

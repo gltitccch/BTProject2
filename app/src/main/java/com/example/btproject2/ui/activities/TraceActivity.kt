@@ -71,6 +71,19 @@ class TraceActivity : AppCompatActivity() {
             ).show(supportFragmentManager, "QuickAssistTrace")
         }
 
+        // Contextual First-Visit Guide Pill wiring (Direction 1)
+        val layoutTraceGuideBanner = findViewById<View?>(R.id.layoutTraceGuideBanner)
+        findViewById<View?>(R.id.btnStartTraceTourPill)?.setOnClickListener {
+            layoutTraceGuideBanner?.visibility = View.GONE
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialForced(
+                this,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.TRACE_BLOODLINE
+            )
+        }
+        findViewById<View?>(R.id.btnDismissTraceGuideBanner)?.setOnClickListener {
+            layoutTraceGuideBanner?.visibility = View.GONE
+        }
+
         resultContainer.visibility = View.GONE
 
         // ── Floating Heritage Island Bottom Navigation Coordinator ──
@@ -217,13 +230,22 @@ class TraceActivity : AppCompatActivity() {
             if (r != null && r.isRelated) {
                 val pathIds = ArrayList<String>()
                 pathIds.addAll(r.pathFromA.map { it.id })
-                r.commonAncestor?.id?.let { pathIds.add(it) }
+                r.commonAncestors.forEach { pathIds.add(it.id) }
+                r.commonAncestor?.id?.let { if (!pathIds.contains(it)) pathIds.add(it) }
                 pathIds.addAll(r.pathFromB.map { it.id })
+
+                val mrcaIdList = ArrayList<String>()
+                r.commonAncestors.forEach { mrcaIdList.add(it.id) }
+                r.commonAncestor?.id?.let { if (!mrcaIdList.contains(it)) mrcaIdList.add(it) }
+                val isAffinity = r.relationshipCategory.contains("Affinity", ignoreCase = true) ||
+                    r.relationshipCategory.contains("Spousal", ignoreCase = true)
 
                 val intent = Intent(this, InteractiveTreeActivity::class.java).apply {
                     putExtra("highlightPersonAId", r.personA.id)
                     putExtra("highlightPersonBId", r.personB.id)
                     putExtra("mrcaId", r.commonAncestor?.id)
+                    putStringArrayListExtra("mrcaIds", mrcaIdList)
+                    putExtra("isAffinityTrace", isAffinity)
                     putStringArrayListExtra("highlightPathIds", pathIds)
                     putExtra("viewMode", "TRACE_HIGHLIGHT")
                     putExtra("TREE_ID", treeId)
@@ -257,7 +279,17 @@ class TraceActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.updateGuideCrestVisibility(this)
         loadRecentTraceReports()
+
+        val isTraceSeen = com.example.btproject2.utils.OnboardingPreferences.hasSeenTutorial(this, com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.TRACE_BLOODLINE.key, treeId = treeId)
+        findViewById<View?>(R.id.layoutTraceGuideBanner)?.visibility = if (!isTraceSeen) View.VISIBLE else View.GONE
+
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.TRACE_BLOODLINE,
+            treeId = treeId
+        )
     }
 
     override fun onDestroy() {
@@ -322,13 +354,25 @@ class TraceActivity : AppCompatActivity() {
                 tvLegalArticle.text = "Extended Clan Lineage • Beyond 4th Civil Degree Scope (Articles 963–966)"
             }
             result.isRelated -> {
-                tvLegalBadge.text = "DIRECT / AFFINITY"
-                tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
-                tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
-                tvLegalTitle.text = "${result.relationshipType} (${result.relationshipCategory} Connection)"
-                tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
-                tvLegalDescription.text = "${result.personA.firstName} and ${result.personB.firstName} are connected through ${result.relationshipCategory.lowercase()} family ties (${result.relationshipType}) rather than biological consanguinity degrees."
-                tvLegalArticle.text = "Family Record Connection • Non-Consanguineous / Direct Link"
+                if (result.isMarriageProhibited) {
+                    tvLegalBadge.text = "PROHIBITED (${result.legalStatus.uppercase()})"
+                    tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.danger))
+                    tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
+                    tvLegalTitle.text = "${result.relationshipType} — ${result.legalStatus}"
+                    tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
+                    tvLegalDescription.text = result.legalDescription
+                    tvLegalArticle.text = "Legal Basis: ${result.legalArticle}"
+                } else {
+                    tvLegalBadge.text = "NO BLOOD PROHIBITION"
+                    tvLegalBadge.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
+                    tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+                    tvLegalTitle.text = "${result.relationshipType} (${result.relationshipCategory} Connection)"
+                    tvLegalTitle.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
+                    tvLegalDescription.text = result.legalDescription.ifBlank {
+                        "${result.personA.firstName} and ${result.personB.firstName} are connected through ${result.relationshipCategory.lowercase()} family ties (${result.relationshipType}) rather than biological consanguinity degrees."
+                    }
+                    tvLegalArticle.text = "Family Record Connection • ${result.legalArticle}"
+                }
             }
             else -> {
                 tvLegalBadge.text = "UNCONNECTED"
@@ -342,38 +386,85 @@ class TraceActivity : AppCompatActivity() {
         }
 
         if (result.isRelated) {
+            val isAffinity = result.relationshipCategory.contains("Affinity", ignoreCase = true) ||
+                result.relationshipCategory.contains("Spousal", ignoreCase = true)
             resultCard.setBackgroundResource(R.drawable.result_card_bg)
-            tvResultLabel.text = "RELATIONSHIP FOUND"
+            tvResultLabel.text = if (isAffinity) "MARRIAGE / AFFINITY CONNECTION" else "RELATIONSHIP FOUND"
             tvResultLabel.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
-            tvType.text = result.relationshipType
+            tvType.text = if (result.bloodlineSubtype.isNotBlank() && result.relationshipCategory == "Collateral") {
+                "${result.relationshipType} (${result.bloodlineSubtype})"
+            } else {
+                result.relationshipType
+            }
             tvType.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
             tvExplanation.text = result.explanation
 
             if (result.commonAncestor != null) {
                 ancestorContainer.visibility = View.VISIBLE
-                tvAncestor.text = "${result.commonAncestor.firstName} ${result.commonAncestor.lastName}"
+                (ancestorContainer.getChildAt(0) as? TextView)?.text = if (isAffinity) {
+                    "CONNECTING MARRIAGE BRIDGE"
+                } else {
+                    "CLOSEST COMMON ANCESTOR"
+                }
+                tvAncestor.text = if (isAffinity) {
+                    val ca = result.commonAncestor
+                    "💍 ${ca.firstName} ${ca.lastName}".trim()
+                } else {
+                    result.commonAncestorDisplayName
+                }
             } else {
                 ancestorContainer.visibility = View.GONE
             }
 
-            tvCategory.text = "Classification: ${result.relationshipCategory} Line (via ${if (result.relationshipCategory == "Lineal") "direct ascent/descent" else "shared ancestor"})"
-            tvDegree.text = "Consanguinity: ${result.degreeOfConsanguinity}${getOrdinalSuffix(result.degreeOfConsanguinity)} Civil Degree (Roman Method)"
-            tvSteps.text = "Generational Steps: ${result.distanceA} from ${result.personA.firstName}, ${result.distanceB} from ${result.personB.firstName}"
+            val subtypeNote = if (result.bloodlineSubtype.isNotBlank()) " · ${result.bloodlineSubtype}" else ""
+            if (isAffinity && result.degreeOfConsanguinity == 0) {
+                tvCategory.text = "Classification: ${result.relationshipCategory}$subtypeNote"
+                tvDegree.text = "Consanguinity: 0° Biological Bloodline (Connected by Marriage)"
+                tvSteps.text = "Connection Steps: ${result.distanceA} step(s) from ${result.personA.firstName}, ${result.distanceB} step(s) from ${result.personB.firstName}"
+            } else {
+                tvCategory.text = "Classification: ${result.relationshipCategory} Line$subtypeNote (via ${if (result.relationshipCategory == "Lineal") "direct ascent/descent" else "shared ancestor"})"
+                tvDegree.text = "Consanguinity: ${result.degreeOfConsanguinity}${getOrdinalSuffix(result.degreeOfConsanguinity)} Civil Degree (Roman Method)"
+                tvSteps.text = "Generational Steps: ${result.distanceA} from ${result.personA.firstName}, ${result.distanceB} from ${result.personB.firstName}"
+            }
 
             // Inline Bloodline Route Preview
             val cardInlineRoutePreview = findViewById<LinearLayout>(R.id.cardInlineRoutePreview)
             val tvInlineRouteText = findViewById<TextView>(R.id.tvInlineRouteText)
             val tvInlineRouteSteps = findViewById<TextView>(R.id.tvInlineRouteSteps)
 
-            val pathA = result.pathFromA.map { it.firstName }
-            val mrcaName = result.commonAncestor?.let { "★ ${it.firstName} (MRCA)" }
-            val pathB = result.pathFromB.reversed().drop(1).map { it.firstName }
-            val fullRoute = (pathA + listOfNotNull(mrcaName) + pathB).distinct()
+            val fullRoute = if (isAffinity) {
+                val combined = (result.pathFromA + result.pathFromB.reversed()).distinctBy { it.id }
+                val bridgeId = result.commonAncestor?.id
+                combined.map { p ->
+                    if (p.id == bridgeId && p.id != result.personA.id && p.id != result.personB.id) {
+                        "💍 ${p.firstName} (Bridge)"
+                    } else {
+                        p.firstName
+                    }
+                }
+            } else {
+                val pathA = if (result.commonAncestor != null && result.pathFromA.lastOrNull()?.id == result.commonAncestor.id) {
+                    result.pathFromA.dropLast(1).map { it.firstName }
+                } else {
+                    result.pathFromA.map { it.firstName }
+                }
+                val mrcaName = if (result.commonAncestors.size >= 2) {
+                    "★ ${result.commonAncestors.joinToString(" & ") { it.firstName }} (MRCAs)"
+                } else {
+                    result.commonAncestor?.let { "★ ${it.firstName} (MRCA)" }
+                }
+                val pathB = result.pathFromB.reversed().drop(1).map { it.firstName }
+                (pathA + listOfNotNull(mrcaName) + pathB).distinct()
+            }
 
             if (fullRoute.size > 1) {
                 cardInlineRoutePreview.visibility = View.VISIBLE
                 tvInlineRouteText.text = fullRoute.joinToString(" ➔ ")
-                tvInlineRouteSteps.text = "Lineage Path: ${result.distanceA} Gen Up from ${result.personA.firstName} · ${result.distanceB} Gen Down to ${result.personB.firstName} · ${result.degreeOfConsanguinity}${getOrdinalSuffix(result.degreeOfConsanguinity)} Degree (${result.relationshipCategory} Line)"
+                tvInlineRouteSteps.text = if (isAffinity && result.degreeOfConsanguinity == 0) {
+                    "Affinity Path: Connected via Marriage Bridge · 0° Biological Consanguinity (${result.relationshipCategory})"
+                } else {
+                    "Lineage Path: ${result.distanceA} Gen Up from ${result.personA.firstName} · ${result.distanceB} Gen Down to ${result.personB.firstName} · ${result.degreeOfConsanguinity}${getOrdinalSuffix(result.degreeOfConsanguinity)} Degree (${result.relationshipCategory} Line)"
+                }
             } else {
                 cardInlineRoutePreview.visibility = View.GONE
             }

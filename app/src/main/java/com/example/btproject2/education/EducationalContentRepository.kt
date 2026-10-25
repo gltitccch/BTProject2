@@ -16,6 +16,7 @@ object EducationalContentRepository {
         HOME_DASHBOARD,
         CANVAS,
         PEDIGREE_FAN_CHART,
+        FAN_CHART,
         TRACE,
         RELATIONSHIP_REPORT,
         ADD_MEMBER,
@@ -25,7 +26,9 @@ object EducationalContentRepository {
         PRIVACY_CONTROLS,
         TREE_AUDIT,
         EXPORT_TREE,
-        INSIGHTS
+        INSIGHTS,
+        CREATE_TREE,
+        JOIN_TREE
     }
 
     data class QuickAssistPayload(
@@ -105,16 +108,31 @@ object EducationalContentRepository {
 
             QuickAssistContext.PEDIGREE_FAN_CHART -> QuickAssistPayload(
                 context = context,
-                title = "Ahnentafel & Horseshoe Fan Guide",
-                subtitle = "250° Separated-Wedge Horseshoe Fan, Lifespan Years & Root Switching",
+                title = "Family Generations List Guide",
+                subtitle = "Generations, Ancestor Cards & Family Roles",
                 proTips = listOf(
-                    "250° Horseshoe Wedge Cards: Distinct pastel color rings (Cream Gold → Soft Sage → Mint Cyan → Sky Blue → Periwinkle) separate each generation step clearly for new users.",
-                    "Slide-Up Root Drawer & Generation Chips: Tap the top-right root pill (e.g. 'All Clan ▾') to open the compact drawer, filter by generation (Gen 4, Gen 3, Gen 2), and center the fan on any member's ancestors.",
-                    "Tap to Inspect & Fingertip Zoom/Pan: Tap any wedge card to highlight it and view an educational summary banner. Pinch with two fingers, drag to pan, or use the bottom HUD pill (− 100% + | ⟲)."
+                    "Generation Rows: Organizes your family from youngest to oldest. Generation 1 is the starting person, Generation 2 is parents, Generation 3 is grandparents.",
+                    "Tap to View Story: Tap any person's card to open their full profile, photos, and family records.",
+                    "Gold Role Badges: Tags show who started the family line (Founder, Patriarch, Matriarch) at a glance."
                 ),
                 legalGuardrails = null,
                 targetAcademyModuleId = 2,
-                actionCtaText = "Explore Ahnentafel Principles →"
+                actionCtaText = "Start Pedigree Tour →"
+            )
+
+            QuickAssistContext.FAN_CHART -> QuickAssistPayload(
+                context = context,
+                title = "360° Family Wheel Guide",
+                subtitle = "Center Person, Generational Rings & Paternal/Maternal Halves",
+                proTips = listOf(
+                    "Person in the Middle: The gold circle right at the center is the main person. All rings around them show the ancestors who came before them.",
+                    "Blue vs. Pink Sides: The left half (blue) shows your father's side, and the right half (pink) shows your mother's side.",
+                    "Tap Any Slice: Tap on any colored block on the wheel to see that ancestor's full name, birth year, and birthplace in an instant popup.",
+                    "Zoom & Center Buttons: Use the + and - buttons at the bottom to zoom into outer rings, or tap ⟲ to jump back to center."
+                ),
+                legalGuardrails = null,
+                targetAcademyModuleId = 2,
+                actionCtaText = "Start Family Wheel Tour →"
             )
 
             QuickAssistContext.TRACE -> QuickAssistPayload(
@@ -260,6 +278,38 @@ object EducationalContentRepository {
                 legalGuardrails = null,
                 targetAcademyModuleId = 9,
                 actionCtaText = "Open Clan Analytics Masterclass →"
+            )
+
+            QuickAssistContext.CREATE_TREE -> QuickAssistPayload(
+                context = context,
+                title = "Clan Genesis Guidance",
+                subtitle = "Naming, Founder Role & Cloud Tree Setup",
+                proTips = listOf(
+                    "Clan Naming: Choose an official family surname (e.g., Dela Cruz Family). You can invite family co-owners to collaborate anytime.",
+                    "Founder Anchor: Designate whether you are starting the tree as Patriarch, Matriarch, or Member. This anchors Generation 1.",
+                    "Strict Privacy Standard: New family trees are private by default under the Philippine Data Privacy Act (RA 10173)."
+                ),
+                legalGuardrails = listOf(
+                    "Only users aged 18+ may establish a Patriarch or Matriarch title. All tree records are secured under Role-Based Access Control."
+                ),
+                targetAcademyModuleId = 1,
+                actionCtaText = "Open Getting Started Masterclass →"
+            )
+
+            QuickAssistContext.JOIN_TREE -> QuickAssistPayload(
+                context = context,
+                title = "Join Clan Family Tree",
+                subtitle = "Invite Code, Roles & Collaboration",
+                proTips = listOf(
+                    "6-Character Invite Code: Ask a family tree Owner or Editor for their tree invite code to connect immediately.",
+                    "Role Permissions: When you join, your role determines whether you can add members or explore as a Viewer.",
+                    "Multiple Clans: You can belong to multiple family trees and switch between them anytime from the Home dashboard."
+                ),
+                legalGuardrails = listOf(
+                    "Tree membership is subject to verification by clan administrators. You can revoke your participation at any time."
+                ),
+                targetAcademyModuleId = 1,
+                actionCtaText = "Open Getting Started Masterclass →"
             )
         }
     }

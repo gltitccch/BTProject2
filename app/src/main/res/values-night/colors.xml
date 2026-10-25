@@ -146,4 +146,9 @@
     <color name="tool_rose_tint">#FB7185</color>
     <color name="tool_tag_bg">#183626</color>
     <color name="tool_tag_border">#1E4530</color>
+    <!-- Design 3 Input-Halo Beacon Semantic Tokens (Dark Mode) -->
+    <color name="beacon_chip_bg">#1B3D2B</color>
+    <color name="beacon_chip_border">#D4A359</color>
+    <color name="beacon_chip_text">#F5D280</color>
+    <color name="input_halo_border">#D4A359</color>
 </resources>

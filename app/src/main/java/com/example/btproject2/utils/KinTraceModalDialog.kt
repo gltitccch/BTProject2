@@ -491,6 +491,7 @@ object KinTraceModalDialog {
         fun show(): AlertDialog {
             val dialog = create()
             dialog.show()
+            AdaptiveLayoutHelper.clampDialogWidth(dialog)
             return dialog
         }
     }

@@ -43,6 +43,15 @@ class InsightsActivity : AppCompatActivity() {
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().registerListener(insightsSyncListener)
     }
 
+    override fun onResume() {
+        super.onResume()
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_INSIGHTS,
+            treeId = treeId
+        )
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().unregisterListener(insightsSyncListener)

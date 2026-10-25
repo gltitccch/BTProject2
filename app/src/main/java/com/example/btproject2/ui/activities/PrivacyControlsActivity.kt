@@ -98,6 +98,15 @@ class PrivacyControlsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.PRIVACY_CONTROLS,
+            treeId = treeId
+        )
+    }
+
     private fun setupRecyclerViews() {
         authorizedAdapter = AuthorizedMemberAdapter(isOwner = true) { member ->
             showMemberRoleDialog(member)

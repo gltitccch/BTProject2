@@ -30,14 +30,15 @@
 
             <TextView
                 android:id="@+id/btnProfileClose"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:gravity="center"
                 android:text="✕"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Close Member Profile"
                 android:clickable="true"
                 android:focusable="true" />
         </LinearLayout>
@@ -114,55 +115,79 @@
                     android:clickable="true"
                     android:focusable="true" />
 
-                <!-- Badges Row -->
+                <!-- Badges Matrix Grid (Direction 3) -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvProfileKinshipBadge"
-                        android:layout_width="wrap_content"
+                    <!-- Row 1: Kinship Badge & Gender Badge -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="FATHER"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/gold_accent"
-                        android:background="@drawable/badge_pill_dark"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="8dp"
-                        android:paddingTop="3dp"
-                        android:paddingBottom="3dp"
-                        android:layout_marginEnd="6dp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="5dp">
 
-                    <TextView
-                        android:id="@+id/tvProfileAgeBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="24 yrs old"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/gold_accent"
-                        android:background="@drawable/badge_pill_dark"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="8dp"
-                        android:paddingTop="3dp"
-                        android:paddingBottom="3dp"
-                        android:layout_marginEnd="6dp" />
+                        <TextView
+                            android:id="@+id/tvProfileKinshipBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="FATHER"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:layout_marginEnd="6dp"
+                            android:singleLine="true"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
 
-                    <TextView
-                        android:id="@+id/tvProfileSexBadge"
-                        android:layout_width="wrap_content"
+                        <TextView
+                            android:id="@+id/tvProfileSexBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Male ♂"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/emerald_accent"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:singleLine="true"
+                            android:maxLines="1" />
+                    </LinearLayout>
+
+                    <!-- Row 2: Vital Age / Passing Badge -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Male ♂"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/emerald_accent"
-                        android:background="@drawable/badge_pill_dark"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="8dp"
-                        android:paddingTop="3dp"
-                        android:paddingBottom="3dp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tvProfileAgeBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="24 yrs old"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:singleLine="true"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -361,74 +386,94 @@
             android:layout_marginTop="6dp"
             android:layout_marginBottom="12dp" />
 
-        <!-- Bottom Action Bar -->
+        <!-- Bottom Action Bar (Direction 3 Symmetrical 2x2 Grid) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/btnProfileAddChild"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:gravity="center"
-                android:text="+ Child"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="@color/emerald_accent"
-                android:background="@drawable/badge_pill_dark"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:layout_marginEnd="6dp"
-                android:clickable="true"
-                android:focusable="true" />
+            <!-- Row 1: + Child & + Spouse -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
 
-            <TextView
-                android:id="@+id/btnProfileAddSpouse"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:gravity="center"
-                android:text="+ Spouse"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:layout_marginEnd="6dp"
-                android:clickable="true"
-                android:focusable="true" />
+                <TextView
+                    android:id="@+id/btnProfileAddChild"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="+ Child"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/emerald_accent"
+                    android:background="@drawable/badge_pill_dark"
+                    android:layout_marginEnd="6dp"
+                    android:singleLine="true"
+                    android:maxLines="1"
+                    android:clickable="true"
+                    android:focusable="true" />
 
-            <TextView
-                android:id="@+id/btnProfileEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:gravity="center"
-                android:text="✏ Edit"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/badge_pill_dark"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:layout_marginEnd="8dp"
-                android:clickable="true"
-                android:focusable="true" />
+                <TextView
+                    android:id="@+id/btnProfileAddSpouse"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="+ Spouse"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:background="@drawable/badge_pill_dark"
+                    android:layout_marginStart="6dp"
+                    android:singleLine="true"
+                    android:maxLines="1"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
 
-            <TextView
-                android:id="@+id/btnProfileFullDetail"
-                android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="Full Profile →"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/btn_gold_text"
-                android:background="@drawable/btn_gold_primary"
-                android:clickable="true"
-                android:focusable="true" />
+            <!-- Row 2: Edit & Full Profile -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btnProfileEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="✏ Edit"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:background="@drawable/badge_pill_dark"
+                    android:layout_marginEnd="6dp"
+                    android:singleLine="true"
+                    android:maxLines="1"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/btnProfileFullDetail"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Full Profile →"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/btn_gold_text"
+                    android:background="@drawable/btn_gold_primary"
+                    android:layout_marginStart="6dp"
+                    android:singleLine="true"
+                    android:maxLines="1"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>

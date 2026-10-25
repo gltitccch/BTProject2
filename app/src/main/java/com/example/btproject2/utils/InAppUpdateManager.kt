@@ -61,7 +61,7 @@ object InAppUpdateManager {
      */
     fun buildGitHubReleaseApkUrl(versionName: String): String {
         val cleanTag = if (versionName.startsWith("v", ignoreCase = true)) versionName.trim() else "v${versionName.trim()}"
-        return "https://github.com/$DEFAULT_GITHUB_REPO/releases/download/$cleanTag/app-debug.apk"
+        return "https://github.com/$DEFAULT_GITHUB_REPO/releases/download/$cleanTag/app-release.apk"
     }
 
     /**
@@ -75,17 +75,20 @@ object InAppUpdateManager {
     /**
      * Phase 1 Triage & Baseline Alignment:
      * Synchronizes current active release to Firestore and automatically repairs any ghost version
-     * records (where remoteVersionCode > installedCode but apkDownloadUrl is blank or invalid).
+     * records (where remoteVersionCode > installedCode but apkDownloadUrl is blank or invalid,
+     * or legacy records pointing to app-debug.apk).
      */
     fun syncCurrentReleaseToFirestore(onComplete: () -> Unit = {}) {
         firestoreHelper.fetchLatestAppVersion(
             onSuccess = { config ->
                 val currentRemoteCode = config?.versionCode ?: 0L
-                val hasValidRemoteApk = config?.apkDownloadUrl?.trim()?.startsWith("https://", ignoreCase = true) == true
+                val rawUrl = config?.apkDownloadUrl?.trim().orEmpty()
+                val hasValidRemoteApk = rawUrl.startsWith("https://", ignoreCase = true) &&
+                    !rawUrl.contains("app-debug.apk", ignoreCase = true)
 
-                // If remote code is < 3L OR remote record lacks a valid HTTPS APK link,
+                // If remote code is < 3L OR remote record lacks a valid release HTTPS APK link,
                 // align Firestore to the active v1.3.0 (versionCode = 3) release pointing to GitHub Releases.
-                if (currentRemoteCode < 3L || !hasValidRemoteApk) {
+                if (currentRemoteCode < 3L || (currentRemoteCode == 3L && !hasValidRemoteApk)) {
                     val currentConfig = AppVersionConfig(
                         versionCode = 3L,
                         versionName = "v1.3.0",

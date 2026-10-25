@@ -98,6 +98,15 @@ class ExportTreeActivity : AppCompatActivity() {
         updateTreePillBadge()
     }
 
+    override fun onResume() {
+        super.onResume()
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.EXPORT_TREE,
+            treeId = treeId
+        )
+    }
+
     private fun loadData() {
         if (treeId.isNotBlank()) {
             firestoreHelper.getTree(treeId,

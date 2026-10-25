@@ -2,6 +2,10 @@ package com.example.btproject2.ui.activities
 
 import com.example.btproject2.utils.KinTraceAlert
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -21,6 +25,9 @@ import com.example.btproject2.utils.OnboardingPreferences
 import com.example.btproject2.utils.TreePreferences
 
 class JoinTreeActivity : AppCompatActivity() {
+
+    private var btnInviteCodeBeacon: TextView? = null
+    private var beaconPulseAnimator: AnimatorSet? = null
 
     private val authHelper = AuthHelper()
     private val firestoreHelper = FirestoreHelper()
@@ -47,11 +54,83 @@ class JoinTreeActivity : AppCompatActivity() {
         etInviteCode.filters = arrayOf(android.text.InputFilter.AllCaps())
 
         btnBack.setOnClickListener { finish() }
+
+        btnInviteCodeBeacon = findViewById(R.id.btnInviteCodeBeacon)
+        btnInviteCodeBeacon?.paint?.isFakeBoldText = true
+        btnInviteCodeBeacon?.setOnClickListener {
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialForced(
+                this,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.JOIN_TREE
+            )
+        }
+
+        val btnQuickAssistJoinTree = findViewById<View?>(R.id.btnQuickAssistJoinTree)
+        btnQuickAssistJoinTree?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.JOIN_TREE
+            ).show(supportFragmentManager, "QuickAssistJoinTree")
+        }
         btnPendingBackToHome.setOnClickListener { finish() }
 
         btnRequestAccess.setOnClickListener {
             handleJoinRequest()
         }
+
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.JOIN_TREE
+        )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        btnInviteCodeBeacon?.let { startBeaconPulse(it) }
+
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.JOIN_TREE
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopBeaconPulse()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopBeaconPulse()
+    }
+
+    private fun startBeaconPulse(view: View) {
+        stopBeaconPulse()
+        val scaleX = ObjectAnimator.ofFloat(view, View.SCALE_X, 1.0f, 1.04f).apply {
+            duration = 1400L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val scaleY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 1.0f, 1.04f).apply {
+            duration = 1400L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val alpha = ObjectAnimator.ofFloat(view, View.ALPHA, 0.88f, 1.0f).apply {
+            duration = 1400L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        beaconPulseAnimator = AnimatorSet().apply {
+            playTogether(scaleX, scaleY, alpha)
+            start()
+        }
+    }
+
+    private fun stopBeaconPulse() {
+        beaconPulseAnimator?.cancel()
+        beaconPulseAnimator = null
     }
 
     private fun handleJoinRequest() {

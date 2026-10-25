@@ -1,6 +1,8 @@
 package com.example.btproject2.ui.activities
 
 import com.example.btproject2.utils.KinTraceAlert
+import android.animation.ValueAnimator
+import android.view.animation.DecelerateInterpolator
 
 import androidx.appcompat.app.AlertDialog
 import android.content.Context
@@ -70,6 +72,8 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     private var highlightPersonAId: String? = null
     private var highlightPersonBId: String? = null
     private var mrcaId: String? = null
+    private var mrcaIds: Set<String> = emptySet()
+    private var isAffinityTrace: Boolean = false
     private var highlightPathIds: Set<String> = emptySet()
     internal var focalPedigreePersonId: String? = null
 
@@ -84,6 +88,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     private lateinit var layoutPedigreeFocalBar: LinearLayout
     private lateinit var tvFocalBarLabel: TextView
     private lateinit var spinnerPedigreeFocal: Spinner
+    private lateinit var btnResetFocal: TextView
 
     private lateinit var layoutConflictBanner: LinearLayout
     private lateinit var tvConflictBannerText: TextView
@@ -167,12 +172,10 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         findViewById<TextView>(R.id.btnBack).setOnClickListener { finish() }
 
         findViewById<TextView>(R.id.btnQuickAssistInteractiveTree)?.setOnClickListener {
-            val ctx = if (currentMode == "PEDIGREE" || currentMode == "FAN_CHART") {
-                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.PEDIGREE_FAN_CHART
-            } else {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.show(
+                this,
                 com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.CANVAS
-            }
-            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.show(this, ctx)
+            )
         }
 
         btnConnectBranchesShortcut = findViewById(R.id.btnConnectBranchesShortcut)
@@ -233,6 +236,30 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         layoutPedigreeFocalBar = findViewById(R.id.layoutPedigreeFocalBar)
         tvFocalBarLabel = findViewById(R.id.tvFocalBarLabel)
         spinnerPedigreeFocal = findViewById(R.id.spinnerPedigreeFocal)
+        btnResetFocal = findViewById(R.id.btnResetFocal)
+        btnResetFocal.setOnClickListener {
+            val defaultFocal = findBestMainTreeFocalMember(allPersonsList)
+            if (defaultFocal != null) {
+                focalPedigreePersonId = defaultFocal.id
+                val idx = allPersonsList.indexOfFirst { it.id == defaultFocal.id }
+                if (idx >= 0) spinnerPedigreeFocal.setSelection(idx)
+                treeView.setMode(
+                    mode = currentMode,
+                    highlightIds = highlightPathIds,
+                    mrcaId = mrcaId,
+                    focalPedigreeId = focalPedigreePersonId,
+                    personAId = highlightPersonAId,
+                    personBId = highlightPersonBId,
+                    mrcaIds = mrcaIds,
+                    isAffinityTrace = isAffinityTrace
+                )
+                treeView.post {
+                    treeView.centerOnPerson(defaultFocal.id, animate = true)
+                }
+                updateFocalResetButton()
+                KinTraceAlert.show(this, "Perspective reset to ${defaultFocal.firstName}")
+            }
+        }
 
         layoutConflictBanner = findViewById(R.id.layoutConflictBanner)
         tvConflictBannerText = findViewById(R.id.tvConflictBannerText)
@@ -244,6 +271,12 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         highlightPersonAId = intent.getStringExtra("highlightPersonAId")
         highlightPersonBId = intent.getStringExtra("highlightPersonBId")
         mrcaId = intent.getStringExtra("mrcaId")
+        val mrcaList = intent.getStringArrayListExtra("mrcaIds")
+        mrcaIds = buildSet {
+            mrcaId?.takeIf { it.isNotBlank() }?.let { add(it) }
+            mrcaList?.forEach { if (it.isNotBlank()) add(it) }
+        }
+        isAffinityTrace = intent.getBooleanExtra("isAffinityTrace", false)
         val pathList = intent.getStringArrayListExtra("highlightPathIds")
         if (pathList != null && pathList.isNotEmpty()) {
             highlightPathIds = pathList.toSet()
@@ -256,7 +289,35 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         treeView = FamilyTreeView(
             context = this,
             onOpenPerson = { personId ->
-                showMemberProfileDialog(personId)
+                val activeSpotlight = com.example.btproject2.utils.KinTraceSpotlightManager.getActiveSpotlightView()
+                if (activeSpotlight != null && activeSpotlight.getCurrentStepIndex() == 0) {
+                    tutorialSelectedPersonId = personId
+                    val nodeBounds = treeView.getNodeScreenBounds(personId)
+                    if (nodeBounds != null) {
+                        val density = resources.displayMetrics.density
+                        val paddedRect = RectF(
+                            nodeBounds.left - 6f * density,
+                            nodeBounds.top - 6f * density,
+                            nodeBounds.right + 6f * density,
+                            nodeBounds.bottom + 6f * density
+                        )
+                        val cornerRadius = 16f * density
+                        activeSpotlight.morphToTargetRect(paddedRect, cornerRadius, durationMs = 380L) {
+                            window.decorView.postDelayed({
+                                showMemberProfileDialog(personId)
+                                activeSpotlight.nextStep()
+                            }, 200L)
+                        }
+                    } else {
+                        showMemberProfileDialog(personId)
+                        activeSpotlight.nextStep()
+                    }
+                } else {
+                    showMemberProfileDialog(personId)
+                    if (activeSpotlight != null) {
+                        activeSpotlight.nextStep()
+                    }
+                }
             },
             onAddChild = { parentId ->
                 if (isViewer) {
@@ -343,6 +404,20 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             setMode("MAIN")
         }
 
+        findViewById<View>(R.id.btnOpenTraceReportFromBanner)?.setOnClickListener {
+            val aId = highlightPersonAId
+            val bId = highlightPersonBId
+            if (!aId.isNullOrBlank() && !bId.isNullOrBlank()) {
+                val intent = Intent(this, RelationshipReportActivity::class.java).apply {
+                    putExtra("personAId", aId)
+                    putExtra("personBId", bId)
+                    putExtra("treeId", treeId)
+                    putExtra("TREE_ID", treeId)
+                }
+                startActivity(intent)
+            }
+        }
+
         currentMode = when {
             requestedMode != null -> requestedMode
             highlightPathIds.isNotEmpty() || !mrcaId.isNullOrEmpty() -> "TRACE_HIGHLIGHT"
@@ -363,6 +438,13 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             treeView.updateThemeColors()
         }
         loadTree()
+
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.INTERACTIVE_TREE,
+            treeId = treeId,
+            dialogProvider = { activeProfileDialog }
+        )
     }
 
     override fun onStart() {
@@ -495,15 +577,12 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         if (mode == "PEDIGREE" && allPersonsList.isNotEmpty()) {
             val byId = allPersonsList.associateBy { it.id }
             val currentFocal = focalPedigreePersonId?.let { byId[it] }
-            val currentHasParents = currentFocal != null &&
-                ((!currentFocal.fatherId.isNullOrBlank() && byId.containsKey(currentFocal.fatherId)) ||
-                 (!currentFocal.motherId.isNullOrBlank() && byId.containsKey(currentFocal.motherId)))
-            if (!currentHasParents) {
-                val bestPedigreeFocal = findBestPedigreeFocalMember(allPersonsList)
-                if (bestPedigreeFocal != null) {
-                    focalPedigreePersonId = bestPedigreeFocal.id
-                    refreshFocalSpinner()
-                }
+            val bestPedigreeFocal = findBestPedigreeFocalMember(allPersonsList)
+            val currentDepth = currentFocal?.let { computeUpwardAncestorDepth(it, byId) } ?: 0
+            val bestDepth = bestPedigreeFocal?.let { computeUpwardAncestorDepth(it, byId) } ?: 0
+            if (bestPedigreeFocal != null && currentDepth < bestDepth) {
+                focalPedigreePersonId = bestPedigreeFocal.id
+                refreshFocalSpinner()
             }
         }
         updateModeChips(mode)
@@ -513,7 +592,9 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             mrcaId = mrcaId,
             focalPedigreeId = focalPedigreePersonId,
             personAId = highlightPersonAId,
-            personBId = highlightPersonBId
+            personBId = highlightPersonBId,
+            mrcaIds = mrcaIds,
+            isAffinityTrace = isAffinityTrace
         )
     }
 
@@ -544,11 +625,30 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     }
 
     private fun findBestPedigreeFocalMember(list: List<Person>): Person? {
+        return com.example.btproject2.engine.GenerationHierarchyEngine.findBestPedigreeFocalMember(list)
+    }
+
+    /**
+     * Picks the best starting focal person for the Main Tree ("Kinship relative to:"):
+     * Prefers the central multi-generational hub (a member who has both upward ancestors and children/spouse/siblings,
+     * with a tie-breaker favoring the logged-in user's first name if present in the tree).
+     */
+    private fun findBestMainTreeFocalMember(list: List<Person>): Person? {
         if (list.isEmpty()) return null
         val byId = list.associateBy { it.id }
+        val userFirst = authHelper.getCurrentUser()?.displayName?.substringBefore(" ")?.trim().orEmpty()
+
         return list.maxWithOrNull(
-            compareBy<Person> { computeUpwardAncestorDepth(it, byId) }
-                .thenBy { countUpwardAncestorsWithin4Degrees(it, byId) }
+            compareBy<Person> { p ->
+                val hasParents = (!p.fatherId.isNullOrBlank() && byId.containsKey(p.fatherId)) ||
+                    (!p.motherId.isNullOrBlank() && byId.containsKey(p.motherId))
+                val childCount = list.count { it.fatherId == p.id || it.motherId == p.id }
+                val hasSpouse = !p.spouseId.isNullOrBlank() && byId.containsKey(p.spouseId)
+                val upCount = countUpwardAncestorsWithin4Degrees(p, byId)
+                val userBonus = if (userFirst.isNotBlank() && p.firstName.equals(userFirst, ignoreCase = true) && (hasParents || childCount > 0)) 20 else 0
+                val hubBonus = if (hasParents && childCount > 0) 15 else 0
+                userBonus + hubBonus + upCount * 2 + childCount * 3 + (if (hasSpouse) 2 else 0)
+            }.thenBy { it.firstName }
         )
     }
 
@@ -598,12 +698,28 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         val byId = allPersonsList.associateBy { it.id }
         val nameA = highlightPersonAId?.let { byId[it]?.firstName } ?: "Person A"
         val nameB = highlightPersonBId?.let { byId[it]?.firstName } ?: "Person B"
-        val mrcaName = mrcaId?.let { byId[it]?.firstName }
+        val aId = highlightPersonAId
+        val bId = highlightPersonBId
+        val relTitle = if (!aId.isNullOrBlank() && !bId.isNullOrBlank() && byId.containsKey(aId) && byId.containsKey(bId)) {
+            com.example.btproject2.engine.BloodlineTracer().trace(aId, bId, byId).relationshipType
+        } else null
+        val mrcaNames = mrcaIds.mapNotNull { byId[it]?.firstName }.distinct()
+            .ifEmpty { listOfNotNull(mrcaId?.let { byId[it]?.firstName }) }
 
-        tvTraceBannerText.text = if (mrcaName != null) {
-            "⭐ Bloodline Route: $nameA ➔ ★ $mrcaName (MRCA) ➔ $nameB"
-        } else {
-            "⭐ Bloodline Route: $nameA ➔ $nameB"
+        val titleSuffix = if (!relTitle.isNullOrBlank()) " ($relTitle)" else ""
+        tvTraceBannerText.text = when {
+            isAffinityTrace && mrcaNames.isNotEmpty() -> {
+                "💍 $nameA ↔ $nameB$titleSuffix • Bridge: ${mrcaNames.joinToString(" & ")}"
+            }
+            mrcaNames.size >= 2 -> {
+                "⭐ $nameA ↔ $nameB$titleSuffix • ★ ${mrcaNames.joinToString(" & ")}"
+            }
+            mrcaNames.size == 1 -> {
+                "⭐ $nameA ↔ $nameB$titleSuffix • ★ ${mrcaNames.first()}"
+            }
+            else -> {
+                "⭐ $nameA ↔ $nameB$titleSuffix"
+            }
         }
     }
 
@@ -640,7 +756,10 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         } else if (currentMode == "PEDIGREE") {
             val best = findBestPedigreeFocalMember(list)
             best?.let { b -> list.indexOfFirst { it.id == b.id }.coerceAtLeast(0) } ?: 0
-        } else 0
+        } else {
+            val bestMain = findBestMainTreeFocalMember(list)
+            bestMain?.let { b -> list.indexOfFirst { it.id == b.id }.coerceAtLeast(0) } ?: 0
+        }
 
         if (focalPedigreePersonId.isNullOrEmpty()) {
             focalPedigreePersonId = list[defaultIdx].id
@@ -652,11 +771,32 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 val selectedId = allPersonsList.getOrNull(position)?.id
                 if (!selectedId.isNullOrEmpty() && selectedId != focalPedigreePersonId) {
                     focalPedigreePersonId = selectedId
-                    treeView.setMode(currentMode, highlightPathIds, mrcaId, focalPedigreePersonId)
+                    treeView.setMode(
+                        mode = currentMode,
+                        highlightIds = highlightPathIds,
+                        mrcaId = mrcaId,
+                        focalPedigreeId = focalPedigreePersonId,
+                        personAId = highlightPersonAId,
+                        personBId = highlightPersonBId,
+                        mrcaIds = mrcaIds,
+                        isAffinityTrace = isAffinityTrace
+                    )
+                    treeView.post {
+                        treeView.centerOnPerson(selectedId, animate = true)
+                    }
+                    updateFocalResetButton()
                 }
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+        updateFocalResetButton()
+    }
+
+    private fun updateFocalResetButton() {
+        if (!::btnResetFocal.isInitialized) return
+        val defaultFocalId = findBestMainTreeFocalMember(allPersonsList)?.id
+        val isCustomFocal = !focalPedigreePersonId.isNullOrEmpty() && focalPedigreePersonId != defaultFocalId
+        btnResetFocal.visibility = if (isCustomFocal) View.VISIBLE else View.GONE
     }
 
     private fun loadTree(refreshProfile: Boolean = false) {
@@ -673,7 +813,9 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 mrcaId = mrcaId,
                 focalPedigreeId = focalPedigreePersonId,
                 personAId = highlightPersonAId,
-                personBId = highlightPersonBId
+                personBId = highlightPersonBId,
+                mrcaIds = mrcaIds,
+                isAffinityTrace = isAffinityTrace
             )
             return
         }
@@ -687,6 +829,18 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 val list = com.example.btproject2.firebase.FirestoreHelper.sanitizeTreeRecords(rawList)
                 allPersonsList = list
                 syncCoordinator.allPersonsList = list
+                if (currentMode == "PEDIGREE" && list.isNotEmpty()) {
+                    val byId = list.associateBy { it.id }
+                    val currentFocal = focalPedigreePersonId?.let { byId[it] }
+                    val bestPedigreeFocal = findBestPedigreeFocalMember(list)
+                    val currentDepth = currentFocal?.let { computeUpwardAncestorDepth(it, byId) } ?: 0
+                    val bestDepth = bestPedigreeFocal?.let { computeUpwardAncestorDepth(it, byId) } ?: 0
+                    if (bestPedigreeFocal != null && currentDepth < bestDepth) {
+                        focalPedigreePersonId = bestPedigreeFocal.id
+                    }
+                } else if (currentMode == "MAIN" && focalPedigreePersonId.isNullOrEmpty() && list.isNotEmpty()) {
+                    focalPedigreePersonId = findBestMainTreeFocalMember(list)?.id
+                }
                 syncCoordinator.focalPedigreePersonId = focalPedigreePersonId
 
                 refreshFocalSpinner()
@@ -699,7 +853,9 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     mrcaId = mrcaId,
                     focalPedigreeId = focalPedigreePersonId,
                     personAId = highlightPersonAId,
-                    personBId = highlightPersonBId
+                    personBId = highlightPersonBId,
+                    mrcaIds = mrcaIds,
+                    isAffinityTrace = isAffinityTrace
                 )
                 checkForTreeConflicts(list)
                 DocumentHelper.compactOversizedInlineDocuments(this, list)
@@ -1107,6 +1263,21 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     // ══════════════════════════════════════════════════════════════════
     // Automatic Profile Reveal Modal with Photos & Document Proofs
     // ══════════════════════════════════════════════════════════════════
+    private var tutorialSelectedPersonId: String? = null
+
+    fun openTutorialFounderProfile() {
+        if (activeProfileDialog == null && !isFinishing && !isDestroyed) {
+            val targetId = tutorialSelectedPersonId
+                ?: treeView.getFirstVisiblePersonId()
+                ?: allPersonsList.firstOrNull()?.id
+            if (targetId != null) {
+                showMemberProfileDialog(targetId)
+            }
+        }
+    }
+
+    fun getActiveProfileDialog(): android.app.Dialog? = activeProfileDialog
+
     private fun showMemberProfileDialog(personId: String) {
         if (isFinishing || isDestroyed) return
         val person = allPersonsList.find { it.id == personId } ?: return
@@ -1125,9 +1296,13 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
         activeProfileDialog = dialog
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(android.R.style.Animation_Dialog)
 
         // Find views
         val btnClose = dialogView.findViewById<TextView>(R.id.btnProfileClose)
+        btnClose.setOnClickListener {
+            dialog.dismiss()
+        }
         val ivPhoto = dialogView.findViewById<ImageView>(R.id.ivProfilePhoto)
         val tvAvatar = dialogView.findViewById<TextView>(R.id.tvProfileAvatar)
         val btnChangePhoto = dialogView.findViewById<TextView>(R.id.btnProfileChangePhoto)
@@ -1181,8 +1356,16 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         tvFullName.text = fullNameStr
 
         val focalPerson = allPersonsList.find { it.id == focalPedigreePersonId }
-        val kinshipTitle = KinshipTitleHelper.resolveTitle(person, focalPerson, allPersonsList)
-        val kinshipSubtitle = KinshipTitleHelper.resolveSubtitle(person, focalPerson, allPersonsList)
+        val kinshipTitle = if (person.id == focalPedigreePersonId) {
+            "\u2605 YOU (SELF)"
+        } else {
+            KinshipTitleHelper.resolveTitle(person, focalPerson, allPersonsList)
+        }
+        val kinshipSubtitle = if (person.id == focalPedigreePersonId) {
+            "Focal Center (${person.firstName})"
+        } else {
+            KinshipTitleHelper.resolveSubtitle(person, focalPerson, allPersonsList)
+        }
 
         val spouseObj = allPersonsList.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, person.spouseId) }
             ?: allPersonsList.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, person.id) }
@@ -1217,13 +1400,22 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             }
         }
 
-        btnSetAsFocal?.text = "🎯 View Kinship Relative to ${person.firstName}"
+                val isCurrentFocal = person.id == focalPedigreePersonId
+        btnSetAsFocal?.text = if (isCurrentFocal) {
+            "\uD83C\uDFAF Center on ${person.firstName} (Current Perspective)"
+        } else {
+            "\uD83C\uDFAF Center & View Tree from ${person.firstName}"
+        }
         btnSetAsFocal?.setOnClickListener {
             focalPedigreePersonId = person.id
             val idx = allPersonsList.indexOfFirst { it.id == person.id }
             if (idx >= 0) spinnerPedigreeFocal.setSelection(idx)
             treeView.setMode(currentMode, highlightPathIds, mrcaId, focalPedigreePersonId)
-            KinTraceAlert.show(this, "Tree kinship updated relative to ${person.firstName}")
+            treeView.post {
+                treeView.centerOnPerson(person.id, animate = true)
+            }
+            updateFocalResetButton()
+            KinTraceAlert.show(this, "Tree perspective centered on ${person.firstName}")
             dialog.dismiss()
         }
 
@@ -1236,7 +1428,9 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             tvAgeBadge.text = ageStr.ifEmpty { "Age N/A" }
             tvAgeBadge.setTextColor(resources.getColor(R.color.gold_accent, null))
         }
-        tvSexBadge.text = "${person.gender} ${if (person.gender.lowercase() == "female") "♀" else "♂"}"
+        val isFem = person.gender.equals("Female", ignoreCase = true)
+        tvSexBadge.text = "${person.gender} ${if (isFem) "♀" else "♂"}"
+        tvSexBadge.setTextColor(if (isFem) resources.getColor(R.color.pink, null) else resources.getColor(R.color.emerald_accent, null))
 
         // Vital details: Direction 1 Subtle Shield
         if (shouldHideBirth) {
@@ -1356,6 +1550,9 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 if (activeProfilePersonId == person.id) {
                     activeProfilePersonId = null
                 }
+            }
+            if (com.example.btproject2.utils.KinTraceSpotlightManager.isTourActive()) {
+                com.example.btproject2.utils.KinTraceSpotlightManager.dismissActiveOverlay()
             }
         }
 
@@ -1863,6 +2060,9 @@ class FamilyTreeView @JvmOverloads constructor(
     private val pMrcaGoldHalo = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#FDE68A"); style = Paint.Style.STROKE; strokeWidth = 6f
     }
+    private val pFocalPillBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#2A1F08"); style = Paint.Style.FILL
+    }
 
     // Rectangular Node Card Paints (Matching Reference Diagram & Tree Legend)
     private val pCardBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -2203,7 +2403,9 @@ class FamilyTreeView @JvmOverloads constructor(
     // Reusable geometry buffers for zero GC allocation during onDraw
     private val tempCardRect = RectF()
     private val tempShadowRect = RectF()
+    private val tempHaloRect = RectF()
     private val tempBarRect = RectF()
+    private var cameraAnimator: ValueAnimator? = null
     private val tempMaritalRect = RectF()
     private val sharedTracePath = Path()
     private val sharedBranchPath = Path()
@@ -2252,6 +2454,7 @@ class FamilyTreeView @JvmOverloads constructor(
 
     private data class PrecomputedFallbackLine(
         val parentId: String,
+        val secondParentId: String? = null,
         val childId: String,
         val pX: Float,
         val pY: Float,
@@ -2284,6 +2487,8 @@ class FamilyTreeView @JvmOverloads constructor(
     private var mode = "MAIN"
     private var highlightIds: Set<String> = emptySet()
     private var mrcaPersonId: String? = null
+    private var mrcaPersonIds: Set<String> = emptySet()
+    private var isAffinityTraceMode: Boolean = false
     private var focalPersonId: String? = null
     private var tracePersonAId: String? = null
     private var tracePersonBId: String? = null
@@ -2376,8 +2581,47 @@ class FamilyTreeView @JvmOverloads constructor(
             }
         })
 
-    fun zoomIn() { scaleFactor = (scaleFactor * 1.3f).coerceIn(0.25f, 3.5f); invalidate() }
-    fun zoomOut() { scaleFactor = (scaleFactor / 1.3f).coerceIn(0.25f, 3.5f); invalidate() }
+    fun zoomIn() { scaleFactor = (scaleFactor * 1.3f).coerceIn(0.15f, 4.0f); invalidate() }
+    fun zoomOut() { scaleFactor = (scaleFactor / 1.3f).coerceIn(0.15f, 4.0f); invalidate() }
+    fun centerOnPerson(personId: String, animate: Boolean = true) {
+        val pt = posMap[personId] ?: return
+        if (width <= 0 || height <= 0) {
+            post { centerOnPerson(personId, animate) }
+            return
+        }
+
+        val targetScale = 1.05f.coerceIn(0.6f, 1.4f)
+        val targetOffsetX = (width / 2f - pt.x) - (width - canvasW) / 2f
+        val targetOffsetY = (height / 2f - pt.y) - MARGIN / 2f
+
+        cameraAnimator?.cancel()
+
+        if (!animate) {
+            scaleFactor = targetScale
+            offsetX = targetOffsetX
+            offsetY = targetOffsetY
+            invalidate()
+            return
+        }
+
+        val startScale = scaleFactor
+        val startOffsetX = offsetX
+        val startOffsetY = offsetY
+
+        cameraAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 450L
+            interpolator = DecelerateInterpolator(1.5f)
+            addUpdateListener { va ->
+                val frac = va.animatedFraction
+                scaleFactor = startScale + (targetScale - startScale) * frac
+                offsetX = startOffsetX + (targetOffsetX - startOffsetX) * frac
+                offsetY = startOffsetY + (targetOffsetY - startOffsetY) * frac
+                invalidate()
+            }
+            start()
+        }
+    }
+
     fun resetView() {
         if (posMap.isNotEmpty() && width > 0 && height > 0) {
             val minX = posMap.values.minOf { it.x } - CARD_W
@@ -2386,8 +2630,8 @@ class FamilyTreeView @JvmOverloads constructor(
             val maxY = posMap.values.maxOf { it.y } + CARD_H
             val treeW = maxOf(maxX - minX, CARD_W * 2)
             val treeH = maxOf(maxY - minY, CARD_H * 2)
-            val fitScale = minOf(width * 0.92f / treeW, height * 0.85f / treeH).coerceIn(0.45f, 1.0f)
-            scaleFactor = if (posMap.size > 16) fitScale else 1.0f
+            val fitScale = minOf(width * 0.92f / treeW, height * 0.85f / treeH).coerceIn(0.25f, 1.2f)
+            scaleFactor = fitScale
             offsetX = 0f
             offsetY = 0f
         } else {
@@ -2399,7 +2643,7 @@ class FamilyTreeView @JvmOverloads constructor(
     }
 
     fun frameTracePath() {
-        val targetIds = highlightIds + listOfNotNull(mrcaPersonId, tracePersonAId, tracePersonBId)
+        val targetIds = highlightIds + mrcaPersonIds + listOfNotNull(mrcaPersonId, tracePersonAId, tracePersonBId)
         val targetPoints = targetIds.mapNotNull { posMap[it] }
         if (targetPoints.isEmpty() || width <= 0 || height <= 0) return
 
@@ -2413,7 +2657,7 @@ class FamilyTreeView @JvmOverloads constructor(
 
         val fitScaleX = width * 0.85f / pathW
         val fitScaleY = height * 0.85f / pathH
-        val newScale = minOf(fitScaleX, fitScaleY).coerceIn(0.4f, 1.4f)
+        val newScale = minOf(fitScaleX, fitScaleY).coerceIn(0.25f, 1.5f)
 
         val midX = (minX + maxX) / 2f
         val midY = (minY + maxY) / 2f
@@ -2450,12 +2694,17 @@ class FamilyTreeView @JvmOverloads constructor(
         focalPedigreeId: String?,
         personAId: String? = null,
         personBId: String? = null,
+        mrcaIds: Set<String> = emptySet(),
+        isAffinityTrace: Boolean = false,
         forceRefresh: Boolean = false
     ) {
+        val resolvedMrcaIds = if (mrcaIds.isNotEmpty()) mrcaIds else setOfNotNull(mrcaId)
         val sameModeAndHighlights =
                 this.mode == mode &&
                 this.highlightIds == highlightIds &&
                 this.mrcaPersonId == mrcaId &&
+                this.mrcaPersonIds == resolvedMrcaIds &&
+                this.isAffinityTraceMode == isAffinityTrace &&
                 this.focalPersonId == focalPedigreeId &&
                 this.tracePersonAId == personAId &&
                 this.tracePersonBId == personBId
@@ -2470,6 +2719,8 @@ class FamilyTreeView @JvmOverloads constructor(
         this.mode = mode
         this.highlightIds = highlightIds
         this.mrcaPersonId = mrcaId
+        this.mrcaPersonIds = resolvedMrcaIds
+        this.isAffinityTraceMode = isAffinityTrace
         this.focalPersonId = focalPedigreeId
         this.tracePersonAId = personAId
         this.tracePersonBId = personBId
@@ -2566,11 +2817,16 @@ class FamilyTreeView @JvmOverloads constructor(
         mrcaId: String?,
         focalPedigreeId: String?,
         personAId: String? = null,
-        personBId: String? = null
+        personBId: String? = null,
+        mrcaIds: Set<String> = emptySet(),
+        isAffinityTrace: Boolean = false
     ) {
+        val resolvedMrcaIds = if (mrcaIds.isNotEmpty()) mrcaIds else setOfNotNull(mrcaId)
         if (this.mode == mode &&
             this.highlightIds == highlightIds &&
             this.mrcaPersonId == mrcaId &&
+            this.mrcaPersonIds == resolvedMrcaIds &&
+            this.isAffinityTraceMode == isAffinityTrace &&
             this.focalPersonId == focalPedigreeId &&
             this.tracePersonAId == personAId &&
             this.tracePersonBId == personBId &&
@@ -2581,6 +2837,8 @@ class FamilyTreeView @JvmOverloads constructor(
         this.mode = mode
         this.highlightIds = highlightIds
         this.mrcaPersonId = mrcaId
+        this.mrcaPersonIds = resolvedMrcaIds
+        this.isAffinityTraceMode = isAffinityTrace
         this.focalPersonId = focalPedigreeId
         this.tracePersonAId = personAId
         this.tracePersonBId = personBId
@@ -2644,7 +2902,11 @@ class FamilyTreeView @JvmOverloads constructor(
                 if (dYr.isNotEmpty()) "$yr $dYr" else "b. $yr"
             } else dYr
 
-            val rawTitle = allTitles[p.id] ?: KinshipTitleHelper.resolveTitle(p, focalPerson, allPersons)
+            val rawTitle = if (p.id == focalPersonId) {
+                "\u2605 YOU (SELF)"
+            } else {
+                allTitles[p.id] ?: KinshipTitleHelper.resolveTitle(p, focalPerson, allPersons)
+            }
             val titleWithIcon = if (!p.isLiving && !shouldHideDeceased) "🕊️ $rawTitle" else rawTitle
             val title = TextUtils.ellipsize(titleWithIcon, tempPaintTitle, titleBarWidth, TextUtils.TruncateAt.END).toString()
 
@@ -3226,19 +3488,60 @@ class FamilyTreeView @JvmOverloads constructor(
 
         displayPersons.forEach { p ->
             val cPos = posMap[p.id] ?: return@forEach
-            val parents = listOfNotNull(p.fatherId, p.motherId).filter { it.isNotBlank() }
-            parents.forEach { pid ->
-                if (!coveredParentChild.contains(Pair(pid, p.id))) {
+            val uncoveredParents = listOfNotNull(p.fatherId, p.motherId)
+                .filter { it.isNotBlank() && !coveredParentChild.contains(Pair(it, p.id)) }
+            if (uncoveredParents.isEmpty()) return@forEach
+
+            // Check if two uncovered parents form a married FamilyUnit so we emit a single shared line from their marriage ring
+            val sharedUnit = if (uncoveredParents.size >= 2) {
+                val p1 = uncoveredParents[0]
+                val p2 = uncoveredParents[1]
+                familyUnits.find { u ->
+                    (com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.primary.id, p1) &&
+                     com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse?.id, p2)) ||
+                    (com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.primary.id, p2) &&
+                     com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse?.id, p1))
+                }
+            } else null
+
+            if (sharedUnit != null) {
+                val primaryPos = posMap[sharedUnit.primary.id]
+                if (primaryPos != null) {
+                    val parentCardBottom = primaryPos.y + CARD_H / 2f
+                    val pY = primaryPos.y + 12f // Start directly from the couple's marriage ring pill
+                    val cY = cPos.y - CARD_H / 2f
+                    val isStep = cY > parentCardBottom
+                    // Route cleanly in the lower bus channel below the + buttons (+14f) and main bus (+34f)
+                    val laneShift = (precomputedFallbackLines.size % 2) * 8f
+                    val midY = parentCardBottom + V_GAP * 0.68f + laneShift
+                    precomputedFallbackLines.add(
+                        PrecomputedFallbackLine(
+                            parentId = sharedUnit.primary.id,
+                            secondParentId = sharedUnit.spouse?.id,
+                            childId = p.id,
+                            pX = sharedUnit.x,
+                            pY = pY,
+                            cX = cPos.x,
+                            cY = cY,
+                            isStep = isStep,
+                            midY = midY
+                        )
+                    )
+                }
+            } else {
+                uncoveredParents.forEach { pid ->
                     val pPos = posMap[pid]
                     if (pPos != null) {
-                        val pY = pPos.y + CARD_H / 2f
+                        val parentCardBottom = pPos.y + CARD_H / 2f
+                        val pY = parentCardBottom + ADD_BTN_R // Start below the green + button
                         val cY = cPos.y - CARD_H / 2f
-                        val isStep = cY > pY
-                        val laneOffset = ((precomputedFallbackLines.size % 3) - 1) * 14f - 18f
-                        val midY = (pY + cY) / 2f + laneOffset
+                        val isStep = cY > parentCardBottom
+                        val laneShift = (precomputedFallbackLines.size % 2) * 8f
+                        val midY = parentCardBottom + V_GAP * 0.68f + laneShift
                         precomputedFallbackLines.add(
                             PrecomputedFallbackLine(
                                 parentId = pid,
+                                secondParentId = null,
                                 childId = p.id,
                                 pX = pPos.x,
                                 pY = pY,
@@ -3302,7 +3605,7 @@ class FamilyTreeView @JvmOverloads constructor(
         canvas.scale(scaleFactor, scaleFactor)
         canvas.translate(-pivotX + originX, -pivotY + originY)
 
-        val isTraceMode = mode == "TRACE_HIGHLIGHT" && (highlightIds.isNotEmpty() || mrcaPersonId != null)
+        val isTraceMode = mode == "TRACE_HIGHLIGHT" && (highlightIds.isNotEmpty() || mrcaPersonId != null || mrcaPersonIds.isNotEmpty())
 
         if (mode == "PEDIGREE") {
             drawHorizontalPedigree(canvas, cullLeft, cullRight, cullTop, cullBottom)
@@ -3369,7 +3672,8 @@ class FamilyTreeView @JvmOverloads constructor(
             if (m.rightX < cullLeft || m.leftX > cullRight || m.y < cullTop || m.y > cullBottom) continue
 
             val isMaritalTrace = isTraceMode &&
-                    (highlightIds.contains(m.primaryId) && highlightIds.contains(m.spouseId))
+                    ((highlightIds.contains(m.primaryId) && highlightIds.contains(m.spouseId)) ||
+                     (mrcaPersonIds.contains(m.primaryId) && mrcaPersonIds.contains(m.spouseId)))
             val mPaint = when {
                 isMaritalTrace -> pGoldPathLine
                 isTraceMode -> pSpouseLineDim
@@ -3406,7 +3710,9 @@ class FamilyTreeView @JvmOverloads constructor(
                 highlightIds.contains(bus.primaryId) ||
                 (bus.spouseId != null && highlightIds.contains(bus.spouseId)) ||
                 bus.primaryId == mrcaPersonId ||
-                bus.spouseId == mrcaPersonId
+                bus.spouseId == mrcaPersonId ||
+                mrcaPersonIds.contains(bus.primaryId) ||
+                (bus.spouseId != null && mrcaPersonIds.contains(bus.spouseId))
             )
 
             // Draw default parent drop & bus bar
@@ -3419,7 +3725,7 @@ class FamilyTreeView @JvmOverloads constructor(
                 val drop = bus.childDrops[j]
                 if (drop.x < cullLeft || drop.x > cullRight || drop.targetY < cullTop || drop.yBus > cullBottom) continue
 
-                val isChildOnTrace = isTraceMode && (highlightIds.contains(drop.childId) || drop.childId == mrcaPersonId)
+                val isChildOnTrace = isTraceMode && (highlightIds.contains(drop.childId) || drop.childId == mrcaPersonId || mrcaPersonIds.contains(drop.childId))
                 val isSegmentTrace = isParentOnTrace && isChildOnTrace
 
                 if (isSegmentTrace) {
@@ -3449,8 +3755,11 @@ class FamilyTreeView @JvmOverloads constructor(
             val maxFY = maxOf(f.pY, f.cY)
             if (maxFX < cullLeft || minFX > cullRight || maxFY < cullTop || minFY > cullBottom) continue
 
-            val isPOnPath = highlightIds.contains(f.childId) || f.childId == mrcaPersonId
-            val isParentOnPath = highlightIds.contains(f.parentId) || f.parentId == mrcaPersonId
+            val isPOnPath = highlightIds.contains(f.childId) || f.childId == mrcaPersonId || mrcaPersonIds.contains(f.childId)
+            val isParentOnPath = highlightIds.contains(f.parentId) ||
+                f.parentId == mrcaPersonId ||
+                mrcaPersonIds.contains(f.parentId) ||
+                (f.secondParentId != null && (highlightIds.contains(f.secondParentId) || f.secondParentId == mrcaPersonId || mrcaPersonIds.contains(f.secondParentId)))
             val isLineOnTrace = isTraceMode && isPOnPath && isParentOnPath
 
             sharedLinePath.reset()
@@ -3488,7 +3797,7 @@ class FamilyTreeView @JvmOverloads constructor(
                 continue
             }
 
-            val isMrca = p.id == mrcaPersonId
+            val isMrca = p.id == mrcaPersonId || mrcaPersonIds.contains(p.id)
             val isOnPath = highlightIds.contains(p.id) || isMrca
 
             drawPersonCard(canvas, p, pos.x, pos.y, isTraceMode, isOnPath, isMrca)
@@ -3536,6 +3845,7 @@ class FamilyTreeView @JvmOverloads constructor(
         isOnPath: Boolean,
         isMrca: Boolean
     ) {
+        val isFocal = p.id == focalPersonId
         val shouldDim = isTraceMode && !isOnPath
         val isFemale = p.gender.lowercase() == "female"
         val basePaint = when {
@@ -3551,9 +3861,14 @@ class FamilyTreeView @JvmOverloads constructor(
         val cardBottom = cy + CARD_H / 2f
         tempCardRect.set(cardLeft, cardTop, cardRight, cardBottom)
 
-        // 1. Soft Drop Shadow
+        // 1. Soft Drop Shadow & Focal Gold Halo
         tempShadowRect.set(cardLeft, cardTop + 4f, cardRight, cardBottom + 4f)
         canvas.drawRoundRect(tempShadowRect, CARD_CORNER, CARD_CORNER, pCardShadow)
+
+        if (isFocal) {
+            tempHaloRect.set(cardLeft - 5f, cardTop - 5f, cardRight + 5f, cardBottom + 5f)
+            canvas.drawRoundRect(tempHaloRect, CARD_CORNER + 4f, CARD_CORNER + 4f, pMrcaGoldHalo)
+        }
 
         // 2. Card Background & Border
         val bgPaint = when {
@@ -3566,6 +3881,7 @@ class FamilyTreeView @JvmOverloads constructor(
         }
         val borderPaint = when {
             isMrca -> pCardMrcaBorder
+            isFocal -> pGoldHighlightBorder
             isOnPath && isTraceMode -> pCardHighlightBorder
             !p.isLiving && shouldDim -> pCardDeceasedBorderDim
             !p.isLiving -> pCardDeceasedBorder
@@ -3579,7 +3895,7 @@ class FamilyTreeView @JvmOverloads constructor(
         val avatarCy = cardTop + 14f + NODE_RADIUS
         canvas.drawCircle(cx, avatarCy + 2f, NODE_RADIUS + 1f, pNodeShadow)
 
-        if (isMrca) {
+        if (isMrca || isFocal) {
             canvas.drawCircle(cx, avatarCy, NODE_RADIUS + 6f, pMrcaGoldHalo)
         }
 
@@ -3600,7 +3916,7 @@ class FamilyTreeView @JvmOverloads constructor(
         }
 
         val avatarBorderPaint = when {
-            isMrca -> pMrcaGoldHalo
+            isMrca || isFocal -> pMrcaGoldHalo
             isOnPath && isTraceMode -> pGoldHighlightBorder
             !p.isLiving -> if (shouldDim) pDeceasedBorderDim else pDeceasedBorder
             else -> if (shouldDim) pBorderDim else pBorder
@@ -3651,18 +3967,21 @@ class FamilyTreeView @JvmOverloads constructor(
         tempBarRect.set(cardLeft + barMargin, cardBottom - barH - barMargin, cardRight - barMargin, cardBottom - barMargin)
 
         val titleBgPaint = when {
+            isFocal -> pFocalPillBg
             !p.isLiving && shouldDim -> pDeceasedTitleBgDim
             !p.isLiving -> pDeceasedTitleBg
             shouldDim -> pTitleBgDim
             else -> pTitleBg
         }
         val titleBorderPaint = when {
+            isFocal -> pCardMrcaBorder
             !p.isLiving && shouldDim -> pDeceasedTitleBorderDim
             !p.isLiving -> pDeceasedTitleBorder
             shouldDim -> pTitleBorderDim
             else -> pTitleBorder
         }
         val titleTxtPaint = when {
+            isFocal -> pMrcaBadge
             !p.isLiving && shouldDim -> pDeceasedTitleTextDim
             !p.isLiving -> pDeceasedTitleText
             shouldDim -> pTitleTextDim
@@ -3674,15 +3993,18 @@ class FamilyTreeView @JvmOverloads constructor(
         canvas.drawText(displayTitle, cx, tempBarRect.centerY() + 4f, titleTxtPaint)
 
         // 6. Role Badge above card (especially in TRACE_HIGHLIGHT mode)
+        val mrcaBadgeLabel = if (isAffinityTraceMode) "💍 MARRIAGE BRIDGE" else "★ COMMON ANCESTOR"
         if (isTraceMode && isOnPath) {
             when {
-                isMrca -> canvas.drawText("★ COMMON ANCESTOR", cx, cardTop - 8f, pMrcaBadge)
+                isMrca -> canvas.drawText(mrcaBadgeLabel, cx, cardTop - 8f, pMrcaBadge)
                 p.id == tracePersonAId -> canvas.drawText("🚩 PERSON A", cx, cardTop - 8f, pPersonABadge)
                 p.id == tracePersonBId -> canvas.drawText("🎯 PERSON B", cx, cardTop - 8f, pPersonBBadge)
                 else -> canvas.drawText("⚡ BLOODLINE", cx, cardTop - 8f, pBloodlineBadge)
             }
         } else if (isMrca) {
-            canvas.drawText("★ COMMON ANCESTOR", cx, cardTop - 8f, pMrcaBadge)
+            canvas.drawText(mrcaBadgeLabel, cx, cardTop - 8f, pMrcaBadge)
+        } else if (isFocal) {
+            canvas.drawText("\u2605 YOU / FOCAL CENTER", cx, cardTop - 8f, pMrcaBadge)
         }
     }
 
@@ -3697,6 +4019,9 @@ class FamilyTreeView @JvmOverloads constructor(
         val borderPaint = if (!p.isLiving) pDeceasedBorder else pBorder
 
         canvas.drawCircle(cx, cy + 4f, NODE_RADIUS + 2f, pNodeShadow)
+        if (p.id == focalPersonId) {
+            canvas.drawCircle(cx, cy, NODE_RADIUS + 6f, pMrcaGoldHalo)
+        }
 
         val photoBitmap = avatarBitmapCache[p.id]
         if (photoBitmap != null) {
@@ -3934,5 +4259,34 @@ class FamilyTreeView @JvmOverloads constructor(
         }
 
         return bmp
+    }
+
+    fun getNodeScreenBounds(personId: String): RectF? {
+        val h = hitAreas.find { it.tag == personId } ?: return null
+        val originX = offsetX + (width - canvasW) / 2f
+        val originY = offsetY + MARGIN / 2f
+        val pivotX = width / 2f
+        val pivotY = height / 2f
+
+        val halfW = if (h.w > 0f) h.w / 2f else h.r
+        val halfH = if (h.h > 0f) h.h / 2f else h.r
+
+        val screenLeft = (h.cx - halfW + originX - pivotX) * scaleFactor + pivotX
+        val screenTop = (h.cy - halfH + originY - pivotY) * scaleFactor + pivotY
+        val screenRight = (h.cx + halfW + originX - pivotX) * scaleFactor + pivotX
+        val screenBottom = (h.cy + halfH + originY - pivotY) * scaleFactor + pivotY
+
+        val loc = IntArray(2)
+        getLocationOnScreen(loc)
+        return RectF(
+            screenLeft + loc[0],
+            screenTop + loc[1],
+            screenRight + loc[0],
+            screenBottom + loc[1]
+        )
+    }
+
+    fun getFirstVisiblePersonId(): String? {
+        return hitAreas.firstOrNull { !it.tag.startsWith("add:") && !it.tag.startsWith("ancestor:") }?.tag
     }
 }

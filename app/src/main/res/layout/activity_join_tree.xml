@@ -11,22 +11,53 @@
         android:padding="24dp"
         android:paddingTop="48dp">
 
-        <!-- Back Navigation Pill -->
-        <TextView
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:background="@drawable/bg_nav_back_pill"
+        <!-- Header Navigation Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingStart="14dp"
-            android:paddingEnd="16dp"
-            android:text="← Back"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary"
-            android:layout_marginBottom="24dp"
-            android:clickable="true"
-            android:focusable="true" />
+            android:layout_marginBottom="20dp">
+
+            <!-- Back Navigation Pill -->
+            <TextView
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:background="@drawable/bg_nav_back_pill"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:text="← Back"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Help & QuickAssist Button -->
+            <TextView
+                android:id="@+id/btnQuickAssistJoinTree"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:gravity="center_vertical"
+                android:drawableStart="@drawable/ic_help_minimal"
+                android:drawablePadding="5dp"
+                android:text="Help"
+                android:textSize="11.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:background="@drawable/bg_nav_back_pill"
+                android:paddingStart="10dp"
+                android:paddingEnd="12dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
 
         <!-- STATE 1: JOIN FORM -->
         <LinearLayout
@@ -66,14 +97,39 @@
                 android:lineSpacingExtra="2dp"
                 android:layout_marginBottom="28dp" />
 
-            <TextView
+                        <!-- Invite Code Label Row with Guidance Beacon (Design 3) -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Invite code"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="6dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Invite code"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/btnInviteCodeBeacon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:gravity="center_vertical"
+                    android:text="✨ Need guidance?"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/beacon_chip_text"
+                    android:background="@drawable/bg_beacon_guidance_chip"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="12dp"
+                    android:letterSpacing="0.02"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
 
             <EditText
                 android:id="@+id/etInviteCode"
@@ -87,7 +143,7 @@
                 android:textStyle="bold"
                 android:letterSpacing="0.25"
                 android:textColor="@color/primary"
-                android:background="@drawable/input_bg_white"
+                android:background="@drawable/bg_input_gold_halo"
                 android:layout_marginBottom="8dp" />
 
             <TextView

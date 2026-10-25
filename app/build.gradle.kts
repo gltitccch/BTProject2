@@ -17,8 +17,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("kintrace-release-key.jks")
+            storePassword = System.getenv("KINTRACE_KEYSTORE_PASSWORD") ?: "kintrace2026"
+            keyAlias = System.getenv("KINTRACE_KEY_ALIAS") ?: "kintrace"
+            keyPassword = System.getenv("KINTRACE_KEY_PASSWORD") ?: "kintrace2026"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

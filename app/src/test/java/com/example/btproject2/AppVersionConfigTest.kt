@@ -59,7 +59,7 @@ class AppVersionConfigTest {
         val friendInstalledCode = 2L // Friend on v1.2.0
         val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.0")
         assertEquals(
-            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.0/app-debug.apk",
+            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.0/app-release.apk",
             releaseUrl
         )
 

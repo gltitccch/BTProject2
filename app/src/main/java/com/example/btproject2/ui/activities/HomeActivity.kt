@@ -188,6 +188,19 @@ class HomeActivity : AppCompatActivity() {
         val tvHeaderDate = findViewById<TextView?>(R.id.tvHeaderDate)
         tvHeaderDate?.text = SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date()).uppercase()
 
+        // Responsive Adaptive Screen Layout
+        com.example.btproject2.utils.AdaptiveLayoutHelper.applyMaxContentWidth(findViewById(R.id.layoutHomeScrollContent))
+        com.example.btproject2.utils.AdaptiveLayoutHelper.adaptHeroButtons(
+            findViewById(R.id.btnAddMemberHero),
+            findViewById(R.id.btnViewTreeHero),
+            findViewById(R.id.btnFamilyInsightsHero)
+        )
+        com.example.btproject2.utils.AdaptiveLayoutHelper.adaptToolsTiles(
+            findViewById(R.id.cardTrace),
+            findViewById(R.id.cardViewTree),
+            findViewById(R.id.cardRecords)
+        )
+
         // ── Family Insights Navigation ────────────────────────────
         val openInsights = View.OnClickListener {
             val intent = Intent(this, InsightsActivity::class.java).apply {
@@ -268,6 +281,14 @@ class HomeActivity : AppCompatActivity() {
         }
         btnEmptyJoinTree.setOnClickListener {
             startActivity(Intent(this, JoinTreeActivity::class.java))
+        }
+
+        val btnEmptyReplayTour = findViewById<View?>(R.id.btnEmptyReplayTour)
+        btnEmptyReplayTour?.setOnClickListener {
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialForced(
+                this,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE1_EMPTY
+            )
         }
         btnEmptyAddMember.setOnClickListener {
             val intent = Intent(this, AddMemberActivity::class.java).apply {

@@ -23,6 +23,8 @@ object OnboardingPreferences {
     const val KEY_QUEST_CODE_SHARED = "quest_code_shared"
     const val KEY_IS_QUEST_DISMISSED = "is_quest_dismissed"
     const val KEY_IS_QUEST_COLLAPSED = "is_quest_collapsed"
+    const val KEY_IS_GUIDE_CREST_DISMISSED = "is_guide_crest_dismissed"
+    const val KEY_SEEN_TUTORIAL_KEYS = "seen_tutorial_keys"
     const val KEY_LAST_UPDATED = "last_updated"
 
     private fun getPrefs(context: Context, userId: String? = null): SharedPreferences {
@@ -49,6 +51,8 @@ object OnboardingPreferences {
             questCodeShared = prefs.getBoolean(KEY_QUEST_CODE_SHARED, false),
             isQuestDismissed = prefs.getBoolean(KEY_IS_QUEST_DISMISSED, false),
             isQuestCollapsed = prefs.getBoolean(KEY_IS_QUEST_COLLAPSED, false),
+            isGuideCrestDismissed = prefs.getBoolean(KEY_IS_GUIDE_CREST_DISMISSED, false),
+            seenTutorialKeys = prefs.getStringSet(KEY_SEEN_TUTORIAL_KEYS, emptySet())?.toList() ?: emptyList(),
             lastUpdated = prefs.getLong(KEY_LAST_UPDATED, System.currentTimeMillis())
         )
     }
@@ -62,6 +66,8 @@ object OnboardingPreferences {
             .putBoolean(KEY_QUEST_CODE_SHARED, state.questCodeShared)
             .putBoolean(KEY_IS_QUEST_DISMISSED, state.isQuestDismissed)
             .putBoolean(KEY_IS_QUEST_COLLAPSED, state.isQuestCollapsed)
+            .putBoolean(KEY_IS_GUIDE_CREST_DISMISSED, state.isGuideCrestDismissed)
+            .putStringSet(KEY_SEEN_TUTORIAL_KEYS, state.seenTutorialKeys.toSet())
             .putLong(KEY_LAST_UPDATED, System.currentTimeMillis())
             .apply()
     }
@@ -90,6 +96,14 @@ object OnboardingPreferences {
         getPrefs(context, userId).edit().putBoolean(KEY_IS_QUEST_COLLAPSED, value).apply()
     }
 
+    fun isGuideCrestDismissed(context: Context, userId: String? = null): Boolean {
+        return getPrefs(context, userId).getBoolean(KEY_IS_GUIDE_CREST_DISMISSED, false)
+    }
+
+    fun setGuideCrestDismissed(context: Context, value: Boolean, userId: String? = null) {
+        getPrefs(context, userId).edit().putBoolean(KEY_IS_GUIDE_CREST_DISMISSED, value).apply()
+    }
+
     fun setMilestoneRoots(context: Context, value: Boolean, userId: String? = null) {
         getPrefs(context, userId).edit().putBoolean(KEY_QUEST_ROOTS_COMPLETED, value).apply()
     }
@@ -104,6 +118,42 @@ object OnboardingPreferences {
 
     fun setMilestoneCodeShared(context: Context, value: Boolean, userId: String? = null) {
         getPrefs(context, userId).edit().putBoolean(KEY_QUEST_CODE_SHARED, value).apply()
+    }
+
+    fun hasSeenTutorial(
+        context: Context,
+        featureKey: String,
+        userId: String? = null,
+        treeId: String? = null
+    ): Boolean {
+        val currentSet = getPrefs(context, userId).getStringSet(KEY_SEEN_TUTORIAL_KEYS, emptySet()) ?: emptySet()
+        val scopedKey = if (!treeId.isNullOrBlank()) "${treeId}_$featureKey" else featureKey
+        return currentSet.contains(scopedKey)
+    }
+
+    fun setTutorialSeen(
+        context: Context,
+        featureKey: String,
+        seen: Boolean = true,
+        userId: String? = null,
+        treeId: String? = null
+    ) {
+        val prefs = getPrefs(context, userId)
+        val currentSet = (prefs.getStringSet(KEY_SEEN_TUTORIAL_KEYS, emptySet()) ?: emptySet()).toMutableSet()
+        val scopedKey = if (!treeId.isNullOrBlank()) "${treeId}_$featureKey" else featureKey
+        if (seen) {
+            currentSet.add(scopedKey)
+            if (treeId.isNullOrBlank()) {
+                currentSet.add(featureKey)
+            }
+        } else {
+            currentSet.remove(scopedKey)
+            currentSet.remove(featureKey)
+        }
+        prefs.edit()
+            .putStringSet(KEY_SEEN_TUTORIAL_KEYS, currentSet)
+            .putLong(KEY_LAST_UPDATED, System.currentTimeMillis())
+            .apply()
     }
 
     fun resetOnboardingState(context: Context, userId: String? = null) {

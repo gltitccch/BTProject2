@@ -56,7 +56,7 @@ class FamilyTreeActivity : AppCompatActivity() {
                         val items = buildGenerationItems(allPersons, genMap)
                         runOnUiThread {
                             if (isFinishing || isDestroyed) return@runOnUiThread
-                            treeAdapter.submitItems(items, allPersons, allPersons.firstOrNull())
+                            treeAdapter.submitItems(items, allPersons, null)
                             scrollState?.let { layoutManager?.onRestoreInstanceState(it) }
 
                             if (webViewFan.visibility == android.view.View.VISIBLE) {
@@ -83,7 +83,7 @@ class FamilyTreeActivity : AppCompatActivity() {
                 syncCoordinator.allPersonsList = allPersons
                 tvMemberCount.text = "${allPersons.size} members"
                 val items = buildGenerationItems(allPersons)
-                treeAdapter.submitItems(items, allPersons, allPersons.firstOrNull())
+                treeAdapter.submitItems(items, allPersons, null)
                 if (webViewFan.visibility == android.view.View.VISIBLE) {
                     renderFanChart(allPersons)
                 }
@@ -205,12 +205,12 @@ class FamilyTreeActivity : AppCompatActivity() {
         val btnQuickAssistTree = findViewById<TextView>(R.id.btnQuickAssistTree)
         btnQuickAssistTree?.setOnClickListener {
             val ctx = if (webViewFan.visibility == android.view.View.VISIBLE) {
-                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.PEDIGREE_FAN_CHART
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.FAN_CHART
             } else {
-                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.CANVAS
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.PEDIGREE_FAN_CHART
             }
             com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(ctx)
-                .show(supportFragmentManager, "QuickAssistCanvas")
+                .show(supportFragmentManager, "QuickAssistFamilyTree")
         }
 
         val btnExportTree = findViewById<TextView>(R.id.btnExportTree)
@@ -253,6 +253,8 @@ class FamilyTreeActivity : AppCompatActivity() {
         btnPedigree.setOnClickListener { switchTab(pedigree = true) }
         btnFanChart.setOnClickListener { switchTab(pedigree = false) }
         btnInteractiveTree.setOnClickListener {
+            com.example.btproject2.utils.KinTraceSpotlightManager.dismissActiveOverlay()
+            com.example.btproject2.utils.KinTraceSpotlightManager.cancelPendingTutorials()
             val intent = Intent(this, InteractiveTreeActivity::class.java).apply {
                 putExtra("TREE_ID", treeId)
             }
@@ -273,6 +275,26 @@ class FamilyTreeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         loadTree()
+
+        if (webViewFan.visibility == android.view.View.VISIBLE) {
+            com.example.btproject2.utils.KinTraceSpotlightManager.cancelPendingTutorials(
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_TREE_PEDIGREE
+            )
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+                this,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAN_CHART,
+                treeId = treeId
+            )
+        } else {
+            com.example.btproject2.utils.KinTraceSpotlightManager.cancelPendingTutorials(
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAN_CHART
+            )
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+                this,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_TREE_PEDIGREE,
+                treeId = treeId
+            )
+        }
     }
 
     override fun onDestroy() {
@@ -295,18 +317,37 @@ class FamilyTreeActivity : AppCompatActivity() {
             )
         }
 
+        com.example.btproject2.utils.KinTraceSpotlightManager.dismissActiveOverlay()
+        com.example.btproject2.utils.KinTraceSpotlightManager.cancelPendingTutorials()
+
         if (pedigree) {
+            com.example.btproject2.utils.KinTraceSpotlightManager.cancelPendingTutorials(
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAN_CHART
+            )
             styleSegment(btnPedigree, true)
             styleSegment(btnFanChart, false)
             styleSegment(btnInteractiveTree, false)
             rvTree.visibility = android.view.View.VISIBLE
             webViewFan.visibility = android.view.View.GONE
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+                this,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_TREE_PEDIGREE,
+                treeId = treeId
+            )
         } else {
+            com.example.btproject2.utils.KinTraceSpotlightManager.cancelPendingTutorials(
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_TREE_PEDIGREE
+            )
             styleSegment(btnPedigree, false)
             styleSegment(btnFanChart, true)
             styleSegment(btnInteractiveTree, false)
             rvTree.visibility = android.view.View.GONE
             webViewFan.visibility = android.view.View.VISIBLE
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+                this,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAN_CHART,
+                treeId = treeId
+            )
             if (allPersons.isNotEmpty()) {
                 Thread {
                     val genMap = computeGenerationMap(allPersons)
@@ -350,7 +391,7 @@ class FamilyTreeActivity : AppCompatActivity() {
                 val items = buildGenerationItems(activePersons, genMap)
                 runOnUiThread {
                     if (isFinishing || isDestroyed) return@runOnUiThread
-                    treeAdapter.submitItems(items, activePersons, activePersons.firstOrNull())
+                    treeAdapter.submitItems(items, activePersons, null)
                     if (webViewFan.visibility == android.view.View.VISIBLE) {
                         renderFanChart(activePersons, genMap)
                     }
@@ -369,7 +410,7 @@ class FamilyTreeActivity : AppCompatActivity() {
                     val items = buildGenerationItems(activePersons, genMap)
                     runOnUiThread {
                         if (isFinishing || isDestroyed) return@runOnUiThread
-                        treeAdapter.submitItems(items, activePersons, activePersons.firstOrNull())
+                        treeAdapter.submitItems(items, activePersons, null)
                         if (webViewFan.visibility == android.view.View.VISIBLE) {
                             renderFanChart(activePersons, genMap)
                         }
@@ -388,7 +429,7 @@ class FamilyTreeActivity : AppCompatActivity() {
                         val items = buildGenerationItems(activePersons, genMap)
                         runOnUiThread {
                             if (isFinishing || isDestroyed) return@runOnUiThread
-                            treeAdapter.submitItems(items, activePersons, activePersons.firstOrNull())
+                            treeAdapter.submitItems(items, activePersons, null)
                             if (webViewFan.visibility == android.view.View.VISIBLE) {
                                 renderFanChart(activePersons, genMap)
                             }
@@ -442,7 +483,9 @@ class FamilyTreeActivity : AppCompatActivity() {
         persons: List<Person>,
         genMap: Map<String, Int> = computeGenerationMap(persons)
     ) {
-        val nodesJson = syncCoordinator.buildFanChartNodesJson(persons, genMap, persons.firstOrNull())
+        val bestFocal = com.example.btproject2.engine.GenerationHierarchyEngine.findBestPedigreeFocalMember(persons)
+            ?: persons.firstOrNull()
+        val nodesJson = syncCoordinator.buildFanChartNodesJson(persons, genMap, bestFocal)
         if (isFanChartLoaded) {
             webViewFan.evaluateJavascript("if (typeof window.updateFanChart === 'function') { window.updateFanChart($nodesJson); 'true'; } else { 'false'; }") { res ->
                 if (res != "\"true\"" && res != "true") {
@@ -759,6 +802,7 @@ const isDark = $isNightMode;
 let allPersons = [];
 let selectableRoots = [];
 let currentMode = 'clan'; // 'clan' or personId for Ancestor Ahnentafel fan
+let hasAutoSelectedRoot = false;
 let activeGenFilter = 0;
 let selectedWedgeId = null;
 let hitWedges = [];
@@ -973,8 +1017,11 @@ function populateModeDropdown(persons) {
   selectableRoots = persons.filter(p => (p.fatherId && byId[p.fatherId]) || (p.motherId && byId[p.motherId]));
   selectableRoots.sort((a, b) => (b.generation || 1) - (a.generation || 1));
 
-  if (currentMode !== 'clan' && !byId[currentMode]) {
-    currentMode = 'clan';
+  if (!hasAutoSelectedRoot && selectableRoots.length > 0) {
+    currentMode = selectableRoots[0].id;
+    hasAutoSelectedRoot = true;
+  } else if (currentMode !== 'clan' && !byId[currentMode]) {
+    currentMode = selectableRoots.length > 0 ? selectableRoots[0].id : 'clan';
   }
   updateTriggerLabel(byId);
   renderDrawerChipsAndGrid();

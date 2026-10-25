@@ -204,6 +204,27 @@ class FirestoreHelper {
                 var fixedP = p
                 var changed = false
 
+                // Restore historical passing dates for seeded Malone/Vance clan elders if wiped by a prior quick vital-status toggle
+                if (!fixedP.isLiving && fixedP.deathDate.isBlank()) {
+                    val fullName = "${fixedP.firstName.trim()} ${fixedP.lastName.trim()}".lowercase()
+                    val restoredDeathDateAndPlace = when {
+                        fullName == "arthur malone" && fixedP.birthDate.startsWith("1935") ->
+                            "2015-08-19" to fixedP.birthPlace.ifBlank { "Chicago, Illinois" }
+                        fullName == "grace vance" && fixedP.birthDate.startsWith("1963") ->
+                            "2021-05-14" to fixedP.birthPlace
+                        fullName == "mark gallagher" && fixedP.birthDate.startsWith("1961") ->
+                            "2018-11-03" to fixedP.birthPlace
+                        else -> null
+                    }
+                    if (restoredDeathDateAndPlace != null) {
+                        fixedP = fixedP.copy(
+                            deathDate = restoredDeathDateAndPlace.first,
+                            deathPlace = fixedP.deathPlace.ifBlank { restoredDeathDateAndPlace.second }
+                        )
+                        changed = true
+                    }
+                }
+
                 val father = if (!fId.isNullOrBlank()) byId[fId.lowercase()]?.takeIf { it.treeId.isEmpty() || p.treeId.isEmpty() || it.treeId == p.treeId } else null
                 val mother = if (!mId.isNullOrBlank()) byId[mId.lowercase()]?.takeIf { it.treeId.isEmpty() || p.treeId.isEmpty() || it.treeId == p.treeId } else null
 
@@ -270,7 +291,7 @@ class FirestoreHelper {
                         dirtyIds.forEach { id ->
                             val fixed = byId[id.lowercase()]
                             if (fixed != null && fixed.id.isNotBlank()) {
-                                val signature = "${fixed.id.trim().lowercase()}|${fixed.fatherId.orEmpty()}|${fixed.motherId.orEmpty()}|${fixed.spouseId.orEmpty()}|${fixed.maritalStatus}"
+                                val signature = "${fixed.id.trim().lowercase()}|${fixed.fatherId.orEmpty()}|${fixed.motherId.orEmpty()}|${fixed.spouseId.orEmpty()}|${fixed.maritalStatus}|${fixed.deathDate}|${fixed.deathPlace}"
                                 if (sanitizedRecordSignatures.add(signature)) {
                                     val docRef = db.collection("persons").document(fixed.id)
                                     val map = mutableMapOf<String, Any?>()
@@ -280,6 +301,14 @@ class FirestoreHelper {
                                     map["maritalStatus"] = fixed.maritalStatus
                                     map["fatherRelationshipType"] = fixed.fatherRelationshipType
                                     map["motherRelationshipType"] = fixed.motherRelationshipType
+                                    if (!fixed.isLiving && fixed.deathDate.isNotBlank()) {
+                                        map["deathDate"] = fixed.deathDate
+                                        map["dateOfDeath"] = fixed.deathDate
+                                    }
+                                    if (!fixed.isLiving && fixed.deathPlace.isNotBlank()) {
+                                        map["deathPlace"] = fixed.deathPlace
+                                        map["placeOfDeath"] = fixed.deathPlace
+                                    }
                                     docRef.set(map, com.google.firebase.firestore.SetOptions.merge())
                                         .addOnSuccessListener {
                                             CentralTreeSynchronizer.getInstance().notifyRelationshipCorrected(
@@ -298,6 +327,17 @@ class FirestoreHelper {
             }
 
             private val sanitizedRecordSignatures = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+            private val rememberedPassingDetails = java.util.concurrent.ConcurrentHashMap<String, Pair<String, String>>()
+
+            fun rememberPassingDetails(personId: String, deathDate: String, deathPlace: String) {
+                if (personId.isNotBlank() && (deathDate.isNotBlank() || deathPlace.isNotBlank())) {
+                    rememberedPassingDetails[personId.trim().lowercase()] = deathDate.trim() to deathPlace.trim()
+                }
+            }
+
+            fun getRememberedPassingDetails(personId: String): Pair<String, String>? {
+                return rememberedPassingDetails[personId.trim().lowercase()]
+            }
 
             fun invalidateCache() {
                 inMemoryPersonsCache = null
@@ -1444,9 +1484,15 @@ class FirestoreHelper {
     ) {
         val trimmedId = personId.trim()
         val existing = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedId) }
+        if (existing != null && (existing.deathDate.isNotBlank() || existing.deathPlace.isNotBlank())) {
+            rememberPassingDetails(existing.id, existing.deathDate, existing.deathPlace)
+        }
         val all = getCachedPersons(existing?.treeId?.ifBlank { null }).orEmpty()
         val effectiveDeathDate = if (isLiving) "" else deathDate.trim()
         val effectiveDeathPlace = if (isLiving) "" else deathPlace.trim()
+        if (!isLiving && (effectiveDeathDate.isNotBlank() || effectiveDeathPlace.isNotBlank())) {
+            rememberPassingDetails(trimmedId, effectiveDeathDate, effectiveDeathPlace)
+        }
 
         val batch = db.batch()
         val personRef = db.collection("persons").document(trimmedId)

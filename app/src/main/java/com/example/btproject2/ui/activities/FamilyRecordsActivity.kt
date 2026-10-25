@@ -146,6 +146,7 @@ class FamilyRecordsActivity : AppCompatActivity() {
             )
         }
 
+
         btnEmptyAddMember.setOnClickListener {
             if (isViewer) {
                 ActionRestrictedDialog.newInstance(
@@ -267,6 +268,11 @@ class FamilyRecordsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         loadTreeRoleAndPrivacy()
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_RECORDS,
+            treeId = treeId
+        )
         if (isFirstLaunch) {
             isFirstLaunch = false
             return

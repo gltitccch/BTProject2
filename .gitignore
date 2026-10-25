@@ -20,3 +20,9 @@ local.properties
 
 ~$*.pptx
 ~$*.ppt
+*.jks
+*.keystore
+bugreport_unzipped/
+*.docx
+/*.html
+app/alert_dark_mode.png

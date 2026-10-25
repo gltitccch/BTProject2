@@ -32,6 +32,7 @@ class WelcomeStoryDialogFragment : DialogFragment() {
 
     companion object {
         const val TAG = "WelcomeStoryDialogFragment"
+        private var lastShownTimestampMs: Long = 0L
 
         fun newInstance(): WelcomeStoryDialogFragment {
             return WelcomeStoryDialogFragment()
@@ -41,8 +42,12 @@ class WelcomeStoryDialogFragment : DialogFragment() {
             if (activity.isFinishing || activity.isDestroyed) return false
             if (activity.supportFragmentManager.isStateSaved) return false
             if (OnboardingPreferences.hasSeenWelcomeStory(activity)) return false
-            if (activity.supportFragmentManager.findFragmentByTag(TAG) != null) return false
+            val now = System.currentTimeMillis()
+            if (activity.supportFragmentManager.findFragmentByTag(TAG) != null || (now - lastShownTimestampMs) < 1500L) {
+                return true
+            }
 
+            lastShownTimestampMs = now
             val dialog = newInstance()
             dialog.show(activity.supportFragmentManager, TAG)
             return true
@@ -51,6 +56,7 @@ class WelcomeStoryDialogFragment : DialogFragment() {
 
     private val authHelper = AuthHelper()
     private val firestoreHelper = FirestoreHelper()
+    private var navigatedToAnotherActivity = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -90,11 +96,13 @@ class WelcomeStoryDialogFragment : DialogFragment() {
 
         val adapter = WelcomeStoryAdapter(
             onPlantTreeClicked = {
+                navigatedToAnotherActivity = true
                 markSeenAndSync()
                 dismissAllowingStateLoss()
                 startActivity(Intent(requireContext(), CreateTreeActivity::class.java))
             },
             onJoinClanClicked = {
+                navigatedToAnotherActivity = true
                 markSeenAndSync()
                 dismissAllowingStateLoss()
                 startActivity(Intent(requireContext(), JoinTreeActivity::class.java))
@@ -162,6 +170,18 @@ class WelcomeStoryDialogFragment : DialogFragment() {
                 markSeenAndSync()
                 dismissAllowingStateLoss()
             }
+        }
+    }
+
+    override fun onDismiss(dialog: android.content.DialogInterface) {
+        val hostAct = activity
+        markSeenAndSync()
+        super.onDismiss(dialog)
+        if (!navigatedToAnotherActivity && hostAct != null && !hostAct.isFinishing && !hostAct.isDestroyed) {
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+                hostAct,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE1_EMPTY
+            )
         }
     }
 

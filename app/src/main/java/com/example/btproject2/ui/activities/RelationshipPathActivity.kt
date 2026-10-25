@@ -91,27 +91,49 @@ class RelationshipPathActivity : AppCompatActivity() {
             layoutHeroSummary.visibility = View.VISIBLE
             layoutBottomActions.visibility = View.VISIBLE
 
+            val isAffinity = result.relationshipCategory.contains("Affinity", ignoreCase = true) ||
+                result.relationshipCategory.contains("Spousal", ignoreCase = true)
             val ordSuffix = getOrdinalSuffix(result.degreeOfConsanguinity)
-            tvConsanguinityBadge.text = "${result.degreeOfConsanguinity}$ordSuffix CIVIL DEGREE · ${result.relationshipCategory.uppercase()} LINE"
-            tvRelationshipHeading.text = result.relationshipType
-
-            val ancestorName = result.commonAncestor?.let { "${it.firstName} ${it.lastName}" }
-            tvSharedAncestorSummary.text = if (ancestorName != null) {
-                "Nearest Shared Ancestor: $ancestorName (${result.distanceA} Gen Up from ${result.personA.firstName}, ${result.distanceB} Gen Down to ${result.personB.firstName})"
+            val subtypeSuffix = if (result.bloodlineSubtype.isNotBlank()) " · ${result.bloodlineSubtype.uppercase()}" else ""
+            tvConsanguinityBadge.text = if (isAffinity && result.degreeOfConsanguinity == 0) {
+                "0° BLOOD CONSANGUINITY · ${result.relationshipCategory.uppercase()}$subtypeSuffix"
             } else {
-                result.explanation
+                "${result.degreeOfConsanguinity}$ordSuffix CIVIL DEGREE · ${result.relationshipCategory.uppercase()} LINE$subtypeSuffix"
+            }
+            tvRelationshipHeading.text = if (result.bloodlineSubtype.isNotBlank() && result.relationshipCategory == "Collateral") {
+                "${result.relationshipType} (${result.bloodlineSubtype})"
+            } else {
+                result.relationshipType
+            }
+
+            val ancestorName = result.commonAncestorDisplayName.takeIf { it.isNotBlank() }
+            tvSharedAncestorSummary.text = when {
+                isAffinity && result.commonAncestor != null -> {
+                    "💍 Marriage Bridge: ${result.commonAncestor.firstName} ${result.commonAncestor.lastName} (${result.distanceA} step(s) from ${result.personA.firstName}, ${result.distanceB} step(s) from ${result.personB.firstName})"
+                }
+                ancestorName != null -> {
+                    "Nearest Shared Ancestor(s): ★ $ancestorName (${result.distanceA} Gen Up from ${result.personA.firstName}, ${result.distanceB} Gen Down to ${result.personB.firstName})"
+                }
+                else -> result.explanation
             }
 
             val openTreeAction = View.OnClickListener {
                 val pathIds = ArrayList<String>()
                 pathIds.addAll(result.pathFromA.map { it.id })
-                result.commonAncestor?.id?.let { pathIds.add(it) }
+                result.commonAncestors.forEach { pathIds.add(it.id) }
+                result.commonAncestor?.id?.let { if (!pathIds.contains(it)) pathIds.add(it) }
                 pathIds.addAll(result.pathFromB.map { it.id })
+
+                val mrcaIdList = ArrayList<String>()
+                result.commonAncestors.forEach { mrcaIdList.add(it.id) }
+                result.commonAncestor?.id?.let { if (!mrcaIdList.contains(it)) mrcaIdList.add(it) }
 
                 val intent = Intent(this, InteractiveTreeActivity::class.java).apply {
                     putExtra("highlightPersonAId", result.personA.id)
                     putExtra("highlightPersonBId", result.personB.id)
                     putExtra("mrcaId", result.commonAncestor?.id)
+                    putStringArrayListExtra("mrcaIds", mrcaIdList)
+                    putExtra("isAffinityTrace", isAffinity)
                     putStringArrayListExtra("highlightPathIds", pathIds)
                     putExtra("viewMode", "TRACE_HIGHLIGHT")
                     putExtra("TREE_ID", treeId)
@@ -167,16 +189,22 @@ class RelationshipPathActivity : AppCompatActivity() {
             }
 
             var stepCounter = 1
+            val mrcaIdsSet = result.commonAncestors.map { it.id }.toSet() + setOfNotNull(result.commonAncestor?.id)
 
-            // Build path from Person A up to ancestor
+            // Build path from Person A up to ancestor / marriage bridge
             for (i in result.pathFromA.indices) {
                 val person = result.pathFromA[i]
-                val isAncestor = result.commonAncestor != null && person.id == result.commonAncestor.id
+                val isAncestor = mrcaIdsSet.contains(person.id)
                 val isStarter = i == 0
+                val isDualPeak = !isAffinity && isAncestor && result.commonAncestors.size >= 2
+                val displayNameOverride = if (isDualPeak) result.commonAncestorDisplayName else null
                 val roleTag = when {
+                    isStarter && isAncestor -> if (isAffinity) "Starting Individual & Marriage Bridge" else "Starting Individual & Shared Ancestor"
                     isStarter -> "Starting Individual (Person A)"
-                    isAncestor -> "Most Recent Common Ancestor"
-                    else -> "${i} Generation${if (i > 1) "s" else ""} Up (Ascendant)"
+                    isAncestor && isAffinity -> "💍 Connecting Marriage Bridge"
+                    isDualPeak -> "★ Nearest Shared Ancestor Couple"
+                    isAncestor -> "★ Most Recent Common Ancestor"
+                    else -> "${i} Step${if (i > 1) "s" else ""} from ${result.personA.firstName}"
                 }
 
                 addPathNode(
@@ -186,40 +214,65 @@ class RelationshipPathActivity : AppCompatActivity() {
                     isAncestor = isAncestor,
                     isStarter = isStarter,
                     isTarget = false,
-                    subtitle = roleTag
+                    subtitle = roleTag,
+                    isAffinityNode = isAffinity && isAncestor,
+                    displayNameOverride = displayNameOverride
                 )
 
                 if (i < result.pathFromA.size - 1) {
-                    addConnectorPipe(pathContainer, isAscending = true, label = "Biological Child of")
+                    val nextPerson = result.pathFromA[i + 1]
+                    val isSpouseHop = person.spouseId == nextPerson.id || nextPerson.spouseId == person.id
+                    val pipeLabel = when {
+                        isSpouseHop -> "💍 Married to (Marriage Bridge)"
+                        person.fatherId == nextPerson.id || person.motherId == nextPerson.id -> "Biological Child of"
+                        else -> "Biological Parent of"
+                    }
+                    addConnectorPipe(pathContainer, isAscending = !isSpouseHop && (person.fatherId == nextPerson.id || person.motherId == nextPerson.id), label = pipeLabel)
                 }
             }
 
-            // Path from ancestor down to Person B
+            // Path from ancestor / marriage bridge down to Person B
             if (result.pathFromB.size > 1) {
-                addConnectorPipe(pathContainer, isAscending = false, label = "Biological Parent of")
-
+                val lastA = result.pathFromA.lastOrNull()
                 val pathDown = result.pathFromB.reversed()
+                val firstDown = pathDown.getOrNull(1)
+                val firstIsSpouseHop = lastA != null && firstDown != null && (lastA.spouseId == firstDown.id || firstDown.spouseId == lastA.id)
+                addConnectorPipe(
+                    pathContainer,
+                    isAscending = false,
+                    label = if (firstIsSpouseHop) "💍 Married to (Marriage Bridge)" else "Biological Parent of"
+                )
+
                 for (i in 1 until pathDown.size) {
                     val person = pathDown[i]
                     val isLast = i == pathDown.size - 1
                     val stepsRemaining = pathDown.size - 1 - i
+                    val isBridgeNode = mrcaIdsSet.contains(person.id)
                     val roleTag = when {
                         isLast -> "Target Individual (Person B)"
-                        else -> "${stepsRemaining} Generation${if (stepsRemaining > 1) "s" else ""} Up from ${result.personB.firstName}"
+                        isBridgeNode && isAffinity -> "💍 Connecting Marriage Bridge"
+                        else -> "${stepsRemaining} Step${if (stepsRemaining > 1) "s" else ""} from ${result.personB.firstName}"
                     }
 
                     addPathNode(
                         container = pathContainer,
                         stepNum = stepCounter++,
                         person = person,
-                        isAncestor = false,
+                        isAncestor = isBridgeNode,
                         isStarter = false,
                         isTarget = isLast,
-                        subtitle = roleTag
+                        subtitle = roleTag,
+                        isAffinityNode = isAffinity && isBridgeNode
                     )
 
                     if (i < pathDown.size - 1) {
-                        addConnectorPipe(pathContainer, isAscending = false, label = "Biological Parent of")
+                        val nextDown = pathDown[i + 1]
+                        val isSpouseHop = person.spouseId == nextDown.id || nextDown.spouseId == person.id
+                        addConnectorPipe(
+                            pathContainer,
+                            isAscending = false,
+                            label = if (isSpouseHop) "💍 Married to (Marriage Bridge)" else "Biological Parent of"
+                        )
                     }
                 }
             }
@@ -283,7 +336,9 @@ class RelationshipPathActivity : AppCompatActivity() {
         isAncestor: Boolean,
         isStarter: Boolean,
         isTarget: Boolean,
-        subtitle: String
+        subtitle: String,
+        isAffinityNode: Boolean = false,
+        displayNameOverride: String? = null
     ) {
         val nodeLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -323,11 +378,15 @@ class RelationshipPathActivity : AppCompatActivity() {
             setBackgroundResource(R.drawable.badge_pill_dark)
             setPadding(16, 4, 16, 4)
             gravity = Gravity.CENTER
+            isSingleLine = true
+            maxLines = 1
         }
         badgeContainer.addView(stepBadge)
 
         val rolePill = TextView(this).apply {
             val pillText = when {
+                isAffinityNode -> "💍 MARRIAGE BRIDGE"
+                isAncestor && !displayNameOverride.isNullOrBlank() -> "★ COMMON ANCESTORS"
                 isAncestor -> "★ MOST RECENT COMMON ANCESTOR"
                 isStarter -> "🚩 PERSON A"
                 isTarget -> "🎯 PERSON B"
@@ -338,6 +397,9 @@ class RelationshipPathActivity : AppCompatActivity() {
             setTypeface(typeface, Typeface.BOLD)
             setPadding(16, 4, 16, 4)
             gravity = Gravity.CENTER
+            isSingleLine = true
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
             val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             lp.marginStart = 8
             layoutParams = lp
@@ -384,7 +446,7 @@ class RelationshipPathActivity : AppCompatActivity() {
 
         // Full Name
         val nameView = TextView(this).apply {
-            text = "${person.firstName} ${person.lastName}".trim()
+            text = displayNameOverride ?: "${person.firstName} ${person.lastName}".trim()
             textSize = 16f
             setTypeface(typeface, Typeface.BOLD)
             gravity = Gravity.CENTER

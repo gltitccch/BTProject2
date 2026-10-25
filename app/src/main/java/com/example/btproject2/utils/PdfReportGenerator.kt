@@ -144,7 +144,11 @@ object PdfReportGenerator {
         }
         val pDegreeText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#0A1B12")
-            textSize = 15f
+            textSize = when {
+                degreeLabel.length > 44 -> 11f
+                degreeLabel.length > 32 -> 12.5f
+                else -> 15f
+            }
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
         canvas.drawText(degreeLabel, margin + 14f, curY + 42f, pDegreeText)
@@ -192,10 +196,16 @@ object PdfReportGenerator {
 
         canvas.drawText("CLOSEST COMMON ANCESTOR (MRCA):", margin + 14f, curY + 18f, pSectionTitle)
         if (result.commonAncestor != null) {
-            val caName = "${result.commonAncestor.firstName} ${result.commonAncestor.lastName}"
-            val caInfo = "★ $caName  •  Generational Distance: ${result.distanceA} generation(s) from Person A, ${result.distanceB} generation(s) from Person B"
-            canvas.drawText(caInfo, margin + 14f, curY + 36f, pValue.apply { typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD) })
-            canvas.drawText("Total Generational Steps: ${result.distanceA + result.distanceB} step(s) (Degree = Generation A + Generation B)", margin + 14f, curY + 50f, pSubHeader)
+            val caName = result.commonAncestorDisplayName
+            val subtypeSuffix = if (result.bloodlineSubtype.isNotBlank()) "  •  ${result.bloodlineSubtype}" else ""
+            val caInfo = "★ $caName$subtypeSuffix"
+            canvas.drawText(caInfo, margin + 14f, curY + 35f, pValue.apply { typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD) })
+            canvas.drawText(
+                "Generational Distance: ${result.distanceA} gen(s) from Person A, ${result.distanceB} gen(s) from Person B  •  Total: ${result.distanceA + result.distanceB} step(s)",
+                margin + 14f,
+                curY + 50f,
+                pSubHeader
+            )
         } else {
             canvas.drawText("No common ancestor recorded in this lineage branch.", margin + 14f, curY + 36f, pValue)
         }
@@ -255,7 +265,11 @@ object PdfReportGenerator {
 
             val pathAString = result.pathFromA.joinToString(" → ") { it.firstName }
             val pathBString = result.pathFromB.joinToString(" → ") { it.firstName }
-            val mrcaName = result.commonAncestor?.firstName ?: "Root"
+            val mrcaName = if (result.commonAncestors.size >= 2) {
+                result.commonAncestors.joinToString(" & ") { it.firstName }
+            } else {
+                result.commonAncestor?.firstName ?: "Root"
+            }
 
             val ladderStr = "Person A Path: $pathAString\nMRCA Junction: ★ $mrcaName\nPerson B Path: $pathBString"
             val ladderLayout = StaticLayout.Builder.obtain(ladderStr, 0, ladderStr.length, textPaint, contentWidth.toInt())

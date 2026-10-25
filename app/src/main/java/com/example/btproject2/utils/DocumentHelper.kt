@@ -258,23 +258,31 @@ object DocumentHelper {
         if (birthDate.isBlank()) return if (!isLiving) "Deceased" else ""
 
         val birthCal = parseDateToCalendar(birthDate) ?: return if (!isLiving) "Deceased" else ""
-        val targetCal = if (!isLiving && !deathDate.isNullOrBlank()) {
-            parseDateToCalendar(deathDate) ?: Calendar.getInstance()
-        } else {
-            Calendar.getInstance()
+        if (!isLiving) {
+            if (deathDate.isNullOrBlank()) {
+                val birthYear = birthCal.get(Calendar.YEAR)
+                return "Deceased (b. $birthYear)"
+            }
+            val deathCal = parseDateToCalendar(deathDate)
+            if (deathCal == null) {
+                val birthYear = birthCal.get(Calendar.YEAR)
+                return "Deceased (b. $birthYear)"
+            }
+            var ageAtPassing = deathCal.get(Calendar.YEAR) - birthCal.get(Calendar.YEAR)
+            if (deathCal.get(Calendar.DAY_OF_YEAR) < birthCal.get(Calendar.DAY_OF_YEAR)) {
+                ageAtPassing--
+            }
+            val safeAge = ageAtPassing.coerceAtLeast(0)
+            return if (safeAge > 0) "Died at age $safeAge" else "Deceased"
         }
 
+        val targetCal = Calendar.getInstance()
         var age = targetCal.get(Calendar.YEAR) - birthCal.get(Calendar.YEAR)
         if (targetCal.get(Calendar.DAY_OF_YEAR) < birthCal.get(Calendar.DAY_OF_YEAR)) {
             age--
         }
         val safeAge = age.coerceAtLeast(0)
-
-        return if (!isLiving) {
-            if (safeAge > 0) "Died at age $safeAge" else "Deceased"
-        } else {
-            "$safeAge yrs old"
-        }
+        return "$safeAge yrs old"
     }
 
     private fun parseDateToCalendar(dateStr: String): Calendar? {

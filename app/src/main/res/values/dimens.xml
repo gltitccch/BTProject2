@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- KinTrace Responsive Layout Baseline Dimensions (Phones < 600dp) -->
+    <dimen name="content_max_width">0dp</dimen>
+    <dimen name="nav_island_max_width">0dp</dimen>
+    <dimen name="modal_dialog_max_width">440dp</dimen>
+    <dimen name="hero_card_padding">18dp</dimen>
+    <dimen name="hero_stat_num_size">18sp</dimen>
+    <dimen name="hero_btn_text_size">10.5sp</dimen>
+    <dimen name="tool_tile_padding_v">12dp</dimen>
+</resources>

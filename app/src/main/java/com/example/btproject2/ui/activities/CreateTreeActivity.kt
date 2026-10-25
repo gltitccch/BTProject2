@@ -2,6 +2,10 @@ package com.example.btproject2.ui.activities
 
 import com.example.btproject2.utils.KinTraceAlert
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.app.DatePickerDialog
 import android.graphics.Color
 import android.os.Bundle
@@ -31,6 +35,9 @@ import java.util.Calendar
 import java.util.Locale
 
 class CreateTreeActivity : AppCompatActivity() {
+
+    private var btnTreeNameBeacon: TextView? = null
+    private var beaconPulseAnimator: AnimatorSet? = null
 
     private val authHelper = AuthHelper()
     private val firestoreHelper = FirestoreHelper()
@@ -69,6 +76,22 @@ class CreateTreeActivity : AppCompatActivity() {
         btnCreateTree = findViewById(R.id.btnCreateTree)
 
         btnBack.setOnClickListener { finish() }
+
+        val btnQuickAssistCreateTree = findViewById<View?>(R.id.btnQuickAssistCreateTree)
+        btnQuickAssistCreateTree?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinTraceQuickAssistBottomSheet.newInstance(
+                com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.CREATE_TREE
+            ).show(supportFragmentManager, "QuickAssistCreateTree")
+        }
+
+        btnTreeNameBeacon = findViewById(R.id.btnTreeNameBeacon)
+        btnTreeNameBeacon?.paint?.isFakeBoldText = true
+        btnTreeNameBeacon?.setOnClickListener {
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialForced(
+                this,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.CREATE_TREE
+            )
+        }
 
         spinnerGender.setDarkAdapter(this, listOf("Male", "Female"))
 
@@ -131,6 +154,62 @@ class CreateTreeActivity : AppCompatActivity() {
         btnCreateTree.setOnClickListener {
             handleCreateTree()
         }
+
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.CREATE_TREE
+        )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        btnTreeNameBeacon?.let { startBeaconPulse(it) }
+
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.CREATE_TREE
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopBeaconPulse()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopBeaconPulse()
+    }
+
+    private fun startBeaconPulse(view: View) {
+        stopBeaconPulse()
+        val scaleX = ObjectAnimator.ofFloat(view, View.SCALE_X, 1.0f, 1.04f).apply {
+            duration = 1400L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val scaleY = ObjectAnimator.ofFloat(view, View.SCALE_Y, 1.0f, 1.04f).apply {
+            duration = 1400L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val alpha = ObjectAnimator.ofFloat(view, View.ALPHA, 0.88f, 1.0f).apply {
+            duration = 1400L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        beaconPulseAnimator = AnimatorSet().apply {
+            playTogether(scaleX, scaleY, alpha)
+            start()
+        }
+    }
+
+    private fun stopBeaconPulse() {
+        beaconPulseAnimator?.cancel()
+        beaconPulseAnimator = null
     }
 
     private fun checkAndApplyAgeAdaptiveRole(birthCal: Calendar) {

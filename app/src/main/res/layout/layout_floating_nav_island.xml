@@ -8,6 +8,7 @@
     android:paddingEnd="16dp"
     android:paddingBottom="14dp"
     android:paddingTop="2dp"
+    android:clipChildren="false"
     android:clipToPadding="false">
 
     <!-- Placement 2: Floating Network Dock Pill directly above Island Nav -->
@@ -69,6 +70,8 @@
         android:background="@drawable/bg_nav_floating_island"
         android:gravity="center_vertical"
         android:elevation="14dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:paddingStart="10dp"
         android:paddingEnd="10dp">
 
@@ -135,6 +138,67 @@
                 android:textColor="@color/dark_nav_inactive"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
+
+        <!-- Center Docked Heritage Guide Crest (Zenith Sparkle) -->
+        <FrameLayout
+            android:id="@+id/layoutNavGuideCrest"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp">
+
+            <LinearLayout
+                android:id="@+id/btnNavGuideCrest"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="-10dp"
+                android:background="@drawable/bg_nav_guide_crest"
+                android:elevation="6dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:id="@+id/ivNavGuideCrestIcon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_zenith_sparkle_vector"
+                    android:contentDescription="Guide Crest" />
+
+                <TextView
+                    android:id="@+id/tvNavGuideCrestLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GUIDE"
+                    android:textSize="7sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:letterSpacing="0.06"
+                    android:layout_marginTop="1dp" />
+            </LinearLayout>
+
+            <!-- Guide Crest Discovery Beacon (Direction 1) -->
+            <TextView
+                android:id="@+id/tvGuideCrestBeacon"
+                android:layout_width="wrap_content"
+                android:layout_height="14dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="-12dp"
+                android:layout_marginEnd="-2dp"
+                android:background="@drawable/badge_pill_gold"
+                android:gravity="center"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:text="TIP"
+                android:textColor="@color/btn_gold_text"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <!-- Tab 3: Trace -->
         <LinearLayout

@@ -505,7 +505,21 @@ object KinshipTitleHelper {
             (childrenOf[auntUncleId] ?: emptySet()).contains(target.id)
         }
         if (isCousin) {
-            return "COUSIN" to "First Cousin of $focalName"
+            val targetFather = target.fatherId?.let { byId[it] }
+            val targetMother = target.motherId?.let { byId[it] }
+            fun areSiblings(p1: Person?, p2: Person?): Boolean {
+                if (p1 == null || p2 == null || p1.id == p2.id) return false
+                val shareF = !p1.fatherId.isNullOrBlank() && p1.fatherId == p2.fatherId
+                val shareM = !p1.motherId.isNullOrBlank() && p1.motherId == p2.motherId
+                return shareF || shareM
+            }
+            val isDoubleCousin = (areSiblings(focalFather, targetFather) && areSiblings(focalMother, targetMother)) ||
+                (areSiblings(focalFather, targetMother) && areSiblings(focalMother, targetFather))
+            return if (isDoubleCousin) {
+                "DOUBLE COUSIN" to "Double First Cousin of $focalName"
+            } else {
+                "COUSIN" to "First Cousin of $focalName"
+            }
         }
 
         // 14. In-Laws (Spouse Parents / Siblings / Child's Spouse)
@@ -546,8 +560,64 @@ object KinshipTitleHelper {
             return title to "In-law of $focalName"
         }
 
-        // 15. Structural Position Fallback
-        return resolveStructuralKinship(target, allMembers, isMale, isFemale, byId, childrenOf)
+        // 14b. Extended Bloodline & Universal Marriage-Bridge Affinity (via BloodlineTracer)
+        val traceResult = BloodlineTracer().trace(target.id, focal.id, byId)
+        if (traceResult.isRelated) {
+            val relType = traceResult.relationshipType
+            when {
+                relType.contains(" / ") -> {
+                    // Format is "TargetRole / FocalRole" because target is passed as personA
+                    val targetRole = relType.substringBefore(" / ").trim().uppercase()
+                    val targetLabel = relType.substringBefore(" / ").trim()
+                    return targetRole to "$targetLabel of $focalName"
+                }
+                relType.equals("First Cousins-in-Law", ignoreCase = true) ||
+                relType.equals("First Cousin-in-Law", ignoreCase = true) -> {
+                    return "COUSIN-IN-LAW" to "First Cousin-in-Law of $focalName"
+                }
+                relType.contains("Cousins-in-Law", ignoreCase = true) ||
+                relType.contains("Cousin-in-Law", ignoreCase = true) -> {
+                    return "COUSIN-IN-LAW" to "$relType of $focalName"
+                }
+                relType.contains("Balae", ignoreCase = true) -> {
+                    return "BALAE (IN-LAW)" to "Co-Parent-in-Law (Balae) of $focalName"
+                }
+                relType.contains("Bilas", ignoreCase = true) -> {
+                    return "BILAS (IN-LAW)" to "Co-Sibling-in-Law (Bilas) of $focalName"
+                }
+                relType.contains("First Cousin", ignoreCase = true) && relType.contains("Once Removed", ignoreCase = true) -> {
+                    return "COUSIN (1X REM)" to "First Cousin Once Removed of $focalName"
+                }
+                relType.contains("Second Cousin", ignoreCase = true) -> {
+                    return "2ND COUSIN" to "Second Cousin of $focalName"
+                }
+                relType.contains("Third Cousin", ignoreCase = true) -> {
+                    return "3RD COUSIN" to "Third Cousin of $focalName"
+                }
+                relType.contains("Cousin", ignoreCase = true) -> {
+                    return "EXTENDED COUSIN" to "$relType of $focalName"
+                }
+                relType.contains("by Marriage", ignoreCase = true) || relType.contains("In-Law", ignoreCase = true) -> {
+                    return "IN-LAW KIN" to "$relType of $focalName"
+                }
+            }
+        }
+
+        // 15. Safe Fallback when a specific focal person IS selected:
+        // Never label an unrelated branch member as "FATHER", "MOTHER", "SON", "DAUGHTER", "HUSBAND", or "WIFE"
+        // when "Kinship relative to: [focal]" is active, as that falsely implies they are focal's parent/child/spouse!
+        val hasNoParents = (target.fatherId.isNullOrBlank() || !byId.containsKey(target.fatherId)) &&
+                (target.motherId.isNullOrBlank() || !byId.containsKey(target.motherId))
+        val hasChildren = childrenOf[target.id]?.isNotEmpty() == true ||
+                allMembers.any { it.fatherId == target.id || it.motherId == target.id }
+
+        if (hasNoParents && hasChildren) {
+            val title = if (isMale) "CLAN PATRIARCH" else if (isFemale) "CLAN MATRIARCH" else "CLAN FOUNDER"
+            val sub = if (isMale) "Branch Patriarch" else if (isFemale) "Branch Matriarch" else "Branch Founder"
+            return title to sub
+        }
+
+        return "IN-LAW BRANCH" to "Extended / Married-In Branch Relative of $focalName"
     }
 
     private fun resolveStructuralKinship(

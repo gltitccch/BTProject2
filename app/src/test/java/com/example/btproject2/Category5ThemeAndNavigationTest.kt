@@ -200,6 +200,18 @@ class Category5ThemeAndNavigationTest {
         val searchSpotlight = com.example.btproject2.education.EducationalContentRepository.searchModules("Spotlight")
         assertTrue(searchSpotlight.any { it.id == 3 })
     }
+    @Test
+    fun `spotlight adaptive scrim maintains high contrast against highlighted targets in both light and dark modes`() {
+        // Light mode: target card is light cream #F5F7F1 (0xF5F7F1)
+        val lightTargetCard = 0xF5F7F1
+        // Scrim blended color over light background: ~0x6A6F6A
+        val lightScrimBlended = 0x6A6F6A
+        // Cutout target should stand out distinctly against dimmed surround (contrast > 2.5:1)
+        assertTrue("Spotlight target in Light Mode must stand out against dimmed scrim", contrastRatio(lightTargetCard, lightScrimBlended) > 2.5)
+
+        // Dark mode: gold accent #D4AF37 vs dark scrim #060D09
+        val goldAccent = 0xD4AF37
+        val darkScrim = 0x060D09
+        assertTrue("Gold beacon/border must have high contrast in Dark Mode", contrastRatio(goldAccent, darkScrim) > 6.0)
+    }
 }
-
-

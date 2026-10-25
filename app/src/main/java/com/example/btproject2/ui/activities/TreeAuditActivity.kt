@@ -77,6 +77,10 @@ class TreeAuditActivity : AppCompatActivity() {
         if (currentReport != null) {
             runTreeAudit()
         }
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.TREE_HEALTH
+        )
     }
 
     private fun initViews() {
@@ -110,6 +114,11 @@ class TreeAuditActivity : AppCompatActivity() {
                 com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.TREE_AUDIT
             ).show(supportFragmentManager, "QuickAssistAudit")
         }
+
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.TREE_HEALTH
+        )
 
         chipFilterAll.setOnClickListener {
             currentFilter = "ALL"

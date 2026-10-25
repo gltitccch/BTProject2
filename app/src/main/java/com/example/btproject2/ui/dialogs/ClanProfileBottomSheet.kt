@@ -212,6 +212,18 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
             val context = requireContext()
             OnboardingPreferences.setQuestDismissed(context, false)
             OnboardingPreferences.setQuestCollapsed(context, false)
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.values().forEach { key ->
+                OnboardingPreferences.setTutorialSeen(context, key.key, false)
+            }
+            val hostAct = activity
+            if (hostAct != null) {
+                hostAct.window.decorView.postDelayed({
+                    com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialForced(
+                        hostAct,
+                        com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE2_DASHBOARD
+                    )
+                }, 260L)
+            }
             
             val currentUserId = authHelper.getCurrentUserId().orEmpty()
             if (currentUserId.isNotEmpty()) {

@@ -18,6 +18,7 @@
         android:overScrollMode="never">
 
         <LinearLayout
+            android:id="@+id/layoutHomeScrollContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -554,7 +555,10 @@
                     <LinearLayout
                         android:id="@+id/btnAddMemberHero"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
                         android:layout_weight="1"
                         android:orientation="horizontal"
                         android:gravity="center"
@@ -578,7 +582,10 @@
                     <LinearLayout
                         android:id="@+id/btnViewTreeHero"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
                         android:layout_weight="1"
                         android:orientation="horizontal"
                         android:gravity="center"
@@ -603,7 +610,10 @@
                     <LinearLayout
                         android:id="@+id/btnFamilyInsightsHero"
                         android:layout_width="0dp"
-                        android:layout_height="44dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="44dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
                         android:layout_weight="1"
                         android:orientation="horizontal"
                         android:gravity="center"
@@ -716,6 +726,21 @@
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
                         android:backgroundTint="@color/forest_card" />
+
+                    <!-- Replay Quick Start Tour Button (Direction 1) -->
+                    <TextView
+                        android:id="@+id/btnEmptyReplayTour"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:gravity="center"
+                        android:text="✨  Replay Quick Start Tour ↻"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent"
+                        android:background="@drawable/bg_tool_dock_tag"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:layout_marginTop="8dp" />
                 </LinearLayout>
             </LinearLayout>
 

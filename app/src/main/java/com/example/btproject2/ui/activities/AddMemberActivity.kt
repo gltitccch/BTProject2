@@ -1,4 +1,4 @@
-package com.example.btproject2.ui.activities
+﻿package com.example.btproject2.ui.activities
 
 import android.app.DatePickerDialog
 import android.content.Intent
@@ -71,6 +71,15 @@ class AddMemberActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         syncCoordinator.register()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.ADD_MEMBER,
+            treeId = treeId
+        )
     }
 
     override fun onDestroy() {
@@ -222,6 +231,7 @@ class AddMemberActivity : AppCompatActivity() {
                 com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.ADD_MEMBER
             ).show(supportFragmentManager, "QuickAssistAddMember")
         }
+
 
         val currentUserId = authHelper.getCurrentUserId() ?: ""
         firestoreHelper.getTree(treeId,

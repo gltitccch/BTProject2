@@ -79,6 +79,23 @@
             android:focusable="true" />
     </LinearLayout>
 
+    <!-- Prominent Spotlight Tour Launch Button (Top-Positioned for Instant Discovery) -->
+    <TextView
+        android:id="@+id/btnReplaySpotlightTour"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:gravity="center"
+        android:text="✨  Start Interactive Visual Tour ↻"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_accent"
+        android:background="@drawable/bg_tool_dock_tag"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="12dp" />
+
     <!-- Scrollable Body for Numbered Tip Cards and Left-Border Legal Bar -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -145,6 +162,23 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Restore Guide Crest in Navigation Bar (Shown when Guide Crest was dismissed) -->
+    <TextView
+        android:id="@+id/btnRestoreGuideCrest"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:gravity="center"
+        android:text="🛡️  Restore Guide Crest to Navigation Bar ✨"
+        android:textSize="12.5sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_accent"
+        android:background="@drawable/bg_tool_dock_tag"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp" />
 
     <!-- Deep Link to KinAcademy Masterclass -->
     <TextView

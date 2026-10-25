@@ -106,6 +106,11 @@ class MergeBranchesActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         loadClanTrees()
+        com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+            this,
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.MERGE_CLAN_SPACE,
+            treeId = activeTreeId
+        )
     }
 
     override fun onStop() {

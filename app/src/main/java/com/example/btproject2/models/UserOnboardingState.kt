@@ -33,6 +33,12 @@ data class UserOnboardingState(
     @get:PropertyName("isQuestCollapsed") @set:PropertyName("isQuestCollapsed")
     var isQuestCollapsed: Boolean = false,
 
+    @get:PropertyName("isGuideCrestDismissed") @set:PropertyName("isGuideCrestDismissed")
+    var isGuideCrestDismissed: Boolean = false,
+
+    @get:PropertyName("seenTutorialKeys") @set:PropertyName("seenTutorialKeys")
+    var seenTutorialKeys: List<String> = emptyList(),
+
     @get:PropertyName("lastUpdated") @set:PropertyName("lastUpdated")
     var lastUpdated: Long = System.currentTimeMillis()
 ) {

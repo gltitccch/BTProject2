@@ -237,5 +237,57 @@ object GenerationHierarchyEngine {
         }
         return true
     }
+
+    /**
+     * Computes the upward ancestor depth (up to 4 generations) for a given [person].
+     */
+    fun computeUpwardAncestorDepth(
+        person: Person,
+        byId: Map<String, Person>,
+        visited: MutableSet<String> = mutableSetOf()
+    ): Int {
+        if (!visited.add(person.id) || visited.size > 6) return 0
+        val fDepth = person.fatherId?.takeIf { it.isNotBlank() }?.let { byId[it] }
+            ?.let { 1 + computeUpwardAncestorDepth(it, byId, visited.toMutableSet()) } ?: 0
+        val mDepth = person.motherId?.takeIf { it.isNotBlank() }?.let { byId[it] }
+            ?.let { 1 + computeUpwardAncestorDepth(it, byId, visited.toMutableSet()) } ?: 0
+        return maxOf(fDepth, mDepth).coerceAtMost(4)
+    }
+
+    /**
+     * Counts the total number of distinct ancestors within 4 upward generations of [person].
+     */
+    fun countUpwardAncestorsWithin4Degrees(person: Person, byId: Map<String, Person>): Int {
+        val ancestors = mutableSetOf<String>()
+        var frontier = listOf(person)
+        for (deg in 1..4) {
+            val next = mutableListOf<Person>()
+            for (curr in frontier) {
+                curr.fatherId?.takeIf { it.isNotBlank() }?.let { byId[it] }?.let {
+                    if (ancestors.add(it.id)) next.add(it)
+                }
+                curr.motherId?.takeIf { it.isNotBlank() }?.let { byId[it] }?.let {
+                    if (ancestors.add(it.id)) next.add(it)
+                }
+            }
+            frontier = next
+            if (frontier.isEmpty()) break
+        }
+        return ancestors.size
+    }
+
+    /**
+     * Selects the best default focal member for an upward Ancestor Pedigree or Fan Chart
+     * (preferring the deepest-generation descendant with the richest upward ancestor tree
+     * rather than a 0-parent root founder).
+     */
+    fun findBestPedigreeFocalMember(persons: List<Person>): Person? {
+        if (persons.isEmpty()) return null
+        val byId = persons.associateBy { it.id }
+        return persons.maxWithOrNull(
+            compareBy<Person> { computeUpwardAncestorDepth(it, byId) }
+                .thenBy { countUpwardAncestorsWithin4Degrees(it, byId) }
+        )
+    }
 }
 

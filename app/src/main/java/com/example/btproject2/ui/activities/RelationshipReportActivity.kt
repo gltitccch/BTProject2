@@ -77,13 +77,22 @@ class RelationshipReportActivity : AppCompatActivity() {
             if (r != null && r.isRelated) {
                 val pathIds = ArrayList<String>()
                 pathIds.addAll(r.pathFromA.map { it.id })
-                r.commonAncestor?.id?.let { pathIds.add(it) }
+                r.commonAncestors.forEach { pathIds.add(it.id) }
+                r.commonAncestor?.id?.let { if (!pathIds.contains(it)) pathIds.add(it) }
                 pathIds.addAll(r.pathFromB.map { it.id })
+
+                val mrcaIdList = ArrayList<String>()
+                r.commonAncestors.forEach { mrcaIdList.add(it.id) }
+                r.commonAncestor?.id?.let { if (!mrcaIdList.contains(it)) mrcaIdList.add(it) }
+                val isAffinity = r.relationshipCategory.contains("Affinity", ignoreCase = true) ||
+                    r.relationshipCategory.contains("Spousal", ignoreCase = true)
 
                 val intent = Intent(this, InteractiveTreeActivity::class.java).apply {
                     putExtra("highlightPersonAId", r.personA.id)
                     putExtra("highlightPersonBId", r.personB.id)
                     putExtra("mrcaId", r.commonAncestor?.id)
+                    putStringArrayListExtra("mrcaIds", mrcaIdList)
+                    putExtra("isAffinityTrace", isAffinity)
                     putStringArrayListExtra("highlightPathIds", pathIds)
                     putExtra("viewMode", "TRACE_HIGHLIGHT")
                     putExtra("TREE_ID", treeId)
@@ -187,8 +196,19 @@ class RelationshipReportActivity : AppCompatActivity() {
         } else {
             tvDegreePill.text = result.relationshipCategory
         }
-        tvRelTitle.text = result.relationshipType
-        tvConsanguinityDetails.text = "${result.relationshipCategory} Line • ${result.degreeOfConsanguinity}${getOrdinal(result.degreeOfConsanguinity)} Civil Degree (Roman Civil Method, Art. 963)"
+        tvRelTitle.text = if (result.bloodlineSubtype.isNotBlank() && result.relationshipCategory == "Collateral") {
+            "${result.relationshipType} (${result.bloodlineSubtype})"
+        } else {
+            result.relationshipType
+        }
+        val isAffinity = result.relationshipCategory.contains("Affinity", ignoreCase = true) ||
+            result.relationshipCategory.contains("Spousal", ignoreCase = true)
+        val subtypeDetail = if (result.bloodlineSubtype.isNotBlank()) " • ${result.bloodlineSubtype}" else ""
+        tvConsanguinityDetails.text = if (isAffinity && result.degreeOfConsanguinity == 0) {
+            "${result.relationshipCategory}$subtypeDetail • 0° Biological Blood Consanguinity (Connected by Marriage)"
+        } else {
+            "${result.relationshipCategory} Line$subtypeDetail • ${result.degreeOfConsanguinity}${getOrdinal(result.degreeOfConsanguinity)} Civil Degree (Roman Civil Method, Art. 963)"
+        }
 
         // 5. Consanguinity Scope & Degree Breakdown
         val tvLegalBadge = findViewById<TextView>(R.id.tvLegalBadge)
@@ -220,12 +240,23 @@ class RelationshipReportActivity : AppCompatActivity() {
                 tvLegalArticle.text = "Extended Clan Lineage • Beyond 4th Civil Degree Scope (Articles 963–966)"
             }
             result.isRelated -> {
-                tvLegalBadge.text = "DIRECT / AFFINITY"
-                tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
-                tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
-                tvLegalTitle.text = "${result.relationshipType} (${result.relationshipCategory} Connection)"
-                tvLegalDesc.text = "${pA.firstName} and ${pB.firstName} are connected through ${result.relationshipCategory.lowercase()} family ties (${result.relationshipType})."
-                tvLegalArticle.text = "Family Record Connection • Direct / Affine Link"
+                if (result.isMarriageProhibited) {
+                    tvLegalBadge.text = "PROHIBITED (${result.legalStatus.uppercase()})"
+                    tvLegalBadge.setBackgroundResource(R.drawable.badge_pill_dark)
+                    tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.danger))
+                    tvLegalTitle.text = "${result.relationshipType} — ${result.legalStatus}"
+                    tvLegalDesc.text = result.legalDescription
+                    tvLegalArticle.text = "Legal Basis: ${result.legalArticle}"
+                } else {
+                    tvLegalBadge.text = "NO BLOOD PROHIBITION"
+                    tvLegalBadge.setBackgroundResource(R.drawable.bg_legal_valid_pill)
+                    tvLegalBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
+                    tvLegalTitle.text = "${result.relationshipType} (${result.relationshipCategory} Connection)"
+                    tvLegalDesc.text = result.legalDescription.ifBlank {
+                        "${pA.firstName} and ${pB.firstName} are connected through ${result.relationshipCategory.lowercase()} family ties (${result.relationshipType})."
+                    }
+                    tvLegalArticle.text = "Family Record Connection • ${result.legalArticle}"
+                }
             }
             else -> {
                 tvLegalBadge.text = "UNCONNECTED"
@@ -237,13 +268,18 @@ class RelationshipReportActivity : AppCompatActivity() {
             }
         }
 
-        // 6. Closest Common Ancestor (MRCA)
+        // 6. Closest Common Ancestor (MRCA) or Marriage Bridge
         val tvMrcaName = findViewById<TextView>(R.id.tvMrcaName)
         val tvMrcaGen = findViewById<TextView>(R.id.tvMrcaGenerations)
         if (result.commonAncestor != null) {
-            val ca = result.commonAncestor
-            tvMrcaName.text = "★ ${ca.firstName} ${ca.lastName}"
-            tvMrcaGen.text = "${result.distanceA} generation(s) from ${pA.firstName} • ${result.distanceB} generation(s) from ${pB.firstName} (Sum = ${result.degreeOfConsanguinity}°)"
+            if (isAffinity && result.degreeOfConsanguinity == 0) {
+                val ca = result.commonAncestor
+                tvMrcaName.text = "💍 ${ca.firstName} ${ca.lastName} (Marriage Bridge)".trim()
+                tvMrcaGen.text = "${result.distanceA} step(s) from ${pA.firstName} • ${result.distanceB} step(s) from ${pB.firstName} (0° Biological Blood Consanguinity)"
+            } else {
+                tvMrcaName.text = "★ ${result.commonAncestorDisplayName}"
+                tvMrcaGen.text = "${result.distanceA} generation(s) from ${pA.firstName} • ${result.distanceB} generation(s) from ${pB.firstName} (Sum = ${result.degreeOfConsanguinity}°)"
+            }
         } else {
             tvMrcaName.text = "No Shared Biological Ancestor"
             tvMrcaGen.text = "No biological common ancestor detected within the family tree."
@@ -256,7 +292,11 @@ class RelationshipReportActivity : AppCompatActivity() {
         val tvPathLadder = findViewById<TextView>(R.id.tvPathLadderText)
         val pathAStr = result.pathFromA.joinToString(" ➔ ") { it.firstName + if (!it.isLiving) " (†)" else "" }
         val pathBStr = result.pathFromB.joinToString(" ➔ ") { it.firstName + if (!it.isLiving) " (†)" else "" }
-        val mrcaLabel = result.commonAncestor?.let { "★ ${it.firstName}" + if (!it.isLiving) " (†)" else "" } ?: "Pivot"
+        val mrcaLabel = if (result.commonAncestors.size >= 2) {
+            "★ " + result.commonAncestors.joinToString(" & ") { it.firstName + if (!it.isLiving) " (†)" else "" }
+        } else {
+            result.commonAncestor?.let { "★ ${it.firstName}" + if (!it.isLiving) " (†)" else "" } ?: "Pivot"
+        }
 
         if (result.pathFromA.isNotEmpty() || result.pathFromB.isNotEmpty()) {
             tvPathLadder.text = "Ascending Line: $pathAStr\nCommon Ancestor Junction: $mrcaLabel\nDescending Line: $pathBStr"
@@ -288,7 +328,7 @@ class RelationshipReportActivity : AppCompatActivity() {
             appendLine("• Consanguinity Scope: $scopeLabel")
             appendLine("• Line: ${r.relationshipCategory} Line")
             if (r.commonAncestor != null) {
-                appendLine("• Closest Common Ancestor: ★ ${r.commonAncestor.firstName} ${r.commonAncestor.lastName}")
+                appendLine("• Closest Common Ancestor(s): ★ ${r.commonAncestorDisplayName}")
                 appendLine("• Generational Steps: ${r.distanceA} from ${pA.firstName}, ${r.distanceB} from ${pB.firstName}")
             }
             appendLine("───────────────────────────────────────────────")

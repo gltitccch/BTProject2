@@ -39,6 +39,9 @@ object FloatingNavigationCoordinator {
         val navTrace = activity.findViewById<LinearLayout?>(R.id.navTrace) ?: return
         val navProfile = activity.findViewById<LinearLayout?>(R.id.navProfile) ?: return
 
+        val islandNavBar = activity.findViewById<View?>(R.id.islandNavBar)
+        com.example.btproject2.utils.AdaptiveLayoutHelper.applyAdaptiveIslandWidth(islandNavBar)
+
         val ivNavHome = activity.findViewById<ImageView?>(R.id.ivNavHome)
         val tvNavHome = activity.findViewById<TextView?>(R.id.tvNavHome)
 
@@ -130,6 +133,62 @@ object FloatingNavigationCoordinator {
         // ── Profile Tab Action ───────────────────────────────────────
         navProfile.setOnClickListener {
             onProfileClicked?.invoke()
+        }
+
+        // ── Center Heritage Guide Crest Action (Variation A: Zenith Sparkle) ─
+        val btnNavGuideCrest = activity.findViewById<View?>(R.id.btnNavGuideCrest)
+        updateGuideCrestVisibility(activity)
+
+        btnNavGuideCrest?.setOnClickListener {
+            val mappedTutorialKey = when (activeTab) {
+                NavTab.HOME -> {
+                    val treeId = treeIdProvider()
+                    if (treeId.isEmpty()) {
+                        com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE1_EMPTY
+                    } else {
+                        com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE2_DASHBOARD
+                    }
+                }
+                NavTab.TREE -> {
+                    if (activity is com.example.btproject2.ui.activities.FamilyTreeActivity) {
+                        com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_TREE_PEDIGREE
+                    } else {
+                        com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.INTERACTIVE_TREE
+                    }
+                }
+                NavTab.TRACE -> com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.TRACE_BLOODLINE
+                NavTab.PROFILE -> com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE2_DASHBOARD
+            }
+            com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialForced(activity, mappedTutorialKey)
+        }
+    }
+
+    /**
+     * Updates visibility of the Center Guide Crest in real time based on user preference.
+     * When dismissed, the navigation island automatically re-balances to the standard 4-tab bar.
+     */
+    fun updateGuideCrestVisibility(activity: Activity) {
+        val layoutNavGuideCrest = activity.findViewById<View?>(R.id.layoutNavGuideCrest) ?: return
+        val tvGuideCrestBeacon = activity.findViewById<TextView?>(R.id.tvGuideCrestBeacon)
+        val isDismissed = OnboardingPreferences.isGuideCrestDismissed(activity)
+        activity.runOnUiThread {
+            layoutNavGuideCrest.visibility = if (isDismissed) View.GONE else View.VISIBLE
+            if (!isDismissed && tvGuideCrestBeacon != null) {
+                val activeTree = TreePreferences.getActiveTreeId(activity)
+                val isSeen = when (activity) {
+                    is HomeActivity -> {
+                        if (activeTree.isEmpty()) {
+                            OnboardingPreferences.hasSeenTutorial(activity, com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE1_EMPTY.key, treeId = activeTree)
+                        } else {
+                            OnboardingPreferences.hasSeenTutorial(activity, com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE2_DASHBOARD.key, treeId = activeTree)
+                        }
+                    }
+                    is FamilyTreeActivity -> OnboardingPreferences.hasSeenTutorial(activity, com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_TREE_PEDIGREE.key, treeId = activeTree)
+                    is TraceActivity -> OnboardingPreferences.hasSeenTutorial(activity, com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.TRACE_BLOODLINE.key, treeId = activeTree)
+                    else -> true
+                }
+                tvGuideCrestBeacon.visibility = if (!isSeen) View.VISIBLE else View.GONE
+            }
         }
     }
 

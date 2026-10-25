@@ -161,5 +161,240 @@ class RelationshipAndLegalTest {
         assertEquals("Void (Existing Marriage)", result.legalStatus)
         assertTrue(result.legalArticle.contains("35"))
     }
+
+    @Test
+    fun testFullVsHalfSiblingsAndDualCommonAncestors() {
+        val father = Person(id = "f1", firstName = "Arthur", lastName = "Malone", gender = "Male", spouseId = "m1")
+        val mother = Person(id = "m1", firstName = "Beatrice", lastName = "Hayes", gender = "Female", spouseId = "f1")
+        val fullBro1 = Person(id = "s1", firstName = "Thomas", lastName = "Malone", fatherId = "f1", motherId = "m1")
+        val fullBro2 = Person(id = "s2", firstName = "Edward", lastName = "Malone", fatherId = "f1", motherId = "m1")
+        val halfSis = Person(id = "s3", firstName = "Clara", lastName = "Malone", fatherId = "f1")
+
+        val map = mapOf(
+            "f1" to father,
+            "m1" to mother,
+            "s1" to fullBro1,
+            "s2" to fullBro2,
+            "s3" to halfSis
+        )
+
+        val fullResult = tracer.trace("s1", "s2", map)
+        assertTrue(fullResult.isRelated)
+        assertEquals("Siblings", fullResult.relationshipType)
+        assertEquals("Full Siblings", fullResult.bloodlineSubtype)
+        assertEquals(2, fullResult.commonAncestors.size)
+        assertEquals("Arthur Malone & Beatrice Hayes", fullResult.commonAncestorDisplayName)
+        assertTrue(fullResult.explanation.contains("full siblings", ignoreCase = true))
+
+        val halfResult = tracer.trace("s1", "s3", map)
+        assertTrue(halfResult.isRelated)
+        assertEquals("Siblings", halfResult.relationshipType)
+        assertEquals("Half-Siblings", halfResult.bloodlineSubtype)
+        assertEquals(1, halfResult.commonAncestors.size)
+        assertEquals("Arthur Malone", halfResult.commonAncestorDisplayName)
+        assertTrue(halfResult.explanation.contains("half-siblings", ignoreCase = true))
+    }
+
+    @Test
+    fun testFullVsHalfFirstCousinsDualGrandparents() {
+        val gf = Person(id = "gf", firstName = "Arthur", lastName = "Malone", gender = "Male", spouseId = "gm")
+        val gm = Person(id = "gm", firstName = "Beatrice", lastName = "Hayes", gender = "Female", spouseId = "gf")
+        val dad1 = Person(id = "d1", firstName = "Thomas", lastName = "Malone", fatherId = "gf", motherId = "gm")
+        val dad2 = Person(id = "d2", firstName = "Edward", lastName = "Malone", fatherId = "gf", motherId = "gm")
+        val cousin1 = Person(id = "c1", firstName = "Oliver", lastName = "Malone", fatherId = "d1")
+        val cousin2 = Person(id = "c2", firstName = "Lily", lastName = "Malone", fatherId = "d2")
+
+        val map = mapOf(
+            "gf" to gf, "gm" to gm,
+            "d1" to dad1, "d2" to dad2,
+            "c1" to cousin1, "c2" to cousin2
+        )
+
+        val res = tracer.trace("c1", "c2", map)
+        assertTrue(res.isRelated)
+        assertEquals("First Cousins", res.relationshipType)
+        assertEquals("Full First Cousins", res.bloodlineSubtype)
+        assertEquals(2, res.commonAncestors.size)
+        assertEquals("Arthur Malone & Beatrice Hayes", res.commonAncestorDisplayName)
+    }
+
+    @Test
+    fun testParentInLawAndChildInLawAffinityImpediment() {
+        val father = Person(id = "p_thomas", firstName = "Thomas", lastName = "Malone", gender = "Male")
+        val son = Person(id = "p_oliver", firstName = "Oliver", lastName = "Malone", gender = "Male", fatherId = "p_thomas", spouseId = "p_chloe")
+        val daughterInLaw = Person(id = "p_chloe", firstName = "Chloe", lastName = "Rivera", gender = "Female", spouseId = "p_oliver")
+
+        val map = mapOf(
+            "p_thomas" to father,
+            "p_oliver" to son,
+            "p_chloe" to daughterInLaw
+        )
+
+        val result = tracer.trace("p_thomas", "p_chloe", map)
+        assertTrue(result.isRelated)
+        assertEquals(0, result.degreeOfConsanguinity)
+        assertEquals("Affinity / In-Law", result.relationshipCategory)
+        assertEquals("Father-in-Law / Daughter-in-Law", result.relationshipType)
+        assertTrue(result.isMarriageProhibited)
+        assertTrue(result.legalArticle.contains("38"))
+    }
+
+    @Test
+    fun testSiblingsInLawCollateralAffinity() {
+        val father = Person(id = "f1", firstName = "Arthur", lastName = "Malone", gender = "Male")
+        val bro1 = Person(id = "b1", firstName = "Thomas", lastName = "Malone", gender = "Male", fatherId = "f1", spouseId = "w1")
+        val bro2 = Person(id = "b2", firstName = "Edward", lastName = "Malone", gender = "Male", fatherId = "f1")
+        val wife1 = Person(id = "w1", firstName = "Evelyn", lastName = "Clark", gender = "Female", spouseId = "b1")
+
+        val map = mapOf("f1" to father, "b1" to bro1, "b2" to bro2, "w1" to wife1)
+
+        val result = tracer.trace("b2", "w1", map)
+        assertTrue(result.isRelated)
+        assertEquals(0, result.degreeOfConsanguinity)
+        assertEquals("Affinity / In-Law", result.relationshipCategory)
+        assertEquals("Siblings-in-Law", result.relationshipType)
+        assertFalse(result.isMarriageProhibited)
+    }
+
+    @Test
+    fun testSmartPedigreeFocalMemberPicksDeepestDescendantOverRootFounder() {
+        val founder = Person(id = "g1", firstName = "Arthur", lastName = "Malone", gender = "Male")
+        val founderWife = Person(id = "g1w", firstName = "Beatrice", lastName = "Hayes", gender = "Female", spouseId = "g1")
+        val son = Person(id = "g2", firstName = "Thomas", lastName = "Malone", fatherId = "g1", motherId = "g1w")
+        val grandson = Person(id = "g3", firstName = "Oliver", lastName = "Malone", fatherId = "g2")
+
+        val list = listOf(founder, founderWife, son, grandson)
+        val bestFocal = com.example.btproject2.engine.GenerationHierarchyEngine.findBestPedigreeFocalMember(list)
+        assertNotNull(bestFocal)
+        assertEquals("g3", bestFocal!!.id)
+    }
+
+    @Test
+    fun testArthurMaloneAndSarahJenkinsGrandfatherInLawExtendedAffinity() {
+        val arthur = Person(id = "arthur", firstName = "Arthur", lastName = "Malone", gender = "Male", spouseId = "beatrice")
+        val beatrice = Person(id = "beatrice", firstName = "Beatrice", lastName = "Hayes", gender = "Female", spouseId = "arthur")
+        val richard = Person(id = "richard", firstName = "Richard", lastName = "Malone", gender = "Male", fatherId = "arthur", motherId = "beatrice")
+        val thomas = Person(id = "thomas", firstName = "Thomas", lastName = "Malone", gender = "Male", fatherId = "arthur", motherId = "beatrice")
+        val oliver = Person(id = "oliver", firstName = "Oliver", lastName = "Malone", gender = "Male", fatherId = "thomas")
+        val karl = Person(id = "karl", firstName = "Karl", lastName = "Malone", gender = "Male", fatherId = "richard", spouseId = "sarah")
+        val sarah = Person(id = "sarah", firstName = "Sarah", lastName = "Jenkins", gender = "Female", fatherId = "david", spouseId = "karl")
+        val david = Person(id = "david", firstName = "David", lastName = "Jenkins", gender = "Male")
+
+        val map = listOf(arthur, beatrice, richard, thomas, oliver, karl, sarah, david).associateBy { it.id }
+
+        // 1. Arthur Malone & Sarah Jenkins -> Grandfather-in-Law / Granddaughter-in-Law
+        val traceArthurSarah = tracer.trace("arthur", "sarah", map)
+        assertTrue(traceArthurSarah.isRelated)
+        assertEquals("Grandfather-in-Law / Granddaughter-in-Law", traceArthurSarah.relationshipType)
+        assertEquals("Affinity / In-Law", traceArthurSarah.relationshipCategory)
+        assertEquals(0, traceArthurSarah.degreeOfConsanguinity)
+        assertEquals("karl", traceArthurSarah.commonAncestor?.id)
+
+        // Reverse direction: Sarah Jenkins & Arthur Malone -> Granddaughter-in-Law / Grandfather-in-Law
+        val traceSarahArthur = tracer.trace("sarah", "arthur", map)
+        assertTrue(traceSarahArthur.isRelated)
+        assertEquals("Granddaughter-in-Law / Grandfather-in-Law", traceSarahArthur.relationshipType)
+        assertEquals(0, traceSarahArthur.degreeOfConsanguinity)
+
+        // 2. Thomas Malone (Uncle of Karl) & Sarah Jenkins -> Uncle-in-Law / Niece-in-Law
+        val traceThomasSarah = tracer.trace("thomas", "sarah", map)
+        assertTrue(traceThomasSarah.isRelated)
+        assertEquals("Uncle-in-Law / Niece-in-Law", traceThomasSarah.relationshipType)
+        assertEquals(0, traceThomasSarah.degreeOfConsanguinity)
+
+        // 3. Oliver Malone (First Cousin of Karl) & Sarah Jenkins -> First Cousins-in-Law
+        val traceOliverSarah = tracer.trace("oliver", "sarah", map)
+        assertTrue(traceOliverSarah.isRelated)
+        assertEquals("First Cousins-in-Law", traceOliverSarah.relationshipType)
+        assertEquals(0, traceOliverSarah.degreeOfConsanguinity)
+
+        // 4. Richard Malone & David Jenkins -> Co-Parents-in-Law (Balae)
+        val traceBalae = tracer.trace("richard", "david", map)
+        assertTrue(traceBalae.isRelated)
+        assertEquals("Co-Parents-in-Law (Balae)", traceBalae.relationshipType)
+        assertEquals(0, traceBalae.degreeOfConsanguinity)
+    }
+
+    @Test
+    fun testKinshipTitleHelperSmartBadgesNeverFakeFatherOrSonForExtendedInLaws() {
+        val arthur = Person(id = "arthur", firstName = "Arthur", lastName = "Malone", gender = "Male", spouseId = "beatrice")
+        val beatrice = Person(id = "beatrice", firstName = "Beatrice", lastName = "Wright", gender = "Female", spouseId = "arthur")
+        val william = Person(id = "william", firstName = "William", lastName = "Vance", gender = "Male", spouseId = "dorothy")
+        val dorothy = Person(id = "dorothy", firstName = "Dorothy", lastName = "Miller", gender = "Female", spouseId = "william")
+        val richard = Person(id = "richard", firstName = "Richard", lastName = "Malone", gender = "Male", fatherId = "arthur", motherId = "beatrice", spouseId = "grace")
+        val grace = Person(id = "grace", firstName = "Grace", lastName = "Vance", gender = "Female", fatherId = "william", motherId = "dorothy", spouseId = "richard")
+        val edward = Person(id = "edward", firstName = "Edward", lastName = "Vance", gender = "Male", fatherId = "william", motherId = "dorothy")
+        val karl = Person(id = "karl", firstName = "Karl", lastName = "Malone", gender = "Male", fatherId = "richard", motherId = "grace", spouseId = "sarah")
+        val sarah = Person(id = "sarah", firstName = "Sarah", lastName = "Jenkins", gender = "Female", spouseId = "karl")
+
+        val allPersons = listOf(arthur, beatrice, william, dorothy, richard, grace, edward, karl, sarah)
+
+        // 1. Relative to Sarah Jenkins: Arthur = GRANDFATHER-IN-LAW, Beatrice = GRANDMOTHER-IN-LAW, Edward = UNCLE-IN-LAW
+        val titlesFromSarah = com.example.btproject2.engine.KinshipTitleHelper.resolveAllTitles(allPersons, sarah)
+        assertEquals("SELF", titlesFromSarah["sarah"])
+        assertEquals("HUSBAND", titlesFromSarah["karl"])
+        assertEquals("FATHER-IN-LAW", titlesFromSarah["richard"])
+        assertEquals("MOTHER-IN-LAW", titlesFromSarah["grace"])
+        assertEquals("GRANDFATHER-IN-LAW", titlesFromSarah["arthur"])
+        assertEquals("GRANDMOTHER-IN-LAW", titlesFromSarah["beatrice"])
+        assertEquals("UNCLE-IN-LAW", titlesFromSarah["edward"])
+
+        // 2. Relative to Edward Vance: Arthur & Beatrice are Richard's parents (Co-Parents-in-Law of William & Dorothy, and in-law branch to Edward), NEVER "FATHER" or "MATRIARCH"!
+        val titlesFromEdward = com.example.btproject2.engine.KinshipTitleHelper.resolveAllTitles(allPersons, edward)
+        assertEquals("SELF", titlesFromEdward["edward"])
+        assertEquals("FATHER", titlesFromEdward["william"])
+        assertEquals("MOTHER", titlesFromEdward["dorothy"])
+        assertEquals("FULL SISTER", titlesFromEdward["grace"])
+        assertEquals("BROTHER-IN-LAW", titlesFromEdward["richard"])
+        assertEquals("NEPHEW", titlesFromEdward["karl"])
+        assertEquals("NIECE-IN-LAW", titlesFromEdward["sarah"])
+        assertNotEquals("FATHER", titlesFromEdward["arthur"])
+        assertNotEquals("SON", titlesFromEdward["karl"])
+    }
+
+    @Test
+    fun testDeceasedAgeCalculationAndDoubleFirstCousinsAndStatusNotes() {
+        // 1. Deceased with recorded death date -> "Died at age 80"
+        val ageWithDeathDate = com.example.btproject2.utils.DocumentHelper.calculateAge(
+            birthDate = "1935-04-10",
+            deathDate = "2015-08-19",
+            isLiving = false
+        )
+        assertEquals("Died at age 80", ageWithDeathDate)
+
+        // 2. Deceased with blank death date -> "Deceased (b. 1935)", NEVER "Died at age 91"
+        val ageWithoutDeathDate = com.example.btproject2.utils.DocumentHelper.calculateAge(
+            birthDate = "1935-04-10",
+            deathDate = "",
+            isLiving = false
+        )
+        assertEquals("Deceased (b. 1935)", ageWithoutDeathDate)
+        assertFalse(ageWithoutDeathDate.contains("Died at age"))
+
+        // 3. Double First Cousins detection when two brothers marry two sisters
+        val patGf = Person(id = "pgf", firstName = "Arthur", lastName = "Malone", gender = "Male", isLiving = false, deathDate = "2015-08-19")
+        val patGm = Person(id = "pgm", firstName = "Beatrice", lastName = "Malone", gender = "Female")
+        val matGf = Person(id = "mgf", firstName = "William", lastName = "Vance", gender = "Male")
+        val matGm = Person(id = "mgm", firstName = "Dorothy", lastName = "Vance", gender = "Female")
+
+        val bro1 = Person(id = "bro1", firstName = "Richard", lastName = "Malone", gender = "Male", fatherId = "pgf", motherId = "pgm", spouseId = "sis1")
+        val bro2 = Person(id = "bro2", firstName = "Thomas", lastName = "Malone", gender = "Male", fatherId = "pgf", motherId = "pgm", spouseId = "sis2")
+        val sis1 = Person(id = "sis1", firstName = "Grace", lastName = "Vance", gender = "Female", fatherId = "mgf", motherId = "mgm", spouseId = "bro1")
+        val sis2 = Person(id = "sis2", firstName = "Clara", lastName = "Vance", gender = "Female", fatherId = "mgf", motherId = "mgm", spouseId = "bro2")
+
+        val cousin1 = Person(id = "c1", firstName = "Karl", lastName = "Malone", gender = "Male", fatherId = "bro1", motherId = "sis1")
+        val cousin2 = Person(id = "c2", firstName = "Oliver", lastName = "Malone", gender = "Male", fatherId = "bro2", motherId = "sis2")
+
+        val all = listOf(patGf, patGm, matGf, matGm, bro1, bro2, sis1, sis2, cousin1, cousin2)
+        val map = all.associateBy { it.id }
+
+        val doubleTrace = tracer.trace("c1", "c2", map)
+        assertTrue(doubleTrace.isRelated)
+        assertEquals("Double First Cousins", doubleTrace.relationshipType)
+        assertTrue(doubleTrace.bloodlineSubtype.contains("Double First Cousins"))
+
+        val badges = com.example.btproject2.engine.KinshipTitleHelper.resolveAllTitles(all, cousin1)
+        assertEquals("DOUBLE COUSIN", badges["c2"])
+    }
 }
 

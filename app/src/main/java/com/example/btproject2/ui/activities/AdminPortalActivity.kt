@@ -872,9 +872,7 @@ class AdminPortalActivity : AppCompatActivity() {
                             etReleaseNotes.setText("• Added new lineage features & UI enhancements\n• Zero-Cost GitHub Releases OTA auto-installer\n• Adaptive Dark & Light Mode semantic palette")
                         }
                         if (etReleaseApkUrl.text.isBlank()) {
-                            val defaultUrl = config.apkDownloadUrl.ifBlank {
-                                com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl(nextVersionName)
-                            }
+                            val defaultUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl(nextVersionName)
                             etReleaseApkUrl.setText(defaultUrl)
                         }
                     }

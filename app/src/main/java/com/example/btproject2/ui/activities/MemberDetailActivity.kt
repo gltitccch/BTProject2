@@ -2018,9 +2018,13 @@ class MemberDetailActivity : AppCompatActivity() {
             val pName = "${person.firstName} ${person.lastName}".trim()
             tvDesc.text = "Record passing details for $pName. If $pName is currently married, the surviving spouse's status will automatically be updated to 'Widowed'."
 
-            var selectedDateStr = person.deathDate
-            etDate.setText(person.deathDate)
-            etPlace.setText(person.deathPlace)
+            val remembered = FirestoreHelper.getRememberedPassingDetails(person.id)
+            val initialDate = person.deathDate.ifBlank { remembered?.first.orEmpty() }
+            val initialPlace = person.deathPlace.ifBlank { remembered?.second.orEmpty() }
+
+            var selectedDateStr = initialDate
+            etDate.setText(initialDate)
+            etPlace.setText(initialPlace)
 
             etDate.setOnClickListener {
                 val cal = Calendar.getInstance()

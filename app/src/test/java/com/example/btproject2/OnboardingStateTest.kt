@@ -21,6 +21,7 @@ class OnboardingStateTest {
         assertFalse(state.questCodeShared)
         assertFalse(state.isQuestDismissed)
         assertFalse(state.isQuestCollapsed)
+        assertFalse(state.isGuideCrestDismissed)
 
         assertEquals(0, state.getCompletedCount())
         assertEquals(0, state.getProgressPercentage())
@@ -134,5 +135,233 @@ class OnboardingStateTest {
         }
         assertEquals("Phase 2 entry must yield 25% progress", 25, phase1State.getProgressPercentage())
         assertTrue(phase1State.questRootsCompleted)
+    }
+
+    @Test
+    fun testSpotlightFeatureTutorialKeys_andPresetStepsArePopulated() {
+        val state = UserOnboardingState()
+        assertTrue(state.seenTutorialKeys.isEmpty())
+
+        val allKeys = com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.values()
+        assertEquals(15, allKeys.size)
+
+        for (feature in allKeys) {
+            val steps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(feature)
+            assertTrue("Preset steps for ${feature.name} must not be empty", steps.isNotEmpty())
+            steps.forEach { step ->
+                assertTrue("Step title must not be blank", step.title.isNotBlank())
+                assertTrue("Step description must not be blank", step.description.isNotBlank())
+            }
+        }
+
+        val updatedState = UserOnboardingState(
+            seenTutorialKeys = listOf(
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.PRIVACY_CONTROLS.key,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.MERGE_CLAN_SPACE.key,
+                com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.EXPORT_TREE.key
+            )
+        )
+        assertEquals(3, updatedState.seenTutorialKeys.size)
+        assertTrue(updatedState.seenTutorialKeys.contains("tutorial_privacy_controls"))
+        assertTrue(updatedState.seenTutorialKeys.contains("tutorial_merge_clan_space"))
+        assertTrue(updatedState.seenTutorialKeys.contains("tutorial_export_tree"))
+    }
+
+    @Test
+    fun testTreeScopedTutorialIsolation_newAccountAndJoinedTree() {
+        val seenKeys = mutableSetOf<String>()
+        val traceKey = com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.TRACE_BLOODLINE.key
+        val addMemberKey = com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.ADD_MEMBER.key
+
+        // 1. Newly created / joined member enters Tree Alpha for the first time
+        val treeAlpha = "tree_santos_alpha"
+        val alphaTraceKey = "${treeAlpha}_$traceKey"
+        val alphaAddKey = "${treeAlpha}_$addMemberKey"
+        assertFalse("Must be unvisited on first entry to Tree Alpha Trace", seenKeys.contains(alphaTraceKey))
+        assertFalse("Must be unvisited on first entry to Tree Alpha Add Member", seenKeys.contains(alphaAddKey))
+
+        // Complete tours in Tree Alpha
+        seenKeys.add(alphaTraceKey)
+        seenKeys.add(alphaAddKey)
+        assertTrue("Must be marked visited in Tree Alpha Trace", seenKeys.contains(alphaTraceKey))
+        assertTrue("Must be marked visited in Tree Alpha Add Member", seenKeys.contains(alphaAddKey))
+
+        // 2. Same member or new account enters Tree Beta (e.g. joined via invite code)
+        val treeBeta = "tree_malone_beta"
+        val betaTraceKey = "${treeBeta}_$traceKey"
+        val betaAddKey = "${treeBeta}_$addMemberKey"
+        assertFalse("Must be unvisited on first entry to Tree Beta Trace despite Tree Alpha completion", seenKeys.contains(betaTraceKey))
+        assertFalse("Must be unvisited on first entry to Tree Beta Add Member despite Tree Alpha completion", seenKeys.contains(betaAddKey))
+
+        // Complete tours in Tree Beta
+        seenKeys.add(betaTraceKey)
+        seenKeys.add(betaAddKey)
+        assertTrue(seenKeys.contains(alphaTraceKey))
+        assertTrue(seenKeys.contains(alphaAddKey))
+        assertTrue(seenKeys.contains(betaTraceKey))
+        assertTrue(seenKeys.contains(betaAddKey))
+    }
+
+    @Test
+    fun testAddMemberPresetSteps_structureAndTargets() {
+        val steps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.ADD_MEMBER
+        )
+        assertEquals("Add Member must have exactly 3 progressive steps", 3, steps.size)
+        assertEquals(R.id.etFirstName, steps[0].targetViewId)
+        assertEquals(R.id.spinnerFather, steps[1].targetViewId)
+        assertEquals(R.id.btnSaveMember, steps[2].targetViewId)
+
+        steps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+    }
+
+    @Test
+    fun testViewTreeAndInteractivePresetSteps_structureAndTargets() {
+        val pedigreeSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_TREE_PEDIGREE
+        )
+        assertEquals("Family Tree Pedigree must have exactly 4 progressive steps", 4, pedigreeSteps.size)
+        assertEquals(R.id.tvGenLabel, pedigreeSteps[0].targetViewId)
+        assertEquals(R.id.layoutMemberCard, pedigreeSteps[1].targetViewId)
+        assertEquals(R.id.tvKinshipPill, pedigreeSteps[2].targetViewId)
+        assertEquals(R.id.btnFanChart, pedigreeSteps[3].targetViewId)
+
+        pedigreeSteps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+
+        val fanChartSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAN_CHART
+        )
+        assertEquals("Fan Chart must have exactly 6 progressive steps", 6, fanChartSteps.size)
+        fanChartSteps.forEach { step ->
+            assertEquals(R.id.webViewFan, step.targetViewId)
+            assertTrue("Fan Chart step must provide customCutoutProvider", step.customCutoutProvider != null)
+            assertTrue(step.title.isNotBlank())
+            assertTrue(step.description.isNotBlank())
+            assertTrue(!step.proTip.isNullOrBlank())
+        }
+
+        val interactiveSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.INTERACTIVE_TREE
+        )
+        assertEquals("Interactive Tree must have exactly 9 progressive steps", 9, interactiveSteps.size)
+        assertEquals(R.id.treeContainer, interactiveSteps[0].targetViewId)
+        assertEquals(R.id.ivProfilePhoto, interactiveSteps[1].targetViewId)
+        assertEquals(R.id.tvProfileKinshipBadge, interactiveSteps[2].targetViewId)
+        assertEquals(R.id.tvProfileParents, interactiveSteps[3].targetViewId)
+        assertEquals(R.id.layoutProfileDocsContainer, interactiveSteps[4].targetViewId)
+        assertEquals(R.id.btnProfileToggleVitalStatus, interactiveSteps[5].targetViewId)
+        assertEquals(R.id.btnProfileAddChild, interactiveSteps[6].targetViewId)
+        assertEquals(R.id.btnProfileAddSpouse, interactiveSteps[7].targetViewId)
+        assertEquals(R.id.btnProfileEdit, interactiveSteps[8].targetViewId)
+
+        interactiveSteps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+    }
+
+    @Test
+    fun testFamilyInsightsPresetSteps_structureAndTargets() {
+        val insightsSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_INSIGHTS
+        )
+        assertEquals("Family Insights must have exactly 3 progressive steps", 3, insightsSteps.size)
+        assertEquals(R.id.tvTotalMembers, insightsSteps[0].targetViewId)
+        assertEquals(R.id.cardDataQualityScorecard, insightsSteps[1].targetViewId)
+        assertEquals(R.id.btnQuickAssistInsights, insightsSteps[2].targetViewId)
+
+        insightsSteps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+    }
+
+    @Test
+    fun testFamilyRecordsPresetSteps_structureAndTargets() {
+        val recordsSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.FAMILY_RECORDS
+        )
+        assertEquals("Family Records must have exactly 3 progressive steps", 3, recordsSteps.size)
+        assertEquals(R.id.etSearch, recordsSteps[0].targetViewId)
+        assertEquals(R.id.rvMembers, recordsSteps[1].targetViewId)
+        assertEquals(R.id.btnQuickAssistRecords, recordsSteps[2].targetViewId)
+
+        recordsSteps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+    }
+
+    @Test
+    fun testMergeClanSpacePresetSteps_structureAndTargets() {
+        val mergeSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.MERGE_CLAN_SPACE
+        )
+        assertEquals("Merge Clan Space must have exactly 3 progressive steps", 3, mergeSteps.size)
+        assertEquals(R.id.cardSynthesizeClanHero, mergeSteps[0].targetViewId)
+        assertEquals(R.id.cardMyMergeCode, mergeSteps[1].targetViewId)
+        assertEquals(R.id.btnOpenConnectBranches, mergeSteps[2].targetViewId)
+
+        mergeSteps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+    }
+
+    @Test
+    fun testPrivacyControlsPresetSteps_structureAndTargets() {
+        val privacySteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.PRIVACY_CONTROLS
+        )
+        assertEquals("Privacy Controls must have exactly 3 progressive steps", 3, privacySteps.size)
+        assertEquals(R.id.switchPrivateTree, privacySteps[0].targetViewId)
+        assertEquals(R.id.switchHideBirthDates, privacySteps[1].targetViewId)
+        assertEquals(R.id.btnInviteMember, privacySteps[2].targetViewId)
+
+        privacySteps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+    }
+
+    @Test
+    fun testExportTreePresetSteps_structureAndTargets() {
+        val exportSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.EXPORT_TREE
+        )
+        assertEquals("Export Tree must have exactly 2 progressive steps", 2, exportSteps.size)
+        assertEquals(R.id.cardPdf, exportSteps[0].targetViewId)
+        assertEquals(R.id.btnExport, exportSteps[1].targetViewId)
+
+        exportSteps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+    }
+
+    @Test
+    fun testGuideCrestDismissed_mutationAndPersistence() {
+        val state = UserOnboardingState()
+        assertFalse(state.isGuideCrestDismissed)
+
+        state.isGuideCrestDismissed = true
+        assertTrue(state.isGuideCrestDismissed)
+
+        state.isGuideCrestDismissed = false
+        assertFalse(state.isGuideCrestDismissed)
     }
 }
