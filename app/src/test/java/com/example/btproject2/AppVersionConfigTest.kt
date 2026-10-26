@@ -95,4 +95,27 @@ class AppVersionConfigTest {
             remoteV131Config.apkDownloadUrl.startsWith("https://")
         assertTrue(isUpdateAvailable)
     }
+
+    @Test
+    fun v132Client_detectsV133Increment_andResolvesGitHubReleaseApkUrl() {
+        val friendInstalledCode = 5L // Friend on v1.3.2
+        val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.3")
+        assertEquals(
+            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.3/app-release.apk",
+            releaseUrl
+        )
+
+        val targetReleaseNotes = "• Horseshoe Fan Chart Defaults to All-Clan View (4 Generation Rings Radiating from Clan Roots)\n• Role-Aware Spotlight Walkthroughs for Interactive Tree (Customized Viewer & Editor Tours)\n• Botanical Emerald & Gold Role Onboarding Capabilities Modal\n• NIST-Compliant Live Password Strength Meter & Cryptographic Verifiers"
+
+        val remoteV133Config = AppVersionConfig(
+            versionCode = 6L,
+            versionName = "v1.3.3",
+            apkDownloadUrl = releaseUrl,
+            releaseNotes = targetReleaseNotes
+        )
+
+        val isUpdateAvailable = remoteV133Config.versionCode > friendInstalledCode &&
+            remoteV133Config.apkDownloadUrl.startsWith("https://")
+        assertTrue(isUpdateAvailable)
+    }
 }

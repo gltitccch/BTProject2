@@ -86,17 +86,17 @@ object InAppUpdateManager {
                 val hasValidRemoteApk = rawUrl.startsWith("https://", ignoreCase = true) &&
                     !rawUrl.contains("app-debug.apk", ignoreCase = true)
 
-                val targetReleaseNotes = "• Restored Marriage Line & Wedding Ring [ 💍 ] in Bloodline Highlight Mode\n• Modernized Tree Legend with Biological, Adoptive, and In-Law Badges\n• Unified ★ YOU (SELF) Focal Badge & Golden Accent Card (Replaced Raw 'Root')\n• Clan Quota Expansion Queue & Real-Time Sync\n• Pre-Merge Live Rollback Snapshot & Instant Restore"
+                val targetReleaseNotes = "• Horseshoe Fan Chart Defaults to All-Clan View (4 Generation Rings Radiating from Clan Roots)\n• Role-Aware Spotlight Walkthroughs for Interactive Tree (Customized Viewer & Editor Tours)\n• Botanical Emerald & Gold Role Onboarding Capabilities Modal\n• NIST-Compliant Live Password Strength Meter & Cryptographic Verifiers"
 
-                // If remote code is < 5L OR remote record lacks a valid release HTTPS APK link,
+                // If remote code is < 6L OR remote record lacks a valid release HTTPS APK link,
                 // OR remote releaseNotes need updating to include the latest fixes,
-                // align Firestore to the active v1.3.2 (versionCode = 5) release pointing to GitHub Releases.
-                if (currentRemoteCode < 5L || (currentRemoteCode == 5L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
+                // align Firestore to the active v1.3.3 (versionCode = 6) release pointing to GitHub Releases.
+                if (currentRemoteCode < 6L || (currentRemoteCode == 6L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
                     val currentConfig = AppVersionConfig(
-                        versionCode = 5L,
-                        versionName = "v1.3.2",
+                        versionCode = 6L,
+                        versionName = "v1.3.3",
                         releaseNotes = targetReleaseNotes,
-                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.2"),
+                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.3"),
                         isMandatory = false,
                         publishedBy = "system@kintrace.ph"
                     )
@@ -121,7 +121,7 @@ object InAppUpdateManager {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionCode.toLong()
             }
         } catch (_: Exception) {
-            4L
+            6L
         }
     }
 
