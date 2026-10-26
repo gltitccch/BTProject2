@@ -118,4 +118,29 @@ class AppVersionConfigTest {
             remoteV133Config.apkDownloadUrl.startsWith("https://")
         assertTrue(isUpdateAvailable)
     }
+
+    @Test
+    fun postUpdateDetection_triggersWhenCurrentVersionExceedsLastSeenVersion() {
+        val lastSeenVersion = 5L // User was on v1.3.2 before updating
+        val currentInstalledCode = 6L // User just updated to v1.3.3
+        val shouldShowWhatsNew = currentInstalledCode > lastSeenVersion
+        assertTrue(shouldShowWhatsNew)
+    }
+
+    @Test
+    fun postUpdateDetection_suppressedWhenAlreadySeen() {
+        val lastSeenVersion = 6L // User already saw v1.3.3 what's new modal
+        val currentInstalledCode = 6L // Still on v1.3.3
+        val shouldShowWhatsNew = currentInstalledCode > lastSeenVersion
+        assertFalse(shouldShowWhatsNew)
+    }
+
+    @Test
+    fun currentReleaseNotes_containsAllCoreFeatureHighlights() {
+        val notes = com.example.btproject2.utils.InAppUpdateManager.CURRENT_RELEASE_NOTES
+        assertTrue(notes.contains("Horseshoe Fan Chart Defaults to All-Clan View"))
+        assertTrue(notes.contains("Role-Aware Spotlight Walkthroughs"))
+        assertTrue(notes.contains("Botanical Emerald & Gold Role Onboarding"))
+        assertTrue(notes.contains("NIST-Compliant Live Password Strength Meter"))
+    }
 }

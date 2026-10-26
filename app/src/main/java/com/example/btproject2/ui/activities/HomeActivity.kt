@@ -176,7 +176,9 @@ class HomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_home)
 
         com.example.btproject2.utils.InAppUpdateManager.syncCurrentReleaseToFirestore {
-            com.example.btproject2.utils.InAppUpdateManager.checkForUpdates(this)
+            com.example.btproject2.utils.InAppUpdateManager.checkForUpdates(this, onNoUpdate = {
+                com.example.btproject2.utils.InAppUpdateManager.checkAndShowPostUpdateWhatsNew(this)
+            })
         }
 
         val tvGreeting = findViewById<TextView>(R.id.tvGreeting)

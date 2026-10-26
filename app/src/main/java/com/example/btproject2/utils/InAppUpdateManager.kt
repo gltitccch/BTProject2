@@ -54,7 +54,10 @@ object InAppUpdateManager {
     private const val PREFS_NAME = "kintrace_ota_prefs"
     private const val KEY_DISMISSED_VERSION = "key_dismissed_version"
     private const val KEY_DISMISSED_TIMESTAMP = "key_dismissed_timestamp"
+    const val KEY_LAST_SEEN_VERSION = "key_last_seen_version"
     private const val SUPPRESSION_DURATION_MS = 24 * 60 * 60 * 1000L // 24 hours
+
+    const val CURRENT_RELEASE_NOTES = "• Horseshoe Fan Chart Defaults to All-Clan View (4 Generation Rings Radiating from Clan Roots)\n• Role-Aware Spotlight Walkthroughs for Interactive Tree (Customized Viewer & Editor Tours)\n• Botanical Emerald & Gold Role Onboarding Capabilities Modal\n• NIST-Compliant Live Password Strength Meter & Cryptographic Verifiers"
 
     /**
      * Builds the canonical zero-cost GitHub Releases direct APK download link for a given version tag.
@@ -69,7 +72,10 @@ object InAppUpdateManager {
      */
     fun clearDismissalCache(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().clear().apply()
+        prefs.edit()
+            .remove(KEY_DISMISSED_VERSION)
+            .remove(KEY_DISMISSED_TIMESTAMP)
+            .apply()
     }
 
     /**
@@ -363,11 +369,14 @@ object InAppUpdateManager {
                     ?: "New features ready to install"
                 tvSubtitle.text = cleanSummary
 
-                val installClickListener = View.OnClickListener {
+                // Direct install on button tap
+                btnInstall.setOnClickListener {
                     installApk(activity, apkFile)
                 }
-                btnInstall.setOnClickListener(installClickListener)
-                pillView.setOnClickListener(installClickListener)
+                // Tapping pill body opens full patch notes dialog before installing
+                pillView.setOnClickListener {
+                    showUpdateDialog(activity, config)
+                }
 
                 btnDismiss.setOnClickListener {
                     val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -470,6 +479,11 @@ object InAppUpdateManager {
                 dialog.dismiss()
             }
 
+            val targetApkFile = File(getUpdatesCacheDir(activity), "KinTrace_v${config.versionCode}.apk")
+            if (targetApkFile.exists() && targetApkFile.length() > 10_000L) {
+                btnDownload.text = "⚡ 1-Tap Install Update (${config.versionName})"
+            }
+
             btnDownload.setOnClickListener {
                 val url = config.apkDownloadUrl.trim()
                 if (!url.startsWith("https://", ignoreCase = true)) {
@@ -478,7 +492,6 @@ object InAppUpdateManager {
                     return@setOnClickListener
                 }
 
-                val targetApkFile = File(getUpdatesCacheDir(activity), "KinTrace_v${config.versionCode}.apk")
                 if (targetApkFile.exists() && targetApkFile.length() > 10_000L) {
                     dialog.dismiss()
                     installApk(activity, targetApkFile)
@@ -511,6 +524,94 @@ object InAppUpdateManager {
             }
 
             dialog.show()
+        }
+    }
+
+    /**
+     * Checks if the currently installed version is newer than the last-seen version recorded in SharedPreferences.
+     * When true (e.g. user just updated to v1.3.3), displays the Dark Emerald & Gold "What's New" release notes modal.
+     */
+    fun checkAndShowPostUpdateWhatsNew(
+        activity: AppCompatActivity,
+        onDismiss: () -> Unit = {}
+    ) {
+        if (activity.isFinishing || activity.isDestroyed) return
+
+        val currentVersionCode = getInstalledVersionCode(activity)
+        val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val lastSeenVersion = prefs.getLong(KEY_LAST_SEEN_VERSION, 0L)
+
+        if (currentVersionCode > lastSeenVersion) {
+            prefs.edit().putLong(KEY_LAST_SEEN_VERSION, currentVersionCode).apply()
+            firestoreHelper.fetchLatestAppVersion(
+                onSuccess = { config ->
+                    if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
+                    val vName = config?.versionName ?: "v1.3.3"
+                    val notes = if (!config?.releaseNotes.isNullOrBlank()) config!!.releaseNotes else CURRENT_RELEASE_NOTES
+                    showWhatsNewDialog(activity, vName, notes, onDismiss)
+                },
+                onFailure = {
+                    if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
+                    showWhatsNewDialog(activity, "v1.3.3", CURRENT_RELEASE_NOTES, onDismiss)
+                }
+            )
+        } else {
+            onDismiss()
+        }
+    }
+
+    /**
+     * Shows the elegant Dark Emerald & Gold "What's New in KinTrace" post-update announcement dialog.
+     */
+    fun showWhatsNewDialog(
+        activity: AppCompatActivity,
+        versionName: String,
+        releaseNotes: String,
+        onDismiss: () -> Unit = {}
+    ) {
+        if (activity.isFinishing || activity.isDestroyed) return
+
+        activity.runOnUiThread {
+            try {
+                val view = LayoutInflater.from(activity).inflate(R.layout.dialog_app_update, null)
+
+                val tvVersionTag = view.findViewById<TextView>(R.id.tvVersionTag)
+                val tvUpdateTitle = view.findViewById<TextView>(R.id.tvUpdateTitle)
+                val tvUpdateDesc = view.findViewById<TextView>(R.id.tvUpdateDesc)
+                val tvReleaseNotes = view.findViewById<TextView>(R.id.tvReleaseNotes)
+                val layoutProgress = view.findViewById<LinearLayout>(R.id.layoutDownloadProgress)
+                val btnAction = view.findViewById<Button>(R.id.btnDownloadUpdate)
+                val btnLater = view.findViewById<Button>(R.id.btnRemindLater)
+
+                val cleanTag = if (versionName.startsWith("v", ignoreCase = true)) versionName else "v$versionName"
+                tvVersionTag.text = "KinTrace $cleanTag Active"
+                tvUpdateTitle.text = "Welcome to KinTrace $cleanTag!"
+                tvUpdateDesc.text = "Here is what was recently added in this milestone to enhance your family heritage experience."
+                tvReleaseNotes.text = releaseNotes.ifBlank { CURRENT_RELEASE_NOTES }
+
+                layoutProgress.visibility = View.GONE
+                btnLater.visibility = View.GONE
+                btnAction.text = "Awesome, Let's Explore! ✨"
+
+                val dialog = AlertDialog.Builder(activity)
+                    .setView(view)
+                    .setCancelable(true)
+                    .create()
+
+                dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+                btnAction.setOnClickListener {
+                    dialog.dismiss()
+                }
+
+                dialog.setOnDismissListener {
+                    onDismiss()
+                }
+
+                dialog.show()
+            } catch (_: Exception) {
+                onDismiss()
+            }
         }
     }
 
