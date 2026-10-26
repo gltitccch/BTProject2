@@ -15,6 +15,9 @@ data class UserOnboardingState(
     @get:PropertyName("hasSeenWelcomeStory") @set:PropertyName("hasSeenWelcomeStory")
     var hasSeenWelcomeStory: Boolean = false,
 
+    @get:PropertyName("hasChosenInitialTheme") @set:PropertyName("hasChosenInitialTheme")
+    var hasChosenInitialTheme: Boolean = false,
+
     @get:PropertyName("questRootsCompleted") @set:PropertyName("questRootsCompleted")
     var questRootsCompleted: Boolean = false,
 

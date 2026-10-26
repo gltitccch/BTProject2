@@ -203,6 +203,33 @@ class OnboardingStateTest {
     }
 
     @Test
+    fun testHomeStage2DashboardPresetSteps_has13StepsStartingFromTopBar() {
+        val steps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE2_DASHBOARD
+        )
+        assertEquals("Home Stage 2 Dashboard tutorial must have exactly 13 steps", 13, steps.size)
+        assertEquals("Step 1 must target Profile Avatar", R.id.tvProfileInitial, steps[0].targetViewId)
+        assertEquals("Step 2 must target KinAcademy Button", R.id.btnKinAcademy, steps[1].targetViewId)
+        assertEquals("Step 3 must target Notifications Bell", R.id.btnNotificationBell, steps[2].targetViewId)
+        assertEquals("Step 4 must target Active Tree Title Pill", R.id.tvTreeTitle, steps[3].targetViewId)
+        assertEquals("Step 5 must target Theme Toggle", R.id.btnThemeToggle, steps[4].targetViewId)
+        assertEquals("Step 6 must target Add Member Hero", R.id.btnAddMemberHero, steps[5].targetViewId)
+        assertEquals("Step 7 must target Family Insights Hero", R.id.btnFamilyInsightsHero, steps[6].targetViewId)
+        assertEquals("Step 8 must target View Tree", R.id.cardViewTree, steps[7].targetViewId)
+        assertEquals("Step 9 must target Records", R.id.cardRecords, steps[8].targetViewId)
+        assertEquals("Step 10 must target Trace", R.id.cardTrace, steps[9].targetViewId)
+        assertEquals("Step 11 must target Merge", R.id.cardMerge, steps[10].targetViewId)
+        assertEquals("Step 12 must target Privacy", R.id.btnPrivacy, steps[11].targetViewId)
+        assertEquals("Step 13 must target Export Tree", R.id.cardExportTree, steps[12].targetViewId)
+
+        steps.forEach { step ->
+            assertTrue("Step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Step description must be informative", step.description.isNotBlank())
+            assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+    }
+
+    @Test
     fun testAddMemberPresetSteps_structureAndTargets() {
         val steps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
             com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.ADD_MEMBER
@@ -266,6 +293,34 @@ class OnboardingStateTest {
             assertTrue("Step title must be in layman terms", step.title.isNotBlank())
             assertTrue("Step description must be informative", step.description.isNotBlank())
             assertTrue("Pro-tip must be populated", !step.proTip.isNullOrBlank())
+        }
+
+        val viewerSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
+            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.INTERACTIVE_TREE,
+            isViewer = true
+        )
+        assertEquals("Viewer role in Interactive Tree must have exactly 6 viewing steps", 6, viewerSteps.size)
+        assertEquals(R.id.treeContainer, viewerSteps[0].targetViewId)
+        assertEquals(R.id.ivProfilePhoto, viewerSteps[1].targetViewId)
+        assertEquals(R.id.tvProfileKinshipBadge, viewerSteps[2].targetViewId)
+        assertEquals(R.id.tvProfileParents, viewerSteps[3].targetViewId)
+        assertEquals(R.id.layoutProfileDocsContainer, viewerSteps[4].targetViewId)
+        assertEquals(R.id.btnProfileFullDetail, viewerSteps[5].targetViewId)
+
+        val editorOnlyTargetIds = setOf(
+            R.id.btnProfileToggleVitalStatus,
+            R.id.btnProfileAddChild,
+            R.id.btnProfileAddSpouse,
+            R.id.btnProfileEdit
+        )
+        viewerSteps.forEach { step ->
+            assertFalse(
+                "Viewer steps must not target editor button ${step.targetViewId}",
+                editorOnlyTargetIds.contains(step.targetViewId)
+            )
+            assertTrue("Viewer step title must be in layman terms", step.title.isNotBlank())
+            assertTrue("Viewer step description must be informative", step.description.isNotBlank())
+            assertTrue("Viewer pro-tip must be populated", !step.proTip.isNullOrBlank())
         }
     }
 

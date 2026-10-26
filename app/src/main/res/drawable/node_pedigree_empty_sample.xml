@@ -3,7 +3,7 @@
     android:shape="oval">
     <stroke
         android:width="2dp"
-        android:color="#5A6E60"
+        android:color="@color/tree_empty_slot_border"
         android:dashWidth="4dp"
         android:dashGap="3dp" />
     <size

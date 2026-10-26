@@ -35,6 +35,7 @@ class FamilyTreeActivity : AppCompatActivity() {
     private var allPersons: List<Person> = emptyList()
     private var isFanChartLoaded = false
     private var isViewer = false
+    fun isViewerUser(): Boolean = isViewer
 
     internal val syncCoordinator by lazy {
         PedigreeFanChartSyncCoordinator(
@@ -1038,11 +1039,8 @@ function populateModeDropdown(persons) {
   selectableRoots = persons.filter(p => (p.fatherId && byId[p.fatherId]) || (p.motherId && byId[p.motherId]));
   selectableRoots.sort((a, b) => (b.generation || 1) - (a.generation || 1));
 
-  if (!hasAutoSelectedRoot && selectableRoots.length > 0) {
-    currentMode = selectableRoots[0].id;
-    hasAutoSelectedRoot = true;
-  } else if (currentMode !== 'clan' && !byId[currentMode]) {
-    currentMode = selectableRoots.length > 0 ? selectableRoots[0].id : 'clan';
+  if (currentMode !== 'clan' && !byId[currentMode]) {
+    currentMode = 'clan';
   }
   updateTriggerLabel(byId);
   renderDrawerChipsAndGrid();

@@ -94,6 +94,14 @@ class LoginActivity : AppCompatActivity() {
                     com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
                     com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
 
+                    if (com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(user.email)) {
+                        com.example.btproject2.utils.OnboardingPreferences.resetOnboardingState(this, user.uid)
+                        firestoreHelper.saveOnboardingState(
+                            user.uid,
+                            com.example.btproject2.models.UserOnboardingState(hasChosenInitialTheme = false)
+                        )
+                    }
+
                     if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(user.email) ||
                         user.isEmailVerified ||
                         com.example.btproject2.models.DemoAccountRepository.isDemoEmail(user.email)) {
@@ -107,9 +115,13 @@ class LoginActivity : AppCompatActivity() {
                     }
                 },
                 onFailure = { error ->
-                    btnLogin.isEnabled = true
-                    btnLogin.text = "Login"
-                    showMessage("Login Failed", error.message ?: "Unknown error occurred.")
+                    if (com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(email)) {
+                        registerAndSignInNewUserPreview(email, password, btnLogin)
+                    } else {
+                        btnLogin.isEnabled = true
+                        btnLogin.text = "Login"
+                        showMessage("Login Failed", error.message ?: "Unknown error occurred.")
+                    }
                 }
             )
         }
@@ -142,28 +154,40 @@ class LoginActivity : AppCompatActivity() {
         btnLogin.text = "Signing in as ${account.name}..."
 
         authHelper.login(account.email, account.password,
-            onSuccess = { _ ->
+            onSuccess = { user ->
                 com.example.btproject2.utils.TreePreferences.clear(this)
                 com.example.btproject2.firebase.FirestoreHelper.clearCache()
                 com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
                 com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
 
+                if (com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(account.email)) {
+                    com.example.btproject2.utils.OnboardingPreferences.resetOnboardingState(this, user.uid)
+                    firestoreHelper.saveOnboardingState(
+                        user.uid,
+                        com.example.btproject2.models.UserOnboardingState(hasChosenInitialTheme = false)
+                    )
+                }
+
                 goToHome()
             },
             onFailure = { error ->
-                if (account.id.equals("system_admin", ignoreCase = true)) {
+                if (account.id.equals("system_admin", ignoreCase = true) ||
+                    com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(account.email)) {
                     authHelper.register(account.email, account.password,
                         onSuccess = { createdUser ->
+                            authHelper.updateDisplayName(account.name, onSuccess = {}, onFailure = {})
                             com.example.btproject2.utils.TreePreferences.clear(this)
+                            com.example.btproject2.utils.OnboardingPreferences.resetOnboardingState(this, createdUser.uid)
                             com.example.btproject2.firebase.FirestoreHelper.clearCache()
                             com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
                             com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
 
+                            val roleStr = if (account.id.equals("system_admin", ignoreCase = true)) "ADMIN" else "user"
                             val profile = UserProfile(
                                 id = createdUser.uid,
                                 displayName = account.name,
                                 email = account.email,
-                                role = "ADMIN"
+                                role = roleStr
                             )
                             firestoreHelper.saveUserProfile(profile, onSuccess = {
                                 goToHome()
@@ -182,6 +206,37 @@ class LoginActivity : AppCompatActivity() {
                     btnLogin.text = "Sign In to KinTrace ➔"
                     showMessage("Demo Sign-In Failed", error.message ?: "Could not authenticate demo account.")
                 }
+            }
+        )
+    }
+
+    private fun registerAndSignInNewUserPreview(email: String, password: String, btnLogin: Button) {
+        authHelper.register(email, password,
+            onSuccess = { createdUser ->
+                authHelper.updateDisplayName("New Member", onSuccess = {}, onFailure = {})
+                com.example.btproject2.utils.TreePreferences.clear(this)
+                com.example.btproject2.utils.OnboardingPreferences.resetOnboardingState(this, createdUser.uid)
+                com.example.btproject2.firebase.FirestoreHelper.clearCache()
+                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
+                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
+
+                val profile = UserProfile(
+                    id = createdUser.uid,
+                    displayName = "New Member",
+                    email = email,
+                    role = "user",
+                    currentTreeId = "",
+                    tosAcceptedAt = System.currentTimeMillis()
+                )
+                firestoreHelper.saveUserProfile(profile,
+                    onSuccess = { goToHome() },
+                    onFailure = { goToHome() }
+                )
+            },
+            onFailure = { err ->
+                btnLogin.isEnabled = true
+                btnLogin.text = "Login"
+                showMessage("Login Failed", err.message ?: "Could not sign in as New Member.")
             }
         )
     }

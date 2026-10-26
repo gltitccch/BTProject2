@@ -90,7 +90,7 @@ class FirestoreHelper {
             val conflict = (data["hasTimelineConflict"] as? Boolean) ?: p.hasTimelineConflict
             val createdAtVal = (data["createdAt"] as? Number)?.toLong() ?: 0L
 
-            return p.copy(
+            val rawPerson = p.copy(
                 id = doc.id,
                 createdAt = createdAtVal,
                 isLiving = isLivingVal,
@@ -98,6 +98,7 @@ class FirestoreHelper {
                 deathPlace = if (isLivingVal) "" else dPlace,
                 hasTimelineConflict = conflict
             )
+            return com.example.btproject2.utils.KinTraceCryptoEngine.decryptPersonFromCloud(rawPerson)
         }
 
         fun setCachedPersons(
@@ -816,17 +817,18 @@ class FirestoreHelper {
 
         val docRef = db.collection("persons").document()
         val personWithId = person.copy(id = docRef.id)
+        val encryptedForCloud = com.example.btproject2.utils.KinTraceCryptoEngine.encryptPersonForCloud(personWithId)
         val vitalUpdates = mapOf<String, Any>(
             "isLiving" to personWithId.isLiving,
             "living" to personWithId.isLiving,
             "isDeceased" to !personWithId.isLiving,
             "living_status" to if (personWithId.isLiving) "Living" else "Deceased",
             "deathDate" to if (personWithId.isLiving) "" else personWithId.deathDate,
-            "deathPlace" to if (personWithId.isLiving) "" else personWithId.deathPlace,
+            "deathPlace" to if (personWithId.isLiving) "" else encryptedForCloud.deathPlace,
             "dateOfDeath" to if (personWithId.isLiving) "" else personWithId.deathDate,
-            "placeOfDeath" to if (personWithId.isLiving) "" else personWithId.deathPlace
+            "placeOfDeath" to if (personWithId.isLiving) "" else encryptedForCloud.deathPlace
         )
-        docRef.set(personWithId)
+        docRef.set(encryptedForCloud)
             .addOnSuccessListener {
                 docRef.update(vitalUpdates)
                 addPersonToCache(personWithId)
@@ -1431,9 +1433,16 @@ class FirestoreHelper {
 
         // Phase 1: single atomic batch (profile + legacy vital fields + surviving spouse status).
         val personRef = db.collection("persons").document(personToSave.id)
+        val encryptedForCloud = com.example.btproject2.utils.KinTraceCryptoEngine.encryptPersonForCloud(personToSave)
+        val cloudVitalUpdates = plan.vitalUpdates.toMutableMap().apply {
+            if (!personToSave.isLiving) {
+                put("deathPlace", encryptedForCloud.deathPlace)
+                put("placeOfDeath", encryptedForCloud.deathPlace)
+            }
+        }
         val batch = db.batch()
-        batch.set(personRef, personToSave)
-        batch.update(personRef, plan.vitalUpdates)
+        batch.set(personRef, encryptedForCloud)
+        batch.update(personRef, cloudVitalUpdates)
         plan.partnerStatusUpdate?.let { (partner, status) ->
             batch.update(db.collection("persons").document(partner.id), "maritalStatus", status)
         }
@@ -3908,6 +3917,77 @@ class FirestoreHelper {
             timestamp = System.currentTimeMillis()
         )
         addNotification(record, onSuccess, onFailure)
+    }
+
+    /**
+     * Resolves the user's current role ("Owner", "Editor", or "Viewer") in [treeId]
+     * via [getUserMembership], defaulting safely to "Viewer" if not found.
+     */
+    fun getUserRole(
+        treeId: String,
+        userId: String,
+        onResult: (String) -> Unit
+    ) {
+        if (treeId.isBlank() || userId.isBlank()) {
+            onResult("Viewer")
+            return
+        }
+        getUserMembership(
+            userId = userId,
+            treeId = treeId,
+            onSuccess = { member ->
+                onResult(member?.role?.takeIf { it.isNotBlank() } ?: "Viewer")
+            },
+            onFailure = {
+                onResult("Viewer")
+            }
+        )
+    }
+
+    /**
+     * Sends a Botanical Golden Leaf Role Upgrade Request notification directly to the Tree Owner's
+     * notification center in Cloud Firestore.
+     */
+    fun sendRoleUpgradeRequestToOwner(
+        treeId: String,
+        treeName: String = "",
+        ownerId: String = "",
+        requesterId: String,
+        requesterName: String,
+        currentRole: String,
+        requestedRole: String,
+        featureName: String,
+        onComplete: (Boolean) -> Unit = {}
+    ) {
+        val cleanRequester = requesterName.ifBlank { "A family member" }
+        val cleanFeature = featureName.ifBlank { "tree management features" }
+        val dispatchToOwner: (String, String) -> Unit = { resolvedOwnerId, resolvedTreeName ->
+            val treeLabel = resolvedTreeName.ifBlank { "your family tree" }
+            addNotification(
+                treeId = treeId,
+                userId = resolvedOwnerId,
+                title = "🍃 Role Upgrade Request",
+                message = "$cleanRequester ($currentRole) sent a Golden Leaf requesting an upgrade to $requestedRole in $treeLabel to access: $cleanFeature.",
+                type = "role_upgrade_request",
+                targetId = requesterId,
+                onSuccess = { onComplete(true) },
+                onFailure = { onComplete(false) }
+            )
+        }
+
+        if (ownerId.isNotBlank() || treeId.isBlank()) {
+            dispatchToOwner(ownerId, treeName)
+        } else {
+            getTree(
+                treeId = treeId,
+                onSuccess = { tree ->
+                    dispatchToOwner(tree?.ownerId.orEmpty(), tree?.name ?: treeName)
+                },
+                onFailure = {
+                    dispatchToOwner("", treeName)
+                }
+            )
+        }
     }
 
     private fun documentToNotificationRecord(doc: com.google.firebase.firestore.DocumentSnapshot): NotificationRecord? {

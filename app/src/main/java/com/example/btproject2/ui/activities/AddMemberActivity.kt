@@ -246,8 +246,21 @@ class AddMemberActivity : AppCompatActivity() {
                     firestoreHelper.getUserMembership(currentUserId, treeId,
                         onSuccess = { member ->
                             if (member?.role.equals("Viewer", ignoreCase = true)) {
-                                KinTraceAlert.warning(this, "Action Restricted", "Viewers cannot add members.")
-                                finish()
+                                com.example.btproject2.utils.BotanicalRoleFlashManager.showRestrictedActionFlash(
+                                    activity = this,
+                                    rawRole = "Viewer",
+                                    isTreeOwner = false,
+                                    featureTitle = "Graft New Family Branches",
+                                    requiredTier = com.example.btproject2.utils.BotanicalRolePolicy.BotanicalTier.BRANCH_EDITOR,
+                                    treeId = treeId,
+                                    treeName = currentTreeName,
+                                    ownerId = tree?.ownerId.orEmpty(),
+                                    onDismiss = {
+                                        if (!isFinishing && !isDestroyed) {
+                                            finish()
+                                        }
+                                    }
+                                )
                             }
                         },
                         onFailure = {}

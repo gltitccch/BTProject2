@@ -93,6 +93,88 @@
             android:orientation="vertical"
             android:padding="20dp">
 
+            <!-- ZERO-KNOWLEDGE CLOUD PROTECTION (AES-256-GCM + JWT RS256) -->
+            <LinearLayout
+                android:id="@+id/cardZeroKnowledgeStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:padding="16dp"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:gravity="center"
+                        android:text="🛡️"
+                        android:textSize="18sp"
+                        android:background="@drawable/bg_criterion_badge_met" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Zero-Knowledge Cloud Protection"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sensitive family fields (birthplace, passing place &amp; biography) are automatically encrypted with AES-256-GCM before leaving your phone."
+                            android:textSize="11sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
+
+                    <TextView
+                        android:id="@+id/tvAesStatusChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔒 AES-256-GCM Active"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="#2EBD6B"
+                        android:background="@drawable/bg_criterion_badge_met"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvJwtStatusChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎟️ JWT RS256 Verified"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/accent"
+                        android:background="@drawable/bg_criterion_badge_default"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+
             <!-- TREE VISIBILITY -->
             <TextView
                 android:layout_width="wrap_content"
@@ -314,54 +396,194 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- STATE 2: RESTRICTED / OWNER-ONLY GATE (Figure 14, Screen 04) -->
+    <!-- STATE 2: RESTRICTED / OWNER-ONLY BOTANICAL GATE (Figure 14, Screen 04) -->
     <LinearLayout
         android:id="@+id/layoutOwnerGate"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
         android:orientation="vertical"
-        android:gravity="center"
-        android:padding="32dp"
+        android:gravity="center_horizontal"
+        android:background="@drawable/bg_botanical_flash_card"
+        android:paddingHorizontal="18dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="16dp"
         android:visibility="gone">
 
-        <!-- Lock Icon in Circle -->
-        <TextView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:gravity="center"
-            android:text="🔒"
-            android:textSize="36sp"
-            android:background="@drawable/profile_circle_bg"
-            android:layout_marginBottom="24dp" />
+        <!-- 60fps Growing Family Tree Stage (Sprout -> Branch -> Canopy) -->
+        <com.example.btproject2.views.BotanicalRoleStageView
+            android:id="@+id/gateBotanicalStageView"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:layout_marginBottom="6dp" />
 
+        <!-- Botanical Role Badge Pill -->
         <TextView
+            android:id="@+id/tvGateRoleBadgePill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Owner access required"
-            android:textSize="20sp"
+            android:text="🌱 YOU'RE CURRENTLY A VIEWER (SPROUT)"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:letterSpacing="0.04"
+            android:textColor="#4ADE80"
+            android:background="@drawable/bg_botanical_role_pill"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="5dp"
             android:layout_marginBottom="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Only the tree owner can manage privacy and access settings."
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            android:gravity="center"
-            android:lineSpacingExtra="3dp"
-            android:layout_marginBottom="32dp" />
+            android:text="Deep Roots Privacy &amp; Access"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="serif"
+            android:textColor="#F4F7F4"
+            android:layout_marginBottom="4dp" />
 
-        <Button
+        <TextView
+            android:id="@+id/tvGateSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This part of the grove requires the 🌳 Root &amp; Canopy Keeper (Owner) badge."
+            android:textSize="12sp"
+            android:textColor="#9DB2A4"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:layout_marginBottom="13dp" />
+
+        <!-- Botanical Capabilities Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_botanical_capabilities_box"
+            android:paddingHorizontal="13dp"
+            android:paddingVertical="11dp"
+            android:layout_marginBottom="13dp">
+
+            <TextView
+                android:id="@+id/tvGateCapHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌿 WHAT YOUR 🌱 VIEWER BADGE CAN DO"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="#D4AF37"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="7dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="3.5dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🌱 Explore Family Tree &amp; Fan Chart"
+                    android:textSize="12sp"
+                    android:textColor="#F4F7F4" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓ Allowed"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="#34D399" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="3.5dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🍃 Search Relatives &amp; Biographies"
+                    android:textSize="12sp"
+                    android:textColor="#F4F7F4" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓ Allowed"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="#34D399" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="3.5dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🌿 Graft / Edit Family Members"
+                    android:textSize="12sp"
+                    android:textColor="#F4F7F4" />
+                <TextView
+                    android:id="@+id/tvGateCapEditStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔒 Branch Editor+"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="#D4AF37" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="3.5dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🌳 Deep Roots Privacy &amp; Roles"
+                    android:textSize="12sp"
+                    android:textColor="#F4F7F4" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔒 Tree Owner"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="#D4AF37" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Primary Action: Send Golden Leaf Upgrade Request -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnGateSendLeafRequest"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="🍃 Send Golden Leaf Request to Tree Owner"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#060D09"
+            android:background="@drawable/bg_botanical_gold_gradient_btn"
+            android:textAllCaps="false"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Secondary Action: High-Contrast Return to Family Tree Button -->
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnGateBackToHome"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="Back to home"
-            android:textSize="15sp"
+            android:layout_height="43dp"
+            android:text="Return to Family Tree"
+            android:textSize="12sp"
             android:textStyle="bold"
-            android:textColor="@color/primary"
-            android:background="@drawable/btn_outline_bg"
+            android:textColor="#F4F7F4"
+            android:background="@drawable/bg_botanical_secondary_btn"
             android:textAllCaps="false" />
 
     </LinearLayout>

@@ -50,7 +50,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.activities.HomeActivity" />
+        <activity
+            android:name=".ui.activities.HomeActivity"
+            android:exported="true" />
         <activity android:name=".ui.activities.AddMemberActivity" />
         <activity android:name=".ui.activities.TraceActivity" />
         <activity android:name=".MainActivity" />

@@ -89,19 +89,11 @@ object RegistrationValidator {
     }
 
     fun validatePassword(password: String): FieldResult {
-        return when {
-            password.isEmpty() -> FieldResult.Invalid("Password is required.")
-            password.length < 6 -> FieldResult.Invalid("Password must be at least 6 characters.")
-            else -> FieldResult.Valid
-        }
+        return PasswordSecurityPolicy.validate(password)
     }
 
     fun validateConfirmPassword(password: String, confirmPassword: String): FieldResult {
-        return when {
-            confirmPassword.isEmpty() -> FieldResult.Invalid("Please confirm your password.")
-            password != confirmPassword -> FieldResult.Invalid("Passwords do not match.")
-            else -> FieldResult.Valid
-        }
+        return PasswordSecurityPolicy.validateConfirm(password, confirmPassword)
     }
 
     fun validateTermsOfService(accepted: Boolean): FieldResult {

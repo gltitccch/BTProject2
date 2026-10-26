@@ -1,5 +1,7 @@
 package com.example.btproject2
 
+import com.example.btproject2.utils.PasswordEvaluation
+import com.example.btproject2.utils.PasswordSecurityPolicy
 import com.example.btproject2.utils.RegistrationValidator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -7,8 +9,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Unit tests for RegistrationValidator covering field completeness, format validation,
- * disposable email filtering, password length, and password matching.
+ * Unit tests for RegistrationValidator and PasswordSecurityPolicy covering field completeness,
+ * format validation, disposable email filtering, defense-ready multi-factor password standards,
+ * entropy score calculation, and password matching.
  */
 class RegistrationValidationTest {
 
@@ -85,41 +88,93 @@ class RegistrationValidationTest {
     }
 
     @Test
-    fun testPasswordValidation() {
+    fun testStrengthenedPasswordValidation() {
         // Empty
         val emptyResult = RegistrationValidator.validatePassword("")
         assertTrue(emptyResult is RegistrationValidator.FieldResult.Invalid)
         assertEquals("Password is required.", (emptyResult as RegistrationValidator.FieldResult.Invalid).errorMessage)
 
-        // Length < 6
-        val shortResult = RegistrationValidator.validatePassword("12345")
+        // Length < 8
+        val shortResult = RegistrationValidator.validatePassword("Aa1!")
         assertTrue(shortResult is RegistrationValidator.FieldResult.Invalid)
-        assertEquals("Password must be at least 6 characters.", (shortResult as RegistrationValidator.FieldResult.Invalid).errorMessage)
+        assertEquals("Password must be at least 8 characters.", (shortResult as RegistrationValidator.FieldResult.Invalid).errorMessage)
 
-        // Valid length >= 6
-        assertTrue(RegistrationValidator.validatePassword("123456") is RegistrationValidator.FieldResult.Valid)
+        // Missing uppercase
+        val noUpper = RegistrationValidator.validatePassword("kintrace2026!")
+        assertTrue(noUpper is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Password must contain at least one uppercase letter (A-Z).", (noUpper as RegistrationValidator.FieldResult.Invalid).errorMessage)
+
+        // Missing digit
+        val noDigit = RegistrationValidator.validatePassword("KinTraceVault!")
+        assertTrue(noDigit is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Password must contain at least one number (0-9).", (noDigit as RegistrationValidator.FieldResult.Invalid).errorMessage)
+
+        // Missing special symbol
+        val noSymbol = RegistrationValidator.validatePassword("KinTrace2026")
+        assertTrue(noSymbol is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Password must contain at least one special symbol (!@#$%).", (noSymbol as RegistrationValidator.FieldResult.Invalid).errorMessage)
+
+        // Fully compliant multi-factor password
         assertTrue(RegistrationValidator.validatePassword("SecurePass2026!") is RegistrationValidator.FieldResult.Valid)
+        assertTrue(RegistrationValidator.validatePassword("KinTrace@2026#") is RegistrationValidator.FieldResult.Valid)
+    }
+
+    @Test
+    fun testPasswordSecurityPolicyScoring() {
+        val emptyEval = PasswordSecurityPolicy.evaluate("")
+        assertEquals(0, emptyEval.score)
+        assertEquals(PasswordEvaluation.StrengthLevel.EMPTY, emptyEval.strengthLevel)
+        assertFalse(emptyEval.isSecured)
+
+        val weakEval = PasswordSecurityPolicy.evaluate("123456")
+        assertEquals(1, weakEval.score) // only has digits
+        assertFalse(weakEval.hasMinLength)
+        assertFalse(weakEval.hasUppercase)
+        assertTrue(weakEval.hasDigit)
+        assertFalse(weakEval.hasSpecialChar)
+        assertFalse(weakEval.isSecured)
+
+        val fairEval = PasswordSecurityPolicy.evaluate("KinTrace")
+        assertEquals(2, fairEval.score) // min length (8) + uppercase
+        assertTrue(fairEval.hasMinLength)
+        assertTrue(fairEval.hasUppercase)
+        assertFalse(fairEval.hasDigit)
+        assertFalse(fairEval.hasSpecialChar)
+
+        val strongEval = PasswordSecurityPolicy.evaluate("KinTrace2026")
+        assertEquals(3, strongEval.score) // length + upper + digit
+        assertTrue(strongEval.hasMinLength)
+        assertTrue(strongEval.hasUppercase)
+        assertTrue(strongEval.hasDigit)
+        assertFalse(strongEval.hasSpecialChar)
+
+        val vaultEval = PasswordSecurityPolicy.evaluate("KinTrace@2026!")
+        assertEquals(4, vaultEval.score) // all 4 criteria
+        assertTrue(vaultEval.isSecured)
+        assertEquals(PasswordEvaluation.StrengthLevel.IMPENETRABLE, vaultEval.strengthLevel)
+        assertEquals("🛡️ Impenetrable", vaultEval.label)
+        assertEquals("#D4AF37", vaultEval.colorHex)
     }
 
     @Test
     fun testConfirmPasswordValidation() {
         // Empty confirmation
-        val emptyConfirm = RegistrationValidator.validateConfirmPassword("Password123", "")
+        val emptyConfirm = RegistrationValidator.validateConfirmPassword("Password123!", "")
         assertTrue(emptyConfirm is RegistrationValidator.FieldResult.Invalid)
         assertEquals("Please confirm your password.", (emptyConfirm as RegistrationValidator.FieldResult.Invalid).errorMessage)
 
         // Mismatch
-        val mismatch = RegistrationValidator.validateConfirmPassword("Password123", "Password456")
+        val mismatch = RegistrationValidator.validateConfirmPassword("Password123!", "Password456!")
         assertTrue(mismatch is RegistrationValidator.FieldResult.Invalid)
         assertEquals("Passwords do not match.", (mismatch as RegistrationValidator.FieldResult.Invalid).errorMessage)
 
         // Case difference
-        val caseDiff = RegistrationValidator.validateConfirmPassword("Password123", "password123")
+        val caseDiff = RegistrationValidator.validateConfirmPassword("Password123!", "password123!")
         assertTrue(caseDiff is RegistrationValidator.FieldResult.Invalid)
         assertEquals("Passwords do not match.", (caseDiff as RegistrationValidator.FieldResult.Invalid).errorMessage)
 
         // Match
-        assertTrue(RegistrationValidator.validateConfirmPassword("Password123", "Password123") is RegistrationValidator.FieldResult.Valid)
+        assertTrue(RegistrationValidator.validateConfirmPassword("Password123!", "Password123!") is RegistrationValidator.FieldResult.Valid)
     }
 
     @Test
@@ -132,12 +187,12 @@ class RegistrationValidationTest {
         assertTrue(allEmpty.passwordResult is RegistrationValidator.FieldResult.Invalid)
         assertTrue(allEmpty.confirmPasswordResult is RegistrationValidator.FieldResult.Invalid)
 
-        // Valid form
+        // Valid form with strengthened security password
         val validForm = RegistrationValidator.validateForm(
             fullName = "Maria Clara",
             email = "maria.clara@example.com",
-            password = "SecretPassword123",
-            confirmPassword = "SecretPassword123"
+            password = "SecretPassword123!",
+            confirmPassword = "SecretPassword123!"
         )
         assertTrue(validForm.isValid)
     }

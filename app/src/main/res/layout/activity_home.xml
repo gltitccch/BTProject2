@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/forest_bg"
     tools:context=".ui.activities.HomeActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
     <!-- Scrollable Main Content -->
     <ScrollView
@@ -643,13 +647,14 @@
                 <TextView android:id="@+id/tvTreeRolePill" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
             </LinearLayout>
 
-            <!-- ── CLAN BUILDER QUEST HUD (PHASE 2 ONBOARDING) ── -->
+            <!-- ── CLAN BUILDER QUEST HUD (PHASE 2 ONBOARDING - RETIRED) ── -->
             <include
                 android:id="@+id/cardQuestHud"
                 layout="@layout/layout_clan_quest_hud"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp"
+                android:visibility="gone" />
 
             <!-- ── EMPTY STATE ── -->
             <LinearLayout
@@ -659,89 +664,148 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <LinearLayout
+                <FrameLayout
+                    android:id="@+id/cardEmptyStateInner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_forest_card"
-                    android:padding="24dp"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="16dp"
+                    android:clipChildren="true"
+                    android:clipToPadding="false">
 
-                    <TextView
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:gravity="center"
-                        android:text="🌳"
-                        android:textSize="28sp"
-                        android:background="@drawable/circle_dark_action"
-                        android:layout_marginBottom="14dp" />
+                    <!-- Dashed Target Ring highlighting the top-left corner position -->
+                    <View
+                        android:id="@+id/viewEmptyCornerPulseRing"
+                        android:layout_width="88dp"
+                        android:layout_height="42dp"
+                        android:layout_gravity="top|start"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_empty_corner_pulse_ring"
+                        android:visibility="gone" />
 
-                    <TextView
+                    <!-- PERMANENT TOP-LEFT CORNER THEME BUTTON (Circled Spot) -->
+                    <LinearLayout
+                        android:id="@+id/btnEmptyThemeToggle"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="No family tree yet"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:layout_marginBottom="6dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Create a new tree or join an existing tree with an invite code."
-                        android:textSize="12sp"
-                        android:textColor="@color/dark_subtext"
+                        android:layout_height="34dp"
+                        android:layout_gravity="top|start"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginStart="14dp"
+                        android:paddingStart="11dp"
+                        android:paddingEnd="11dp"
                         android:gravity="center"
-                        android:layout_marginBottom="18dp" />
-
-                    <Button
-                        android:id="@+id/btnEmptyCreateTree"
-                        android:layout_width="match_parent"
-                        android:layout_height="46dp"
-                        android:text="＋  Create New Family Tree"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/btn_gold_text"
-                        android:backgroundTint="@color/gold_accent"
-                        android:layout_marginBottom="8dp" />
-
-                    <Button
-                        android:id="@+id/btnEmptyJoinTree"
-                        android:layout_width="match_parent"
-                        android:layout_height="46dp"
-                        android:text="👥  Join Tree with Invite Code"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:backgroundTint="@color/forest_card_light"
-                        android:layout_marginBottom="8dp" />
-
-                    <Button
-                        android:id="@+id/btnEmptyAddMember"
-                        android:layout_width="match_parent"
-                        android:layout_height="46dp"
-                        android:text="👤  Add First Family Member"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:backgroundTint="@color/forest_card" />
-
-                    <!-- Replay Quick Start Tour Button (Direction 1) -->
-                    <TextView
-                        android:id="@+id/btnEmptyReplayTour"
-                        android:layout_width="match_parent"
-                        android:layout_height="44dp"
-                        android:gravity="center"
-                        android:text="✨  Replay Quick Start Tour ↻"
-                        android:textSize="12.5sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/gold_accent"
-                        android:background="@drawable/bg_tool_dock_tag"
+                        android:orientation="horizontal"
+                        android:background="@drawable/bg_empty_corner_theme_pill"
+                        android:elevation="6dp"
                         android:clickable="true"
-                        android:focusable="true"
-                        android:layout_marginTop="8dp" />
-                </LinearLayout>
+                        android:focusable="true">
+
+                        <TextView
+                            android:id="@+id/tvEmptyThemeToggleIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☀️"
+                            android:textSize="12sp"
+                            android:layout_marginEnd="5dp" />
+
+                        <TextView
+                            android:id="@+id/tvEmptyThemeToggleLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Light"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/empty_corner_theme_text" />
+                    </LinearLayout>
+
+                    <!-- Normal Empty State Interface Body -->
+                    <LinearLayout
+                        android:id="@+id/layoutEmptyStateNormalBody"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="24dp"
+                        android:paddingEnd="24dp"
+                        android:paddingTop="32dp"
+                        android:paddingBottom="24dp"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:gravity="center"
+                            android:text="🌳"
+                            android:textSize="28sp"
+                            android:background="@drawable/circle_dark_action"
+                            android:layout_marginBottom="14dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="No family tree yet"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Create a new tree or join an existing tree with an invite code."
+                            android:textSize="12sp"
+                            android:textColor="@color/dark_subtext"
+                            android:gravity="center"
+                            android:layout_marginBottom="18dp" />
+
+                        <Button
+                            android:id="@+id/btnEmptyCreateTree"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:text="＋  Create New Family Tree"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/btn_gold_text"
+                            android:backgroundTint="@color/gold_accent"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btnEmptyJoinTree"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:text="👥  Join Tree with Invite Code"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:backgroundTint="@color/forest_card_light"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btnEmptyAddMember"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:text="👤  Add First Family Member"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:backgroundTint="@color/forest_card" />
+
+                        <!-- Replay Quick Start Tour Button (Direction 1) -->
+                        <TextView
+                            android:id="@+id/btnEmptyReplayTour"
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:gravity="center"
+                            android:text="✨  Replay Quick Start Tour ↻"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/bg_tool_dock_tag"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginTop="8dp" />
+                    </LinearLayout>
+                </FrameLayout>
             </LinearLayout>
 
             <!-- ── POPULATED STATE ── -->
@@ -1263,7 +1327,225 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- ── Floating Heritage Island Bottom Navigation ── -->
-    <include layout="@layout/layout_floating_nav_island" />
+        <!-- ── Floating Heritage Island Bottom Navigation ── -->
+        <include layout="@layout/layout_floating_nav_island" />
 
-</LinearLayout>
+    </LinearLayout>
+
+    <!-- Full-Screen Radial Theme Wave Effect -->
+    <View
+        android:id="@+id/viewThemeRadialWave"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_theme_wave_light"
+        android:elevation="28dp"
+        android:alpha="0"
+        android:visibility="gone" />
+
+    <!-- SUGGESTION 2 FULL-SCREEN DIMMED SPOTLIGHT: Wide Stacked Cinema Banners -->
+    <FrameLayout
+        android:id="@+id/layoutEmptyThemeOnboardingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#EC030805"
+        android:elevation="32dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/layoutThemeSpotlightContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingStart="22dp"
+            android:paddingEnd="22dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <TextView
+                android:id="@+id/tvThemeOnboardingBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_theme_flash_badge"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:text="✨ WELCOME TO KINTRACE"
+                android:textSize="11.5sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:textColor="#F7DF8B"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:id="@+id/tvThemeOnboardingTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="What do you prefer?"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:gravity="center"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvThemeOnboardingSub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose your look — you can switch anytime using the button in the top-left corner!"
+                android:textSize="13.5sp"
+                android:textColor="#C8D8CE"
+                android:gravity="center"
+                android:lineSpacingExtra="2dp"
+                android:layout_marginBottom="26dp" />
+
+            <LinearLayout
+                android:id="@+id/layoutThemeOrbsRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <!-- Wide Stacked Cinema Banner 1: Light Mode -->
+                <LinearLayout
+                    android:id="@+id/cardChooseLightMode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/bg_orb_card_light"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="22dp"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="24dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:elevation="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvOrbSunIcon"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:background="@drawable/bg_orb_circle_sun"
+                        android:gravity="center"
+                        android:text="☀️"
+                        android:textSize="40sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="18dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Light Mode"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="#5C3804"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Warm Parchment &amp; Amber"
+                            android:textSize="13sp"
+                            android:textColor="#8C580C"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_tap_select_light"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:text="TAP TO SELECT"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.06"
+                            android:textColor="#7C4700" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Wide Stacked Cinema Banner 2: Dark Mode -->
+                <LinearLayout
+                    android:id="@+id/cardChooseDarkMode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_orb_card_dark"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="22dp"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="24dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:elevation="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvOrbMoonIcon"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:background="@drawable/bg_orb_circle_moon"
+                        android:gravity="center"
+                        android:text="🌙"
+                        android:textSize="40sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="18dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dark Mode"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="#F7DF8B"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Emerald Night &amp; Gold"
+                            android:textSize="13sp"
+                            android:textColor="#C8D8CE"
+                            android:layout_marginBottom="10dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_tap_select_dark"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="5dp"
+                            android:paddingBottom="5dp"
+                            android:text="TAP TO SELECT"
+                            android:textSize="10.5sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.06"
+                            android:textColor="#F7DF8B" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+</FrameLayout>

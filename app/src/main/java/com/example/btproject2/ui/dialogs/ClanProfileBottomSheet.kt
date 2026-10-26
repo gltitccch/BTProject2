@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.widget.doOnTextChanged
 import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
@@ -121,6 +122,55 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         tvHeaderName.text = currentName
         tvEmail.text = user.email ?: ""
         etDisplayName.setText(currentName)
+
+        // Bind live Botanical Role Badge (🌱 Viewer / 🌿 Editor / 🌳 Owner)
+        val effectiveTreeId = treeId.ifBlank {
+            context?.let { com.example.btproject2.utils.TreePreferences.getActiveTreeId(it) }.orEmpty()
+        }
+        if (effectiveTreeId.isNotBlank()) {
+            firestoreHelper.getTree(
+                treeId = effectiveTreeId,
+                onSuccess = { tree ->
+                    val isTreeOwner = tree != null && (tree.ownerId.isEmpty() || tree.ownerId == user.uid)
+                    if (isTreeOwner) {
+                        val tier = com.example.btproject2.utils.BotanicalRolePolicy.BotanicalTier.CANOPY_OWNER
+                        tvRoleTag?.text = "${tier.symbol} ${tier.shortTag}"
+                        tvRoleTag?.setTextColor(tier.primaryColorHex)
+                        tvRoleTag?.setOnClickListener {
+                            activity?.let { hostAct ->
+                                com.example.btproject2.utils.BotanicalRoleFlashManager.showRoleAssignedCeremony(
+                                    activity = hostAct,
+                                    rawRole = tier.roleKey,
+                                    isTreeOwner = true,
+                                    treeName = tree?.name.orEmpty()
+                                )
+                            }
+                        }
+                    } else {
+                        firestoreHelper.getUserRole(
+                            treeId = effectiveTreeId,
+                            userId = user.uid,
+                            onResult = { rawRole ->
+                                val tier = com.example.btproject2.utils.BotanicalRolePolicy.resolveTier(rawRole, false)
+                                tvRoleTag?.text = "${tier.symbol} ${tier.shortTag}"
+                                tvRoleTag?.setTextColor(tier.primaryColorHex)
+                                tvRoleTag?.setOnClickListener {
+                                    activity?.let { hostAct ->
+                                        com.example.btproject2.utils.BotanicalRoleFlashManager.showRoleAssignedCeremony(
+                                            activity = hostAct,
+                                            rawRole = tier.roleKey,
+                                            isTreeOwner = false,
+                                            treeName = tree?.name.orEmpty()
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+                },
+                onFailure = {}
+            )
+        }
 
         // Dismissal Handlers
         btnClose.setOnClickListener { dismiss() }
@@ -330,6 +380,20 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         val etNewPassword = view.findViewById<EditText>(R.id.etDialogNewPassword)
         val etConfirmPassword = view.findViewById<EditText>(R.id.etDialogConfirmPassword)
         val tvPasswordError = view.findViewById<TextView>(R.id.tvDialogPasswordError)
+        val layoutStrength = view.findViewById<View?>(R.id.layoutDialogPasswordStrength)
+        val tvMatchPill = view.findViewById<TextView?>(R.id.tvDialogPasswordMatchPill)
+
+        if (layoutStrength != null) {
+            com.example.btproject2.utils.PasswordStrengthMeterBinder(
+                container = layoutStrength,
+                etPassword = etNewPassword,
+                etConfirmPassword = etConfirmPassword,
+                tvMatchPill = tvMatchPill
+            )
+        }
+
+        etNewPassword.doOnTextChanged { _, _, _, _ -> tvPasswordError.visibility = View.GONE }
+        etConfirmPassword.doOnTextChanged { _, _, _, _ -> tvPasswordError.visibility = View.GONE }
 
         val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
             .setView(view)
@@ -342,9 +406,10 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                 val newPass = etNewPassword.text.toString().trim()
                 val confirmPass = etConfirmPassword.text.toString().trim()
 
-                if (newPass.length < 6) {
+                val passValidation = com.example.btproject2.utils.PasswordSecurityPolicy.validate(newPass)
+                if (passValidation is com.example.btproject2.utils.RegistrationValidator.FieldResult.Invalid) {
                     tvPasswordError.visibility = View.VISIBLE
-                    tvPasswordError.text = "Password must be at least 6 characters"
+                    tvPasswordError.text = passValidation.errorMessage
                     return@setOnClickListener
                 }
                 if (newPass != confirmPass) {

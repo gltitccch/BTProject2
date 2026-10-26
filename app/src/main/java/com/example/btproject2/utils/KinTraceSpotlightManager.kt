@@ -58,7 +58,7 @@ object KinTraceSpotlightManager {
         activity: Activity,
         feature: TutorialFeatureKey,
         treeId: String? = null,
-        steps: List<SpotlightStep> = getPresetSteps(feature),
+        steps: List<SpotlightStep>? = null,
         delayMs: Long = 420L,
         dialogProvider: (() -> android.app.Dialog?)? = null
     ) {
@@ -88,7 +88,8 @@ object KinTraceSpotlightManager {
             if (OnboardingPreferences.hasSeenTutorial(activity, feature.key, treeId = resolvedTreeId)) return@Runnable
             if (activeFeatureKey == feature && activeOverlayRef?.get()?.isAttachedToWindow == true) return@Runnable
             val effectiveDialogProvider = dialogProvider ?: { (activity as? com.example.btproject2.ui.activities.InteractiveTreeActivity)?.getActiveProfileDialog() }
-            showTutorialForced(activity, feature, resolvedTreeId, steps, effectiveDialogProvider)
+            val resolvedSteps = steps ?: getPresetStepsForActivity(activity, feature)
+            showTutorialForced(activity, feature, resolvedTreeId, resolvedSteps, effectiveDialogProvider)
         }
         pendingRunnables[pendingKey] = Pair(WeakReference(contentRoot), runnable)
         contentRoot.postDelayed(runnable, delayMs)
@@ -101,7 +102,7 @@ object KinTraceSpotlightManager {
         activity: Activity,
         feature: TutorialFeatureKey,
         treeId: String? = null,
-        steps: List<SpotlightStep> = getPresetSteps(feature),
+        steps: List<SpotlightStep>? = null,
         dialogProvider: (() -> android.app.Dialog?)? = null
     ) {
         val resolvedTreeId = if (!treeId.isNullOrBlank()) {
@@ -113,7 +114,8 @@ object KinTraceSpotlightManager {
         }
         val pendingKey = if (!resolvedTreeId.isNullOrBlank()) "${resolvedTreeId}_${feature.key}" else feature.key
         pendingFeatures.remove(pendingKey)
-        if (activity.isFinishing || activity.isDestroyed || steps.isEmpty()) return
+        val resolvedSteps = steps ?: getPresetStepsForActivity(activity, feature)
+        if (activity.isFinishing || activity.isDestroyed || resolvedSteps.isEmpty()) return
         val contentRoot = activity.findViewById<ViewGroup>(android.R.id.content) ?: return
 
         // Remove any existing active spotlight overlay
@@ -137,7 +139,7 @@ object KinTraceSpotlightManager {
         // Mark seen immediately when started/completed so user is never spammed
         markTutorialCompleted(activity, feature, resolvedTreeId)
 
-        spotlightView.startTour(steps) {
+        spotlightView.startTour(resolvedSteps) {
             activeOverlayRef = null
             activeActivityRef = null
             activeFeatureKey = null
@@ -272,7 +274,15 @@ object KinTraceSpotlightManager {
         }
     }
 
-    fun getPresetSteps(feature: TutorialFeatureKey): List<SpotlightStep> {
+    fun getPresetStepsForActivity(activity: Activity, feature: TutorialFeatureKey): List<SpotlightStep> {
+        val isViewer = (activity as? com.example.btproject2.ui.activities.InteractiveTreeActivity)?.isViewerUser()
+            ?: (activity as? com.example.btproject2.ui.activities.FamilyTreeActivity)?.isViewerUser()
+            ?: activity.intent?.getBooleanExtra("isViewer", false)
+            ?: false
+        return getPresetSteps(feature, isViewer)
+    }
+
+    fun getPresetSteps(feature: TutorialFeatureKey, isViewer: Boolean = false): List<SpotlightStep> {
         return when (feature) {
             TutorialFeatureKey.HOME_STAGE1_EMPTY -> listOf(
                 SpotlightStep(
@@ -298,13 +308,55 @@ object KinTraceSpotlightManager {
                 )
             )
 
-            TutorialFeatureKey.HOME_STAGE2_DASHBOARD -> listOf(
+                        TutorialFeatureKey.HOME_STAGE2_DASHBOARD -> listOf(
                 SpotlightStep(
+                    targetViewId = R.id.tvProfileInitial,
+                    icon = "👤",
+                    title = "Your Profile & Account",
+                    description = "Tap your profile avatar to view account details, change your profile photo, or manage personal settings and login credentials.",
+                    proTip = "💡 Tip: Shows your account initial and online presence in your active family tree."
+                ),
+                SpotlightStep(
+                    targetViewId = R.id.btnKinAcademy,
+                    icon = "🎓",
+                    title = "KinAcademy Learning Hub",
+                    description = "Tap the graduation cap anytime to access interactive lessons, genealogical best practices, and relationship guides.",
+                    proTip = "💡 Tip: Learn how to read ancestral pedigree charts and calculate cousin degrees."
+                ),
+                SpotlightStep(
+                    targetViewId = R.id.btnNotificationBell,
+                    icon = "🔔",
+                    title = "Notifications & Alerts",
+                    description = "Stay updated on your family grove! Receive real-time alerts when relatives join, request role upgrades, or propose branch merges.",
+                    proTip = "💡 Tip: The red dot indicates pending requests that need your review."
+                ),
+                SpotlightStep(
+                    targetViewId = R.id.tvTreeTitle,
+                    icon = "🌳",
+                    title = "Select & Switch Family Trees",
+                    description = "Tap your family clan name to switch between trees, create a brand-new tree, or join a relative's tree with an invite code.",
+                    proTip = "💡 Tip: You can belong to multiple family trees with different role permissions in each!"
+                ),
+                SpotlightStep(
+                    targetViewId = R.id.btnThemeToggle,
+                    icon = "☀️",
+                    title = "Light & Dark Theme Toggle",
+                    description = "Switch between the deep Forest Emerald night mode and the warm Amber Parchment day mode with a single tap.",
+                    proTip = "💡 Tip: Both themes maintain full contrast for effortless reading day or night."
+                ),
+                                SpotlightStep(
                     targetViewId = R.id.btnAddMemberHero,
                     icon = "➕",
                     title = "Add Family Members",
                     description = "Tap here to add a parent, child, spouse, or sibling. When you add someone, KinTrace connects both people together automatically.",
                     proTip = "💡 Tip: The app double-checks relationships so your tree stays accurate."
+                ),
+                SpotlightStep(
+                    targetViewId = R.id.btnFamilyInsightsHero,
+                    icon = "📊",
+                    title = "Family Insights & Health",
+                    description = "Tap here to explore generation depth, tree health quality, gender ratio, and living kin statistics at a glance.",
+                    proTip = "💡 Tip: See your clan data completeness and health scorecards in one place."
                 ),
                 SpotlightStep(
                     targetViewId = R.id.cardViewTree,
@@ -521,76 +573,130 @@ object KinTraceSpotlightManager {
                 )
             )
 
-            TutorialFeatureKey.INTERACTIVE_TREE -> listOf(
-                SpotlightStep(
-                    targetViewId = R.id.treeContainer,
-                    icon = "🌳",
-                    title = "Tap Any Family Member",
-                    description = "Everyone in your family has their own card on this screen. Tap any person (or tap Next Step) to open their full profile and story!",
-                    proTip = "💡 Tip: You can drag people around with your finger to arrange your family tree however you like.",
-                    passThroughTouches = true
-                ),
-                SpotlightStep(
-                    targetViewId = R.id.ivProfilePhoto,
-                    icon = "👤",
-                    title = "Name, Photo & Life Years",
-                    description = "The top card shows their picture, full name, how long they lived, and whether they are still living today.",
-                    proTip = "📷 Tip: Tap the little camera icon anytime to add a photo of them.",
-                    onStepEnter = {
-                        val act = activeActivityRef?.get() as? com.example.btproject2.ui.activities.InteractiveTreeActivity
-                        act?.openTutorialFounderProfile()
-                    }
-                ),
-                SpotlightStep(
-                    targetViewId = R.id.tvProfileKinshipBadge,
-                    icon = "👑",
-                    title = "Their Role in the Family",
-                    description = "KinTrace automatically figures out who this person is in the family—like Grandfather, Mother, Uncle, or Family Founder—based on who they are connected to.",
-                    proTip = "👑 Tip: This helps everyone at family reunions easily know who started the family line."
-                ),
-                SpotlightStep(
-                    targetViewId = R.id.tvProfileParents,
-                    icon = "🔗",
-                    title = "Parents, Partner & Children",
-                    description = "See who their mom, dad, husband/wife, and children are. Tapping any name jumps right to them on your tree!",
-                    proTip = "❤️ Tip: When you connect a parent or spouse, KinTrace links both people together automatically."
-                ),
-                SpotlightStep(
-                    targetViewId = R.id.layoutProfileDocsContainer,
-                    icon = "📑",
-                    title = "Keep Certificates & Old Photos",
-                    description = "Save birth certificates, wedding photos, and old letters right here so your family's precious memories never get lost.",
-                    proTip = "📄 Tip: Once saved, your whole family can see and treasure these pictures."
-                ),
-                SpotlightStep(
-                    targetViewId = R.id.btnProfileToggleVitalStatus,
-                    icon = "🌿",
-                    title = "Update Living / Deceased Status",
-                    description = "Tap this button to switch whether this person is living or deceased. You can record their passing date and resting place to honor their memory.",
-                    proTip = "🕊️ Tip: When marked deceased, an eternal rest badge appears beside their name across your tree."
-                ),
-                SpotlightStep(
-                    targetViewId = R.id.btnProfileAddChild,
-                    icon = "👶",
-                    title = "+ Child: Add Sons & Daughters",
-                    description = "Tap '+ Child' to instantly connect a son or daughter to this person. KinTrace places them on the branch below automatically.",
-                    proTip = "🌱 Tip: KinTrace automatically links them to both parents when you add a child."
-                ),
-                SpotlightStep(
-                    targetViewId = R.id.btnProfileAddSpouse,
-                    icon = "💍",
-                    title = "+ Spouse: Add Husband or Wife",
-                    description = "Tap '+ Spouse' to connect a marriage partner and record their wedding anniversary date.",
-                    proTip = "❤️ Tip: Both spouses will be linked together side-by-side with a wedding knot."
-                ),
-                SpotlightStep(
-                    targetViewId = R.id.btnProfileEdit,
-                    icon = "✏️",
-                    title = "Edit Details & Full Life Story",
-                    description = "Use 'Edit' to fix misspelled names, birth years, or change photos. Tap 'Full Profile' right beside it to open their complete timeline and family stories!",
-                    proTip = "📖 Tip: The Full Profile screen lets you view their lifetime milestones and write personal stories."
-                )
-            )
+            TutorialFeatureKey.INTERACTIVE_TREE -> {
+                if (isViewer) {
+                    listOf(
+                        SpotlightStep(
+                            targetViewId = R.id.treeContainer,
+                            icon = "🌳",
+                            title = "Tap Any Family Member",
+                            description = "Everyone in your family has their own card on this screen. Tap any person (or tap Next Step) to open their full profile and story!",
+                            proTip = "💡 Tip: You can pinch to zoom in/out or drag to explore different branches of the tree.",
+                            passThroughTouches = true
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.ivProfilePhoto,
+                            icon = "👤",
+                            title = "Name, Photo & Life Years",
+                            description = "The top card shows their picture, full name, how long they lived, and whether they are still living today.",
+                            proTip = "📖 Tip: Tap 'Full Profile' below to view their complete life timeline and documented stories.",
+                            onStepEnter = {
+                                val act = activeActivityRef?.get() as? com.example.btproject2.ui.activities.InteractiveTreeActivity
+                                act?.openTutorialFounderProfile()
+                            }
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.tvProfileKinshipBadge,
+                            icon = "👑",
+                            title = "Their Role in the Family",
+                            description = "KinTrace automatically figures out who this person is in the family—like Grandfather, Mother, Uncle, or Family Founder—based on who they are connected to.",
+                            proTip = "👑 Tip: This helps everyone at family reunions easily understand each relative's place in your lineage."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.tvProfileParents,
+                            icon = "🔗",
+                            title = "Parents, Partner & Children",
+                            description = "See who their mom, dad, husband/wife, and children are. Tapping any name jumps right to them on your tree!",
+                            proTip = "🔗 Tip: Tap on any connected relative's name to instantly center and highlight their branch."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.layoutProfileDocsContainer,
+                            icon = "📑",
+                            title = "Archival Certificates & Documents",
+                            description = "Browse verified birth certificates, wedding photos, and historical documents preserved for this relative.",
+                            proTip = "📄 Tip: Tap any document card to open and inspect the high-resolution certificate."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.btnProfileFullDetail,
+                            icon = "📖",
+                            title = "Full Profile: Stories & Milestones",
+                            description = "Tap 'Full Profile →' to open this family member's complete biographical narrative, life timeline, and shared memories.",
+                            proTip = "✨ Tip: You can read their story anytime or share milestone memories with your clan."
+                        )
+                    )
+                } else {
+                    listOf(
+                        SpotlightStep(
+                            targetViewId = R.id.treeContainer,
+                            icon = "🌳",
+                            title = "Tap Any Family Member",
+                            description = "Everyone in your family has their own card on this screen. Tap any person (or tap Next Step) to open their full profile and story!",
+                            proTip = "💡 Tip: You can drag people around with your finger to arrange your family tree however you like.",
+                            passThroughTouches = true
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.ivProfilePhoto,
+                            icon = "👤",
+                            title = "Name, Photo & Life Years",
+                            description = "The top card shows their picture, full name, how long they lived, and whether they are still living today.",
+                            proTip = "📷 Tip: Tap the little camera icon anytime to add a photo of them.",
+                            onStepEnter = {
+                                val act = activeActivityRef?.get() as? com.example.btproject2.ui.activities.InteractiveTreeActivity
+                                act?.openTutorialFounderProfile()
+                            }
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.tvProfileKinshipBadge,
+                            icon = "👑",
+                            title = "Their Role in the Family",
+                            description = "KinTrace automatically figures out who this person is in the family—like Grandfather, Mother, Uncle, or Family Founder—based on who they are connected to.",
+                            proTip = "👑 Tip: This helps everyone at family reunions easily know who started the family line."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.tvProfileParents,
+                            icon = "🔗",
+                            title = "Parents, Partner & Children",
+                            description = "See who their mom, dad, husband/wife, and children are. Tapping any name jumps right to them on your tree!",
+                            proTip = "❤️ Tip: When you connect a parent or spouse, KinTrace links both people together automatically."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.layoutProfileDocsContainer,
+                            icon = "📑",
+                            title = "Keep Certificates & Old Photos",
+                            description = "Save birth certificates, wedding photos, and old letters right here so your family's precious memories never get lost.",
+                            proTip = "📄 Tip: Once saved, your whole family can see and treasure these pictures."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.btnProfileToggleVitalStatus,
+                            icon = "🌿",
+                            title = "Update Living / Deceased Status",
+                            description = "Tap this button to switch whether this person is living or deceased. You can record their passing date and resting place to honor their memory.",
+                            proTip = "🕊️ Tip: When marked deceased, an eternal rest badge appears beside their name across your tree."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.btnProfileAddChild,
+                            icon = "👶",
+                            title = "+ Child: Add Sons & Daughters",
+                            description = "Tap '+ Child' to instantly connect a son or daughter to this person. KinTrace places them on the branch below automatically.",
+                            proTip = "🌱 Tip: KinTrace automatically links them to both parents when you add a child."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.btnProfileAddSpouse,
+                            icon = "💍",
+                            title = "+ Spouse: Add Husband or Wife",
+                            description = "Tap '+ Spouse' to connect a marriage partner and record their wedding anniversary date.",
+                            proTip = "❤️ Tip: Both spouses will be linked together side-by-side with a wedding knot."
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.btnProfileEdit,
+                            icon = "✏️",
+                            title = "Edit Details & Full Life Story",
+                            description = "Use 'Edit' to fix misspelled names, birth years, or change photos. Tap 'Full Profile' right beside it to open their complete timeline and family stories!",
+                            proTip = "📖 Tip: The Full Profile screen lets you view their lifetime milestones and write personal stories."
+                        )
+                    )
+                }
+            }
 
             TutorialFeatureKey.TREE_HEALTH -> listOf(
                 SpotlightStep(

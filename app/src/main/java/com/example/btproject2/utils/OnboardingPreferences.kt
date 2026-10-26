@@ -17,6 +17,7 @@ object OnboardingPreferences {
     const val PREFS_NAME = "kintrace_onboarding_prefs"
 
     const val KEY_HAS_SEEN_WELCOME_STORY = "has_seen_welcome_story"
+    const val KEY_HAS_CHOSEN_INITIAL_THEME = "has_chosen_initial_theme"
     const val KEY_QUEST_ROOTS_COMPLETED = "quest_roots_completed"
     const val KEY_QUEST_TWO_MEMBERS_COMPLETED = "quest_two_members_completed"
     const val KEY_QUEST_CANVAS_INSPECTED = "quest_canvas_inspected"
@@ -45,6 +46,7 @@ object OnboardingPreferences {
         val prefs = getPrefs(context, userId)
         return UserOnboardingState(
             hasSeenWelcomeStory = prefs.getBoolean(KEY_HAS_SEEN_WELCOME_STORY, false),
+            hasChosenInitialTheme = prefs.getBoolean(KEY_HAS_CHOSEN_INITIAL_THEME, false),
             questRootsCompleted = prefs.getBoolean(KEY_QUEST_ROOTS_COMPLETED, false),
             questTwoMembersCompleted = prefs.getBoolean(KEY_QUEST_TWO_MEMBERS_COMPLETED, false),
             questCanvasInspected = prefs.getBoolean(KEY_QUEST_CANVAS_INSPECTED, false),
@@ -60,6 +62,7 @@ object OnboardingPreferences {
     fun saveOnboardingState(context: Context, state: UserOnboardingState, userId: String? = null) {
         getPrefs(context, userId).edit()
             .putBoolean(KEY_HAS_SEEN_WELCOME_STORY, state.hasSeenWelcomeStory)
+            .putBoolean(KEY_HAS_CHOSEN_INITIAL_THEME, state.hasChosenInitialTheme)
             .putBoolean(KEY_QUEST_ROOTS_COMPLETED, state.questRootsCompleted)
             .putBoolean(KEY_QUEST_TWO_MEMBERS_COMPLETED, state.questTwoMembersCompleted)
             .putBoolean(KEY_QUEST_CANVAS_INSPECTED, state.questCanvasInspected)
@@ -78,6 +81,14 @@ object OnboardingPreferences {
 
     fun setHasSeenWelcomeStory(context: Context, value: Boolean, userId: String? = null) {
         getPrefs(context, userId).edit().putBoolean(KEY_HAS_SEEN_WELCOME_STORY, value).apply()
+    }
+
+    fun hasChosenInitialTheme(context: Context, userId: String? = null): Boolean {
+        return getPrefs(context, userId).getBoolean(KEY_HAS_CHOSEN_INITIAL_THEME, false)
+    }
+
+    fun setHasChosenInitialTheme(context: Context, value: Boolean, userId: String? = null) {
+        getPrefs(context, userId).edit().putBoolean(KEY_HAS_CHOSEN_INITIAL_THEME, value).apply()
     }
 
     fun isQuestDismissed(context: Context, userId: String? = null): Boolean {

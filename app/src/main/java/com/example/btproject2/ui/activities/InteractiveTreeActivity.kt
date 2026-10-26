@@ -60,6 +60,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     private var isOwner: Boolean = true
     private var isEditor: Boolean = false
     private var isViewer: Boolean = false
+    fun isViewerUser(): Boolean = isViewer
     private var currentTreeName: String = "Family Tree"
     private var treePrivacy: com.example.btproject2.models.PrivacySettings = com.example.btproject2.models.PrivacySettings()
     private var tvInteractiveTreeRoleBadge: TextView? = null
@@ -731,6 +732,21 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
+        val isDark = ThemePreferences.isDarkTheme(this)
+        val tvBioLineTitle = dialogView.findViewById<TextView>(R.id.tvLegendBioLineTitle)
+        val tvMaritalTitle = dialogView.findViewById<TextView>(R.id.tvLegendMaritalTitle)
+        val viewBioLine = dialogView.findViewById<View>(R.id.viewLegendBioLine)
+
+        if (isDark) {
+            tvBioLineTitle?.text = "Solid Emerald Green Line"
+            tvMaritalTitle?.text = "Dashed Warm Gold Line + [ 💍 ] Pill"
+            viewBioLine?.setBackgroundColor(Color.parseColor("#1D9E75"))
+        } else {
+            tvBioLineTitle?.text = "Solid Amber-Brown Line"
+            tvMaritalTitle?.text = "Dashed Warm Amber Line + [ 💍 ] Pill"
+            viewBioLine?.setBackgroundColor(Color.parseColor("#B45309"))
+        }
+
         dialogView.findViewById<View>(R.id.btnCloseLegend)?.setOnClickListener { dialog.dismiss() }
         dialogView.findViewById<View>(R.id.btnGotItLegend)?.setOnClickListener { dialog.dismiss() }
 
@@ -933,18 +949,41 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     }
 
     private fun applyRolePermissionsToUI() {
+        val activeRoleName: String
         if (isOwner) {
-            tvInteractiveTreeRoleBadge?.text = "★ Owner • Full access"
+            activeRoleName = "Owner"
+            tvInteractiveTreeRoleBadge?.text = "🌳 Owner • Root & Canopy Keeper"
             layoutInteractiveViewerBanner?.visibility = View.GONE
             btnConnectBranchesShortcut?.visibility = View.VISIBLE
         } else if (isEditor) {
-            tvInteractiveTreeRoleBadge?.text = "✎ Editor - Edit access"
+            activeRoleName = "Editor"
+            tvInteractiveTreeRoleBadge?.text = "🌿 Editor • Branch Tender"
             layoutInteractiveViewerBanner?.visibility = View.GONE
             btnConnectBranchesShortcut?.visibility = View.GONE
         } else {
-            tvInteractiveTreeRoleBadge?.text = "Viewer • Read-only access"
+            activeRoleName = "Viewer"
+            tvInteractiveTreeRoleBadge?.text = "🌱 Viewer • Young Sprout (Read-Only)"
             layoutInteractiveViewerBanner?.visibility = View.VISIBLE
             btnConnectBranchesShortcut?.visibility = View.GONE
+        }
+        tvInteractiveTreeRoleBadge?.setOnClickListener {
+            com.example.btproject2.utils.BotanicalRoleFlashManager.showRoleAssignedCeremony(
+                activity = this,
+                rawRole = activeRoleName,
+                isTreeOwner = isOwner,
+                treeName = currentTreeName
+            )
+        }
+        layoutInteractiveViewerBanner?.setOnClickListener {
+            com.example.btproject2.utils.BotanicalRoleFlashManager.showRestrictedActionFlash(
+                activity = this,
+                rawRole = activeRoleName,
+                isTreeOwner = isOwner,
+                featureTitle = "Graft & Edit Family Members",
+                requiredTier = com.example.btproject2.utils.BotanicalRolePolicy.BotanicalTier.BRANCH_EDITOR,
+                treeId = treeId,
+                treeName = currentTreeName
+            )
         }
         if (::treeView.isInitialized) {
             val viewerChanged = treeView.isViewerMode != isViewer

@@ -150,4 +150,25 @@
     <color name="beacon_chip_border">#D97706</color>
     <color name="beacon_chip_text">#78350F</color>
     <color name="input_halo_border">#D97706</color>
+
+    <!-- Theme-Adaptive Tree Legend Tokens (Light Mode: Amber-Brown Edge Standards) -->
+    <color name="tree_bio_line">#B45309</color>
+    <color name="tree_bio_line_desc">#475569</color>
+    <color name="tree_inlaw_badge_bg">#FEF3C7</color>
+    <color name="tree_inlaw_badge_border">#B45309</color>
+    <color name="tree_inlaw_badge_text">#92400E</color>
+    <color name="tree_marital_dash">#B45309</color>
+    <color name="tree_marital_pill_bg">#FEF3C7</color>
+    <color name="tree_marital_pill_border">#B45309</color>
+    <color name="tree_marital_pill_text">#92400E</color>
+    <color name="tree_empty_slot_border">#64748B</color>
+    <color name="tree_empty_slot_text">#475569</color>
+
+    <!-- Empty-State Top-Left Corner Theme Pill & Celestial Onboarding Tokens (Light Mode) -->
+    <color name="empty_corner_theme_bg">#FFFBEB</color>
+    <color name="empty_corner_theme_border">#F59E0B</color>
+    <color name="empty_corner_theme_text">#92400E</color>
+    <color name="theme_flash_badge_bg">#33D4AF37</color>
+    <color name="theme_flash_badge_border">#80D4AF37</color>
+    <color name="theme_flash_badge_text">#D97706</color>
 </resources>

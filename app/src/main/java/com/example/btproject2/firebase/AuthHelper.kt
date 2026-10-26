@@ -157,4 +157,41 @@ class AuthHelper {
             onSuccess()
         }
     }
+
+    /**
+     * Silently inspects the current Firebase OAuth 2.0 / RS256 JWT token, decodes its
+     * cryptographic claims via [com.example.btproject2.utils.JwtSessionVerifier], and
+     * automatically rotates the token in the background if fewer than 5 minutes remain.
+     */
+    fun verifyActiveJwtSession(
+        forceRefresh: Boolean = false,
+        onResult: (com.example.btproject2.utils.JwtTokenSummary) -> Unit
+    ) {
+        val user = auth.currentUser
+        if (user == null) {
+            onResult(com.example.btproject2.utils.JwtSessionVerifier.verifyAndDecodeJwt(""))
+            return
+        }
+        user.getIdToken(forceRefresh)
+            .addOnSuccessListener { result ->
+                val rawToken = result.token.orEmpty()
+                val summary = com.example.btproject2.utils.JwtSessionVerifier.verifyAndDecodeJwt(rawToken)
+                if (!forceRefresh && summary.shouldRotateSoon) {
+                    user.getIdToken(true)
+                        .addOnSuccessListener { refreshed ->
+                            onResult(
+                                com.example.btproject2.utils.JwtSessionVerifier.verifyAndDecodeJwt(
+                                    refreshed.token.orEmpty()
+                                )
+                            )
+                        }
+                        .addOnFailureListener { onResult(summary) }
+                } else {
+                    onResult(summary)
+                }
+            }
+            .addOnFailureListener {
+                onResult(com.example.btproject2.utils.JwtSessionVerifier.verifyAndDecodeJwt(""))
+            }
+    }
 }

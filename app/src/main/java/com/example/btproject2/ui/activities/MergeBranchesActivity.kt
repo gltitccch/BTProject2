@@ -192,7 +192,14 @@ class MergeBranchesActivity : AppCompatActivity() {
 
         btnOpenSynthesizeClanTree.setOnClickListener {
             if (isViewerOnly) {
-                KinTraceAlert.show(this, "Permission restricted: Viewers cannot synthesize clan trees.")
+                com.example.btproject2.utils.BotanicalRoleFlashManager.showRestrictedActionFlash(
+                    activity = this,
+                    rawRole = "Viewer",
+                    isTreeOwner = false,
+                    featureTitle = "Intertwine & Synthesize Clan Branches",
+                    requiredTier = com.example.btproject2.utils.BotanicalRolePolicy.BotanicalTier.BRANCH_EDITOR,
+                    treeId = activeTreeId
+                )
             } else {
                 showSynthesizeClanTreeDialog()
             }
@@ -208,7 +215,14 @@ class MergeBranchesActivity : AppCompatActivity() {
                     currentRole = "Viewer"
                 )
                 firestoreHelper.addNotification(notif)
-                KinTraceAlert.show(this, "Permission restricted: Viewers have read-only access.")
+                com.example.btproject2.utils.BotanicalRoleFlashManager.showRestrictedActionFlash(
+                    activity = this,
+                    rawRole = "Viewer",
+                    isTreeOwner = false,
+                    featureTitle = "Connect Disconnected Branches",
+                    requiredTier = com.example.btproject2.utils.BotanicalRolePolicy.BotanicalTier.BRANCH_EDITOR,
+                    treeId = activeTreeId
+                )
             } else {
                 showConnectBranchesDialog()
             }

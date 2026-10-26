@@ -244,6 +244,7 @@
                 android:layout_marginBottom="10dp">
 
                 <TextView
+                    android:id="@+id/tvLegendBadgeInLaw"
                     android:layout_width="48dp"
                     android:layout_height="22dp"
                     android:background="@drawable/badge_inlaw_sample"
@@ -251,7 +252,7 @@
                     android:text="IN-LAW"
                     android:textSize="9sp"
                     android:textStyle="bold"
-                    android:textColor="#55E4AD" />
+                    android:textColor="@color/tree_inlaw_badge_text" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -271,7 +272,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Dark teal card badge for relatives linked via marriage or tree merge"
+                        android:text="Badge for relatives linked via marriage or tree merge"
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary" />
                 </LinearLayout>
@@ -339,9 +340,10 @@
                 android:layout_marginBottom="10dp">
 
                 <View
+                    android:id="@+id/viewLegendBioLine"
                     android:layout_width="32dp"
                     android:layout_height="4dp"
-                    android:background="#1D9E75" />
+                    android:background="@color/tree_bio_line" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -351,9 +353,10 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvLegendBioLineTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Solid Green Line"
+                        android:text="Solid Amber-Brown Line"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
@@ -424,9 +427,14 @@
                     android:layout_height="22dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
-                    <View android:layout_width="4dp" android:layout_height="2.5dp" android:background="#D4A359" />
+                    <View
+                        android:id="@+id/viewLegendMaritalDashLeft"
+                        android:layout_width="4dp"
+                        android:layout_height="2.5dp"
+                        android:background="@color/tree_marital_dash" />
                     <View android:layout_width="2dp" android:layout_height="2.5dp" />
                     <TextView
+                        android:id="@+id/tvLegendMaritalPill"
                         android:layout_width="22dp"
                         android:layout_height="18dp"
                         android:background="@drawable/badge_marital_ring_sample"
@@ -434,7 +442,11 @@
                         android:text="💍"
                         android:textSize="9sp" />
                     <View android:layout_width="2dp" android:layout_height="2.5dp" />
-                    <View android:layout_width="4dp" android:layout_height="2.5dp" android:background="#D4A359" />
+                    <View
+                        android:id="@+id/viewLegendMaritalDashRight"
+                        android:layout_width="4dp"
+                        android:layout_height="2.5dp"
+                        android:background="@color/tree_marital_dash" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -445,9 +457,10 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvLegendMaritalTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Dashed Warm Gold Line + [ 💍 ] Pill"
+                        android:text="Dashed Warm Amber Line + [ 💍 ] Pill"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
@@ -524,7 +537,7 @@
                     android:gravity="center"
                     android:text="+"
                     android:textSize="14sp"
-                    android:textColor="#A3B899" />
+                    android:textColor="@color/tree_empty_slot_text" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -551,9 +564,10 @@
             </LinearLayout>
 
             <TextView
+                android:id="@+id/tvLegendGesturesSummary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="• Pinch to Zoom: Two fingers to zoom between 0.25x and 3.5x.\n• Drag to Pan: One finger to navigate around generations.\n• Tap Member Card: Inspect personal timeline, dates, and biography.\n• Tap Green '+' under Member: Quick-add a child to that parent."
+                android:text="• Pinch to Zoom: Two fingers to zoom between 0.25x and 3.5x.\n• Drag to Pan: One finger to navigate around generations.\n• Tap Member Card: Inspect personal timeline, dates, and biography.\n• Tap '+' under Member: Quick-add a child to that parent."
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="3dp"

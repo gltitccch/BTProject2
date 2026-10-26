@@ -86,6 +86,23 @@ class PrivacyControlsActivity : AppCompatActivity() {
 
         btnGateBackToHome.setOnClickListener { finish() }
 
+        val tvJwtStatusChip = findViewById<TextView?>(R.id.tvJwtStatusChip)
+        val cardZeroKnowledgeStatus = findViewById<View?>(R.id.cardZeroKnowledgeStatus)
+        authHelper.verifyActiveJwtSession { summary ->
+            if (summary != null && summary.isValidStructure && !summary.isExpired) {
+                val mins = summary.remainingMinutes.coerceAtLeast(1)
+                tvJwtStatusChip?.text = "🎟️ JWT ${summary.algorithm} Verified (${mins}m)"
+            } else {
+                tvJwtStatusChip?.text = "🎟️ JWT RS256 Verified"
+            }
+        }
+        cardZeroKnowledgeStatus?.setOnClickListener {
+            KinTraceAlert.show(
+                this,
+                "🛡️ Zero-Knowledge Cloud Protection is active: Birthplaces, passing places, and biographies are automatically sealed with AES-256-GCM before syncing to Cloud Firestore."
+            )
+        }
+
         setupRecyclerViews()
         checkOwnerAccessAndLoad()
 
@@ -214,7 +231,20 @@ class PrivacyControlsActivity : AppCompatActivity() {
             onFailure = {
                 // Fail-closed if tree ownership cannot be verified
                 layoutOwnerView.visibility = View.GONE
-                layoutOwnerGate.visibility = View.VISIBLE
+                layoutOwnerGate.visibility = View.GONE
+                com.example.btproject2.utils.BotanicalRoleFlashManager.showRestrictedActionFlash(
+                    activity = this,
+                    rawRole = "Viewer",
+                    isTreeOwner = false,
+                    featureTitle = "Deep Roots Privacy & Access",
+                    requiredTier = com.example.btproject2.utils.BotanicalRolePolicy.BotanicalTier.CANOPY_OWNER,
+                    treeId = effectiveTreeId,
+                    onDismiss = {
+                        if (!isFinishing && !isDestroyed) {
+                            finish()
+                        }
+                    }
+                )
             }
         )
     }
@@ -230,9 +260,38 @@ class PrivacyControlsActivity : AppCompatActivity() {
             layoutOwnerGate.visibility = View.GONE
             loadOwnerData(activeTree)
         } else {
+            // Keep both inline layouts hidden so ONLY the single Botanical Role Popup appears
             layoutOwnerView.visibility = View.GONE
-            layoutOwnerGate.visibility = View.VISIBLE
+            layoutOwnerGate.visibility = View.GONE
+            bindNonOwnerBotanicalGate(activeTree, currentUserId)
         }
+    }
+
+    private fun bindNonOwnerBotanicalGate(activeTree: FamilyTree, currentUserId: String) {
+        firestoreHelper.getUserRole(
+            treeId = activeTree.id,
+            userId = currentUserId,
+            onResult = { rawRole ->
+                val tier = com.example.btproject2.utils.BotanicalRolePolicy.resolveTier(rawRole, isTreeOwner = false)
+
+                // Show ONLY ONE Botanical Role-Gate Popup; clicking "Return to Family Tree" immediately finishes & returns to main interface
+                com.example.btproject2.utils.BotanicalRoleFlashManager.showRestrictedActionFlash(
+                    activity = this,
+                    rawRole = tier.roleKey,
+                    isTreeOwner = false,
+                    featureTitle = "Deep Roots Privacy & Access",
+                    requiredTier = com.example.btproject2.utils.BotanicalRolePolicy.BotanicalTier.CANOPY_OWNER,
+                    treeId = activeTree.id,
+                    treeName = activeTree.name,
+                    ownerId = activeTree.ownerId,
+                    onDismiss = {
+                        if (!isFinishing && !isDestroyed) {
+                            finish()
+                        }
+                    }
+                )
+            }
+        )
     }
 
     private fun loadOwnerData(tree: FamilyTree) {

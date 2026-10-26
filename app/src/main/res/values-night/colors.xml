@@ -151,4 +151,25 @@
     <color name="beacon_chip_border">#D4A359</color>
     <color name="beacon_chip_text">#F5D280</color>
     <color name="input_halo_border">#D4A359</color>
+
+    <!-- Theme-Adaptive Tree Legend Tokens (Dark Mode: Emerald Green Edge Standards) -->
+    <color name="tree_bio_line">#1D9E75</color>
+    <color name="tree_bio_line_desc">#A3B899</color>
+    <color name="tree_inlaw_badge_bg">#0A241D</color>
+    <color name="tree_inlaw_badge_border">#1D9E75</color>
+    <color name="tree_inlaw_badge_text">#55E4AD</color>
+    <color name="tree_marital_dash">#D4A359</color>
+    <color name="tree_marital_pill_bg">#1B2E24</color>
+    <color name="tree_marital_pill_border">#D4A359</color>
+    <color name="tree_marital_pill_text">#F5D77F</color>
+    <color name="tree_empty_slot_border">#5A6E60</color>
+    <color name="tree_empty_slot_text">#A3B899</color>
+
+    <!-- Empty-State Top-Left Corner Theme Pill & Celestial Onboarding Tokens (Dark Mode) -->
+    <color name="empty_corner_theme_bg">#173526</color>
+    <color name="empty_corner_theme_border">#D4AF37</color>
+    <color name="empty_corner_theme_text">#F5D77F</color>
+    <color name="theme_flash_badge_bg">#33D4AF37</color>
+    <color name="theme_flash_badge_border">#80D4AF37</color>
+    <color name="theme_flash_badge_text">#F5D77F</color>
 </resources>

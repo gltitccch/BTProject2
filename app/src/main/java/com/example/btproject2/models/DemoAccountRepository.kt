@@ -53,7 +53,10 @@ object DemoAccountRepository {
         DEMO_ACCOUNTS.firstOrNull { it.email.equals(email.trim(), ignoreCase = true) }
 
     fun isDemoEmail(email: String?): Boolean =
-        email != null && DEMO_ACCOUNTS.any { it.email.equals(email.trim(), ignoreCase = true) }
+        email != null && (DEMO_ACCOUNTS.any { it.email.equals(email.trim(), ignoreCase = true) } || isNewUserPreviewEmail(email))
+
+    fun isNewUserPreviewEmail(email: String?): Boolean =
+        email != null && email.trim().equals("newuser@kintrace.ph", ignoreCase = true)
 
     fun isAdminEmail(email: String?): Boolean =
         email != null && (email.trim().equals("admin@kintrace.ph", ignoreCase = true) ||

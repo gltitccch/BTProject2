@@ -266,6 +266,18 @@ class SuperAdminProfileBottomSheet : BottomSheetDialogFragment() {
         val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancelChangePassword)
         val btnSubmit = dialogView.findViewById<TextView>(R.id.btnSubmitChangePassword)
 
+        val layoutStrength = dialogView.findViewById<View?>(R.id.layoutMasterPasswordStrength)
+        val tvMatchPill = dialogView.findViewById<TextView?>(R.id.tvMasterPasswordMatchPill)
+
+        if (layoutStrength != null) {
+            com.example.btproject2.utils.PasswordStrengthMeterBinder(
+                container = layoutStrength,
+                etPassword = etNewPassword,
+                etConfirmPassword = etConfirmPassword,
+                tvMatchPill = tvMatchPill
+            )
+        }
+
         val dialog = AlertDialog.Builder(ctx)
             .setView(dialogView)
             .create()
@@ -278,8 +290,9 @@ class SuperAdminProfileBottomSheet : BottomSheetDialogFragment() {
             val newPassword = etNewPassword.text.toString().trim()
             val confirmPassword = etConfirmPassword.text.toString().trim()
 
-            if (newPassword.length < 6) {
-                etNewPassword.error = "Password must be at least 6 characters"
+            val passValidation = com.example.btproject2.utils.PasswordSecurityPolicy.validate(newPassword)
+            if (passValidation is com.example.btproject2.utils.RegistrationValidator.FieldResult.Invalid) {
+                etNewPassword.error = passValidation.errorMessage
                 return@setOnClickListener
             }
             if (newPassword != confirmPassword) {

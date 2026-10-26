@@ -33,8 +33,20 @@ import com.example.btproject2.utils.OnboardingPreferences
 import com.example.btproject2.models.UserOnboardingState
 import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doOnTextChanged
 
 class HomeActivity : AppCompatActivity() {
+
+    companion object {
+        private var isRecreatingFromEmptyStateThemeSwitch: Boolean = false
+        private var pendingCornerDockMorph: Boolean = false
+        private var pendingCornerButtonPop: Boolean = false
+        private var pendingThemeWaveMode: String = ThemePreferences.THEME_DARK
+        private var justCompletedThemeMorphInSession: Boolean = false
+        private var isPlayingThemeMorphAnimation: Boolean = false
+    }
+
+    private val activeThemeOnboardingAnimators = mutableListOf<android.animation.ValueAnimator>()
 
     private val authHelper = AuthHelper()
     private val firestoreHelper = FirestoreHelper()
@@ -146,6 +158,7 @@ class HomeActivity : AppCompatActivity() {
         announcementListener?.remove()
         announcementListener = null
         com.example.btproject2.utils.NetworkStateMonitor.removeListener(networkListener)
+        stopThemeOnboardingLoopAnimators()
         findViewById<View?>(R.id.layoutHomeShimmer)?.let { com.example.btproject2.utils.KinTraceShimmerHelper.stopShimmer(it) }
     }
 
@@ -167,6 +180,11 @@ class HomeActivity : AppCompatActivity() {
         }
 
         val tvGreeting = findViewById<TextView>(R.id.tvGreeting)
+        if (com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(authHelper.getCurrentUser()?.email) &&
+            !isRecreatingFromEmptyStateThemeSwitch && !pendingCornerDockMorph && !pendingCornerButtonPop && !justCompletedThemeMorphInSession && !isPlayingThemeMorphAnimation
+        ) {
+            OnboardingPreferences.setHasChosenInitialTheme(this, false)
+        }
         tvUserName = findViewById(R.id.tvUserName)
         tvProfileInitial = findViewById(R.id.tvProfileInitial)
         val tvMemberCount = findViewById<TextView>(R.id.tvMemberCount)
@@ -252,27 +270,33 @@ class HomeActivity : AppCompatActivity() {
             showTreeSelectionDialog()
         }
 
-        // ── Theme Toggle (Light / Dark Mode) beside Family Tree Banner ──
+        // ── Theme Toggle (Light / Dark Mode) beside Family Tree Banner & Empty State Top-Left Corner ──
         val btnThemeToggle = findViewById<View?>(R.id.btnThemeToggle)
-        val tvThemeToggleIcon = findViewById<TextView?>(R.id.tvThemeToggleIcon)
+        val btnEmptyThemeToggle = findViewById<View?>(R.id.btnEmptyThemeToggle)
+        val cardChooseLightMode = findViewById<View?>(R.id.cardChooseLightMode)
+        val cardChooseDarkMode = findViewById<View?>(R.id.cardChooseDarkMode)
 
-        fun updateThemeToggleDisplay() {
-            val isDark = ThemePreferences.isDarkTheme(this)
-            tvThemeToggleIcon?.text = if (isDark) "☀️" else "🌙"
-            btnThemeToggle?.contentDescription = if (isDark) "Switch to Light Theme" else "Switch to Dark Theme"
-        }
-
-        updateThemeToggleDisplay()
+        updateAllThemeToggles()
 
         btnThemeToggle?.setOnClickListener {
-            val isDark = ThemePreferences.isDarkTheme(this)
-            val newMode = if (isDark) {
-                ThemePreferences.THEME_LIGHT
-            } else {
-                ThemePreferences.THEME_DARK
-            }
-            ThemePreferences.setThemeMode(this, newMode)
-            updateThemeToggleDisplay()
+            requestThemeToggleWithSpinAndWave()
+        }
+
+        btnEmptyThemeToggle?.setOnClickListener {
+            requestThemeToggleWithSpinAndWave()
+        }
+
+        btnEmptyThemeToggle?.setOnLongClickListener {
+            showThemeOnboardingOverlay(forceShow = true)
+            true
+        }
+
+        cardChooseLightMode?.setOnClickListener {
+            handleNewUserThemeChoice(ThemePreferences.THEME_LIGHT)
+        }
+
+        cardChooseDarkMode?.setOnClickListener {
+            handleNewUserThemeChoice(ThemePreferences.THEME_DARK)
         }
 
         // ── Empty State Action Buttons (Figure 4) ──────────────────
@@ -399,13 +423,26 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        val tvThemeToggleIcon = findViewById<TextView?>(R.id.tvThemeToggleIcon)
-        val isDark = ThemePreferences.isDarkTheme(this)
-        tvThemeToggleIcon?.text = if (isDark) "☀️" else "🌙"
+        updateAllThemeToggles()
 
         refreshQuestHudUi()
         refreshNotificationBadge()
         resolveAndLoadTree()
+    }
+
+    private fun updateAllThemeToggles() {
+        val isDark = ThemePreferences.isDarkTheme(this)
+        val btnThemeToggle = findViewById<View?>(R.id.btnThemeToggle)
+        val tvThemeToggleIcon = findViewById<TextView?>(R.id.tvThemeToggleIcon)
+        tvThemeToggleIcon?.text = if (isDark) "☀️" else "🌙"
+        btnThemeToggle?.contentDescription = if (isDark) "Switch to Light Theme" else "Switch to Dark Theme"
+
+        val btnEmptyThemeToggle = findViewById<View?>(R.id.btnEmptyThemeToggle)
+        val tvEmptyIcon = findViewById<TextView?>(R.id.tvEmptyThemeToggleIcon)
+        val tvEmptyLabel = findViewById<TextView?>(R.id.tvEmptyThemeToggleLabel)
+        tvEmptyIcon?.text = if (isDark) "🌙" else "☀️"
+        tvEmptyLabel?.text = if (isDark) "Dark" else "Light"
+        btnEmptyThemeToggle?.contentDescription = if (isDark) "Current: Dark Mode. Tap to switch to Light Mode" else "Current: Light Mode. Tap to switch to Dark Mode"
     }
 
     private fun resolveAndLoadTree() {
@@ -425,6 +462,16 @@ class HomeActivity : AppCompatActivity() {
             layoutStatsHeader.visibility = View.VISIBLE
             findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  ${cachedTreeName.ifEmpty { "Family Tree" }}"
             loadStatsForTree(cachedTreeId)
+            if (pendingCornerButtonPop) {
+                pendingCornerButtonPop = false
+                isRecreatingFromEmptyStateThemeSwitch = false
+                justCompletedThemeMorphInSession = true
+                playPostRecreateSpinAndWave(pendingThemeWaveMode, isEmptyCornerPill = false)
+            }
+        } else if (isRecreatingFromEmptyStateThemeSwitch || isPlayingThemeMorphAnimation || pendingCornerDockMorph || pendingCornerButtonPop || justCompletedThemeMorphInSession) {
+            // Instant 0ms Empty State restoration during theme switch animation (never show shimmer skeleton)
+            layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+            showNoTreeEmptyState()
         } else {
             // Fresh login / switch account: preserve shimmer skeleton while Firestore resolves user's trees (prevents 0.1s blink)
             layoutStatsHeader.visibility = View.GONE
@@ -483,6 +530,11 @@ class HomeActivity : AppCompatActivity() {
                 if (cloudState != null) {
                     val local = OnboardingPreferences.getOnboardingState(this, currentUserId)
                     var changed = false
+                    if (cloudState.hasChosenInitialTheme && !local.hasChosenInitialTheme &&
+                        !com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(authHelper.getCurrentUser()?.email)) {
+                        OnboardingPreferences.setHasChosenInitialTheme(this, true, currentUserId)
+                        changed = true
+                    }
                     if (cloudState.isQuestDismissed && !local.isQuestDismissed) {
                         OnboardingPreferences.setQuestDismissed(this, true, currentUserId)
                         changed = true
@@ -511,16 +563,497 @@ class HomeActivity : AppCompatActivity() {
             layoutPopulatedState.visibility = View.GONE
             layoutEmptyState.visibility = View.VISIBLE
             findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  Family Tree"
+            updateAllThemeToggles()
 
-
-
-            // Phase 1 Onboarding: Show 3-slide welcome story modal for new user without trees
-            WelcomeStoryDialogFragment.showIfNotSeen(this@HomeActivity)
+            when {
+                isPlayingThemeMorphAnimation -> {
+                    // Do not interrupt an in-flight Celestial Corner Dock Morph animation
+                }
+                pendingCornerDockMorph -> {
+                    pendingCornerDockMorph = false
+                    isRecreatingFromEmptyStateThemeSwitch = false
+                    justCompletedThemeMorphInSession = true
+                    playCornerDockMorphAnimation(pendingThemeWaveMode)
+                }
+                pendingCornerButtonPop -> {
+                    pendingCornerButtonPop = false
+                    isRecreatingFromEmptyStateThemeSwitch = false
+                    justCompletedThemeMorphInSession = true
+                    stopThemeOnboardingLoopAnimators()
+                    findViewById<View?>(R.id.layoutEmptyThemeOnboardingOverlay)?.visibility = View.GONE
+                    findViewById<View?>(R.id.viewEmptyCornerPulseRing)?.visibility = View.GONE
+                    findViewById<View?>(R.id.layoutEmptyStateNormalBody)?.apply {
+                        alpha = 1f
+                        scaleX = 1f
+                        scaleY = 1f
+                        translationY = 0f
+                    }
+                    playPostRecreateSpinAndWave(pendingThemeWaveMode, isEmptyCornerPill = true)
+                }
+                !OnboardingPreferences.hasChosenInitialTheme(this@HomeActivity) -> {
+                    showThemeOnboardingOverlay(forceShow = false)
+                }
+                else -> {
+                    stopThemeOnboardingLoopAnimators()
+                    findViewById<View?>(R.id.layoutEmptyThemeOnboardingOverlay)?.visibility = View.GONE
+                    findViewById<View?>(R.id.viewEmptyCornerPulseRing)?.visibility = View.GONE
+                    findViewById<View?>(R.id.layoutEmptyStateNormalBody)?.apply {
+                        alpha = 1f
+                        scaleX = 1f
+                        scaleY = 1f
+                        translationY = 0f
+                    }
+                    if (!justCompletedThemeMorphInSession) {
+                        // Phase 1 Onboarding: Show 3-slide welcome story modal for new user without trees
+                        WelcomeStoryDialogFragment.showIfNotSeen(this@HomeActivity)
+                    }
+                }
+            }
 
             // In Phase 1 (No trees yet), Milestone 1 (Roots) is NOT completed
             OnboardingPreferences.setMilestoneRoots(this@HomeActivity, false)
             refreshQuestHudUi(0)
         }
+    }
+
+    private fun showThemeOnboardingOverlay(forceShow: Boolean = false) {
+        val overlay = findViewById<View?>(R.id.layoutEmptyThemeOnboardingOverlay) ?: return
+        val spotlightContent = findViewById<View?>(R.id.layoutThemeSpotlightContent)
+        val normalBody = findViewById<View?>(R.id.layoutEmptyStateNormalBody)
+        val pulseRing = findViewById<View?>(R.id.viewEmptyCornerPulseRing)
+        val tvBadge = findViewById<View?>(R.id.tvThemeOnboardingBadge)
+        val tvSun = findViewById<View?>(R.id.tvOrbSunIcon)
+        val tvMoon = findViewById<View?>(R.id.tvOrbMoonIcon)
+
+        stopThemeOnboardingLoopAnimators()
+
+        val density = resources.displayMetrics.density
+        normalBody?.apply {
+            alpha = 0.06f
+            scaleX = 0.96f
+            scaleY = 0.96f
+            translationY = 10f * density
+        }
+
+        overlay.apply {
+            visibility = View.VISIBLE
+            alpha = 1f
+            setBackgroundColor(android.graphics.Color.argb(236, 3, 8, 5))
+        }
+
+        spotlightContent?.apply {
+            alpha = 1f
+            scaleX = 1f
+            scaleY = 1f
+            translationX = 0f
+            translationY = 0f
+        }
+
+        pulseRing?.apply {
+            visibility = View.VISIBLE
+            alpha = 0.75f
+            scaleX = 1f
+            scaleY = 1f
+        }
+
+        // 1. Floating Orb Animation on Sun & Moon (matches @keyframes floatOrb)
+        listOfNotNull(tvSun, tvMoon).forEachIndexed { idx, orbView ->
+            val floatAnim = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 2400L
+                startDelay = if (idx == 1) 300L else 0L
+                repeatCount = android.animation.ValueAnimator.INFINITE
+                repeatMode = android.animation.ValueAnimator.REVERSE
+                interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+                addUpdateListener { anim ->
+                    val fraction = anim.animatedValue as Float
+                    orbView.translationY = -5f * density * fraction
+                    orbView.rotation = 6f * fraction
+                }
+                start()
+            }
+            activeThemeOnboardingAnimators.add(floatAnim)
+        }
+
+        // 2. Attention Flash Pulse on "✨ WELCOME TO KINTRACE" Badge
+        tvBadge?.let { badgeView ->
+            val badgeAnim = android.animation.ValueAnimator.ofFloat(1f, 1.05f).apply {
+                duration = 1500L
+                repeatCount = android.animation.ValueAnimator.INFINITE
+                repeatMode = android.animation.ValueAnimator.REVERSE
+                addUpdateListener { anim ->
+                    val s = anim.animatedValue as Float
+                    badgeView.scaleX = s
+                    badgeView.scaleY = s
+                }
+                start()
+            }
+            activeThemeOnboardingAnimators.add(badgeAnim)
+        }
+
+        // 3. Target Ring Pulse around Top-Left Corner Button
+        pulseRing?.let { ringView ->
+            val ringAnim = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 1200L
+                repeatCount = android.animation.ValueAnimator.INFINITE
+                repeatMode = android.animation.ValueAnimator.REVERSE
+                addUpdateListener { anim ->
+                    val f = anim.animatedValue as Float
+                    val s = 1f + (0.08f * f)
+                    ringView.scaleX = s
+                    ringView.scaleY = s
+                    ringView.alpha = 0.75f - (0.45f * f)
+                }
+                start()
+            }
+            activeThemeOnboardingAnimators.add(ringAnim)
+        }
+    }
+
+    private fun stopThemeOnboardingLoopAnimators() {
+        activeThemeOnboardingAnimators.forEach { it.cancel() }
+        activeThemeOnboardingAnimators.clear()
+    }
+
+    private fun handleNewUserThemeChoice(chosenMode: String) {
+        if (isPlayingThemeMorphAnimation) return
+        OnboardingPreferences.setHasChosenInitialTheme(this, true)
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        if (currentUserId.isNotEmpty()) {
+            firestoreHelper.saveOnboardingState(
+                currentUserId,
+                OnboardingPreferences.getOnboardingState(this, currentUserId)
+            )
+        }
+
+        val currentlyDark = ThemePreferences.isDarkTheme(this)
+        val wantsDark = (chosenMode == ThemePreferences.THEME_DARK)
+        pendingThemeWaveMode = chosenMode
+
+        if (currentlyDark != wantsDark) {
+            // Switch the entire Activity theme at 0ms so 100% of views (cards, header, bottom nav, background)
+            // render in the chosen theme simultaneously with 0.0s hybrid delay, then play the 60fps morph animation!
+            isRecreatingFromEmptyStateThemeSwitch = true
+            pendingCornerDockMorph = true
+            ThemePreferences.setThemeMode(this, chosenMode)
+            overridePendingTransition(0, 0)
+        } else {
+            ThemePreferences.setThemeMode(this, chosenMode)
+            playCornerDockMorphAnimation(chosenMode)
+        }
+    }
+
+    private fun requestThemeToggleWithSpinAndWave() {
+        if (isPlayingThemeMorphAnimation) return
+        OnboardingPreferences.setHasChosenInitialTheme(this, true)
+        val currentlyDark = ThemePreferences.isDarkTheme(this)
+        val newMode = if (currentlyDark) ThemePreferences.THEME_LIGHT else ThemePreferences.THEME_DARK
+
+        // Commit the global theme switch at 0ms so the entire screen changes on the exact same frame
+        // (zero 0.1s hybrid state), then immediately burst the 360° Celestial Spin + Radial Color Wave on Frame 0!
+        isRecreatingFromEmptyStateThemeSwitch = true
+        pendingCornerButtonPop = true
+        pendingThemeWaveMode = newMode
+        justCompletedThemeMorphInSession = true
+        ThemePreferences.setThemeMode(this, newMode)
+        overridePendingTransition(0, 0)
+    }
+
+    private fun runWallClockAnimation(
+        durationMs: Long,
+        interpolator: android.animation.TimeInterpolator = android.view.animation.DecelerateInterpolator(),
+        onUpdate: (Float) -> Unit,
+        onEnd: (() -> Unit)? = null
+    ) {
+        val startTime = android.os.SystemClock.uptimeMillis()
+        val choreographer = android.view.Choreographer.getInstance()
+        val callback = object : android.view.Choreographer.FrameCallback {
+            override fun doFrame(frameTimeNanos: Long) {
+                if (isFinishing || isDestroyed) return
+                val elapsed = android.os.SystemClock.uptimeMillis() - startTime
+                val rawFraction = (elapsed.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
+                val eased = interpolator.getInterpolation(rawFraction)
+                onUpdate(eased)
+                if (rawFraction < 1f) {
+                    choreographer.postFrameCallback(this)
+                } else {
+                    onEnd?.invoke()
+                }
+            }
+        }
+        choreographer.postFrameCallback(callback)
+    }
+
+    private fun playCornerDockMorphAnimation(chosenMode: String) {
+        isPlayingThemeMorphAnimation = true
+        justCompletedThemeMorphInSession = true
+        val overlay = findViewById<View?>(R.id.layoutEmptyThemeOnboardingOverlay)
+        val spotlightContent = findViewById<View?>(R.id.layoutThemeSpotlightContent)
+        val cornerBtn = findViewById<View?>(R.id.btnEmptyThemeToggle)
+        val normalBody = findViewById<View?>(R.id.layoutEmptyStateNormalBody)
+        val pulseRing = findViewById<View?>(R.id.viewEmptyCornerPulseRing)
+        val tappedCard = findViewById<View?>(
+            if (chosenMode == ThemePreferences.THEME_DARK) R.id.cardChooseDarkMode else R.id.cardChooseLightMode
+        )
+
+        stopThemeOnboardingLoopAnimators()
+
+        val density = resources.displayMetrics.density
+
+        // Tactile press pop on the chosen card (60fps wall-clock)
+        if (tappedCard != null) {
+            runWallClockAnimation(
+                durationMs = 150L,
+                onUpdate = { f ->
+                    val scale = 1f + 0.045f * kotlin.math.sin(f * Math.PI).toFloat()
+                    tappedCard.scaleX = scale
+                    tappedCard.scaleY = scale
+                }
+            )
+        }
+
+        // Start in initial full-screen spotlight position so user sees the smooth morph into top-left corner
+        overlay?.apply {
+            visibility = View.VISIBLE
+            alpha = 1f
+            setBackgroundColor(android.graphics.Color.argb(236, 3, 8, 5))
+        }
+        spotlightContent?.apply {
+            alpha = 1f
+            scaleX = 1f
+            scaleY = 1f
+            translationX = 0f
+            translationY = 0f
+        }
+        normalBody?.apply {
+            alpha = 0.25f
+            scaleX = 0.96f
+            scaleY = 0.96f
+            translationY = 10f * density
+        }
+        pulseRing?.apply {
+            visibility = View.VISIBLE
+            alpha = 0.9f
+        }
+
+        // Wait for layout pass so spotlightContent and cornerBtn have exact screen coordinates
+        overlay?.post {
+            if (isFinishing || isDestroyed) {
+                isPlayingThemeMorphAnimation = false
+                isRecreatingFromEmptyStateThemeSwitch = false
+                return@post
+            }
+
+            triggerRadialThemeWave(chosenMode)
+
+            overlay.postDelayed({
+                if (isFinishing || isDestroyed) {
+                    isPlayingThemeMorphAnimation = false
+                    isRecreatingFromEmptyStateThemeSwitch = false
+                    return@postDelayed
+                }
+
+                // Compute exact screen delta from spotlight center to top-left corner pill
+                var targetDeltaX = -118f * density
+                var targetDeltaY = -260f * density
+                if (spotlightContent != null && cornerBtn != null && spotlightContent.width > 0 && cornerBtn.width > 0) {
+                    val spotLoc = IntArray(2)
+                    val cornerLoc = IntArray(2)
+                    spotlightContent.getLocationOnScreen(spotLoc)
+                    cornerBtn.getLocationOnScreen(cornerLoc)
+                    val spotCenterX = spotLoc[0] + spotlightContent.width / 2f
+                    val spotCenterY = spotLoc[1] + spotlightContent.height / 2f
+                    val cornerCenterX = cornerLoc[0] + cornerBtn.width / 2f
+                    val cornerCenterY = cornerLoc[1] + cornerBtn.height / 2f
+                    targetDeltaX = cornerCenterX - spotCenterX
+                    targetDeltaY = cornerCenterY - spotCenterY
+                }
+
+                val morphInterpolator = android.view.animation.PathInterpolator(0.22f, 1f, 0.36f, 1f)
+                var hasPoppedCornerBtn = false
+
+                // 60fps Choreographer wall-clock animation (immune to animator_duration_scale = 0 / Battery Saver)
+                runWallClockAnimation(
+                    durationMs = 920L,
+                    interpolator = morphInterpolator,
+                    onUpdate = { f ->
+                        // 1. Shrink and glide spotlight cards directly into the top-left corner pill
+                        spotlightContent?.apply {
+                            translationX = targetDeltaX * f
+                            translationY = targetDeltaY * f
+                            val s = 1f - (0.88f * f)
+                            scaleX = s
+                            scaleY = s
+                            // Stay bright during travel, fade out only in the final 35%
+                            alpha = if (f < 0.65f) 1f else ((1f - f) / 0.35f).coerceIn(0f, 1f)
+                        }
+
+                        // 2. Smoothly dissolve ONLY the dimmed backdrop color alpha (236 -> 0)
+                        val scrimAlpha = (236f * (1f - f)).toInt().coerceIn(0, 236)
+                        overlay.setBackgroundColor(android.graphics.Color.argb(scrimAlpha, 3, 8, 5))
+
+                        // 3. Smoothly un-blur and rise Empty State interface into full focus
+                        normalBody?.apply {
+                            alpha = 0.25f + (0.75f * f)
+                            val bodyScale = 0.96f + (0.04f * f)
+                            scaleX = bodyScale
+                            scaleY = bodyScale
+                            translationY = 10f * density * (1f - f)
+                        }
+
+                        // 4. Pop the top-left corner button right as the shrinking card docks into it
+                        if (!hasPoppedCornerBtn && f >= 0.72f) {
+                            hasPoppedCornerBtn = true
+                            popEmptyCornerThemeButton()
+                        }
+
+                        // 5. Fade out the dashed target ring in the final stretch
+                        if (f > 0.75f) {
+                            pulseRing?.alpha = (0.9f * ((1f - f) / 0.25f)).coerceIn(0f, 0.9f)
+                        }
+                    },
+                    onEnd = {
+                        isPlayingThemeMorphAnimation = false
+                        isRecreatingFromEmptyStateThemeSwitch = false
+                        overlay.visibility = View.GONE
+                        overlay.setBackgroundColor(android.graphics.Color.argb(236, 3, 8, 5))
+                        pulseRing?.visibility = View.GONE
+                        spotlightContent?.apply {
+                            translationX = 0f
+                            translationY = 0f
+                            scaleX = 1f
+                            scaleY = 1f
+                            alpha = 1f
+                        }
+                        updateAllThemeToggles()
+                    }
+                )
+            }, 140L)
+        }
+    }
+
+    private fun playPostRecreateSpinAndWave(
+        mode: String,
+        isEmptyCornerPill: Boolean
+    ) {
+        val anchorButton = findViewById<View?>(
+            if (isEmptyCornerPill) R.id.btnEmptyThemeToggle else R.id.btnThemeToggle
+        ) ?: return
+        val iconView = findViewById<TextView?>(
+            if (isEmptyCornerPill) R.id.tvEmptyThemeToggleIcon else R.id.tvThemeToggleIcon
+        )
+        val wave = findViewById<View?>(R.id.viewThemeRadialWave)
+        val wantsDark = (mode == ThemePreferences.THEME_DARK)
+
+        anchorButton.post {
+            if (isFinishing || isDestroyed) return@post
+
+            val rootView = wave?.parent as? View
+            if (wave != null && rootView != null && anchorButton.width > 0 && rootView.width > 0) {
+                val btnLoc = IntArray(2)
+                val rootLoc = IntArray(2)
+                anchorButton.getLocationOnScreen(btnLoc)
+                rootView.getLocationOnScreen(rootLoc)
+                val btnCenterX = btnLoc[0] + anchorButton.width / 2f
+                val btnCenterY = btnLoc[1] + anchorButton.height / 2f
+                val rootCenterX = rootLoc[0] + rootView.width / 2f
+                val rootCenterY = rootLoc[1] + rootView.height / 2f
+                wave.translationX = btnCenterX - rootCenterX
+                wave.translationY = btnCenterY - rootCenterY
+            }
+
+            wave?.apply {
+                setBackgroundResource(
+                    if (wantsDark) R.drawable.bg_theme_wave_dark else R.drawable.bg_theme_wave_light
+                )
+                visibility = View.VISIBLE
+                scaleX = 0f
+                scaleY = 0f
+                alpha = 0.90f
+            }
+
+            val spinInterpolator = android.view.animation.PathInterpolator(0.22f, 1f, 0.36f, 1f)
+
+            runWallClockAnimation(
+                durationMs = 640L,
+                interpolator = spinInterpolator,
+                onUpdate = { f ->
+                    // 1. 360° Celestial Spin on the Sun/Moon glyph + Spring Pop on the Pill
+                    iconView?.rotation = 360f * f
+                    val springScale = 1f + 0.34f * kotlin.math.sin(f * Math.PI).toFloat()
+                    anchorButton.scaleX = springScale
+                    anchorButton.scaleY = springScale
+
+                    // 2. Radial Color Wave Burst expanding from the icon across the newly-themed screen
+                    wave?.apply {
+                        val s = 0.5f + (56f * f)
+                        scaleX = s
+                        scaleY = s
+                        alpha = (0.90f * (1f - f)).coerceIn(0f, 0.90f)
+                    }
+                },
+                onEnd = {
+                    iconView?.rotation = 0f
+                    anchorButton.scaleX = 1f
+                    anchorButton.scaleY = 1f
+                    wave?.apply {
+                        visibility = View.GONE
+                        scaleX = 0f
+                        scaleY = 0f
+                        translationX = 0f
+                        translationY = 0f
+                    }
+                }
+            )
+        }
+    }
+
+    private fun triggerRadialThemeWave(mode: String) {
+        val wave = findViewById<View?>(R.id.viewThemeRadialWave) ?: return
+        val isDarkWave = (mode == ThemePreferences.THEME_DARK)
+        wave.setBackgroundResource(
+            if (isDarkWave) R.drawable.bg_theme_wave_dark else R.drawable.bg_theme_wave_light
+        )
+        wave.visibility = View.VISIBLE
+        wave.scaleX = 0f
+        wave.scaleY = 0f
+        wave.alpha = 0.88f
+
+        runWallClockAnimation(
+            durationMs = 820L,
+            interpolator = android.view.animation.DecelerateInterpolator(),
+            onUpdate = { f ->
+                val s = 54f * f
+                wave.scaleX = s
+                wave.scaleY = s
+                wave.alpha = 0.88f * (1f - f)
+            },
+            onEnd = {
+                wave.visibility = View.GONE
+                wave.scaleX = 0f
+                wave.scaleY = 0f
+            }
+        )
+    }
+
+    private fun popEmptyCornerThemeButton() {
+        val cornerBtn = findViewById<View?>(R.id.btnEmptyThemeToggle) ?: return
+        runWallClockAnimation(
+            durationMs = 420L,
+            interpolator = android.view.animation.LinearInterpolator(),
+            onUpdate = { f ->
+                val s = if (f < 0.4f) {
+                    1f + 0.28f * (f / 0.4f)
+                } else {
+                    1.28f - 0.28f * ((f - 0.4f) / 0.6f)
+                }
+                cornerBtn.scaleX = s
+                cornerBtn.scaleY = s
+            },
+            onEnd = {
+                cornerBtn.scaleX = 1f
+                cornerBtn.scaleY = 1f
+            }
+        )
     }
 
     private fun showTreeSelectionDialog() {
@@ -962,6 +1495,20 @@ class HomeActivity : AppCompatActivity() {
         val etNewPassword = view.findViewById<EditText>(R.id.etDialogNewPassword)
         val etConfirmPassword = view.findViewById<EditText>(R.id.etDialogConfirmPassword)
         val tvPasswordError = view.findViewById<TextView>(R.id.tvDialogPasswordError)
+        val layoutStrength = view.findViewById<View?>(R.id.layoutDialogPasswordStrength)
+        val tvMatchPill = view.findViewById<TextView?>(R.id.tvDialogPasswordMatchPill)
+
+        if (layoutStrength != null) {
+            com.example.btproject2.utils.PasswordStrengthMeterBinder(
+                container = layoutStrength,
+                etPassword = etNewPassword,
+                etConfirmPassword = etConfirmPassword,
+                tvMatchPill = tvMatchPill
+            )
+        }
+
+        etNewPassword.doOnTextChanged { _, _, _, _ -> tvPasswordError.visibility = View.GONE }
+        etConfirmPassword.doOnTextChanged { _, _, _, _ -> tvPasswordError.visibility = View.GONE }
 
         val dialog = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setView(view)
@@ -974,9 +1521,10 @@ class HomeActivity : AppCompatActivity() {
                 val newPass = etNewPassword.text.toString().trim()
                 val confirmPass = etConfirmPassword.text.toString().trim()
 
-                if (newPass.length < 6) {
+                val passValidation = com.example.btproject2.utils.PasswordSecurityPolicy.validate(newPass)
+                if (passValidation is com.example.btproject2.utils.RegistrationValidator.FieldResult.Invalid) {
                     tvPasswordError.visibility = View.VISIBLE
-                    tvPasswordError.text = "Password must be at least 6 characters"
+                    tvPasswordError.text = passValidation.errorMessage
                     return@setOnClickListener
                 }
                 if (newPass != confirmPass) {
@@ -1094,16 +1642,9 @@ class HomeActivity : AppCompatActivity() {
 
     private fun refreshQuestHudUi(memberCount: Int? = null) {
         val cardQuestHud = findViewById<View?>(R.id.cardQuestHud) ?: return
-        val currentUser = authHelper.getCurrentUser()
-        if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(currentUser?.email)) {
-            cardQuestHud.visibility = View.GONE
-            return
-        }
-        if (OnboardingPreferences.isQuestDismissed(this)) {
-            cardQuestHud.visibility = View.GONE
-            return
-        }
-        cardQuestHud.visibility = View.VISIBLE
+        // Legacy Clan Builder Quest HUD is retired in favor of KinAcademy & Quick Start Tour
+        cardQuestHud.visibility = View.GONE
+        return
 
         val state = OnboardingPreferences.getOnboardingState(this)
 

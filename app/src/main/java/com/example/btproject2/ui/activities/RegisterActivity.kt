@@ -2,6 +2,7 @@ package com.example.btproject2.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.widget.Button
@@ -89,6 +90,18 @@ class RegisterActivity : AppCompatActivity() {
         // Setup password show/hide visibility toggles
         setupPasswordToggle(etPassword, btnTogglePassword)
         setupPasswordToggle(etConfirmPassword, btnToggleConfirmPassword)
+
+        // Direction 1: Bind dynamic password security meter and criteria badges
+        val layoutStrength = findViewById<View?>(R.id.layoutPasswordStrength)
+        val tvMatchPill = findViewById<TextView?>(R.id.tvPasswordMatchPill)
+        if (layoutStrength != null) {
+            com.example.btproject2.utils.PasswordStrengthMeterBinder(
+                container = layoutStrength,
+                etPassword = etPassword,
+                etConfirmPassword = etConfirmPassword,
+                tvMatchPill = tvMatchPill
+            )
+        }
 
         // Clear errors in real-time as user types
         etFullName.doOnTextChanged { _, _, _, _ -> etFullName.error = null }

@@ -26,3 +26,4 @@ bugreport_unzipped/
 *.docx
 /*.html
 app/alert_dark_mode.png
+scratch/
