@@ -97,40 +97,40 @@ class AppVersionConfigTest {
     }
 
     @Test
-    fun v132Client_detectsV133Increment_andResolvesGitHubReleaseApkUrl() {
-        val friendInstalledCode = 5L // Friend on v1.3.2
-        val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.3")
+    fun v133Client_detectsV134Increment_andResolvesGitHubReleaseApkUrl() {
+        val friendInstalledCode = 6L // Friend on v1.3.3
+        val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.4")
         assertEquals(
-            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.3/app-release.apk",
+            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.4/app-release.apk",
             releaseUrl
         )
 
-        val targetReleaseNotes = "• Horseshoe Fan Chart Defaults to All-Clan View (4 Generation Rings Radiating from Clan Roots)\n• Role-Aware Spotlight Walkthroughs for Interactive Tree (Customized Viewer & Editor Tours)\n• Botanical Emerald & Gold Role Onboarding Capabilities Modal\n• NIST-Compliant Live Password Strength Meter & Cryptographic Verifiers"
+        val targetReleaseNotes = com.example.btproject2.utils.InAppUpdateManager.CURRENT_RELEASE_NOTES
 
-        val remoteV133Config = AppVersionConfig(
-            versionCode = 6L,
-            versionName = "v1.3.3",
+        val remoteV134Config = AppVersionConfig(
+            versionCode = 7L,
+            versionName = "v1.3.4",
             apkDownloadUrl = releaseUrl,
             releaseNotes = targetReleaseNotes
         )
 
-        val isUpdateAvailable = remoteV133Config.versionCode > friendInstalledCode &&
-            remoteV133Config.apkDownloadUrl.startsWith("https://")
+        val isUpdateAvailable = remoteV134Config.versionCode > friendInstalledCode &&
+            remoteV134Config.apkDownloadUrl.startsWith("https://")
         assertTrue(isUpdateAvailable)
     }
 
     @Test
     fun postUpdateDetection_triggersWhenCurrentVersionExceedsLastSeenVersion() {
-        val lastSeenVersion = 5L // User was on v1.3.2 before updating
-        val currentInstalledCode = 6L // User just updated to v1.3.3
+        val lastSeenVersion = 6L // User was on v1.3.3 before updating
+        val currentInstalledCode = 7L // User just updated to v1.3.4
         val shouldShowWhatsNew = currentInstalledCode > lastSeenVersion
         assertTrue(shouldShowWhatsNew)
     }
 
     @Test
     fun postUpdateDetection_suppressedWhenAlreadySeen() {
-        val lastSeenVersion = 6L // User already saw v1.3.3 what's new modal
-        val currentInstalledCode = 6L // Still on v1.3.3
+        val lastSeenVersion = 7L // User already saw v1.3.4 what's new modal
+        val currentInstalledCode = 7L // Still on v1.3.4
         val shouldShowWhatsNew = currentInstalledCode > lastSeenVersion
         assertFalse(shouldShowWhatsNew)
     }
@@ -138,9 +138,9 @@ class AppVersionConfigTest {
     @Test
     fun currentReleaseNotes_containsAllCoreFeatureHighlights() {
         val notes = com.example.btproject2.utils.InAppUpdateManager.CURRENT_RELEASE_NOTES
-        assertTrue(notes.contains("Horseshoe Fan Chart Defaults to All-Clan View"))
-        assertTrue(notes.contains("Role-Aware Spotlight Walkthroughs"))
-        assertTrue(notes.contains("Botanical Emerald & Gold Role Onboarding"))
-        assertTrue(notes.contains("NIST-Compliant Live Password Strength Meter"))
+        assertTrue(notes.contains("Full-Screen Segmented Studio"))
+        assertTrue(notes.contains("Dual Vault Modes"))
+        assertTrue(notes.contains("Account Registration & Email Verification Shield"))
+        assertTrue(notes.contains("Warm Linen & Amber Bronze Theme Standards"))
     }
 }

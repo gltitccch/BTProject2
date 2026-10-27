@@ -57,7 +57,7 @@ object InAppUpdateManager {
     const val KEY_LAST_SEEN_VERSION = "key_last_seen_version"
     private const val SUPPRESSION_DURATION_MS = 24 * 60 * 60 * 1000L // 24 hours
 
-    const val CURRENT_RELEASE_NOTES = "• Horseshoe Fan Chart Defaults to All-Clan View (4 Generation Rings Radiating from Clan Roots)\n• Role-Aware Spotlight Walkthroughs for Interactive Tree (Customized Viewer & Editor Tours)\n• Botanical Emerald & Gold Role Onboarding Capabilities Modal\n• NIST-Compliant Live Password Strength Meter & Cryptographic Verifiers"
+    const val CURRENT_RELEASE_NOTES = "• Full-Screen Segmented Studio for Account & Demo Vault with Minimalist Dropdown Bar\n• Dual Vault Modes: Mode 1 (Personal & Clan Accounts) & Mode 2 (Admin & Defense Clans)\n• Account Registration & Email Verification Shield Pop-Up Guard for 1-Tap Keycards\n• Warm Linen & Amber Bronze Theme Standards with Zero Green in Light Mode"
 
     /**
      * Builds the canonical zero-cost GitHub Releases direct APK download link for a given version tag.
@@ -92,17 +92,17 @@ object InAppUpdateManager {
                 val hasValidRemoteApk = rawUrl.startsWith("https://", ignoreCase = true) &&
                     !rawUrl.contains("app-debug.apk", ignoreCase = true)
 
-                val targetReleaseNotes = "• Horseshoe Fan Chart Defaults to All-Clan View (4 Generation Rings Radiating from Clan Roots)\n• Role-Aware Spotlight Walkthroughs for Interactive Tree (Customized Viewer & Editor Tours)\n• Botanical Emerald & Gold Role Onboarding Capabilities Modal\n• NIST-Compliant Live Password Strength Meter & Cryptographic Verifiers"
+                val targetReleaseNotes = CURRENT_RELEASE_NOTES
 
-                // If remote code is < 6L OR remote record lacks a valid release HTTPS APK link,
+                // If remote code is < 7L OR remote record lacks a valid release HTTPS APK link,
                 // OR remote releaseNotes need updating to include the latest fixes,
-                // align Firestore to the active v1.3.3 (versionCode = 6) release pointing to GitHub Releases.
-                if (currentRemoteCode < 6L || (currentRemoteCode == 6L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
+                // align Firestore to the active v1.3.4 (versionCode = 7) release pointing to GitHub Releases.
+                if (currentRemoteCode < 7L || (currentRemoteCode == 7L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
                     val currentConfig = AppVersionConfig(
-                        versionCode = 6L,
-                        versionName = "v1.3.3",
+                        versionCode = 7L,
+                        versionName = "v1.3.4",
                         releaseNotes = targetReleaseNotes,
-                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.3"),
+                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.4"),
                         isMandatory = false,
                         publishedBy = "system@kintrace.ph"
                     )
@@ -127,7 +127,7 @@ object InAppUpdateManager {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionCode.toLong()
             }
         } catch (_: Exception) {
-            6L
+            7L
         }
     }
 
@@ -546,13 +546,13 @@ object InAppUpdateManager {
             firestoreHelper.fetchLatestAppVersion(
                 onSuccess = { config ->
                     if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
-                    val vName = config?.versionName ?: "v1.3.3"
+                    val vName = config?.versionName ?: "v1.3.4"
                     val notes = if (!config?.releaseNotes.isNullOrBlank()) config!!.releaseNotes else CURRENT_RELEASE_NOTES
                     showWhatsNewDialog(activity, vName, notes, onDismiss)
                 },
                 onFailure = {
                     if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
-                    showWhatsNewDialog(activity, "v1.3.3", CURRENT_RELEASE_NOTES, onDismiss)
+                    showWhatsNewDialog(activity, "v1.3.4", CURRENT_RELEASE_NOTES, onDismiss)
                 }
             )
         } else {
