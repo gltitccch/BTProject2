@@ -5,20 +5,20 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:background="@drawable/bg_demo_card"
-    android:paddingStart="12dp"
-    android:paddingEnd="12dp"
-    android:paddingTop="11dp"
-    android:paddingBottom="11dp"
-    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_vault_holo_keycard"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp"
+    android:layout_marginBottom="12dp"
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Avatar Medallion with Emoji -->
+    <!-- Left Avatar / Emblem Badge -->
     <FrameLayout
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@drawable/bg_demo_medallion">
+        android:layout_width="46dp"
+        android:layout_height="46dp"
+        android:background="@drawable/bg_vault_wheel">
 
         <TextView
             android:id="@+id/tvDemoEmoji"
@@ -26,78 +26,125 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="👑"
-            android:textSize="18sp" />
+            android:textSize="20sp" />
     </FrameLayout>
 
-    <!-- Persona Details -->
+    <!-- Center Readable Typography Block (Role Pill + Full Name + Crisp Email + Lineage Summary) -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="6dp">
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="10dp">
 
-        <!-- Name + Role Pill Row -->
+        <!-- Role Badge Row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:id="@+id/tvDemoName"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Augustine Russell"
-                android:textSize="13.5sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:singleLine="true"
-                android:ellipsize="end" />
+            android:gravity="center_vertical"
+            android:layout_marginBottom="3dp">
 
             <TextView
                 android:id="@+id/tvDemoBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="PATRIARCH"
-                android:textSize="8sp"
+                android:textSize="9.5sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
                 android:background="@drawable/bg_demo_role_badge"
-                android:paddingStart="5dp"
-                android:paddingEnd="5dp"
-                android:paddingTop="1.5dp"
-                android:paddingBottom="1.5dp"
-                android:layout_marginStart="5dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2.5dp"
+                android:paddingBottom="2.5dp"
                 android:singleLine="true"
-                android:maxLines="1"
                 android:includeFontPadding="false" />
         </LinearLayout>
 
-        <!-- Tree Summary Stats -->
+        <!-- Full Un-Truncated Account Name -->
         <TextView
-            android:id="@+id/tvDemoSummary"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvDemoName"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="20 Members • 4 Generations • 44 Records"
-            android:textSize="11sp"
-            android:textColor="@color/text_secondary"
+            android:text="Augustine Russell"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/font_display_sora"
+            android:textColor="@color/text_primary"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <!-- Crisp Email Address -->
+        <TextView
+            android:id="@+id/tvKeycardEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="dumgen8@gmail.com"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/vault_keycard_email_text"
             android:singleLine="true"
             android:ellipsize="end"
             android:layout_marginTop="2dp" />
 
+        <!-- Lineage / Credential Summary -->
+        <TextView
+            android:id="@+id/tvDemoSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="20 Members • 4 Generations • 44 Records"
+            android:textSize="11.5sp"
+            android:textColor="@color/text_secondary"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_marginTop="2dp" />
+
+        <!-- Hidden Masked Key Dots ID preserved for compatibility -->
+        <TextView
+            android:id="@+id/tvKeycardPassDots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
     </LinearLayout>
 
-    <!-- 1-Tap Action Pill -->
-    <TextView
-        android:id="@+id/tvDemoAction"
+    <!-- Right Action Column: 1-Tap Pill + Optional Delete Custom Keycard -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1-Tap ➔"
-        android:textSize="11.5sp"
-        android:textStyle="bold"
-        android:textColor="@color/gold_accent" />
+        android:orientation="vertical"
+        android:gravity="end|center_vertical">
+
+        <TextView
+            android:id="@+id/btnDeleteKeycard"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginBottom="6dp"
+            android:gravity="center"
+            android:text="✕"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/danger"
+            android:background="@drawable/bg_demo_role_badge"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/tvDemoAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚡ 1-Tap"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/font_display_sora"
+            android:textColor="@color/vault_btn_flip_text"
+            android:background="@drawable/bg_vault_flip_btn"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp" />
+    </LinearLayout>
 
 </LinearLayout>

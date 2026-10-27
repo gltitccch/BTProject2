@@ -194,4 +194,96 @@ class AuthHelper {
                 onResult(com.example.btproject2.utils.JwtSessionVerifier.verifyAndDecodeJwt(""))
             }
     }
+
+    /**
+     * Verifies whether an account has already been created in KinTrace ("Create Account"),
+     * whether its password is valid, and whether its email address is verified before allowing
+     * it to be saved as a 1-Tap Vault Keycard.
+     */
+    fun verifyAccountForKeycard(
+        holderName: String,
+        email: String,
+        password: String,
+        onResult: (com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome) -> Unit
+    ) {
+        val cleanEmail = email.trim()
+        auth.signInWithEmailAndPassword(cleanEmail, password)
+            .addOnSuccessListener { result ->
+                val signedInUser = result.user
+                if (signedInUser == null) {
+                    auth.signOut()
+                    onResult(com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.NotRegistered(cleanEmail))
+                    return@addOnSuccessListener
+                }
+
+                signedInUser.reload().addOnCompleteListener {
+                    val refreshedUser = auth.currentUser ?: signedInUser
+                    val isVerified = refreshedUser.isEmailVerified ||
+                        com.example.btproject2.models.DemoAccountRepository.isDemoEmail(cleanEmail) ||
+                        com.example.btproject2.models.DemoAccountRepository.isAdminEmail(cleanEmail)
+                    val resolvedName = holderName.trim().ifEmpty {
+                        refreshedUser.displayName?.takeIf { it.isNotBlank() } ?: cleanEmail.substringBefore("@")
+                    }
+                    // Sign out probe session so LoginActivity remains clean until 1-Tap Login is clicked
+                    auth.signOut()
+
+                    if (isVerified) {
+                        onResult(
+                            com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.Verified(
+                                resolvedName = resolvedName,
+                                email = cleanEmail
+                            )
+                        )
+                    } else {
+                        onResult(
+                            com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.EmailNotVerified(
+                                email = cleanEmail
+                            )
+                        )
+                    }
+                }
+            }
+            .addOnFailureListener { error ->
+                if (error is com.google.firebase.auth.FirebaseAuthInvalidUserException) {
+                    onResult(com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.NotRegistered(cleanEmail))
+                    return@addOnFailureListener
+                }
+
+                val msg = error.message?.lowercase().orEmpty()
+                if (msg.contains("wrong password") || msg.contains("invalid_login_credentials")) {
+                    // Check Firestore 'users' collection to see if the email was registered in 'Create Account'
+                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .whereEqualTo("email", cleanEmail)
+                        .limit(1)
+                        .get()
+                        .addOnSuccessListener { snap ->
+                            if (!snap.isEmpty) {
+                                onResult(com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.WrongPassword(cleanEmail))
+                            } else {
+                                onResult(com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.NotRegistered(cleanEmail))
+                            }
+                        }
+                        .addOnFailureListener {
+                            onResult(com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.NotRegistered(cleanEmail))
+                        }
+                } else {
+                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .whereEqualTo("email", cleanEmail)
+                        .limit(1)
+                        .get()
+                        .addOnSuccessListener { snap ->
+                            if (!snap.isEmpty) {
+                                onResult(com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.WrongPassword(cleanEmail))
+                            } else {
+                                onResult(com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.NotRegistered(cleanEmail))
+                            }
+                        }
+                        .addOnFailureListener {
+                            onResult(com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.NotRegistered(cleanEmail))
+                        }
+                }
+            }
+    }
 }

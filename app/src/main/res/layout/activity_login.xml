@@ -351,14 +351,16 @@
                 android:layout_marginEnd="6dp" />
 
             <TextView
+                android:id="@+id/tvVaultDockLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Demo Accounts Vault"
+                android:text="Account &amp; Demo Vault"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent" />
 
             <TextView
+                android:id="@+id/tvVaultDockCounter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="3"

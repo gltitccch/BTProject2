@@ -130,9 +130,14 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
 
+        com.example.btproject2.models.DemoAccountRepository.ensureLoaded(this)
+        val tvVaultDockCounter = findViewById<TextView>(R.id.tvVaultDockCounter)
+        tvVaultDockCounter?.text = com.example.btproject2.models.DemoAccountRepository.getAllVaultAccounts().size.toString()
+
         val btnDemoDock = findViewById<android.view.View>(R.id.btnDemoDock)
         btnDemoDock?.setOnClickListener {
             val bottomSheet = com.example.btproject2.ui.dialogs.DemoVaultBottomSheet.newInstance { account ->
+                tvVaultDockCounter?.text = com.example.btproject2.models.DemoAccountRepository.getAllVaultAccounts().size.toString()
                 performDemoLogin(account, etEmail, etPassword, btnLogin)
             }
             bottomSheet.show(supportFragmentManager, com.example.btproject2.ui.dialogs.DemoVaultBottomSheet.TAG)
@@ -168,7 +173,18 @@ class LoginActivity : AppCompatActivity() {
                     )
                 }
 
-                goToHome()
+                if (com.example.btproject2.models.DemoAccountRepository.isAdminEmail(user.email) ||
+                    user.isEmailVerified ||
+                    com.example.btproject2.models.DemoAccountRepository.isDemoEmail(user.email)
+                ) {
+                    goToHome()
+                } else {
+                    val verifyIntent = Intent(this, VerifyEmailActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(verifyIntent)
+                    finish()
+                }
             },
             onFailure = { error ->
                 if (account.id.equals("system_admin", ignoreCase = true) ||

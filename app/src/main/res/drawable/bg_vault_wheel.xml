@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/vault_wheel_bg" />
+    <stroke
+        android:width="1.8dp"
+        android:color="@color/vault_wheel_border"
+        android:dashWidth="4dp"
+        android:dashGap="2.5dp" />
+</shape>

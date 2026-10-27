@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/bg_bottom_sheet_dialog"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp"
-    android:paddingTop="12dp"
-    android:paddingBottom="28dp">
+    android:background="@color/background"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:paddingTop="18dp"
+    android:paddingBottom="18dp">
 
-    <!-- Top Grabber Drag Handle -->
-    <View
-        android:layout_width="40dp"
-        android:layout_height="4dp"
-        android:layout_gravity="center_horizontal"
-        android:background="@drawable/bg_bottom_sheet_handle"
-        android:layout_marginBottom="16dp" />
-
-    <!-- Header Row (Title + Dismiss) -->
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         FULL-SCREEN TOP APP BAR (Title + Subtitle + Close X Button)
+         ═══════════════════════════════════════════════════════════════════════ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,18 +26,20 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/tvSafeTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="KINTRACE DEMO VAULT"
-                android:textSize="12sp"
+                android:text="KinTrace Account Studio"
+                android:textSize="20sp"
                 android:textStyle="bold"
-                android:letterSpacing="0.12"
-                android:textColor="@color/gold_accent" />
+                android:fontFamily="@font/font_display_sora"
+                android:textColor="@color/text_primary" />
 
             <TextView
+                android:id="@+id/tvSafeModePill"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Select a verified test persona to sign in instantly"
+                android:text="Choose a vault mode and folder for instant 1-Tap Sign-In"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="2dp" />
@@ -51,32 +47,246 @@
 
         <TextView
             android:id="@+id/btnDismissSheet"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
             android:gravity="center"
             android:text="✕"
             android:textSize="16sp"
+            android:textStyle="bold"
             android:textColor="@color/text_secondary"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/bg_vault_dropdown_bar"
             android:clickable="true"
             android:focusable="true" />
     </LinearLayout>
 
-    <!-- Persona Items Container -->
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SEGMENTED STUDIO MODE SWITCHER (Mode 1: User Vault | Mode 2: Admin & Demo)
+         ═══════════════════════════════════════════════════════════════════════ -->
     <LinearLayout
-        android:id="@+id/containerDemoCards"
+        android:id="@+id/cardVaultSafeDoor"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" />
+        android:orientation="horizontal"
+        android:background="@drawable/bg_vault_segment_track"
+        android:padding="4dp"
+        android:layout_marginBottom="14dp">
 
-    <!-- Bottom Defense Evaluation Badge -->
+        <TextView
+            android:id="@+id/btnSegmentUserVault"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="🌿 User Vault"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/font_display_sora"
+            android:textColor="@color/vault_segment_inactive_text"
+            android:paddingTop="11dp"
+            android:paddingBottom="11dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btnSegmentAdminVault"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="🛡️ Admin &amp; Demo Vault"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/font_display_sora"
+            android:textColor="@color/vault_segment_active_text"
+            android:background="@drawable/bg_vault_segment_active"
+            android:paddingTop="11dp"
+            android:paddingBottom="11dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Hidden compatibility IDs preserved so no existing references break -->
+        <FrameLayout
+            android:id="@+id/frameSafeWheel"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone">
+            <TextView
+                android:id="@+id/tvSafeWheelEmoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </FrameLayout>
+        <LinearLayout
+            android:id="@+id/btnFlipSafeMode"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone">
+            <TextView
+                android:id="@+id/tvFlipSafeBtnLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         MINIMALIST CONCEPT 1: SINGLE-LINE FOLDER DROPDOWN BAR + QUICK ACTIONS
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="14dp">
+
+        <!-- Single-Line Minimalist Folder Dropdown Trigger -->
+        <LinearLayout
+            android:id="@+id/btnFolderDropdownSelector"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_vault_dropdown_bar"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/tvActiveFolderHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="👑 Pre-Seeded Demo Clans (2)"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_display_sora"
+                android:textColor="@color/text_primary"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="▾"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <!-- Minimalist Create New Folder Icon Button (📁+) -->
+        <TextView
+            android:id="@+id/btnCreateFolderQuick"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:gravity="center"
+            android:text="📁+"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:background="@drawable/bg_vault_dropdown_bar"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Optional Delete Custom Folder Button (Only shown for non-system folders) -->
+        <TextView
+            android:id="@+id/btnDeleteActiveFolder"
+            android:layout_width="40dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="6dp"
+            android:gravity="center"
+            android:text="🗑️"
+            android:textSize="13sp"
+            android:textColor="@color/danger"
+            android:background="@drawable/bg_vault_dropdown_bar"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Minimalist + Keycard Button -->
+        <TextView
+            android:id="@+id/btnAddKeycard"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:gravity="center"
+            android:text="+ Keycard"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/font_display_sora"
+            android:textColor="@color/vault_btn_flip_text"
+            android:background="@drawable/bg_vault_flip_btn"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Hidden compatibility container so existing ID lookups never fail -->
+    <HorizontalScrollView
+        android:id="@+id/scrollBinderTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+        <LinearLayout
+            android:id="@+id/containerBinderTabs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         FULL-SCREEN BREATHABLE ACCOUNT CARDS LIST (No Outer Dossier Box!)
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <LinearLayout
+        android:id="@+id/containerDossierBody"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Empty State for Folder -->
+        <TextView
+            android:id="@+id/tvEmptyFolderHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="This folder is empty.\nTap '+ Keycard' above to add a registered, verified account for 1-Tap Login!"
+            android:textSize="13.5sp"
+            android:lineSpacingExtra="4dp"
+            android:textColor="@color/text_secondary"
+            android:background="@drawable/bg_vault_dropdown_bar"
+            android:padding="28dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <!-- Full-Height Scrollable Account Cards Container -->
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scrollbars="vertical"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:id="@+id/containerDemoCards"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="12dp" />
+        </androidx.core.widget.NestedScrollView>
+
+    </LinearLayout>
+
+    <!-- Bottom Security & 1-Tap Sign-In Caption -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="🛡️ 1-Tap sign-in with pre-seeded lineages and 100% unlocked modules"
-        android:textSize="10.5sp"
-        android:textColor="@color/text_hint"
-        android:layout_marginTop="6dp" />
+        android:text="⚡ Tap any account card for instant 1-Tap Auto-Login • AES-256 Protected"
+        android:textSize="11.5sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginTop="8dp" />
 
 </LinearLayout>

@@ -52,6 +52,15 @@ class RegisterActivity : AppCompatActivity() {
 
         btnBack.setOnClickListener { finish() }
 
+        val prefillEmail = intent.getStringExtra("EXTRA_PREFILL_EMAIL")?.trim().orEmpty()
+        val prefillName = intent.getStringExtra("EXTRA_PREFILL_NAME")?.trim().orEmpty()
+        if (prefillEmail.isNotEmpty()) {
+            etEmail.setText(prefillEmail)
+        }
+        if (prefillName.isNotEmpty()) {
+            etFullName.setText(prefillName)
+        }
+
         // Must-Scroll-To-Bottom Terms of Service BottomSheet invocation
         val openTermsBottomSheet = {
             TermsOfServiceBottomSheet.newInstance(

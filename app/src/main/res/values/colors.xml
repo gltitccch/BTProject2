@@ -171,4 +171,43 @@
     <color name="theme_flash_badge_bg">#33D4AF37</color>
     <color name="theme_flash_badge_border">#80D4AF37</color>
     <color name="theme_flash_badge_text">#D97706</color>
+
+    <!-- Concept 1 Dual-Mode 3D Flip-Safe & Binder Vault Tokens (Light Mode: Pure Warm Linen & Amber Bronze, Zero Green) -->
+    <color name="vault_safe_user_bg_start">#FFFFFF</color>
+    <color name="vault_safe_user_bg_end">#FEF3C7</color>
+    <color name="vault_safe_user_border">#B45309</color>
+    <color name="vault_safe_admin_bg_start">#FFFBEB</color>
+    <color name="vault_safe_admin_bg_end">#FDE68A</color>
+    <color name="vault_safe_admin_border">#78350F</color>
+    <color name="vault_wheel_bg">#FEF3C7</color>
+    <color name="vault_wheel_border">#B45309</color>
+    <color name="vault_tab_active_bg">#FFFFFF</color>
+    <color name="vault_tab_active_border">#B45309</color>
+    <color name="vault_tab_active_text">#B45309</color>
+    <color name="vault_tab_inactive_bg">#E0E5DC</color>
+    <color name="vault_tab_inactive_border">#D2D9CE</color>
+    <color name="vault_tab_inactive_text">#475569</color>
+    <color name="vault_dossier_bg_start">#FFFFFF</color>
+    <color name="vault_dossier_bg_end">#F5F7F1</color>
+    <color name="vault_dossier_border">#B45309</color>
+    <color name="vault_keycard_bg_start">#FFFFFF</color>
+    <color name="vault_keycard_bg_center">#F5F7F1</color>
+    <color name="vault_keycard_bg_end">#FEF3C7</color>
+    <color name="vault_keycard_border">#D2D9CE</color>
+    <color name="vault_keycard_email_text">#B45309</color>
+    <color name="vault_btn_add_keycard_bg">#B45309</color>
+    <color name="vault_btn_add_keycard_text">#FFFFFF</color>
+    <color name="vault_btn_flip_bg">#B45309</color>
+    <color name="vault_btn_flip_text">#FFFFFF</color>
+    <color name="vault_sim_chip_start">#FDE68A</color>
+    <color name="vault_sim_chip_end">#B45309</color>
+    <color name="vault_sim_chip_border">#78350F</color>
+    <color name="vault_segment_track_bg">#E0E5DC</color>
+    <color name="vault_segment_track_border">#D2D9CE</color>
+    <color name="vault_segment_active_bg">#FFFFFF</color>
+    <color name="vault_segment_active_border">#B45309</color>
+    <color name="vault_segment_active_text">#B45309</color>
+    <color name="vault_segment_inactive_text">#475569</color>
+    <color name="vault_dropdown_bg">#FFFFFF</color>
+    <color name="vault_dropdown_border">#D2D9CE</color>
 </resources>

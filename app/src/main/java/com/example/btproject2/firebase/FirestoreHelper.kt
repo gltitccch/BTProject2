@@ -5240,5 +5240,62 @@ class FirestoreHelper {
                 onFailure(err)
             }
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DUAL-MODE ACCOUNT VAULT CLOUD SYNCHRONIZATION (3D Flip-Safe & Binder Tabs)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    fun syncVaultFolderToCloud(folder: com.example.btproject2.models.VaultFolder) {
+        try {
+            val payload = mapOf(
+                "id" to folder.id,
+                "name" to folder.name,
+                "iconEmoji" to folder.iconEmoji,
+                "vaultMode" to folder.vaultMode.storageKey,
+                "createdAt" to folder.createdAt
+            )
+            db.collection("vault_folders").document(folder.id).set(payload, SetOptions.merge())
+        } catch (_: Exception) {
+        }
+    }
+
+    fun deleteVaultFolderFromCloud(folderId: String) {
+        try {
+            db.collection("vault_folders").document(folderId).delete()
+        } catch (_: Exception) {
+        }
+    }
+
+    fun syncVaultAccountToCloud(account: com.example.btproject2.models.DemoAccount) {
+        try {
+            val encryptedPass = com.example.btproject2.utils.KinTraceCryptoEngine.encryptField(
+                account.password,
+                "kintrace_dual_mode_vault_2026"
+            )
+            val payload = mapOf(
+                "id" to account.id,
+                "name" to account.name,
+                "roleTitle" to account.roleTitle,
+                "roleBadge" to account.roleBadge,
+                "email" to account.email,
+                "password" to encryptedPass,
+                "treeSummary" to account.treeSummary,
+                "emojiIcon" to account.emojiIcon,
+                "vaultMode" to account.vaultMode.storageKey,
+                "folderId" to account.folderId,
+                "folderName" to account.folderName
+            )
+            db.collection("vault_accounts").document(account.id).set(payload, SetOptions.merge())
+        } catch (_: Exception) {
+        }
+    }
+
+    fun deleteVaultAccountFromCloud(accountId: String) {
+        try {
+            db.collection("vault_accounts").document(accountId).delete()
+        } catch (_: Exception) {
+        }
+    }
 }
+
 
