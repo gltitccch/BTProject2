@@ -138,6 +138,7 @@ class AppVersionConfigTest {
     @Test
     fun currentReleaseNotes_containsAllCoreFeatureHighlights() {
         val notes = com.example.btproject2.utils.InAppUpdateManager.CURRENT_RELEASE_NOTES
+        assertTrue(notes.contains("Successive Remarriages & Prior Spouses Engine"))
         assertTrue(notes.contains("Guided Family Tree Multi-Option Resolution Stepper"))
         assertTrue(notes.contains("Legal Adoption Childbirth Age Exemption"))
         assertTrue(notes.contains("Real-Time Tree Health & Integrity Synchronization"))

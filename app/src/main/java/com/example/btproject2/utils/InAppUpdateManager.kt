@@ -57,7 +57,7 @@ object InAppUpdateManager {
     const val KEY_LAST_SEEN_VERSION = "key_last_seen_version"
     private const val SUPPRESSION_DURATION_MS = 24 * 60 * 60 * 1000L // 24 hours
 
-    const val CURRENT_RELEASE_NOTES = "• Guided Family Tree Multi-Option Resolution Stepper with Context-Aware Decision Choices\n• Legal Adoption Childbirth Age Exemption under Philippine Domestic Adoption Law (RA 8552 / RA 11642)\n• Real-Time Tree Health & Integrity Synchronization across Interactive Canvas and Audit Screens\n• Warm Linen & Amber Bronze Theme Standards with Zero Green in Light Mode"
+    const val CURRENT_RELEASE_NOTES = "• Successive Remarriages & Prior Spouses Engine with Philippine Family Code Art. 35/37/38/41 Validation\n• Guided Family Tree Multi-Option Resolution Stepper with Context-Aware Decision Choices\n• Legal Adoption Childbirth Age Exemption under Philippine Domestic Adoption Law (RA 8552 / RA 11642)\n• Real-Time Tree Health & Integrity Synchronization across Interactive Canvas and Audit Screens\n• Warm Linen & Amber Bronze Theme Standards with Zero Green in Light Mode"
 
     /**
      * Builds the canonical zero-cost GitHub Releases direct APK download link for a given version tag.
