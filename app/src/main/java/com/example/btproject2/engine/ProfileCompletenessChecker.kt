@@ -44,7 +44,7 @@ class ProfileCompletenessChecker {
         else missing.add("Mother")
 
         // Spouse or marital status (10 pts)
-        if (person.spouseId != null || person.maritalStatus != "Single") points += 10
+        if (person.allSpouseIds().isNotEmpty() || person.maritalStatus != "Single") points += 10
         else missing.add("Marital info")
 
         // Biography (5 pts)

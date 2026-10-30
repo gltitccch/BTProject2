@@ -53,30 +53,33 @@ object GenerationHierarchyEngine {
 
         val byCanonId = persons.associateBy { canon(it.id) }
 
-        // Comprehensive spouse and co-parent mapping
-        val spouseMap = mutableMapOf<String, String>()
+        // Comprehensive spouse and co-parent mapping (supports multi-spouse remarriage triads)
+        val spouseMultiMap = mutableMapOf<String, MutableSet<String>>()
+        fun linkSpouses(id1: String, id2: String) {
+            if (id1.isNotBlank() && id2.isNotBlank() && id1 != id2) {
+                spouseMultiMap.getOrPut(id1) { mutableSetOf() }.add(id2)
+                spouseMultiMap.getOrPut(id2) { mutableSetOf() }.add(id1)
+            }
+        }
         explicitSpouseMap.forEach { (k, v) ->
             if (k.isNotBlank() && v.isNotBlank()) {
                 val ck = canon(k)
                 val cv = canon(v)
-                spouseMap[ck] = cv
-                spouseMap[cv] = ck
+                linkSpouses(ck, cv)
             }
         }
         persons.forEach { p ->
             val pId = canon(p.id)
-            val sId = canon(p.spouseId)
-            if (sId.isNotEmpty() && byCanonId.containsKey(sId)) {
-                spouseMap[pId] = sId
-                spouseMap[sId] = pId
+            p.allSpouseIds().forEach { rawSpId ->
+                val sId = canon(rawSpId)
+                if (sId.isNotEmpty() && byCanonId.containsKey(sId)) {
+                    linkSpouses(pId, sId)
+                }
             }
             val fId = canon(p.fatherId)
             val mId = canon(p.motherId)
             if (fId.isNotEmpty() && mId.isNotEmpty() && byCanonId.containsKey(fId) && byCanonId.containsKey(mId)) {
-                if (!spouseMap.containsKey(fId) && !spouseMap.containsKey(mId)) {
-                    spouseMap[fId] = mId
-                    spouseMap[mId] = fId
-                }
+                linkSpouses(fId, mId)
             }
         }
 
@@ -121,18 +124,19 @@ object GenerationHierarchyEngine {
             // a. Couple alignment: Married spouses or co-parents must share the exact same generation
             persons.forEach { p ->
                 val pId = canon(p.id)
-                val spId = spouseMap[pId]
-                if (spId != null && byCanonId.containsKey(spId)) {
-                    val g1 = genMap[pId] ?: 1
-                    val g2 = genMap[spId] ?: 1
-                    val maxG = maxOf(g1, g2)
-                    if (g1 != maxG) {
-                        genMap[pId] = maxG
-                        changed = true
-                    }
-                    if (g2 != maxG) {
-                        genMap[spId] = maxG
-                        changed = true
+                spouseMultiMap[pId]?.forEach { spId ->
+                    if (byCanonId.containsKey(spId)) {
+                        val g1 = genMap[pId] ?: 1
+                        val g2 = genMap[spId] ?: 1
+                        val maxG = maxOf(g1, g2)
+                        if (g1 != maxG) {
+                            genMap[pId] = maxG
+                            changed = true
+                        }
+                        if (g2 != maxG) {
+                            genMap[spId] = maxG
+                            changed = true
+                        }
                     }
                 }
             }
@@ -179,13 +183,14 @@ object GenerationHierarchyEngine {
             if (violationFound) {
                 persons.forEach { p ->
                     val pId = canon(p.id)
-                    val spId = spouseMap[pId]
-                    if (spId != null && byCanonId.containsKey(spId)) {
-                        val g1 = genMap[pId] ?: 1
-                        val g2 = genMap[spId] ?: 1
-                        val maxG = maxOf(g1, g2)
-                        genMap[pId] = maxG
-                        genMap[spId] = maxG
+                    spouseMultiMap[pId]?.forEach { spId ->
+                        if (byCanonId.containsKey(spId)) {
+                            val g1 = genMap[pId] ?: 1
+                            val g2 = genMap[spId] ?: 1
+                            val maxG = maxOf(g1, g2)
+                            genMap[pId] = maxG
+                            genMap[spId] = maxG
+                        }
                     }
                 }
             }

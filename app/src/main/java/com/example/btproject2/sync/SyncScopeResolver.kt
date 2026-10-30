@@ -78,7 +78,7 @@ object SyncScopeResolver {
         val relatedIds = mutableSetOf<String>()
         // If gender changed, reciprocal spouses and children might have their titles affected
         if (genderChanged) {
-            updatedPerson.spouseId?.let { if (it.isNotBlank()) relatedIds.add(it) }
+            relatedIds.addAll(updatedPerson.allSpouseIds())
             val children = treeMembers.filter { it.fatherId == updatedPerson.id || it.motherId == updatedPerson.id }
             relatedIds.addAll(children.map { it.id })
         }
@@ -104,7 +104,7 @@ object SyncScopeResolver {
         val related = mutableSetOf<String>()
         newPerson.fatherId?.let { if (it.isNotBlank()) related.add(it) }
         newPerson.motherId?.let { if (it.isNotBlank()) related.add(it) }
-        newPerson.spouseId?.let { if (it.isNotBlank()) related.add(it) }
+        related.addAll(newPerson.allSpouseIds())
 
         return AffectedScope(
             treeId = newPerson.treeId,
@@ -137,6 +137,7 @@ object SyncScopeResolver {
     ): AffectedScope {
         val related = mutableSetOf<String>()
         if (personB != null) related.add(personB.id)
+        related.addAll(personA.allSpouseIds())
         related.addAll(extraAffectedRelatives)
 
         return AffectedScope(
@@ -154,7 +155,7 @@ object SyncScopeResolver {
             ),
             requiresStructuralRelayout = true,
             requiresKinshipRecomputation = true,
-            affectedFields = setOf("spouseId", "maritalStatus")
+            affectedFields = setOf("spouseId", "formerSpouseIds", "maritalStatus")
         )
     }
 

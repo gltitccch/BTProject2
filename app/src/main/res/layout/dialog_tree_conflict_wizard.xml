@@ -174,28 +174,39 @@
             android:textSize="11.5sp"
             android:textStyle="bold" />
 
+        <!-- Dynamic Selectable Resolution Options Container -->
+        <LinearLayout
+            android:id="@+id/layoutWizardOptionsGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical" />
+
         <Button
             android:id="@+id/btnWizardPrimaryChoice"
             android:layout_width="match_parent"
-            android:layout_height="42dp"
-            android:layout_marginTop="12dp"
+            android:layout_height="wrap_content"
+            android:minHeight="44dp"
+            android:layout_marginTop="10dp"
             android:backgroundTint="@color/primary"
-            android:text="✨ Leave father blank for now (Clean up)"
+            android:text="✨ Confirm Resolution"
             android:textAllCaps="false"
             android:textColor="@color/btn_gold_text"
-            android:textSize="12sp"
+            android:textSize="12.5sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnWizardSecondaryChoice"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
             android:layout_marginTop="6dp"
             android:backgroundTint="@color/forest_card"
             android:text="✎ Open member’s page so I can pick"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <!-- Navigation Footer: Back & Skip/Close -->

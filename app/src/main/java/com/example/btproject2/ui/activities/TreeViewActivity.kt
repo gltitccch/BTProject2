@@ -74,7 +74,7 @@ class TreeViewActivity : AppCompatActivity() {
                 append("\"parentId\":${if (parentId != null) "\"$parentId\"" else "null"},")
                 append("\"parentName\":$parentName,")
                 append("\"birthDate\":\"${person.birthDate}\",")
-                append("\"hasSpouse\":${person.spouseId != null}")
+                append("\"hasSpouse\":${person.allSpouseIds().isNotEmpty()}")
                 append("}")
             }
             append("]")

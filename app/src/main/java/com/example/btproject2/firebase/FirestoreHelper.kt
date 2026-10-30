@@ -89,6 +89,10 @@ class FirestoreHelper {
 
             val conflict = (data["hasTimelineConflict"] as? Boolean) ?: p.hasTimelineConflict
             val createdAtVal = (data["createdAt"] as? Number)?.toLong() ?: 0L
+            val parsedFormerSpouses = (data["formerSpouseIds"] as? List<*>)
+                ?.mapNotNull { it?.toString()?.trim()?.takeIf { s -> s.isNotEmpty() } }
+                ?.distinct()
+                ?: p.formerSpouseIds
 
             val rawPerson = p.copy(
                 id = doc.id,
@@ -96,7 +100,8 @@ class FirestoreHelper {
                 isLiving = isLivingVal,
                 deathDate = if (isLivingVal) "" else dDate,
                 deathPlace = if (isLivingVal) "" else dPlace,
-                hasTimelineConflict = conflict
+                hasTimelineConflict = conflict,
+                formerSpouseIds = parsedFormerSpouses
             )
             return com.example.btproject2.utils.KinTraceCryptoEngine.decryptPersonFromCloud(rawPerson)
         }
@@ -126,6 +131,7 @@ class FirestoreHelper {
                         deathDate = dDateEffective,
                         deathPlace = dPlaceEffective,
                         spouseId = if (!serverIsAuthoritative && !cached.spouseId.isNullOrEmpty() && serverPerson.spouseId.isNullOrEmpty()) cached.spouseId else serverPerson.spouseId,
+                        formerSpouseIds = if (!serverIsAuthoritative && cached.formerSpouseIds.isNotEmpty() && serverPerson.formerSpouseIds.isEmpty()) cached.formerSpouseIds else serverPerson.formerSpouseIds,
                         maritalStatus = if (!serverIsAuthoritative && (cached.maritalStatus == "Married" || !cached.spouseId.isNullOrEmpty()) && (serverPerson.maritalStatus.isEmpty() || serverPerson.maritalStatus == "Single")) "Married" else serverPerson.maritalStatus,
                         marriageDate = if (!serverIsAuthoritative && cached.marriageDate.isNotEmpty() && serverPerson.marriageDate.isEmpty()) cached.marriageDate else serverPerson.marriageDate,
                         fatherId = if (!serverIsAuthoritative && !cached.fatherId.isNullOrEmpty() && serverPerson.fatherId.isNullOrEmpty()) cached.fatherId else serverPerson.fatherId,
@@ -150,7 +156,7 @@ class FirestoreHelper {
             }
             val combined = (mergedServer + pendingLocal).distinctBy { it.id.trim().lowercase() }
 
-            // Reciprocal spouse normalization across all persons (tree-scoped)
+            // Reciprocal spouse normalization across all persons (tree-scoped, preserving formerSpouseIds)
             val byId = combined.associateBy { it.id.trim().lowercase() }.toMutableMap()
             combined.forEach { p ->
                 val sId = p.spouseId?.trim()?.lowercase()
@@ -159,11 +165,21 @@ class FirestoreHelper {
                     if (partner != null && (partner.treeId.isEmpty() || p.treeId.isEmpty() || partner.treeId == p.treeId)) {
                         var updatedPartner = partner
                         var partnerChanged = false
-                        if (partner.spouseId.isNullOrEmpty() || !com.example.btproject2.engine.FamilyLinkValidator.isSameId(partner.spouseId, p.id)) {
-                            updatedPartner = updatedPartner.copy(spouseId = p.id)
+                        val pIsDeceased = !p.isLiving || p.deathDate.isNotBlank()
+                        // Only update partner if partner does NOT already list p in spouseId OR formerSpouseIds
+                        if (!partner.hasSpouseId(p.id)) {
+                            if (pIsDeceased && !updatedPartner.spouseId.isNullOrBlank()) {
+                                updatedPartner = updatedPartner.withAddedFormerSpouse(p.id)
+                            } else {
+                                val targetStatus = if (pIsDeceased && updatedPartner.isLiving) "Widowed" else updatedPartner.maritalStatus.ifEmpty { "Married" }
+                                updatedPartner = updatedPartner.withLinkedSpouse(p.id, targetStatus)
+                            }
                             partnerChanged = true
                         }
-                        if (updatedPartner.maritalStatus != "Married") {
+                        if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(updatedPartner.spouseId, p.id) &&
+                            updatedPartner.maritalStatus != "Married" &&
+                            !pIsDeceased
+                        ) {
                             updatedPartner = updatedPartner.copy(maritalStatus = "Married")
                             partnerChanged = true
                         }
@@ -186,9 +202,21 @@ class FirestoreHelper {
                 }
                 if (partnerPointingToMe != null) {
                     val current = byId[pId] ?: p
-                    if (current.spouseId.isNullOrEmpty() || current.maritalStatus != "Married") {
+                    val partnerDeceased = !partnerPointingToMe.isLiving || partnerPointingToMe.deathDate.isNotBlank()
+                    if (!current.hasSpouseId(partnerPointingToMe.id)) {
                         val mDate = if (current.marriageDate.isNotEmpty()) current.marriageDate else partnerPointingToMe.marriageDate
-                        byId[pId] = current.copy(spouseId = partnerPointingToMe.id, maritalStatus = "Married", marriageDate = mDate)
+                        if (partnerDeceased && !current.spouseId.isNullOrBlank()) {
+                            byId[pId] = current.withAddedFormerSpouse(partnerPointingToMe.id)
+                        } else {
+                            val targetStatus = if (partnerDeceased && current.isLiving) "Widowed" else "Married"
+                            byId[pId] = current.withLinkedSpouse(partnerPointingToMe.id, targetStatus).copy(marriageDate = mDate)
+                        }
+                    } else if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(current.spouseId, partnerPointingToMe.id) &&
+                        current.maritalStatus != "Married" &&
+                        !partnerDeceased
+                    ) {
+                        val mDate = if (current.marriageDate.isNotEmpty()) current.marriageDate else partnerPointingToMe.marriageDate
+                        byId[pId] = current.copy(maritalStatus = "Married", marriageDate = mDate)
                     }
                 }
             }
@@ -370,6 +398,7 @@ class FirestoreHelper {
                         isLiving = updated.isLiving,
                         isPrivate = if (isFullProfileUpdate) updated.isPrivate else existing.isPrivate,
                         spouseId = if (updated.spouseId != null || updated.firstName.isNotEmpty() || updated.maritalStatus == "Single") updated.spouseId else existing.spouseId,
+                        formerSpouseIds = if (isFullProfileUpdate || updated.formerSpouseIds.isNotEmpty()) updated.formerSpouseIds else existing.formerSpouseIds,
                         maritalStatus = if (updated.maritalStatus.isNotEmpty()) updated.maritalStatus else existing.maritalStatus,
                         marriageDate = if (isFullProfileUpdate || updated.marriageDate.isNotEmpty()) updated.marriageDate else existing.marriageDate,
                         fatherId = if (updated.fatherId != null || updated.firstName.isNotEmpty()) updated.fatherId else existing.fatherId,
@@ -487,6 +516,7 @@ class FirestoreHelper {
                 originalFatherId = person.fatherId,
                 originalMotherId = person.motherId,
                 originalSpouseId = reciprocalSpouseId,
+                originalFormerSpouseIds = person.formerSpouseIds,
                 formerFatherChildIds = fatherChildIds,
                 formerMotherChildIds = motherChildIds,
                 isRestored = false
@@ -495,21 +525,24 @@ class FirestoreHelper {
 
         /**
          * Restores [archive] into [inMemoryPersonsCache] and re-links its former children
-         * (`fatherId`/`motherId`) and former spouse (`spouseId`/`maritalStatus`).
+         * (`fatherId`/`motherId`) and former spouse (`spouseId`/`formerSpouseIds`/`maritalStatus`).
          */
         fun applyRestoreArchivedMemberToCache(archive: ArchivedMemberRecord): Person {
+            val restoredFormerSpouses = archive.originalFormerSpouseIds.ifEmpty { archive.person.formerSpouseIds }
             val personToRestore = archive.person.copy(
                 id = archive.id.ifBlank { archive.person.id },
                 treeId = archive.treeId.ifBlank { archive.person.treeId },
                 fatherId = archive.originalFatherId,
                 motherId = archive.originalMotherId,
                 spouseId = archive.originalSpouseId,
+                formerSpouseIds = restoredFormerSpouses,
                 maritalStatus = if (!archive.originalSpouseId.isNullOrBlank()) "Married" else archive.person.maritalStatus,
                 updatedAt = System.currentTimeMillis()
             )
             val fatherSet = archive.formerFatherChildIds.map { it.trim().lowercase() }.toSet()
             val motherSet = archive.formerMotherChildIds.map { it.trim().lowercase() }.toSet()
             val spouseKey = archive.originalSpouseId?.trim()?.lowercase()
+            val formerSpouseKeys = restoredFormerSpouses.map { it.trim().lowercase() }.toSet()
 
             val updatedCache = (inMemoryPersonsCache ?: emptyList())
                 .filterNot { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, personToRestore.id) }
@@ -523,10 +556,22 @@ class FirestoreHelper {
                         m = m.copy(motherId = personToRestore.id)
                     }
                     if (!spouseKey.isNullOrEmpty() && key == spouseKey) {
-                        m = m.copy(
-                            spouseId = personToRestore.id,
-                            maritalStatus = if (!personToRestore.isLiving && m.isLiving) "Widowed" else "Married"
-                        )
+                        if (!m.spouseId.isNullOrBlank() && !com.example.btproject2.engine.FamilyLinkValidator.isSameId(m.spouseId, personToRestore.id)) {
+                            // Surviving spouse already remarried: restore into their formerSpouseIds
+                            val updatedFormer = (m.formerSpouseIds + personToRestore.id).distinct()
+                            m = m.copy(formerSpouseIds = updatedFormer)
+                        } else {
+                            m = m.copy(
+                                spouseId = personToRestore.id,
+                                maritalStatus = if (!personToRestore.isLiving && m.isLiving) "Widowed" else "Married"
+                            )
+                        }
+                    } else if (key in formerSpouseKeys && !m.hasSpouseId(personToRestore.id)) {
+                        if (m.spouseId.isNullOrBlank()) {
+                            m = m.copy(spouseId = personToRestore.id, maritalStatus = "Married")
+                        } else {
+                            m = m.copy(formerSpouseIds = (m.formerSpouseIds + personToRestore.id).distinct())
+                        }
                     }
                     m
                 } + personToRestore
@@ -546,6 +591,7 @@ class FirestoreHelper {
                 op.motherId != np.motherId ||
                 op.fatherId != np.fatherId ||
                 op.spouseId != np.spouseId ||
+                op.formerSpouseIds != np.formerSpouseIds ||
                 op.treeId != np.treeId ||
                 op.createdBy != np.createdBy ||
                 op.maritalStatus != np.maritalStatus ||
@@ -610,11 +656,18 @@ class FirestoreHelper {
             val partnerId = p.spouseId ?: pointsToMe?.id
             val partnerUpdate = if (!partnerId.isNullOrBlank()) {
                 val partner = cache.find { sameTree(it) && com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, partnerId) }
+                val isCurrentPartner = partner != null &&
+                    (partner.spouseId.isNullOrBlank() || com.example.btproject2.engine.FamilyLinkValidator.isSameId(partner.spouseId, p.id)) &&
+                    !partner.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, p.id) }
                 val target = if (!p.isLiving) "Widowed" else "Married"
-                if (partner != null && partner.isLiving && !partner.maritalStatus.equals(target, ignoreCase = true)) partner to target else null
+                if (isCurrentPartner && partner != null && partner.isLiving && !partner.maritalStatus.equals(target, ignoreCase = true)) {
+                    partner to target
+                } else null
             } else null
 
-            return PersonUpdatePlan(p, vitalUpdates, partnerUpdate, p.spouseId.isNullOrBlank() && pointsToMe != null)
+            val hasActiveExSpouse = p.spouseId.isNullOrBlank() && pointsToMe != null &&
+                !p.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, pointsToMe.id) }
+            return PersonUpdatePlan(p, vitalUpdates, partnerUpdate, hasActiveExSpouse)
         }
 
         fun generateInviteCode(): String {
@@ -871,10 +924,17 @@ class FirestoreHelper {
                 if (p != null) {
                     val partner = inMemoryPersonsCache?.find {
                         (it.treeId == p.treeId || (it.treeId.isEmpty() && p.treeId.isEmpty())) &&
-                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, p.id)
+                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, p.id) &&
+                        !p.formerSpouseIds.any { fId -> com.example.btproject2.engine.FamilyLinkValidator.isSameId(fId, it.id) }
                     }
-                    val effective = if (partner != null && (p.spouseId.isNullOrEmpty() || p.maritalStatus != "Married")) {
-                        p.copy(spouseId = partner.id, maritalStatus = "Married", marriageDate = if (p.marriageDate.isNotEmpty()) p.marriageDate else partner.marriageDate)
+                    val effective = if (partner != null && p.spouseId.isNullOrEmpty()) {
+                        val partnerDeceased = !partner.isLiving || partner.deathDate.isNotBlank()
+                        val targetStatus = if (partnerDeceased && p.isLiving) "Widowed" else "Married"
+                        p.copy(
+                            spouseId = partner.id,
+                            maritalStatus = targetStatus,
+                            marriageDate = if (p.marriageDate.isNotEmpty()) p.marriageDate else partner.marriageDate
+                        )
                     } else p
                     val allSanitized = sanitizeTreeRecords(inMemoryPersonsCache.orEmpty() + effective)
                     val sanitizedPerson = allSanitized.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, p.id) } ?: effective
@@ -1541,7 +1601,10 @@ class FirestoreHelper {
 
         if (!spouseId.isNullOrBlank()) {
             val spouse = all.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, spouseId) }
-            if (spouse != null && spouse.isLiving) {
+            val isCurrentActiveSpouse = spouse != null &&
+                (spouse.spouseId.isNullOrBlank() || com.example.btproject2.engine.FamilyLinkValidator.isSameId(spouse.spouseId, trimmedId)) &&
+                !spouse.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, trimmedId) }
+            if (isCurrentActiveSpouse && spouse != null && spouse.isLiving) {
                 val targetMaritalStatus = if (!isLiving) "Widowed" else "Married"
                 if (!spouse.maritalStatus.equals(targetMaritalStatus, ignoreCase = true)) {
                     val spouseRef = db.collection("persons").document(spouse.id)
@@ -1756,65 +1819,113 @@ class FirestoreHelper {
             val refA = db.collection("persons").document(trimmedPersonId)
             val refB = db.collection("persons").document(trimmedSpouseId)
 
+            val baseA = personA ?: Person(id = trimmedPersonId)
+            val baseB = personB ?: Person(id = trimmedSpouseId)
+            val aIsDeceased = !baseA.isLiving || baseA.deathDate.isNotBlank()
+            val bIsDeceased = !baseB.isLiving || baseB.deathDate.isNotBlank()
+            val bHasOtherLivingSpouse = !baseB.spouseId.isNullOrBlank() &&
+                !com.example.btproject2.engine.FamilyLinkValidator.isSameId(baseB.spouseId, trimmedPersonId) &&
+                allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, baseB.spouseId) }?.let { it.isLiving && it.deathDate.isBlank() } == true
+            val aHasOtherLivingSpouse = !baseA.spouseId.isNullOrBlank() &&
+                !com.example.btproject2.engine.FamilyLinkValidator.isSameId(baseA.spouseId, trimmedSpouseId) &&
+                allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, baseA.spouseId) }?.let { it.isLiving && it.deathDate.isBlank() } == true
+
+            val terminatedStatuses = setOf("widowed", "divorced", "annulled", "separated")
+            val prevSpouseOfA = baseA.spouseId?.let { sId -> allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, sId) } }
+            val shouldPreservePrevOfA = prevSpouseOfA != null && (
+                !prevSpouseOfA.isLiving || prevSpouseOfA.deathDate.isNotBlank() ||
+                baseA.maritalStatus.trim().lowercase() in terminatedStatuses ||
+                prevSpouseOfA.maritalStatus.trim().lowercase() in terminatedStatuses ||
+                baseA.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, prevSpouseOfA.id) }
+            )
+            val prevSpouseOfB = baseB.spouseId?.let { sId -> allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, sId) } }
+            val shouldPreservePrevOfB = prevSpouseOfB != null && (
+                !prevSpouseOfB.isLiving || prevSpouseOfB.deathDate.isNotBlank() ||
+                baseB.maritalStatus.trim().lowercase() in terminatedStatuses ||
+                prevSpouseOfB.maritalStatus.trim().lowercase() in terminatedStatuses ||
+                baseB.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, prevSpouseOfB.id) }
+            )
+
+            val aObj: Person
+            val bObj: Person
+            if (aIsDeceased && bHasOtherLivingSpouse) {
+                // Case 2: personA is a historical deceased 1st spouse while personB is already remarried to a living spouse
+                aObj = baseA.copy(spouseId = trimmedSpouseId, maritalStatus = "Married", marriageDate = baseA.marriageDate.ifBlank { resolvedMarriageDate })
+                bObj = baseB.withAddedFormerSpouse(trimmedPersonId)
+            } else if (bIsDeceased && aHasOtherLivingSpouse) {
+                // Case 2: personB is a historical deceased 1st spouse while personA is already remarried to a living spouse
+                aObj = baseA.withAddedFormerSpouse(trimmedSpouseId)
+                bObj = baseB.copy(spouseId = trimmedPersonId, maritalStatus = "Married", marriageDate = baseB.marriageDate.ifBlank { resolvedMarriageDate })
+            } else {
+                val statusA = if (bIsDeceased && !aIsDeceased) "Widowed" else status
+                val statusB = if (aIsDeceased && !bIsDeceased) "Widowed" else status
+                aObj = (if (shouldPreservePrevOfA) baseA.withLinkedSpouse(trimmedSpouseId, statusA) else baseA.copy(spouseId = trimmedSpouseId, maritalStatus = statusA))
+                    .copy(marriageDate = resolvedMarriageDate)
+                bObj = (if (shouldPreservePrevOfB) baseB.withLinkedSpouse(trimmedPersonId, statusB) else baseB.copy(spouseId = trimmedPersonId, maritalStatus = statusB))
+                    .copy(marriageDate = resolvedMarriageDate)
+            }
+
             val mapA = mutableMapOf<String, Any?>(
-                "spouseId" to trimmedSpouseId,
-                "maritalStatus" to status
+                "spouseId" to aObj.spouseId,
+                "formerSpouseIds" to aObj.formerSpouseIds,
+                "maritalStatus" to aObj.maritalStatus
             )
             val mapB = mutableMapOf<String, Any?>(
-                "spouseId" to trimmedPersonId,
-                "maritalStatus" to status
+                "spouseId" to bObj.spouseId,
+                "formerSpouseIds" to bObj.formerSpouseIds,
+                "maritalStatus" to bObj.maritalStatus
             )
             if (marriageDate != null || effectiveMarriageDate.isNotBlank()) {
-                mapA["marriageDate"] = resolvedMarriageDate
-                mapB["marriageDate"] = resolvedMarriageDate
+                mapA["marriageDate"] = aObj.marriageDate
+                mapB["marriageDate"] = bObj.marriageDate
             }
 
             batch.set(refA, mapA, SetOptions.merge())
             batch.set(refB, mapB, SetOptions.merge())
 
-            val aObj = (personA ?: Person(id = trimmedPersonId)).copy(
-                spouseId = trimmedSpouseId,
-                maritalStatus = status,
-                marriageDate = resolvedMarriageDate
-            )
             cacheUpdates.add(aObj)
-            val bObj = (personB ?: Person(id = trimmedSpouseId)).copy(
-                spouseId = trimmedPersonId,
-                maritalStatus = status,
-                marriageDate = resolvedMarriageDate
-            )
             cacheUpdates.add(bObj)
 
-            // Clear any old ex-spouses of personA (excluding personB)
+            // Handle any prior spouses of personA (excluding personB):
+            // If the prior spouse is deceased or the marriage dissolved (Divorced/Annulled/Widowed),
+            // preserve the historical 1st spouse node intact instead of wiping their spouseId!
             allPersons.filter { 
                 !com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPersonId) &&
                 !com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedSpouseId) &&
                 (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, trimmedPersonId) ||
                  com.example.btproject2.engine.FamilyLinkValidator.isSameId(personA?.spouseId, it.id))
             }.forEach { ex ->
-                val exRef = db.collection("persons").document(ex.id)
-                batch.set(exRef, mapOf(
-                    "spouseId" to null,
-                    "maritalStatus" to "Single",
-                    "marriageDate" to ""
-                ), SetOptions.merge())
-                cacheUpdates.add(ex.copy(spouseId = null, maritalStatus = "Single", marriageDate = ""))
+                val isPreservedFormerSpouse = !ex.isLiving || ex.deathDate.isNotBlank() ||
+                    aObj.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, ex.id) }
+                if (!isPreservedFormerSpouse) {
+                    val exRef = db.collection("persons").document(ex.id)
+                    batch.set(exRef, mapOf(
+                        "spouseId" to null,
+                        "maritalStatus" to "Single",
+                        "marriageDate" to ""
+                    ), SetOptions.merge())
+                    cacheUpdates.add(ex.copy(spouseId = null, maritalStatus = "Single", marriageDate = ""))
+                }
             }
 
-            // Clear any old ex-spouses of personB (excluding personA)
+            // Handle any prior spouses of personB (excluding personA)
             allPersons.filter { 
                 !com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPersonId) &&
                 !com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedSpouseId) &&
                 (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, trimmedSpouseId) ||
                  com.example.btproject2.engine.FamilyLinkValidator.isSameId(personB?.spouseId, it.id))
             }.forEach { ex ->
-                val exRef = db.collection("persons").document(ex.id)
-                batch.set(exRef, mapOf(
-                    "spouseId" to null,
-                    "maritalStatus" to "Single",
-                    "marriageDate" to ""
-                ), SetOptions.merge())
-                cacheUpdates.add(ex.copy(spouseId = null, maritalStatus = "Single", marriageDate = ""))
+                val isPreservedFormerSpouse = !ex.isLiving || ex.deathDate.isNotBlank() ||
+                    bObj.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, ex.id) }
+                if (!isPreservedFormerSpouse) {
+                    val exRef = db.collection("persons").document(ex.id)
+                    batch.set(exRef, mapOf(
+                        "spouseId" to null,
+                        "maritalStatus" to "Single",
+                        "marriageDate" to ""
+                    ), SetOptions.merge())
+                    cacheUpdates.add(ex.copy(spouseId = null, maritalStatus = "Single", marriageDate = ""))
+                }
             }
         } else {
             // Removing spouse
@@ -2369,6 +2480,9 @@ class FirestoreHelper {
             if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.fatherId, trimmedId)) updated = updated.copy(fatherId = null)
             if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.motherId, trimmedId)) updated = updated.copy(motherId = null)
             if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, trimmedId)) updated = updated.copy(spouseId = null, maritalStatus = "Single", marriageDate = "")
+            if (it.formerSpouseIds.any { fId -> com.example.btproject2.engine.FamilyLinkValidator.isSameId(fId, trimmedId) }) {
+                updated = updated.copy(formerSpouseIds = it.formerSpouseIds.filterNot { fId -> com.example.btproject2.engine.FamilyLinkValidator.isSameId(fId, trimmedId) })
+            }
             updated
         }
 
@@ -2388,6 +2502,12 @@ class FirestoreHelper {
             .addOnSuccessListener { snapshot ->
                 for (doc in snapshot.documents) {
                     doc.reference.update(mapOf("spouseId" to null, "maritalStatus" to "Single", "marriageDate" to ""))
+                }
+            }
+        db.collection("persons").whereArrayContains("formerSpouseIds", personId).get()
+            .addOnSuccessListener { snapshot ->
+                for (doc in snapshot.documents) {
+                    doc.reference.update("formerSpouseIds", com.google.firebase.firestore.FieldValue.arrayRemove(personId))
                 }
             }
     }
@@ -3345,98 +3465,163 @@ class FirestoreHelper {
             onSuccess(emptyList())
             return
         }
-        db.collection("trees")
-            .whereEqualTo("ownerId", userId)
-            .get()
-            .addOnSuccessListener { result ->
-                val ownedTrees = result.documents.mapNotNull { documentToFamilyTree(it) }.toMutableList()
-                // Also check if older trees used createdBy instead of ownerId
-                db.collection("trees")
-                    .whereEqualTo("createdBy", userId)
-                    .get()
-                    .addOnSuccessListener { createdByResult ->
-                        val createdTrees = createdByResult.documents.mapNotNull { documentToFamilyTree(it) }
-                        for (ct in createdTrees) {
-                            if (ownedTrees.none { it.id == ct.id }) {
-                                ownedTrees.add(ct)
-                            }
-                        }
+        val currentUserEmail = try {
+            FirebaseAuth.getInstance().currentUser?.email?.trim().orEmpty()
+        } catch (_: Throwable) {
+            ""
+        }
 
-                        // Also query trees where user is in coOwnerIds array
-                        db.collection("trees")
-                            .whereArrayContains("coOwnerIds", userId)
-                            .get()
-                            .addOnSuccessListener { coOwnersResult ->
-                                val coOwnerTrees = coOwnersResult.documents.mapNotNull { documentToFamilyTree(it) }
-                                for (cot in coOwnerTrees) {
-                                    if (ownedTrees.none { it.id == cot.id }) {
-                                        ownedTrees.add(cot)
-                                    }
-                                }
+        var cacheDispatched = false
+        var cachedTreeIds: List<String> = emptyList()
 
-                                queryApprovedTreeMembers(userId, ownedTrees, includeMergedClan, onSuccess)
-                            }
-                            .addOnFailureListener {
-                                queryApprovedTreeMembers(userId, ownedTrees, includeMergedClan, onSuccess)
-                            }
-                    }
-                    .addOnFailureListener {
-                        val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                        onSuccess(filtered.distinctBy { it.id })
-                    }
-            }
-            .addOnFailureListener { onFailure(it) }
-    }
-
-    private fun queryApprovedTreeMembers(
-        userId: String,
-        ownedTrees: MutableList<FamilyTree>,
-        includeMergedClan: Boolean,
-        onSuccess: (List<FamilyTree>) -> Unit
-    ) {
-        db.collection("tree_members")
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("status", "Approved")
-            .get()
-            .addOnSuccessListener { memberResult ->
-                val memberTreeIds = memberResult.documents
-                    .mapNotNull { it.getString("treeId") }
-                    .filter { it.isNotBlank() && ownedTrees.none { t -> t.id == it } }
-                    .distinct()
-
-                if (memberTreeIds.isEmpty()) {
-                    val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                    onSuccess(filtered.distinctBy { it.id })
-                } else {
-                    val combinedTrees = ownedTrees.toMutableList()
-                    var remaining = memberTreeIds.size
-                    for (mTreeId in memberTreeIds) {
-                        getTree(mTreeId,
-                            onSuccess = { fetchedTree ->
-                                if (fetchedTree != null && combinedTrees.none { it.id == fetchedTree.id }) {
-                                    combinedTrees.add(fetchedTree)
-                                }
-                                remaining--
-                                if (remaining <= 0) {
-                                    val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                    onSuccess(filtered.distinctBy { it.id })
-                                }
-                            },
-                            onFailure = {
-                                remaining--
-                                if (remaining <= 0) {
-                                    val filtered = if (includeMergedClan) combinedTrees else combinedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                                    onSuccess(filtered.distinctBy { it.id })
-                                }
-                            }
-                        )
-                    }
+        // 1. Fast local disk cache lookup (<10ms) so spotty/slow Wi-Fi never blocks tree resolution
+        executeParallelUserTreesLookup(
+            userId = userId,
+            userEmail = currentUserEmail,
+            source = Source.CACHE,
+            includeMergedClan = includeMergedClan,
+            onResult = { diskTrees, _ ->
+                if (diskTrees.isNotEmpty() && !cacheDispatched) {
+                    cacheDispatched = true
+                    cachedTreeIds = diskTrees.map { it.id }
+                    onSuccess(diskTrees)
                 }
             }
-            .addOnFailureListener {
-                val filtered = if (includeMergedClan) ownedTrees else ownedTrees.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
-                onSuccess(filtered.distinctBy { it.id })
+        )
+
+        // 2. Authoritative parallel server lookup (1 round-trip instead of 5 sequential round-trips)
+        executeParallelUserTreesLookup(
+            userId = userId,
+            userEmail = currentUserEmail,
+            source = Source.DEFAULT,
+            includeMergedClan = includeMergedClan,
+            onResult = { serverTrees, firstError ->
+                if (serverTrees.isEmpty() && firstError != null) {
+                    if (!cacheDispatched) {
+                        onFailure(firstError)
+                    }
+                    return@executeParallelUserTreesLookup
+                }
+                val serverTreeIds = serverTrees.map { it.id }
+                if (!cacheDispatched || serverTreeIds != cachedTreeIds) {
+                    cacheDispatched = true
+                    onSuccess(serverTrees)
+                }
             }
+        )
+    }
+
+    private fun executeParallelUserTreesLookup(
+        userId: String,
+        userEmail: String,
+        source: Source,
+        includeMergedClan: Boolean,
+        onResult: (List<FamilyTree>, Exception?) -> Unit
+    ) {
+        val ownerIdTask = db.collection("trees").whereEqualTo("ownerId", userId).get(source)
+        val createdByTask = db.collection("trees").whereEqualTo("createdBy", userId).get(source)
+        val coOwnerTask = db.collection("trees").whereArrayContains("coOwnerIds", userId).get(source)
+        val memberByUidTask = db.collection("tree_members").whereEqualTo("userId", userId).get(source)
+
+        val allInitialTasks = mutableListOf(ownerIdTask, createdByTask, coOwnerTask, memberByUidTask)
+        val ownerEmailTask = if (userEmail.isNotBlank()) {
+            db.collection("trees").whereEqualTo("ownerEmail", userEmail).get(source).also { allInitialTasks.add(it) }
+        } else null
+        val memberByEmailTask = if (userEmail.isNotBlank()) {
+            db.collection("tree_members").whereEqualTo("userEmail", userEmail).get(source).also { allInitialTasks.add(it) }
+        } else null
+
+        Tasks.whenAllComplete(allInitialTasks).addOnCompleteListener {
+            val discoveredTrees = mutableListOf<FamilyTree>()
+            var anyTaskSucceeded = false
+            var firstError: Exception? = null
+
+            fun collectTrees(task: com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot>?) {
+                if (task == null) return
+                if (task.isSuccessful) {
+                    anyTaskSucceeded = true
+                    val docs = task.result?.documents.orEmpty()
+                    for (doc in docs) {
+                        val parsed = documentToFamilyTree(doc)
+                        if (parsed != null && discoveredTrees.none { it.id == parsed.id }) {
+                            discoveredTrees.add(parsed)
+                        }
+                    }
+                } else if (firstError == null) {
+                    firstError = task.exception
+                }
+            }
+
+            collectTrees(ownerIdTask)
+            collectTrees(createdByTask)
+            collectTrees(coOwnerTask)
+            collectTrees(ownerEmailTask)
+
+            val memberDocs = mutableListOf<com.google.firebase.firestore.DocumentSnapshot>()
+            if (memberByUidTask.isSuccessful) {
+                anyTaskSucceeded = true
+                memberDocs.addAll(memberByUidTask.result?.documents.orEmpty())
+            } else if (firstError == null) {
+                firstError = memberByUidTask.exception
+            }
+            if (memberByEmailTask != null) {
+                if (memberByEmailTask.isSuccessful) {
+                    anyTaskSucceeded = true
+                    memberDocs.addAll(memberByEmailTask.result?.documents.orEmpty())
+                }
+            }
+
+            val approvedMemberTreeIds = memberDocs
+                .filter { doc ->
+                    val status = doc.getString("status")?.trim().orEmpty()
+                    val role = doc.getString("role")?.trim().orEmpty()
+                    status.equals("Approved", ignoreCase = true) ||
+                        role.equals("Owner", ignoreCase = true) ||
+                        status.isEmpty()
+                }
+                .mapNotNull { it.getString("treeId")?.trim() }
+                .filter { id -> id.isNotBlank() && discoveredTrees.none { t -> t.id == id } }
+                .distinct()
+
+            fun finalizeAndReturn(allTrees: List<FamilyTree>) {
+                // Prioritize personal owned trees first so owner accounts default to their own tree while keeping joined trees in switcher
+                val sorted = allTrees
+                    .distinctBy { it.id }
+                    .sortedByDescending { tree ->
+                        tree.ownerId == userId ||
+                            (userEmail.isNotBlank() && tree.ownerEmail.equals(userEmail, ignoreCase = true))
+                    }
+                val filtered = if (includeMergedClan) {
+                    sorted
+                } else {
+                    sorted.filter { it.treeType != FamilyTree.TREE_TYPE_MERGED_CLAN }
+                }
+                val reportedError = if (!anyTaskSucceeded && filtered.isEmpty()) firstError else null
+                onResult(filtered, reportedError)
+            }
+
+            if (approvedMemberTreeIds.isEmpty()) {
+                finalizeAndReturn(discoveredTrees)
+            } else {
+                val treeFetchTasks = approvedMemberTreeIds.map { mTreeId ->
+                    db.collection("trees").document(mTreeId).get(source)
+                }
+                Tasks.whenAllComplete(treeFetchTasks).addOnCompleteListener {
+                    for (tTask in treeFetchTasks) {
+                        if (tTask.isSuccessful) {
+                            val doc = tTask.result
+                            if (doc != null && doc.exists()) {
+                                val parsed = documentToFamilyTree(doc)
+                                if (parsed != null && discoveredTrees.none { it.id == parsed.id }) {
+                                    discoveredTrees.add(parsed)
+                                }
+                            }
+                        }
+                    }
+                    finalizeAndReturn(discoveredTrees)
+                }
+            }
+        }
     }
 
     /**
@@ -4530,12 +4715,14 @@ class FirestoreHelper {
                     return@addOnSuccessListener
                 }
 
+                val restoredFormerSpouses = archive.originalFormerSpouseIds.ifEmpty { archive.person.formerSpouseIds }
                 val personToRestore = archive.person.copy(
                     id = archive.id,
                     treeId = archive.treeId,
                     fatherId = archive.originalFatherId,
                     motherId = archive.originalMotherId,
                     spouseId = archive.originalSpouseId,
+                    formerSpouseIds = restoredFormerSpouses,
                     maritalStatus = if (!archive.originalSpouseId.isNullOrBlank()) "Married" else archive.person.maritalStatus,
                     updatedAt = System.currentTimeMillis()
                 )
@@ -4560,16 +4747,48 @@ class FirestoreHelper {
                     )
                 }
 
-                // 3. Restore former spouse's reciprocal spouseId & maritalStatus
+                // 3. Restore former spouse's reciprocal spouseId or formerSpouseIds & maritalStatus
                 if (!archive.originalSpouseId.isNullOrBlank()) {
-                    batch.set(
-                        db.collection("persons").document(archive.originalSpouseId),
-                        mapOf(
-                            "spouseId" to personToRestore.id,
-                            "maritalStatus" to if (!personToRestore.isLiving) "Widowed" else "Married"
-                        ),
-                        SetOptions.merge()
-                    )
+                    val existingSpouseInCache = inMemoryPersonsCache?.find {
+                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, archive.originalSpouseId)
+                    }
+                    if (existingSpouseInCache != null &&
+                        !existingSpouseInCache.spouseId.isNullOrBlank() &&
+                        !com.example.btproject2.engine.FamilyLinkValidator.isSameId(existingSpouseInCache.spouseId, personToRestore.id)
+                    ) {
+                        batch.update(
+                            db.collection("persons").document(archive.originalSpouseId),
+                            "formerSpouseIds",
+                            com.google.firebase.firestore.FieldValue.arrayUnion(personToRestore.id)
+                        )
+                    } else {
+                        batch.set(
+                            db.collection("persons").document(archive.originalSpouseId),
+                            mapOf(
+                                "spouseId" to personToRestore.id,
+                                "maritalStatus" to if (!personToRestore.isLiving) "Widowed" else "Married"
+                            ),
+                            SetOptions.merge()
+                        )
+                    }
+                }
+                restoredFormerSpouses.filter { it.isNotBlank() }.forEach { fSpId ->
+                    val existingFormerInCache = inMemoryPersonsCache?.find {
+                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, fSpId)
+                    }
+                    if (existingFormerInCache != null && existingFormerInCache.spouseId.isNullOrBlank()) {
+                        batch.set(
+                            db.collection("persons").document(fSpId),
+                            mapOf("spouseId" to personToRestore.id, "maritalStatus" to "Married"),
+                            SetOptions.merge()
+                        )
+                    } else {
+                        batch.update(
+                            db.collection("persons").document(fSpId),
+                            "formerSpouseIds",
+                            com.google.firebase.firestore.FieldValue.arrayUnion(personToRestore.id)
+                        )
+                    }
                 }
 
                 // 4. Mark restored in archive (write both fields for complete compatibility)
@@ -5053,8 +5272,15 @@ class FirestoreHelper {
      * Repairs a single tree relationship conflict in Firestore, updates the in-memory cache,
      * and broadcasts a real-time sync event via CentralTreeSynchronizer.
      */
-    fun autoRepairConflict(
+    /**
+     * Executes an explicit, user-selected ResolutionOption on a relationship conflict.
+     * Handles setting adoptive parentage (RA 8552), reciprocating marriage links,
+     * syncing marital status, or clearing invalid foreign keys, atomically updating Firestore
+     * and broadcasting to CentralTreeSynchronizer for real-time UI synchronization.
+     */
+    fun executeResolutionAction(
         conflict: com.example.btproject2.engine.ConflictScanner.Conflict,
+        option: com.example.btproject2.engine.ConflictScanner.ResolutionOption,
         allPersons: List<Person>,
         onSuccess: (Person?) -> Unit = {},
         onFailure: (Exception) -> Unit = {}
@@ -5065,65 +5291,109 @@ class FirestoreHelper {
             return
         }
 
-        if (conflict.type == "non_reciprocal" && conflict.relatedPersonId.isNotBlank()) {
-            updateSpouse(
-                personId = person.id,
-                spouseId = conflict.relatedPersonId,
-                maritalStatus = "Married",
-                onSuccess = {
-                    val updated = getCachedPersons(person.treeId.ifBlank { null })?.find { it.id == person.id } ?: person
-                    onSuccess(updated)
-                },
-                onFailure = onFailure
-            )
-            return
-        }
-
         val now = System.currentTimeMillis()
         val updates = mutableMapOf<String, Any?>("updatedAt" to now)
         var updatedPerson = person.copy(updatedAt = now)
 
-        when {
-            conflict.field == "fatherId" -> {
-                updates["fatherId"] = null
-                updatedPerson = updatedPerson.copy(fatherId = null)
-            }
-            conflict.field == "motherId" -> {
-                updates["motherId"] = null
-                updatedPerson = updatedPerson.copy(motherId = null)
-            }
-            conflict.field == "spouseId" -> {
-                val oldSpouseId = person.spouseId ?: conflict.relatedPersonId
-                val oldSpouse = allPersons.find { it.id == oldSpouseId }
-                updates["spouseId"] = null
-                updates["maritalStatus"] = "Single"
-                updatedPerson = updatedPerson.copy(spouseId = null, maritalStatus = "Single")
-
-                if (oldSpouse != null && oldSpouse.spouseId == person.id) {
-                    val updatedSpouse = oldSpouse.copy(spouseId = null, maritalStatus = "Single", updatedAt = now)
-                    updatePersonInCache(updatedSpouse)
-                    db.collection("persons").document(oldSpouse.id)
-                        .set(mapOf("spouseId" to null, "maritalStatus" to "Single", "updatedAt" to now), SetOptions.merge())
-                        .addOnSuccessListener {
-                            updatePersonInCache(updatedSpouse)
-                            CentralTreeSynchronizer.getInstance().notifyProfileEdited(
-                                updatedPerson = updatedSpouse,
-                                previousPerson = oldSpouse,
-                                sourceScreen = "GuidedFamilyHelper"
-                            )
-                        }
-                }
-            }
-            conflict.field == "maritalStatus" || conflict.type == "status_mismatch" -> {
-                if (person.spouseId.isNullOrBlank()) {
-                    updates["maritalStatus"] = "Single"
-                    updatedPerson = updatedPerson.copy(maritalStatus = "Single")
+        when (option.actionType) {
+            com.example.btproject2.engine.ConflictScanner.ResolutionActionType.SET_ADOPTIVE -> {
+                val fieldToUpdate = if (option.targetField.isNotBlank()) {
+                    option.targetField
+                } else if (conflict.field == "fatherId") {
+                    "fatherRelationshipType"
                 } else {
-                    updates["maritalStatus"] = "Married"
-                    updatedPerson = updatedPerson.copy(maritalStatus = "Married")
+                    "motherRelationshipType"
+                }
+                val value = option.targetValue.ifBlank { "Adoptive" }
+                updates[fieldToUpdate] = value
+                updatedPerson = if (fieldToUpdate == "fatherRelationshipType") {
+                    updatedPerson.copy(fatherRelationshipType = value)
+                } else {
+                    updatedPerson.copy(motherRelationshipType = value)
                 }
             }
-            else -> {
+            com.example.btproject2.engine.ConflictScanner.ResolutionActionType.RECIPROCATE_MARRIAGE -> {
+                val targetSpouseId = option.targetValue.ifBlank { conflict.relatedPersonId }
+                updateSpouse(
+                    personId = person.id,
+                    spouseId = targetSpouseId,
+                    maritalStatus = "Married",
+                    onSuccess = {
+                        val updated = getCachedPersons(person.treeId.ifBlank { null })?.find { it.id == person.id } ?: person
+                        onSuccess(updated)
+                    },
+                    onFailure = onFailure
+                )
+                return
+            }
+            com.example.btproject2.engine.ConflictScanner.ResolutionActionType.SYNC_STATUS -> {
+                val targetStatus = option.targetValue.ifBlank {
+                    if (person.spouseId.isNullOrBlank()) "Single" else "Married"
+                }
+                updates["maritalStatus"] = targetStatus
+                updatedPerson = updatedPerson.copy(maritalStatus = targetStatus)
+            }
+            com.example.btproject2.engine.ConflictScanner.ResolutionActionType.UNLINK,
+            com.example.btproject2.engine.ConflictScanner.ResolutionActionType.BREAK_LOOP -> {
+                val targetField = if (option.targetField.isNotBlank()) option.targetField else conflict.field
+                when (targetField) {
+                    "fatherId" -> {
+                        updates["fatherId"] = null
+                        updatedPerson = updatedPerson.copy(fatherId = null)
+                    }
+                    "motherId" -> {
+                        updates["motherId"] = null
+                        updatedPerson = updatedPerson.copy(motherId = null)
+                    }
+                    "spouseId" -> {
+                        val targetSpouseId = conflict.relatedPersonId.ifBlank { person.spouseId.orEmpty() }
+                        val oldSpouse = allPersons.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, targetSpouseId) }
+                        val cleanedFormer = person.formerSpouseIds.filterNot { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, targetSpouseId) }
+                        val newActiveSpouseId = if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(person.spouseId, targetSpouseId)) null else person.spouseId
+                        val newMaritalStatus = if (newActiveSpouseId == null) "Single" else person.maritalStatus
+                        updates["spouseId"] = newActiveSpouseId
+                        updates["formerSpouseIds"] = cleanedFormer
+                        updates["maritalStatus"] = newMaritalStatus
+                        updatedPerson = updatedPerson.copy(
+                            spouseId = newActiveSpouseId,
+                            formerSpouseIds = cleanedFormer,
+                            maritalStatus = newMaritalStatus
+                        )
+
+                        if (oldSpouse != null && oldSpouse.hasSpouseId(person.id)) {
+                            val cleanedOtherFormer = oldSpouse.formerSpouseIds.filterNot { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, person.id) }
+                            val newOtherSpouseId = if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(oldSpouse.spouseId, person.id)) null else oldSpouse.spouseId
+                            val newOtherStatus = if (newOtherSpouseId == null) "Single" else oldSpouse.maritalStatus
+                            val updatedSpouse = oldSpouse.copy(
+                                spouseId = newOtherSpouseId,
+                                formerSpouseIds = cleanedOtherFormer,
+                                maritalStatus = newOtherStatus,
+                                updatedAt = now
+                            )
+                            updatePersonInCache(updatedSpouse)
+                            db.collection("persons").document(oldSpouse.id)
+                                .set(mapOf(
+                                    "spouseId" to newOtherSpouseId,
+                                    "formerSpouseIds" to cleanedOtherFormer,
+                                    "maritalStatus" to newOtherStatus,
+                                    "updatedAt" to now
+                                ), SetOptions.merge())
+                                .addOnSuccessListener {
+                                    updatePersonInCache(updatedSpouse)
+                                    CentralTreeSynchronizer.getInstance().notifyProfileEdited(
+                                        updatedPerson = updatedSpouse,
+                                        previousPerson = oldSpouse,
+                                        sourceScreen = "GuidedFamilyHelper"
+                                    )
+                                }
+                        }
+                    }
+                    else -> {
+                        updates[targetField] = null
+                    }
+                }
+            }
+            com.example.btproject2.engine.ConflictScanner.ResolutionActionType.EDIT_PROFILE -> {
                 onSuccess(person)
                 return
             }
@@ -5145,6 +5415,31 @@ class FirestoreHelper {
                 updatePersonInCache(person)
                 onFailure(err)
             }
+    }
+
+    fun autoRepairConflict(
+        conflict: com.example.btproject2.engine.ConflictScanner.Conflict,
+        allPersons: List<Person>,
+        onSuccess: (Person?) -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        val defaultOpt = conflict.options.firstOrNull { it.actionType != com.example.btproject2.engine.ConflictScanner.ResolutionActionType.EDIT_PROFILE }
+            ?: com.example.btproject2.engine.ConflictScanner.ResolutionOption(
+                id = "default_safe_fix",
+                title = conflict.primaryActionLabel,
+                tag = "Safe Fix",
+                tagType = "safe",
+                description = conflict.simpleExplanation,
+                actionType = com.example.btproject2.engine.ConflictScanner.ResolutionActionType.UNLINK,
+                targetField = conflict.field
+            )
+        executeResolutionAction(
+            conflict = conflict,
+            option = defaultOpt,
+            allPersons = allPersons,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
     }
 
     /**

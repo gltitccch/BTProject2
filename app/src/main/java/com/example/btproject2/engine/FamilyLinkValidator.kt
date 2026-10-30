@@ -742,7 +742,7 @@ object FamilyLinkValidator {
         }
 
         // 3. Spouse check (cannot be parent to own spouse)
-        if (isSameId(parent.spouseId, child.id) || isSameId(child.spouseId, parent.id)) {
+        if (parent.hasSpouseId(child.id) || child.hasSpouseId(parent.id)) {
             issues.add(
                 LinkIssue(
                     type = IssueType.FATAL_ERROR,
@@ -923,15 +923,19 @@ object FamilyLinkValidator {
                     )
                 )
             } else if (gap < 12) {
-                issues.add(
-                    LinkIssue(
-                        type = IssueType.FATAL_ERROR,
-                        title = "Biologically Impossible Age Gap",
-                        message = "Cannot assign ${parent.firstName} (born $parentYear) as $role of ${child.firstName} (born $childYear).\n\n" +
-                                "The parent would be only $gap year(s) old at childbirth. The minimum biological age for human reproduction is 12 years.",
-                        field = role
+                val isAdoptive = (isFatherRole && child.fatherRelationshipType.equals("Adoptive", ignoreCase = true)) ||
+                        (!isFatherRole && child.motherRelationshipType.equals("Adoptive", ignoreCase = true))
+                if (!isAdoptive) {
+                    issues.add(
+                        LinkIssue(
+                            type = IssueType.FATAL_ERROR,
+                            title = "Biologically Impossible Age Gap",
+                            message = "Cannot assign ${parent.firstName} (born $parentYear) as $role of ${child.firstName} (born $childYear).\n\n" +
+                                    "The parent would be only $gap year(s) old at childbirth. The minimum biological age for human reproduction is 12 years.",
+                            field = role
+                        )
                     )
-                )
+                }
             } else if (gap < 15) {
                 issues.add(
                     LinkIssue(
@@ -1010,7 +1014,15 @@ object FamilyLinkValidator {
             return ValidationResult(issues)
         }
 
-        val effectiveMDate = marriageDate ?: personA.marriageDate.ifBlank { spouse.marriageDate }
+        val isHistoricalFormerSpouse = (personA.formerSpouseIds.any { isSameId(it, spouse.id) } && !isSameId(personA.spouseId, spouse.id)) ||
+            (spouse.formerSpouseIds.any { isSameId(it, personA.id) } && !isSameId(spouse.spouseId, personA.id))
+        val effectiveMDate = marriageDate ?: if (isHistoricalFormerSpouse) {
+            if (!spouse.isLiving || spouse.deathDate.isNotBlank()) spouse.marriageDate
+            else if (!personA.isLiving || personA.deathDate.isNotBlank()) personA.marriageDate
+            else personA.marriageDate.ifBlank { spouse.marriageDate }
+        } else {
+            personA.marriageDate.ifBlank { spouse.marriageDate }
+        }
         issues.addAll(validateMarriageDeathChronology(personA, spouse, effectiveMDate).issues)
 
         val personMap = normalizePersonMap(allPersons)
@@ -1140,24 +1152,39 @@ object FamilyLinkValidator {
     // ══════════════════════════════════════════════════════════════
 
     /**
-     * Resolves the linked spouse or existing co-parent partner of [person] from [allPersons].
-     * Checks direct `spouseId`, reciprocal `spouseId`, and existing co-parent links if no `spouseId` is recorded.
+     * Resolves all linked spouses (current [Person.spouseId], [Person.formerSpouseIds], reciprocal links,
+     * and existing co-parent links) of [person] from [allPersons].
+     */
+    fun findLinkedSpouses(person: Person?, allPersons: List<Person>): List<Person> {
+        if (person == null || person.id.isBlank()) return emptyList()
+        val result = mutableListOf<Person>()
+        fun addUnique(p: Person?) {
+            if (p != null && !isSameId(p.id, person.id) && result.none { isSameId(it.id, p.id) }) {
+                result.add(p)
+            }
+        }
+        for (sId in person.allSpouseIds()) {
+            addUnique(findPersonInList(sId, allPersons))
+        }
+        allPersons.forEach { other ->
+            if (!isSameId(other.id, person.id) && other.hasSpouseId(person.id)) {
+                addUnique(other)
+            }
+        }
+        allPersons.forEach { other ->
+            if (!isSameId(other.id, person.id) && areCoParents(person.id, other.id, allPersons)) {
+                addUnique(other)
+            }
+        }
+        return result
+    }
+
+    /**
+     * Resolves the primary linked spouse or existing co-parent partner of [person] from [allPersons].
+     * Checks direct `spouseId`, `formerSpouseIds`, reciprocal links, and existing co-parent links.
      */
     fun findLinkedSpouse(person: Person?, allPersons: List<Person>): Person? {
-        if (person == null || person.id.isBlank()) return null
-        val directSpouse = findPersonInList(person.spouseId, allPersons)
-        if (directSpouse != null && !isSameId(directSpouse.id, person.id)) {
-            return directSpouse
-        }
-        val reverseSpouse = allPersons.find {
-            !isSameId(it.id, person.id) && isSameId(it.spouseId, person.id)
-        }
-        if (reverseSpouse != null) {
-            return reverseSpouse
-        }
-        return allPersons.find {
-            !isSameId(it.id, person.id) && areCoParents(person.id, it.id, allPersons)
-        }
+        return findLinkedSpouses(person, allPersons).firstOrNull()
     }
 
     fun getEligibleFathers(
@@ -1191,10 +1218,10 @@ object FamilyLinkValidator {
             true
         }
 
-        val linkedHusband = findLinkedSpouse(mother, allPersons)
-        if (linkedHusband != null) {
+        val linkedHusbands = findLinkedSpouses(mother, allPersons)
+        if (linkedHusbands.isNotEmpty()) {
             return eligible.filter { candidate ->
-                isSameId(candidate.id, linkedHusband.id) ||
+                linkedHusbands.any { isSameId(candidate.id, it.id) } ||
                     (!preferredOtherParentId.isNullOrBlank() && isSameId(candidate.id, preferredOtherParentId))
             }
         }
@@ -1233,10 +1260,10 @@ object FamilyLinkValidator {
             true
         }
 
-        val linkedWife = findLinkedSpouse(father, allPersons)
-        if (linkedWife != null) {
+        val linkedWives = findLinkedSpouses(father, allPersons)
+        if (linkedWives.isNotEmpty()) {
             return eligible.filter { candidate ->
-                isSameId(candidate.id, linkedWife.id) ||
+                linkedWives.any { isSameId(candidate.id, it.id) } ||
                     (!preferredOtherParentId.isNullOrBlank() && isSameId(candidate.id, preferredOtherParentId))
             }
         }
@@ -1261,7 +1288,23 @@ object FamilyLinkValidator {
                 if (cGender.isEmpty() || cGender == pGender) return@filter false
             }
 
-            val effectiveMDate = person.marriageDate.ifBlank { candidate.marriageDate }
+            val isAlreadyLinkedToCandidate = person.hasSpouseId(candidate.id) || candidate.hasSpouseId(person.id)
+            val personHasOtherPriorSpouse = person.allSpouseIds().any { !isSameId(it, candidate.id) }
+            val effectiveMDate = when {
+                isAlreadyLinkedToCandidate -> {
+                    val isHistorical = (person.formerSpouseIds.any { isSameId(it, candidate.id) } && !isSameId(person.spouseId, candidate.id)) ||
+                        (candidate.formerSpouseIds.any { isSameId(it, person.id) } && !isSameId(candidate.spouseId, person.id))
+                    if (isHistorical) {
+                        if (!candidate.isLiving || candidate.deathDate.isNotBlank()) candidate.marriageDate
+                        else if (!person.isLiving || person.deathDate.isNotBlank()) person.marriageDate
+                        else person.marriageDate.ifBlank { candidate.marriageDate }
+                    } else {
+                        person.marriageDate.ifBlank { candidate.marriageDate }
+                    }
+                }
+                personHasOtherPriorSpouse -> candidate.marriageDate
+                else -> person.marriageDate.ifBlank { candidate.marriageDate }
+            }
             if (!validateMarriageDeathChronology(person, candidate, effectiveMDate).isValid) {
                 return@filter false
             }
@@ -1390,11 +1433,11 @@ object FamilyLinkValidator {
         if (isSameId(id1, id2)) return false
         val p1 = findPersonInList(id1, allPersons)
         val p2 = findPersonInList(id2, allPersons)
-        if (p1 != null && isSameId(p1.spouseId, id2)) return true
-        if (p2 != null && isSameId(p2.spouseId, id1)) return true
-        return allPersons.any { 
-            (isSameId(it.id, id1) && isSameId(it.spouseId, id2)) ||
-            (isSameId(it.id, id2) && isSameId(it.spouseId, id1))
+        if (p1 != null && p1.hasSpouseId(id2)) return true
+        if (p2 != null && p2.hasSpouseId(id1)) return true
+        return allPersons.any {
+            (isSameId(it.id, id1) && it.hasSpouseId(id2)) ||
+            (isSameId(it.id, id2) && it.hasSpouseId(id1))
         }
     }
 

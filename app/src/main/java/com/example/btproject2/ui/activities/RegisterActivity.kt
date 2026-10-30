@@ -173,6 +173,7 @@ class RegisterActivity : AppCompatActivity() {
                     authHelper.sendEmailVerification(onSuccess = {}, onFailure = {})
 
                     // 3. Clear existing tree preferences & runtime cache
+                    HomeActivity.resetThemeSessionFlags()
                     TreePreferences.clear(this)
                     FirestoreHelper.clearCache()
                     CentralTreeSynchronizer.getInstance().stopRealtimeListener()

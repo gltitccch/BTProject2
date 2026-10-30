@@ -432,20 +432,22 @@ class BloodRelationshipEngine {
     }
 
     /**
-     * Discovers parents-in-law of a person (parents of spouse).
+     * Discovers parents-in-law of a person (parents of any current or former spouse).
      */
     fun findParentsInLaw(
         personId: String,
         personMap: Map<String, Person>
     ): List<Person> {
         val person = personMap[personId] ?: return emptyList()
-        val spouseId = person.spouseId ?: return emptyList()
-        val spouse = personMap[spouseId] ?: return emptyList()
+        val spouses = (person.allSpouseIds().mapNotNull { personMap[it] } +
+            personMap.values.filter { it.hasSpouseId(personId) }).distinctBy { it.id }
 
-        return listOfNotNull(
-            spouse.fatherId?.let { personMap[it] },
-            spouse.motherId?.let { personMap[it] }
-        ).distinctBy { it.id }
+        return spouses.flatMap { spouse ->
+            listOfNotNull(
+                spouse.fatherId?.let { personMap[it] },
+                spouse.motherId?.let { personMap[it] }
+            )
+        }.distinctBy { it.id }
     }
 
     /**
@@ -456,8 +458,9 @@ class BloodRelationshipEngine {
         personMap: Map<String, Person>
     ): List<Person> {
         val children = findChildren(personId, personMap, biologicalOnly = false)
-        return children.mapNotNull { child ->
-            child.spouseId?.let { personMap[it] }
+        return children.flatMap { child ->
+            child.allSpouseIds().mapNotNull { personMap[it] } +
+                personMap.values.filter { it.hasSpouseId(child.id) }
         }.distinctBy { it.id }
     }
 
@@ -471,19 +474,25 @@ class BloodRelationshipEngine {
         val person = personMap[personId] ?: return emptyList()
         val result = mutableListOf<Person>()
 
-        // 1. Siblings of spouse
-        val spouseId = person.spouseId
-        if (!spouseId.isNullOrBlank()) {
-            val spouseSiblings = findSiblings(spouseId, personMap, biologicalOnly = false)
-            result.addAll(spouseSiblings)
+        // 1. Siblings of spouse(s)
+        val spouseIds = (person.allSpouseIds() +
+            personMap.values.filter { it.hasSpouseId(personId) }.map { it.id }).distinct()
+        for (spouseId in spouseIds) {
+            if (spouseId.isNotBlank()) {
+                val spouseSiblings = findSiblings(spouseId, personMap, biologicalOnly = false)
+                result.addAll(spouseSiblings)
+            }
         }
 
         // 2. Spouses of siblings
         val siblings = findSiblings(person.id, personMap, biologicalOnly = false)
         for (sibling in siblings) {
-            val sSpouseId = sibling.spouseId
-            if (!sSpouseId.isNullOrBlank() && sSpouseId != person.id) {
-                personMap[sSpouseId]?.let { result.add(it) }
+            val sSpouseIds = (sibling.allSpouseIds() +
+                personMap.values.filter { it.hasSpouseId(sibling.id) }.map { it.id }).distinct()
+            for (sSpouseId in sSpouseIds) {
+                if (sSpouseId.isNotBlank() && sSpouseId != person.id) {
+                    personMap[sSpouseId]?.let { result.add(it) }
+                }
             }
         }
 

@@ -92,7 +92,7 @@ class ConsistencyValidator {
             if (person.motherId == person.id) {
                 issues.add(ValidationIssue(Severity.ERROR, "A person cannot be their own mother.", "motherId"))
             }
-            if (person.spouseId == person.id) {
+            if (person.spouseId == person.id || person.formerSpouseIds.contains(person.id)) {
                 issues.add(ValidationIssue(Severity.ERROR, "A person cannot be their own spouse.", "spouseId"))
             }
         }
@@ -234,46 +234,47 @@ class ConsistencyValidator {
         allPersons: List<Person>,
         issues: MutableList<ValidationIssue>
     ) {
-        val spouseId = person.spouseId ?: return
-        val spouse = personMap[spouseId] ?: return
+        for (spouseId in person.allSpouseIds()) {
+            val spouse = personMap[spouseId] ?: continue
 
-        // Spouse cannot be parent
-        if (spouseId == person.fatherId || spouseId == person.motherId) {
-            issues.add(ValidationIssue(Severity.ERROR,
-                "Cannot marry a parent (${spouse.firstName} ${spouse.lastName}).",
-                "spouseId"))
-        }
-
-        // Spouse cannot be child
-        val isChild = allPersons.any { it.fatherId == person.id && it.id == spouseId } ||
-                allPersons.any { it.motherId == person.id && it.id == spouseId }
-        if (isChild) {
-            issues.add(ValidationIssue(Severity.ERROR,
-                "Cannot marry a child (${spouse.firstName} ${spouse.lastName}).",
-                "spouseId"))
-        }
-
-        // Spouse cannot be ancestor
-        if (person.id.isNotEmpty() && isAncestorOf(spouseId, person.id, personMap)) {
-            issues.add(ValidationIssue(Severity.ERROR,
-                "Cannot marry an ancestor (${spouse.firstName} ${spouse.lastName}).",
-                "spouseId"))
-        }
-
-        // Spouse cannot be descendant
-        if (person.id.isNotEmpty() && isAncestorOf(person.id, spouseId, personMap)) {
-            issues.add(ValidationIssue(Severity.ERROR,
-                "Cannot marry a descendant (${spouse.firstName} ${spouse.lastName}).",
-                "spouseId"))
-        }
-
-        // Spouse age gap warning
-        if (person.birthDate.isNotEmpty() && spouse.birthDate.isNotEmpty()) {
-            val gap = Math.abs(yearsBetween(person.birthDate, spouse.birthDate))
-            if (gap > 40) {
-                issues.add(ValidationIssue(Severity.WARNING,
-                    "Large age gap of $gap years with spouse ${spouse.firstName} ${spouse.lastName}.",
+            // Spouse cannot be parent
+            if (spouseId == person.fatherId || spouseId == person.motherId) {
+                issues.add(ValidationIssue(Severity.ERROR,
+                    "Cannot marry a parent (${spouse.firstName} ${spouse.lastName}).",
                     "spouseId"))
+            }
+
+            // Spouse cannot be child
+            val isChild = allPersons.any { it.fatherId == person.id && it.id == spouseId } ||
+                    allPersons.any { it.motherId == person.id && it.id == spouseId }
+            if (isChild) {
+                issues.add(ValidationIssue(Severity.ERROR,
+                    "Cannot marry a child (${spouse.firstName} ${spouse.lastName}).",
+                    "spouseId"))
+            }
+
+            // Spouse cannot be ancestor
+            if (person.id.isNotEmpty() && isAncestorOf(spouseId, person.id, personMap)) {
+                issues.add(ValidationIssue(Severity.ERROR,
+                    "Cannot marry an ancestor (${spouse.firstName} ${spouse.lastName}).",
+                    "spouseId"))
+            }
+
+            // Spouse cannot be descendant
+            if (person.id.isNotEmpty() && isAncestorOf(person.id, spouseId, personMap)) {
+                issues.add(ValidationIssue(Severity.ERROR,
+                    "Cannot marry a descendant (${spouse.firstName} ${spouse.lastName}).",
+                    "spouseId"))
+            }
+
+            // Spouse age gap warning
+            if (person.birthDate.isNotEmpty() && spouse.birthDate.isNotEmpty()) {
+                val gap = Math.abs(yearsBetween(person.birthDate, spouse.birthDate))
+                if (gap > 40) {
+                    issues.add(ValidationIssue(Severity.WARNING,
+                        "Large age gap of $gap years with spouse ${spouse.firstName} ${spouse.lastName}.",
+                        "spouseId"))
+                }
             }
         }
     }
@@ -329,7 +330,7 @@ class ConsistencyValidator {
                 "Status is 'Single' but a spouse is linked.",
                 "maritalStatus"))
         }
-        if (person.marriageDate.isNotEmpty() && person.spouseId == null) {
+        if (person.marriageDate.isNotEmpty() && person.allSpouseIds().isEmpty()) {
             issues.add(ValidationIssue(Severity.WARNING,
                 "Marriage date is set but no spouse is linked.",
                 "marriageDate"))

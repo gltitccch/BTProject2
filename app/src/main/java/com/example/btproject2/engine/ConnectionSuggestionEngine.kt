@@ -116,10 +116,10 @@ class ConnectionSuggestionEngine {
         allPersons: List<Person>,
         suggestions: MutableList<Suggestion>
     ) {
-        // Spouse linked but not reciprocal
-        if (person.spouseId != null) {
-            val spouse = allPersons.firstOrNull { it.id == person.spouseId }
-            if (spouse != null && spouse.spouseId != person.id) {
+        // Spouse linked (active or former) but not reciprocal
+        for (sId in person.allSpouseIds()) {
+            val spouse = allPersons.firstOrNull { it.id == sId }
+            if (spouse != null && !spouse.hasSpouseId(person.id)) {
                 suggestions.add(Suggestion(
                     "missing_link", person, spouse,
                     "Spouse link is not reciprocal — ${spouse.firstName} does not list ${person.firstName} as spouse.",

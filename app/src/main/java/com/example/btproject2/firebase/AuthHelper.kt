@@ -128,6 +128,7 @@ class AuthHelper {
      */
     fun performGlobalLogout(activity: android.app.Activity) {
         logout()
+        com.example.btproject2.ui.activities.HomeActivity.resetThemeSessionFlags()
         com.example.btproject2.utils.TreePreferences.clear(activity)
         com.example.btproject2.firebase.FirestoreHelper.clearCache()
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()

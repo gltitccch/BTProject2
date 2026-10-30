@@ -241,7 +241,15 @@ class MarriageValidationEngine(
         // ---------------------------------------------------------------------
         // 2b. MARRIAGE DATE VS. DEATH DATE VALIDATION
         // ---------------------------------------------------------------------
-        val mDateStr = personA.marriageDate.ifBlank { personB.marriageDate }
+        val aIsHistoricalOfB = (personB.formerSpouseIds.any { isSameId(it, personA.id) } && !isSameId(personB.spouseId, personA.id)) ||
+            ((!personA.isLiving || personA.deathDate.isNotBlank()) && !personB.spouseId.isNullOrBlank() && !isSameId(personB.spouseId, personA.id))
+        val bIsHistoricalOfA = (personA.formerSpouseIds.any { isSameId(it, personB.id) } && !isSameId(personA.spouseId, personB.id)) ||
+            ((!personB.isLiving || personB.deathDate.isNotBlank()) && !personA.spouseId.isNullOrBlank() && !isSameId(personA.spouseId, personB.id))
+        val mDateStr = when {
+            aIsHistoricalOfB -> personA.marriageDate
+            bIsHistoricalOfA -> personB.marriageDate
+            else -> personA.marriageDate.ifBlank { personB.marriageDate }
+        }
         if (mDateStr.isNotBlank()) {
             val mCal = parseDateToCalendar(mDateStr)
             if (!personA.isLiving && personA.deathDate.isNotBlank()) {
@@ -297,6 +305,24 @@ class MarriageValidationEngine(
             }
             failureMessages.add(activeSpouseMsg)
             legalBases.add("Articles 35 (4) & 40, Family Code of the Philippines")
+        }
+
+        // ---------------------------------------------------------------------
+        // 3b. CHRONOLOGICAL REMARRIAGE & PRIOR SPOUSE OVERLAP GUARD (Art. 35(4))
+        // ---------------------------------------------------------------------
+        validatePriorMarriageChronology(personA, personB, personMap)?.let { chronoConflictMsg ->
+            if (!failures.contains(SpouseValidationFailureReason.ACTIVE_SPOUSE_EXISTS)) {
+                failures.add(SpouseValidationFailureReason.ACTIVE_SPOUSE_EXISTS)
+            }
+            failureMessages.add(chronoConflictMsg)
+            legalBases.add("Articles 35 (4) & 41, Family Code of the Philippines (Chronological Subsistence of Prior Marriage)")
+        }
+        validatePriorMarriageChronology(personB, personA, personMap)?.let { chronoConflictMsg ->
+            if (!failures.contains(SpouseValidationFailureReason.ACTIVE_SPOUSE_EXISTS)) {
+                failures.add(SpouseValidationFailureReason.ACTIVE_SPOUSE_EXISTS)
+            }
+            failureMessages.add(chronoConflictMsg)
+            legalBases.add("Articles 35 (4) & 41, Family Code of the Philippines (Chronological Subsistence of Prior Marriage)")
         }
 
         // ---------------------------------------------------------------------
@@ -360,15 +386,15 @@ class MarriageValidationEngine(
         // ---------------------------------------------------------------------
         // 6. AFFINITY AND STEP-RELATIONSHIP VALIDATION (ART. 38(3) & 38(4))
         // ---------------------------------------------------------------------
-        val aFather = personA.fatherId?.let { personMap[it] }
-        val aMother = personA.motherId?.let { personMap[it] }
-        val bFather = personB.fatherId?.let { personMap[it] }
-        val bMother = personB.motherId?.let { personMap[it] }
+        val aFather = personA.fatherId?.let { personMap[it] ?: personMap[it.trim().lowercase()] }
+        val aMother = personA.motherId?.let { personMap[it] ?: personMap[it.trim().lowercase()] }
+        val bFather = personB.fatherId?.let { personMap[it] ?: personMap[it.trim().lowercase()] }
+        val bMother = personB.motherId?.let { personMap[it] ?: personMap[it.trim().lowercase()] }
 
-        val isBStepParentOfA = (aFather != null && isSameId(aFather.spouseId, personB.id)) ||
-                (aMother != null && isSameId(aMother.spouseId, personB.id))
-        val isAStepParentOfB = (bFather != null && isSameId(bFather.spouseId, personA.id)) ||
-                (bMother != null && isSameId(bMother.spouseId, personA.id))
+        val isBStepParentOfA = (aFather != null && (aFather.hasSpouseId(personB.id) || personB.hasSpouseId(aFather.id))) ||
+                (aMother != null && (aMother.hasSpouseId(personB.id) || personB.hasSpouseId(aMother.id)))
+        val isAStepParentOfB = (bFather != null && (bFather.hasSpouseId(personA.id) || personA.hasSpouseId(bFather.id))) ||
+                (bMother != null && (bMother.hasSpouseId(personA.id) || personA.hasSpouseId(bMother.id)))
 
         if (isBStepParentOfA || isAStepParentOfB) {
             failures.add(SpouseValidationFailureReason.STEP_RELATIONSHIP)
@@ -377,10 +403,12 @@ class MarriageValidationEngine(
         }
 
         val isBChildInLawOfA = personMap.values.any {
-            (isSameId(it.fatherId, personA.id) || isSameId(it.motherId, personA.id)) && isSameId(it.spouseId, personB.id)
+            (isSameId(it.fatherId, personA.id) || isSameId(it.motherId, personA.id)) &&
+                (it.hasSpouseId(personB.id) || personB.hasSpouseId(it.id))
         }
         val isAChildInLawOfB = personMap.values.any {
-            (isSameId(it.fatherId, personB.id) || isSameId(it.motherId, personB.id)) && isSameId(it.spouseId, personA.id)
+            (isSameId(it.fatherId, personB.id) || isSameId(it.motherId, personB.id)) &&
+                (it.hasSpouseId(personA.id) || personA.hasSpouseId(it.id))
         }
         if (isBChildInLawOfA || isAChildInLawOfB) {
             failures.add(SpouseValidationFailureReason.AFFINITY_IN_LAW)
@@ -458,20 +486,46 @@ class MarriageValidationEngine(
         candidateSpouseId: String,
         personMap: Map<String, Person>
     ): Pair<Boolean, Person?> {
-        val existingSpouseId = person.spouseId?.trim()
-        val existingSpouse = if (!existingSpouseId.isNullOrBlank() && !isSameId(existingSpouseId, candidateSpouseId)) {
-            personMap[existingSpouseId]
-        } else {
-            // Check reverse link: someone else in tree pointing to person as spouse
-            personMap.values.find {
-                isSameId(it.spouseId, person.id) && !isSameId(it.id, candidateSpouseId) && !isSameId(it.id, person.id)
+        val terminatedStatuses = setOf("divorced", "annulled", "separated", "widowed")
+        val candidateSpouse = personMap[candidateSpouseId] ?: personMap[candidateSpouseId.trim().lowercase()]
+            ?: personMap.values.find { isSameId(it.id, candidateSpouseId) }
+
+        // If candidateSpouse is already recorded as a former spouse of [person] and that marriage
+        // ended by death or legal dissolution, validating the historical 1st marriage is not bigamy.
+        if (candidateSpouse != null && person.formerSpouseIds.any { isSameId(it, candidateSpouseId) }) {
+            val isCandidateEnded = !candidateSpouse.isLiving ||
+                candidateSpouse.deathDate.isNotBlank() ||
+                candidateSpouse.maritalStatus.trim().lowercase() in terminatedStatuses
+            if (isCandidateEnded) {
+                return Pair(false, null)
             }
+        }
+
+        val existingSpouseId = person.spouseId?.trim()
+        val directSpouse = if (!existingSpouseId.isNullOrBlank() && !isSameId(existingSpouseId, candidateSpouseId)) {
+            personMap[existingSpouseId] ?: personMap[existingSpouseId.lowercase()] ?: personMap.values.find { isSameId(it.id, existingSpouseId) }
+        } else null
+
+        val existingSpouse = if (directSpouse != null && directSpouse.isLiving && directSpouse.deathDate.isBlank() &&
+            directSpouse.maritalStatus.trim().lowercase() !in terminatedStatuses
+        ) {
+            directSpouse
+        } else {
+            // Check reverse link: someone else in tree pointing to person as their active living spouseId
+            personMap.values.find {
+                isSameId(it.spouseId, person.id) &&
+                    !isSameId(it.id, candidateSpouseId) &&
+                    !isSameId(it.id, person.id) &&
+                    !person.formerSpouseIds.any { fId -> isSameId(fId, it.id) } &&
+                    it.isLiving &&
+                    it.deathDate.isBlank() &&
+                    it.maritalStatus.trim().lowercase() !in terminatedStatuses
+            } ?: directSpouse
         }
 
         if (existingSpouse == null) {
             // Check if person has an un-ended marriage status with an unknown/unloaded spouse ID
             if (!existingSpouseId.isNullOrBlank() && !isSameId(existingSpouseId, candidateSpouseId)) {
-                val terminatedStatuses = setOf("divorced", "annulled", "separated", "widowed")
                 if (person.maritalStatus.trim().lowercase() !in terminatedStatuses) {
                     return Pair(true, Person(id = existingSpouseId, firstName = "existing", lastName = "spouse"))
                 }
@@ -479,14 +533,13 @@ class MarriageValidationEngine(
             return Pair(false, null)
         }
 
-        // 1. Check death of spouse
+        // 1. Check death of existing spouse
         val isSpouseDeceased = !existingSpouse.isLiving || existingSpouse.deathDate.isNotBlank()
         if (isSpouseDeceased) {
             return Pair(false, null)
         }
 
         // 2. Check marital status indicating termination
-        val terminatedStatuses = setOf("divorced", "annulled", "separated", "widowed")
         val personStatus = person.maritalStatus.trim().lowercase()
         val spouseStatus = existingSpouse.maritalStatus.trim().lowercase()
 
@@ -494,7 +547,105 @@ class MarriageValidationEngine(
             return Pair(false, null)
         }
 
+        // 3. Case 2 (Retroactive Historical 1st Spouse): If candidateSpouse is DECEASED and passed away
+        // strictly BEFORE the current active marriage began, allow recording the historical 1st spouse.
+        if (candidateSpouse != null && (!candidateSpouse.isLiving || candidateSpouse.deathDate.isNotBlank())) {
+            val currentMarriageDate = existingSpouse.marriageDate.ifBlank { person.marriageDate }
+            val candidateDeathDate = candidateSpouse.deathDate
+            val candidateMarriageDate = candidateSpouse.marriageDate
+            if (candidateDeathDate.isNotBlank() && currentMarriageDate.isNotBlank()) {
+                val deathVsCurrentMarriage = compareChronology(candidateDeathDate, currentMarriageDate)
+                val firstMarriageVsCurrent = if (candidateMarriageDate.isNotBlank()) {
+                    compareChronology(candidateMarriageDate, currentMarriageDate)
+                } else -1
+                if (deathVsCurrentMarriage != null && deathVsCurrentMarriage < 0 &&
+                    (firstMarriageVsCurrent == null || firstMarriageVsCurrent < 0)
+                ) {
+                    return Pair(false, null)
+                }
+            }
+        }
+
         return Pair(true, existingSpouse)
+    }
+
+    /**
+     * Validates that when [remarryingPerson] has a prior spouse in [personMap] (excluding [newPartner]),
+     * a newly proposed marriage date with a living [newPartner] does not precede the prior marriage date
+     * or occur while the prior spouse was still living (Article 35(4), Family Code of the Philippines).
+     */
+    fun validatePriorMarriageChronology(
+        remarryingPerson: Person,
+        newPartner: Person,
+        personMap: Map<String, Person>
+    ): String? {
+        // Only enforce against a living new partner who is NOT already recorded as a historical former spouse
+        val isNewPartnerHistorical = remarryingPerson.formerSpouseIds.any { isSameId(it, newPartner.id) } &&
+            (!newPartner.isLiving || newPartner.deathDate.isNotBlank())
+        if (isNewPartnerHistorical || !newPartner.isLiving || newPartner.deathDate.isNotBlank()) {
+            return null
+        }
+
+        // Find all prior spouses of remarryingPerson (excluding newPartner)
+        val priorSpouses = mutableListOf<Person>()
+        for (sId in remarryingPerson.allSpouseIds()) {
+            if (isSameId(sId, newPartner.id) || isSameId(sId, remarryingPerson.id)) continue
+            val sp = personMap[sId] ?: personMap[sId.trim().lowercase()]
+                ?: personMap.values.find { isSameId(it.id, sId) }
+            if (sp != null && priorSpouses.none { isSameId(it.id, sp.id) }) {
+                priorSpouses.add(sp)
+            }
+        }
+        for (other in personMap.values) {
+            if (isSameId(other.id, newPartner.id) || isSameId(other.id, remarryingPerson.id)) continue
+            if (other.hasSpouseId(remarryingPerson.id) && priorSpouses.none { isSameId(it.id, other.id) }) {
+                priorSpouses.add(other)
+            }
+        }
+        if (priorSpouses.isEmpty()) return null
+
+        for (prior in priorSpouses) {
+            val proposedMDate = when {
+                newPartner.marriageDate.isNotBlank() -> newPartner.marriageDate.trim()
+                remarryingPerson.marriageDate.isNotBlank() &&
+                    !remarryingPerson.marriageDate.trim().equals(prior.marriageDate.trim(), ignoreCase = true) ->
+                    remarryingPerson.marriageDate.trim()
+                else -> ""
+            }
+            if (proposedMDate.isBlank()) continue
+
+            // Rule 1: Proposed marriage date with new spouse is earlier than or equal to prior marriage date
+            if (prior.marriageDate.isNotBlank()) {
+                val cmpMarriage = compareChronology(proposedMDate, prior.marriageDate)
+                if (cmpMarriage != null && cmpMarriage <= 0) {
+                    return "Chronological & Legal Conflict (Article 35(4), Family Code): The marriage date ($proposedMDate) between ${remarryingPerson.firstName} ${remarryingPerson.lastName} and ${newPartner.firstName} ${newPartner.lastName} cannot be earlier than or on the same date as ${remarryingPerson.firstName}'s prior marriage to ${prior.firstName} ${prior.lastName} (${prior.marriageDate}). Under Philippine law, a remarriage after widowhood must take place after the prior marriage and after the passing of the first spouse."
+                }
+            }
+
+            // Rule 2: Proposed marriage date with new spouse is earlier than or on prior spouse's death date
+            if (prior.deathDate.isNotBlank()) {
+                val cmpDeath = compareChronology(proposedMDate, prior.deathDate)
+                if (cmpDeath != null && cmpDeath <= 0) {
+                    val priorMTag = if (prior.marriageDate.isNotBlank()) " (married on ${prior.marriageDate})" else ""
+                    return "Chronological & Legal Conflict (Article 35(4), Family Code): ${remarryingPerson.firstName} ${remarryingPerson.lastName} cannot marry ${newPartner.firstName} ${newPartner.lastName} on $proposedMDate because their prior spouse ${prior.firstName} ${prior.lastName} was still living until ${prior.deathDate}$priorMTag. Under Article 35(4) of the Family Code of the Philippines, a marriage contracted while a prior spouse is still living is bigamous and void from the beginning."
+                }
+            }
+        }
+        return null
+    }
+
+    private fun compareChronology(dateA: String, dateB: String): Int? {
+        val calA = parseDateToCalendar(dateA)
+        val calB = parseDateToCalendar(dateB)
+        if (calA != null && calB != null) {
+            return calA.timeInMillis.compareTo(calB.timeInMillis)
+        }
+        val yrA = extractYear(dateA)
+        val yrB = extractYear(dateB)
+        if (yrA != null && yrB != null) {
+            return yrA.compareTo(yrB)
+        }
+        return null
     }
 
     private fun parseDateToCalendar(dateStr: String): Calendar? = Companion.parseDateToCalendar(dateStr)
@@ -603,7 +754,7 @@ class MarriageValidationEngine(
         // ---------------------------------------------------------------------
         // RULE 5: A person cannot be linked as both biological parent and spouse
         // ---------------------------------------------------------------------
-        val areSpouses = isSameId(parent.spouseId, child.id) || isSameId(child.spouseId, parent.id)
+        val areSpouses = parent.hasSpouseId(child.id) || child.hasSpouseId(parent.id)
         if (areSpouses && isBiological(relationshipType)) {
             return RelationshipValidationResult(
                 isAllowed = false,
@@ -649,7 +800,7 @@ class MarriageValidationEngine(
                 isSameId(it.fatherId, parent.id) || isSameId(it.motherId, parent.id)
             }
             for (pChild in parentChildren) {
-                if (isSameId(pChild.spouseId, child.id) || isSameId(child.spouseId, pChild.id)) {
+                if (pChild.hasSpouseId(child.id) || child.hasSpouseId(pChild.id)) {
                     val inLawTitle = if (child.gender.equals("female", ignoreCase = true)) "daughter-in-law" else "son-in-law"
                     val inLawLabel = if (child.gender.equals("female", ignoreCase = true)) "Daughter-in-Law" else "Son-in-Law"
                     val childName = "${child.firstName} ${child.lastName}".trim()
@@ -672,7 +823,7 @@ class MarriageValidationEngine(
                 isSameId(it.fatherId, child.id) || isSameId(it.motherId, child.id)
             }
             for (cChild in childChildren) {
-                if (isSameId(cChild.spouseId, parent.id) || isSameId(parent.spouseId, cChild.id)) {
+                if (cChild.hasSpouseId(parent.id) || parent.hasSpouseId(cChild.id)) {
                     val inLawTitle = if (parent.gender.equals("female", ignoreCase = true)) "daughter-in-law" else "son-in-law"
                     val inLawLabel = if (parent.gender.equals("female", ignoreCase = true)) "Daughter-in-Law" else "Son-in-Law"
                     val parentName = "${parent.firstName} ${parent.lastName}".trim()

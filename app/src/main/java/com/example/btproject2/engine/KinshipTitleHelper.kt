@@ -97,7 +97,7 @@ object KinshipTitleHelper {
 
         val parentsAreSpouses = aParents.any { pA ->
             bParents.any { pB ->
-                pA.id != pB.id && (pA.spouseId == pB.id || pB.spouseId == pA.id)
+                pA.id != pB.id && (pA.hasSpouseId(pB.id) || pB.hasSpouseId(pA.id))
             }
         }
 
@@ -147,23 +147,30 @@ object KinshipTitleHelper {
         val father = person.fatherId?.let { byId[it] }
         val mother = person.motherId?.let { byId[it] }
 
-        // Step-parents: spouse of biological mother or father who is not direct parent
+        // Step-parents: any current or former spouse of biological mother or father who is not direct parent
         if (father != null && isBio(person.fatherRelationshipType)) {
-            val fatherSpouse = father.spouseId?.let { byId[it] }
-            if (fatherSpouse != null && fatherSpouse.id != person.motherId && !isAdopt(person.motherRelationshipType)) {
-                stepParents.add(fatherSpouse)
+            val fatherSpouses = (father.allSpouseIds().mapNotNull { byId[it] } +
+                allMembers.filter { it.hasSpouseId(father.id) }).distinctBy { it.id }
+            for (fatherSpouse in fatherSpouses) {
+                if (fatherSpouse.id != person.motherId && !isAdopt(person.motherRelationshipType)) {
+                    stepParents.add(fatherSpouse)
+                }
             }
         }
         if (mother != null && isBio(person.motherRelationshipType)) {
-            val motherSpouse = mother.spouseId?.let { byId[it] }
-            if (motherSpouse != null && motherSpouse.id != person.fatherId && !isAdopt(person.fatherRelationshipType)) {
-                stepParents.add(motherSpouse)
+            val motherSpouses = (mother.allSpouseIds().mapNotNull { byId[it] } +
+                allMembers.filter { it.hasSpouseId(mother.id) }).distinctBy { it.id }
+            for (motherSpouse in motherSpouses) {
+                if (motherSpouse.id != person.fatherId && !isAdopt(person.fatherRelationshipType)) {
+                    stepParents.add(motherSpouse)
+                }
             }
         }
 
-        // Step-children: children of person's spouse who are not person's children
-        val spouse = person.spouseId?.let { byId[it] }
-        if (spouse != null) {
+        // Step-children: children of any of person's spouses who are not person's children
+        val personSpouses = (person.allSpouseIds().mapNotNull { byId[it] } +
+            allMembers.filter { it.hasSpouseId(person.id) }).distinctBy { it.id }
+        for (spouse in personSpouses) {
             for (m in allMembers) {
                 if (m.id == person.id) continue
                 val isChildOfSpouse = m.fatherId == spouse.id || m.motherId == spouse.id
@@ -269,7 +276,9 @@ object KinshipTitleHelper {
         }
 
         val focalName = focal.firstName.ifBlank { "You" }
-        val focalSpouse = focal.spouseId?.let { byId[it] }
+        val focalSpouses = (focal.allSpouseIds().mapNotNull { byId[it] } +
+            allMembers.filter { it.hasSpouseId(focal.id) }).distinctBy { it.id }
+        val focalSpouse = focal.spouseId?.let { byId[it] } ?: focalSpouses.firstOrNull()
 
         // 2. Direct Parents (1st Degree Ascendant)
         if (focal.fatherId == target.id) {
@@ -285,10 +294,20 @@ object KinshipTitleHelper {
             return "MOTHER" to "Mother of $focalName"
         }
 
-        // 3. Spouse
-        if ((!focal.spouseId.isNullOrBlank() && focal.spouseId == target.id) ||
-            (!target.spouseId.isNullOrBlank() && target.spouseId == focal.id)
-        ) {
+        // 3. Spouse (Current or Former/Late Spouse)
+        if (focal.hasSpouseId(target.id) || target.hasSpouseId(focal.id)) {
+            val isFormer = focal.formerSpouseIds.any { it.equals(target.id, ignoreCase = true) } ||
+                target.formerSpouseIds.any { it.equals(focal.id, ignoreCase = true) }
+            if (isFormer) {
+                val prefix = if (!target.isLiving) "LATE" else "FORMER"
+                val roleWord = if (isMale) "HUSBAND" else if (isFemale) "WIFE" else "SPOUSE"
+                val subWord = if (!target.isLiving) {
+                    if (isMale) "Late Husband" else if (isFemale) "Late Wife" else "Late Spouse"
+                } else {
+                    if (isMale) "Former Husband" else if (isFemale) "Former Wife" else "Former Spouse"
+                }
+                return "$prefix $roleWord" to "$subWord of $focalName"
+            }
             val title = if (isMale) "HUSBAND" else if (isFemale) "WIFE" else "SPOUSE"
             val label = if (isMale) "Husband" else if (isFemale) "Wife" else "Spouse"
             return title to "$label of $focalName"
@@ -313,9 +332,11 @@ object KinshipTitleHelper {
 
         // 4b. Step-Parents (Spouse of biological parent, without being direct parent or adoptive parent)
         val isStepFather = (focalMother != null && isBio(focal.motherRelationshipType) &&
-                focalMother.spouseId == target.id && target.id != focal.fatherId && !isAdopt(focal.fatherRelationshipType))
+                (focalMother.hasSpouseId(target.id) || target.hasSpouseId(focalMother.id)) &&
+                target.id != focal.fatherId && !isAdopt(focal.fatherRelationshipType))
         val isStepMother = (focalFather != null && isBio(focal.fatherRelationshipType) &&
-                focalFather.spouseId == target.id && target.id != focal.motherId && !isAdopt(focal.motherRelationshipType))
+                (focalFather.hasSpouseId(target.id) || target.hasSpouseId(focalFather.id)) &&
+                target.id != focal.motherId && !isAdopt(focal.motherRelationshipType))
         if (isStepFather) {
             return "STEPFATHER" to "Stepfather of $focalName"
         }
@@ -323,8 +344,8 @@ object KinshipTitleHelper {
             return "STEPMOTHER" to "Stepmother of $focalName"
         }
 
-        // 4c. Step-Children (Child of spouse, without being direct child)
-        if (focalSpouse != null && (target.fatherId == focalSpouse.id || target.motherId == focalSpouse.id) &&
+        // 4c. Step-Children (Child of any spouse of focal, without being focal's direct child)
+        if (focalSpouses.any { sp -> target.fatherId == sp.id || target.motherId == sp.id } &&
             target.fatherId != focal.id && target.motherId != focal.id
         ) {
             val title = if (isMale) "STEPSON" else if (isFemale) "STEPDAUGHTER" else "STEPCHILD"
@@ -522,18 +543,18 @@ object KinshipTitleHelper {
             }
         }
 
-        // 14. In-Laws (Spouse Parents / Siblings / Child's Spouse)
-        if (focalSpouse != null) {
-            if (focalSpouse.fatherId == target.id) {
+        // 14. In-Laws (Spouse Parents / Siblings / Child's Spouse across all marriages)
+        for (sp in focalSpouses) {
+            if (sp.fatherId == target.id) {
                 return "FATHER-IN-LAW" to "Father-in-law of $focalName"
             }
-            if (focalSpouse.motherId == target.id) {
+            if (sp.motherId == target.id) {
                 return "MOTHER-IN-LAW" to "Mother-in-law of $focalName"
             }
             val spouseSiblingIds = mutableSetOf<String>()
-            focalSpouse.fatherId?.let { childrenOf[it]?.let { s -> spouseSiblingIds.addAll(s) } }
-            focalSpouse.motherId?.let { childrenOf[it]?.let { s -> spouseSiblingIds.addAll(s) } }
-            spouseSiblingIds.remove(focalSpouse.id)
+            sp.fatherId?.let { childrenOf[it]?.let { s -> spouseSiblingIds.addAll(s) } }
+            sp.motherId?.let { childrenOf[it]?.let { s -> spouseSiblingIds.addAll(s) } }
+            spouseSiblingIds.remove(sp.id)
             if (spouseSiblingIds.contains(target.id)) {
                 val title = if (isMale) "BROTHER-IN-LAW" else if (isFemale) "SISTER-IN-LAW" else "SIBLING-IN-LAW"
                 return title to "In-law of $focalName"
@@ -543,7 +564,7 @@ object KinshipTitleHelper {
         // Sibling's spouse
         val isSiblingSpouse = focalSiblingIds.any { sibId ->
             val sib = byId[sibId]
-            sib?.spouseId == target.id || target.spouseId == sibId
+            sib?.hasSpouseId(target.id) == true || target.hasSpouseId(sibId)
         }
         if (isSiblingSpouse) {
             val title = if (isMale) "BROTHER-IN-LAW" else if (isFemale) "SISTER-IN-LAW" else "SIBLING-IN-LAW"
@@ -553,7 +574,7 @@ object KinshipTitleHelper {
         // Child's spouse
         val isChildSpouse = focalChildIds.any { cId ->
             val c = byId[cId]
-            c?.spouseId == target.id || target.spouseId == cId
+            c?.hasSpouseId(target.id) == true || target.hasSpouseId(cId)
         }
         if (isChildSpouse) {
             val title = if (isMale) "SON-IN-LAW" else if (isFemale) "DAUGHTER-IN-LAW" else "CHILD-IN-LAW"

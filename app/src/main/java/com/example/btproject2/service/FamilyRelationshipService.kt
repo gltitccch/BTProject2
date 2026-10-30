@@ -336,9 +336,9 @@ class FamilyRelationshipService(
             return ServiceResult.failure(validation.reason, validation)
         }
 
-        // Apply mutation
-        val updatedA = personA.copy(spouseId = personBId, maritalStatus = "Married")
-        val updatedB = personB.copy(spouseId = personAId, maritalStatus = "Married")
+        // Apply mutation while preserving any deceased/dissolved former spouse in formerSpouseIds
+        val updatedA = personA.withLinkedSpouse(personBId, "Married")
+        val updatedB = personB.withLinkedSpouse(personAId, "Married")
 
         val updatedMap = tree.toMutableMap()
         updatedMap[personAId] = updatedA
@@ -414,14 +414,48 @@ class FamilyRelationshipService(
         when (relationshipToRemove) {
             RelationshipToRemove.SPOUSE -> {
                 val spouseId = secondaryPersonId ?: primary.spouseId
-                val updatedPrimary = primary.copy(spouseId = null, maritalStatus = "Single")
+                val updatedPrimaryFormer = if (!spouseId.isNullOrBlank()) {
+                    primary.formerSpouseIds.filterNot { isSameId(it, spouseId) }
+                } else {
+                    primary.formerSpouseIds
+                }
+                val newActivePrimarySpouse = if (spouseId != null && isSameId(primary.spouseId, spouseId)) {
+                    updatedPrimaryFormer.firstOrNull()
+                } else {
+                    primary.spouseId
+                }
+                val finalPrimaryFormer = if (newActivePrimarySpouse != null) {
+                    updatedPrimaryFormer.filterNot { isSameId(it, newActivePrimarySpouse) }
+                } else {
+                    updatedPrimaryFormer
+                }
+                val updatedPrimary = primary.copy(
+                    spouseId = newActivePrimarySpouse,
+                    formerSpouseIds = finalPrimaryFormer,
+                    maritalStatus = if (newActivePrimarySpouse == null) "Single" else primary.maritalStatus
+                )
                 updatedMap[primaryPersonId] = updatedPrimary
                 affected.add(updatedPrimary)
 
                 if (!spouseId.isNullOrBlank()) {
                     val spouse = tree[spouseId]
-                    if (spouse != null && isSameId(spouse.spouseId, primaryPersonId)) {
-                        val updatedSpouse = spouse.copy(spouseId = null, maritalStatus = "Single")
+                    if (spouse != null && spouse.hasSpouseId(primaryPersonId)) {
+                        val updatedSpouseFormer = spouse.formerSpouseIds.filterNot { isSameId(it, primaryPersonId) }
+                        val newActiveSpouseId = if (isSameId(spouse.spouseId, primaryPersonId)) {
+                            updatedSpouseFormer.firstOrNull()
+                        } else {
+                            spouse.spouseId
+                        }
+                        val finalSpouseFormer = if (newActiveSpouseId != null) {
+                            updatedSpouseFormer.filterNot { isSameId(it, newActiveSpouseId) }
+                        } else {
+                            updatedSpouseFormer
+                        }
+                        val updatedSpouse = spouse.copy(
+                            spouseId = newActiveSpouseId,
+                            formerSpouseIds = finalSpouseFormer,
+                            maritalStatus = if (newActiveSpouseId == null) "Single" else spouse.maritalStatus
+                        )
                         updatedMap[spouseId] = updatedSpouse
                         affected.add(updatedSpouse)
                     }
@@ -491,8 +525,8 @@ class FamilyRelationshipService(
                 } else if (!checkedSpousePairs.contains(pairKey)) {
                     checkedSpousePairs.add(pairKey)
 
-                    // Asymmetric spouse link check
-                    if (!isSameId(spouse.spouseId, person.id)) {
+                    // Asymmetric spouse link check (valid if spouse has person in either active spouseId or formerSpouseIds)
+                    if (!spouse.hasSpouseId(person.id)) {
                         issues.add(
                             TreeAuditIssue(
                                 severity = AuditSeverity.CRITICAL_ERROR,

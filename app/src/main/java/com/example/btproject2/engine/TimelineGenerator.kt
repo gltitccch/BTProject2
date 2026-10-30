@@ -46,7 +46,19 @@ class TimelineGenerator {
         }
 
         // Marriage
-        if (person.spouseId != null && person.marriageDate.isNotEmpty()) {
+        person.formerSpouseIds.filter { it.isNotBlank() && it != person.spouseId }.distinct().forEach { fId ->
+            val formerSpouse = allPersons.firstOrNull { it.id == fId }
+            val formerName = formerSpouse?.let { "${it.firstName} ${it.lastName}" } ?: "Former Spouse"
+            val fMarriageDate = formerSpouse?.marriageDate.orEmpty()
+            val year = if (fMarriageDate.isNotEmpty()) extractYearString(fMarriageDate) else "—"
+            val sortYr = if (year != "—" && year.isNotEmpty()) yearToInt(year) else 9996
+            events.add(TimelineEvent(year.ifEmpty { "—" }, "💍", "Married $formerName (Prior marriage)", sortYr))
+            if (formerSpouse != null && !formerSpouse.isLiving && formerSpouse.deathDate.isNotEmpty()) {
+                val dYr = extractYearString(formerSpouse.deathDate)
+                events.add(TimelineEvent(dYr, "🕊", "Widowed (Passing of $formerName)", yearToInt(dYr)))
+            }
+        }
+        if (person.spouseId != null && (person.marriageDate.isNotEmpty() || person.formerSpouseIds.isNotEmpty())) {
             val spouse = allPersons.firstOrNull { it.id == person.spouseId }
             val spouseName = spouse?.let { "${it.firstName} ${it.lastName}" } ?: "Spouse"
             val year = extractYearString(person.marriageDate)

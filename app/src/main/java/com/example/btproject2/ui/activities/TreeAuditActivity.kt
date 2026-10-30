@@ -4,6 +4,8 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -281,10 +283,11 @@ class TreeAuditActivity : AppCompatActivity(), SyncEventListener {
         val tvHeadline = dialogView.findViewById<TextView>(R.id.tvWizardQuestionHeadline)
         val tvExplain = dialogView.findViewById<TextView>(R.id.tvWizardQuestionExplain)
         val tvHelper = dialogView.findViewById<TextView>(R.id.tvWizardHelperPrompt)
-        val btnPrimary = dialogView.findViewById<android.widget.Button>(R.id.btnWizardPrimaryChoice)
-        val btnSecondary = dialogView.findViewById<android.widget.Button>(R.id.btnWizardSecondaryChoice)
-        val btnPrev = dialogView.findViewById<android.widget.Button>(R.id.btnWizardPrev)
-        val btnSkip = dialogView.findViewById<android.widget.Button>(R.id.btnWizardSkip)
+        val layoutOptionsGroup = dialogView.findViewById<LinearLayout>(R.id.layoutWizardOptionsGroup)
+        val btnPrimary = dialogView.findViewById<Button>(R.id.btnWizardPrimaryChoice)
+        val btnSecondary = dialogView.findViewById<Button>(R.id.btnWizardSecondaryChoice)
+        val btnPrev = dialogView.findViewById<Button>(R.id.btnWizardPrev)
+        val btnSkip = dialogView.findViewById<Button>(R.id.btnWizardSkip)
 
         // Hide reckless blind bulk fix; always guide user through verified steps
         btnFixAll.visibility = View.GONE
@@ -313,6 +316,7 @@ class TreeAuditActivity : AppCompatActivity(), SyncEventListener {
             tvHeadline.text = "“Tree Integrity Verified!”"
             tvExplain.text = "All relationship connections, spouses, and parent links have been validated."
             tvHelper.text = "✨ 0 issues remaining."
+            layoutOptionsGroup?.removeAllViews()
 
             btnPrimary.isEnabled = true
             btnPrimary.text = "✓ Return to Audit Report"
@@ -351,17 +355,81 @@ class TreeAuditActivity : AppCompatActivity(), SyncEventListener {
             tvExplain.text = item.simpleExplanation
             tvHelper.text = item.helperPrompt
 
-            btnPrimary.isEnabled = true
-            btnSecondary.isEnabled = true
-            btnSecondary.visibility = if (item.canAutoFix) View.GONE else View.VISIBLE
+            btnSecondary.visibility = View.GONE
+            layoutOptionsGroup?.removeAllViews()
 
-            if (item.canAutoFix) {
-                val cleanLabel = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim()
-                btnPrimary.text = "⚡ Apply Safe Fix: $cleanLabel"
+            val currentOptions = if (item.options.isNotEmpty()) {
+                item.options
             } else {
-                btnPrimary.text = item.primaryActionLabel
-                btnSecondary.text = item.secondaryActionLabel
+                listOf(
+                    com.example.btproject2.engine.ConflictScanner.ResolutionOption(
+                        id = "default_safe_fix",
+                        title = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim(),
+                        tag = "Safe Fix",
+                        tagType = "safe",
+                        description = item.simpleExplanation,
+                        actionType = if (item.canAutoFix) com.example.btproject2.engine.ConflictScanner.ResolutionActionType.UNLINK else com.example.btproject2.engine.ConflictScanner.ResolutionActionType.EDIT_PROFILE,
+                        targetField = item.field
+                    )
+                )
             }
+
+            var selectedOptionIndex = currentOptions.indexOfFirst { it.actionType == com.example.btproject2.engine.ConflictScanner.ResolutionActionType.SET_ADOPTIVE }
+            if (selectedOptionIndex < 0) selectedOptionIndex = 0
+
+            val cardViews = mutableListOf<View>()
+
+            fun updateSelectionUI() {
+                val chosen = currentOptions.getOrNull(selectedOptionIndex) ?: currentOptions[0]
+                btnPrimary.isEnabled = true
+                btnPrimary.text = "✨ Apply: ${chosen.title}"
+
+                cardViews.forEachIndexed { idx, cardView ->
+                    val isSelected = idx == selectedOptionIndex
+                    cardView.setBackgroundResource(
+                        if (isSelected) R.drawable.bg_wizard_option_card_selected else R.drawable.bg_wizard_option_card_default
+                    )
+                    val ivRadio = cardView.findViewById<ImageView>(R.id.ivOptionRadio)
+                    ivRadio?.setImageResource(
+                        if (isSelected) R.drawable.ic_wizard_radio_checked else R.drawable.ic_wizard_radio_unchecked
+                    )
+                }
+            }
+
+            currentOptions.forEachIndexed { index, option ->
+                val cardView = layoutInflater.inflate(R.layout.item_wizard_resolution_option, layoutOptionsGroup, false)
+                val tvTitle = cardView.findViewById<TextView>(R.id.tvOptionTitle)
+                val tvBadge = cardView.findViewById<TextView>(R.id.tvOptionBadge)
+                val tvDesc = cardView.findViewById<TextView>(R.id.tvOptionDescription)
+
+                tvTitle.text = option.title
+                tvBadge.text = option.tag
+                when (option.tagType) {
+                    "legal" -> {
+                        tvBadge.setBackgroundResource(R.drawable.badge_pill_mint)
+                        tvBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+                    }
+                    "edit" -> {
+                        tvBadge.setBackgroundResource(R.drawable.badge_pill_slate)
+                        tvBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.text_secondary))
+                    }
+                    else -> {
+                        tvBadge.setBackgroundResource(R.drawable.badge_pill_gold)
+                        tvBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.btn_gold_text))
+                    }
+                }
+                tvDesc.text = option.description
+
+                cardView.setOnClickListener {
+                    selectedOptionIndex = index
+                    updateSelectionUI()
+                }
+
+                cardViews.add(cardView)
+                layoutOptionsGroup?.addView(cardView)
+            }
+
+            updateSelectionUI()
 
             btnPrev.visibility = if (total > 1) View.VISIBLE else View.GONE
             btnPrev.isEnabled = currentIndex > 0
@@ -369,45 +437,47 @@ class TreeAuditActivity : AppCompatActivity(), SyncEventListener {
             btnSkip.text = if (currentIndex < total - 1) "Skip for Now →" else "Close"
 
             btnPrimary.setOnClickListener {
-                if (item.canAutoFix) {
-                    btnPrimary.isEnabled = false
-                    btnPrimary.text = "⏳ Saving..."
-                    firestoreHelper.autoRepairConflict(
-                        conflict = item,
-                        allPersons = currentPersons,
-                        onSuccess = { updatedPerson ->
-                            runOnUiThread {
-                                if (updatedPerson != null) {
-                                    currentPersons = currentPersons.map { if (it.id == updatedPerson.id) updatedPerson else it }
-                                }
-                                activeConflicts.removeAt(currentIndex)
-                                if (updatedPerson != null) {
-                                    CentralTreeSynchronizer.getInstance().notifyRelationshipCorrected(
-                                        primaryPerson = updatedPerson,
-                                        sourceScreen = "GuidedTreeAudit"
-                                    )
-                                }
-                                runTreeAudit()
-                                renderCurrentStep()
-                            }
-                        },
-                        onFailure = { err ->
-                            runOnUiThread {
-                                btnPrimary.isEnabled = true
-                                val cleanLabel = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim()
-                                btnPrimary.text = "⚡ Apply Safe Fix: $cleanLabel"
-                                com.example.btproject2.utils.KinTraceAlert.warning(this, "Could Not Save", err.message ?: "Please try again.")
-                            }
-                        }
-                    )
-                } else {
+                val chosen = currentOptions.getOrNull(selectedOptionIndex) ?: currentOptions[0]
+                if (chosen.actionType == com.example.btproject2.engine.ConflictScanner.ResolutionActionType.EDIT_PROFILE) {
                     dialog.dismiss()
+                    val targetPersonId = if (item.field == "motherId" && chosen.id.contains("mother")) {
+                        item.relatedPersonId.ifBlank { item.personId }
+                    } else {
+                        item.personId
+                    }
                     val intent = Intent(this, EditMemberActivity::class.java).apply {
-                        putExtra("personId", item.personId)
+                        putExtra("personId", targetPersonId)
                         putExtra("TREE_ID", treeId)
                     }
                     startActivity(intent)
+                    return@setOnClickListener
                 }
+
+                btnPrimary.isEnabled = false
+                btnPrimary.text = "⏳ Applying Resolution..."
+                firestoreHelper.executeResolutionAction(
+                    conflict = item,
+                    option = chosen,
+                    allPersons = currentPersons,
+                    onSuccess = { updatedPerson ->
+                        runOnUiThread {
+                            if (updatedPerson != null) {
+                                currentPersons = currentPersons.map { if (it.id == updatedPerson.id) updatedPerson else it }
+                            }
+                            activeConflicts.removeAt(currentIndex)
+                            com.example.btproject2.utils.KinTraceAlert.conflict(this, "Resolution Applied", "${chosen.title} saved successfully.")
+                            runTreeAudit()
+                            renderCurrentStep()
+                        }
+                    },
+                    onFailure = { err ->
+                        runOnUiThread {
+                            btnPrimary.isEnabled = true
+                            btnPrimary.text = "✨ Apply: ${chosen.title}"
+                            com.example.btproject2.utils.KinTraceAlert.warning(this, "Could Not Save", err.message ?: "Please try again.")
+                        }
+                    }
+                )
             }
 
             btnSecondary.setOnClickListener {

@@ -449,8 +449,10 @@ class ExportTreeActivity : AppCompatActivity() {
                             canvas.drawText(shortDate, colX[4] + 4f, rowY + 16f, pCellText)
 
                             // 6. Spouse
-                            val spouse = personMap[p.spouseId]
-                            val spouseStr = if (spouse != null) "${spouse.firstName} ${spouse.lastName}".trim() else "None"
+                            val spouseList = p.allSpouseIds().mapNotNull { personMap[it] }
+                            val spouseStr = if (spouseList.isNotEmpty()) {
+                                spouseList.joinToString(" · ") { "${it.firstName} ${it.lastName}".trim() }
+                            } else "None"
                             val shortSpouse = android.text.TextUtils.ellipsize(spouseStr, android.text.TextPaint(pCellText), colW[5] - 8f, android.text.TextUtils.TruncateAt.END).toString()
                             canvas.drawText(shortSpouse, colX[5] + 4f, rowY + 16f, pCellText)
 
@@ -568,8 +570,8 @@ class ExportTreeActivity : AppCompatActivity() {
                         p.deathPlace,
                         p.maritalStatus,
                         p.marriageDate,
-                        p.spouseId ?: "",
-                        spouse?.let { "${it.firstName} ${it.lastName}".trim() } ?: "",
+                        p.allSpouseIds().joinToString("; "),
+                        p.allSpouseIds().mapNotNull { personMap[it] }.joinToString("; ") { "${it.firstName} ${it.lastName}".trim() },
                         p.fatherId ?: "",
                         father?.let { "${it.firstName} ${it.lastName}".trim() } ?: "",
                         p.motherId ?: "",
@@ -696,11 +698,9 @@ class ExportTreeActivity : AppCompatActivity() {
                 }
             }
 
-            // 1. Register spousal pairs first
+            // 1. Register spousal pairs first (both active spouseId and formerSpouseIds)
             persons.forEach { p ->
-                val spId = p.spouseId?.takeIf { personById.containsKey(it) }
-                if (spId != null) {
-                    val spouse = personById[spId]!!
+                p.allSpouseIds().mapNotNull { personById[it] }.forEach { spouse ->
                     val isP1Female = p.gender.equals("Female", ignoreCase = true)
                     val isP2Female = spouse.gender.equals("Female", ignoreCase = true)
                     val (husb, wife) = when {
@@ -709,7 +709,12 @@ class ExportTreeActivity : AppCompatActivity() {
                         p.id < spouse.id -> p.id to spouse.id
                         else -> spouse.id to p.id
                     }
-                    val mDate = p.marriageDate.ifBlank { spouse.marriageDate }
+                    val isFormerLink = p.formerSpouseIds.contains(spouse.id) || spouse.formerSpouseIds.contains(p.id)
+                    val mDate = if (isFormerLink) {
+                        if (!spouse.isLiving) spouse.marriageDate.ifBlank { p.marriageDate } else p.marriageDate.ifBlank { spouse.marriageDate }
+                    } else {
+                        p.marriageDate.ifBlank { spouse.marriageDate }
+                    }
                     getOrCreateFamily(husb, wife, mDate)
                 }
             }

@@ -105,6 +105,7 @@ class MergeSimulationEngine(
                 fatherId = idMap[p.fatherId] ?: p.fatherId,
                 motherId = idMap[p.motherId] ?: p.motherId,
                 spouseId = idMap[p.spouseId] ?: p.spouseId,
+                formerSpouseIds = p.formerSpouseIds.map { oldId -> idMap[oldId] ?: oldId },
                 createdBy = config.currentUserId,
                 createdAt = System.currentTimeMillis()
             )
@@ -126,8 +127,8 @@ class MergeSimulationEngine(
 
             when (config.mode) {
                 MergeBridgeValidator.BridgeMode.SPOUSAL_UNION -> {
-                    clonedList[idxA] = clonedA.copy(spouseId = clonedB.id, maritalStatus = "Married")
-                    clonedList[idxB] = clonedB.copy(spouseId = clonedA.id, maritalStatus = "Married")
+                    clonedList[idxA] = clonedA.withLinkedSpouse(clonedB.id, "Married")
+                    clonedList[idxB] = clonedB.withLinkedSpouse(clonedA.id, "Married")
                     bridgeDesc = "💍 ${clonedA.firstName} ${clonedA.lastName} married to ${clonedB.firstName} ${clonedB.lastName}"
                 }
 
@@ -149,10 +150,15 @@ class MergeSimulationEngine(
                         if (item.fatherId == clonedB.id) item = item.copy(fatherId = clonedA.id)
                         if (item.motherId == clonedB.id) item = item.copy(motherId = clonedA.id)
                         if (item.spouseId == clonedB.id) item = item.copy(spouseId = clonedA.id)
+                        if (item.formerSpouseIds.contains(clonedB.id)) {
+                            item = item.copy(
+                                formerSpouseIds = item.formerSpouseIds.map { if (it == clonedB.id) clonedA.id else it }.distinct()
+                            )
+                        }
                         clonedList[i] = item
                     }
 
-                    // Intelligent Ancestral Lineage Migration: Preserve upstream parents if clonedA lacks them
+                    // Intelligent Ancestral Lineage Migration: Preserve upstream parents and former/current spouses if clonedA lacks them
                     var mergedA = clonedList[idxA]
                     if (mergedA.fatherId.isNullOrEmpty() && !clonedB.fatherId.isNullOrEmpty()) {
                         mergedA = mergedA.copy(fatherId = clonedB.fatherId, fatherRelationshipType = clonedB.fatherRelationshipType)
@@ -160,9 +166,22 @@ class MergeSimulationEngine(
                     if (mergedA.motherId.isNullOrEmpty() && !clonedB.motherId.isNullOrEmpty()) {
                         mergedA = mergedA.copy(motherId = clonedB.motherId, motherRelationshipType = clonedB.motherRelationshipType)
                     }
+                    val combinedFormerSpouses = (mergedA.formerSpouseIds + clonedB.formerSpouseIds).distinct().toMutableList()
                     if (mergedA.spouseId.isNullOrEmpty() && !clonedB.spouseId.isNullOrEmpty()) {
                         mergedA = mergedA.copy(spouseId = clonedB.spouseId, maritalStatus = clonedB.maritalStatus)
+                    } else if (!mergedA.spouseId.isNullOrEmpty() && !clonedB.spouseId.isNullOrEmpty() && mergedA.spouseId != clonedB.spouseId) {
+                        val spouseAObj = clonedList.find { it.id == mergedA.spouseId }
+                        val spouseBObj = clonedList.find { it.id == clonedB.spouseId }
+                        if (spouseAObj != null && (!spouseAObj.isLiving || spouseAObj.deathDate.isNotBlank())) {
+                            combinedFormerSpouses.add(mergedA.spouseId!!)
+                            mergedA = mergedA.copy(spouseId = clonedB.spouseId, maritalStatus = clonedB.maritalStatus)
+                        } else if (spouseBObj != null) {
+                            combinedFormerSpouses.add(clonedB.spouseId!!)
+                        }
                     }
+                    mergedA = mergedA.copy(
+                        formerSpouseIds = combinedFormerSpouses.filter { it.isNotBlank() && it != mergedA.spouseId }.distinct()
+                    )
                     clonedList[idxA] = mergedA
 
                     // Remove redundant duplicate node B

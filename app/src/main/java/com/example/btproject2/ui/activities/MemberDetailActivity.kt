@@ -786,9 +786,18 @@ class MemberDetailActivity : AppCompatActivity() {
         }
 
         // ── Spouse (Mutual Resolution & Self-Healing) ────────────
-        val spouse = resolvedSpouse
+        val allLinkedSpouses = com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouses(person, allMembers)
+        val spouse = resolvedSpouse ?: allLinkedSpouses.firstOrNull()
         if (spouse != null) {
-            tvSpouseName.text = "${spouse.firstName} ${spouse.lastName}"
+            tvSpouseName.text = if (allLinkedSpouses.size > 1) {
+                allLinkedSpouses.joinToString(" · ") { sp ->
+                    val isPrimary = com.example.btproject2.engine.FamilyLinkValidator.isSameId(sp.id, person.spouseId)
+                    val tag = if (isPrimary) "" else if (!sp.isLiving || sp.deathDate.isNotBlank()) " (Late)" else " (Former)"
+                    "${sp.firstName} ${sp.lastName}$tag"
+                }
+            } else {
+                "${spouse.firstName} ${spouse.lastName}"
+            }
             // Always show marriage date row when a spouse is set
             rowMarriageDate.visibility = View.VISIBLE
             val effectiveMarriageDate = person.marriageDate.ifEmpty { spouse.marriageDate }
@@ -797,13 +806,16 @@ class MemberDetailActivity : AppCompatActivity() {
                 else "Tap to set date"
 
             // Self-healing: if person's record in database was missing reciprocal spouseId or status, silently repair it once (never for Viewers)
-            val needsReciprocalRepair = person.spouseId.isNullOrEmpty() ||
+            val isHistoricalFormer = person.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, spouse.id) } ||
+                spouse.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it, person.id) }
+            val needsReciprocalRepair = !isHistoricalFormer && (person.spouseId.isNullOrEmpty() ||
                 !com.example.btproject2.engine.FamilyLinkValidator.isSameId(person.spouseId, spouse.id) ||
-                !person.maritalStatus.equals("Married", ignoreCase = true)
+                (!person.maritalStatus.equals("Married", ignoreCase = true) && !person.maritalStatus.equals("Widowed", ignoreCase = true)))
             if (!isViewer && needsReciprocalRepair) {
                 val repairKey = "${person.id.trim().lowercase()}:${spouse.id.trim().lowercase()}"
                 if (repairedSpousePairKeys.add(repairKey)) {
-                    firestoreHelper.updateSpouse(person.id, spouse.id, "Married", onSuccess = {}, onFailure = {})
+                    val targetStatus = if ((!spouse.isLiving || spouse.deathDate.isNotBlank()) && person.isLiving) "Widowed" else "Married"
+                    firestoreHelper.updateSpouse(person.id, spouse.id, targetStatus, onSuccess = {}, onFailure = {})
                 }
             }
         } else {
@@ -1911,7 +1923,7 @@ class MemberDetailActivity : AppCompatActivity() {
                     0 -> {
                         // Choice 1: Add a biological or adoptive child
                         val parent = allMembers.find { it.id == parentId }
-                        if (parent != null && !parent.spouseId.isNullOrBlank()) {
+                        if (parent != null && (parent.allSpouseIds().isNotEmpty() || com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouses(parent, allMembers).isNotEmpty())) {
                             com.example.btproject2.utils.AddChildBiologicalParentDialogHelper.showIdentifyOtherParentDialog(
                                 context = this,
                                 parent = parent,
@@ -1973,7 +1985,8 @@ class MemberDetailActivity : AppCompatActivity() {
             val spouseNote = if (!child.spouseId.isNullOrBlank()) {
                 val sp = allMembers.find { it.id == child.spouseId }
                 val spName = sp?.let { "${it.firstName} ${it.lastName}" } ?: "existing spouse"
-                " (Married to $spName)"
+                val isWidowed = sp != null && (!sp.isLiving || sp.deathDate.isNotBlank())
+                if (isWidowed) " (Widowed · Late spouse: $spName)" else " (Married to $spName)"
             } else ""
             "${child.firstName} ${child.lastName}$spouseNote"
         }.toTypedArray()
@@ -1984,13 +1997,17 @@ class MemberDetailActivity : AppCompatActivity() {
                 val selectedChild = children[which]
                 if (!selectedChild.spouseId.isNullOrBlank()) {
                     val sp = allMembers.find { it.id == selectedChild.spouseId }
-                    val spName = sp?.let { "${it.firstName} ${it.lastName}" } ?: "another spouse"
-                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                        .setTitle("Child Already Married")
-                        .setMessage("Unable to add this person as a spouse because one member already has an active spouse relationship.\n\n${selectedChild.firstName} ${selectedChild.lastName} is already married to $spName (Philippine Family Code Articles 35(4) and 40).")
-                        .setPositiveButton("Understood", null)
-                        .show()
-                    return@setItems
+                    val isActiveMarriage = sp != null && sp.isLiving && sp.deathDate.isBlank() &&
+                        selectedChild.maritalStatus.equals("Married", ignoreCase = true)
+                    if (isActiveMarriage) {
+                        val spName = "${sp?.firstName.orEmpty()} ${sp?.lastName.orEmpty()}".trim().ifEmpty { "another spouse" }
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                            .setTitle("Child Already Married")
+                            .setMessage("Unable to add this person as a spouse because one member already has an active spouse relationship.\n\n${selectedChild.firstName} ${selectedChild.lastName} is already married to $spName (Philippine Family Code Articles 35(4) and 40).")
+                            .setPositiveButton("Understood", null)
+                            .show()
+                        return@setItems
+                    }
                 }
 
                 val intent = Intent(this, AddMemberActivity::class.java).apply {

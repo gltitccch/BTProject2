@@ -20,6 +20,7 @@ data class ArchivedMemberRecord(
     val originalFatherId: String? = null,
     val originalMotherId: String? = null,
     val originalSpouseId: String? = null,
+    val originalFormerSpouseIds: List<String> = emptyList(),
     val formerFatherChildIds: List<String> = emptyList(),
     val formerMotherChildIds: List<String> = emptyList(),
     @get:PropertyName("isRestored") @set:PropertyName("isRestored") var isRestored: Boolean = false

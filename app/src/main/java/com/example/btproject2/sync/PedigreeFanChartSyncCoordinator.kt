@@ -102,6 +102,11 @@ class PedigreeFanChartSyncCoordinator(
                             maritalStatus = if (modified.maritalStatus.equals("Married", ignoreCase = true)) "Single" else modified.maritalStatus
                         )
                     }
+                    if (p.formerSpouseIds.contains(deletedId)) {
+                        modified = modified.copy(
+                            formerSpouseIds = p.formerSpouseIds.filterNot { it == deletedId }
+                        )
+                    }
                     modified
                 }
                 allPersonsList = FirestoreHelper.sanitizeTreeRecords(remaining)

@@ -27,6 +27,7 @@ class LoginActivity : AppCompatActivity() {
         val bypassAuthCheck = intent.getBooleanExtra("bypass_auth_check", false)
         if (bypassAuthCheck) {
             authHelper.logout()
+            HomeActivity.resetThemeSessionFlags()
             com.example.btproject2.utils.TreePreferences.clear(this)
             com.example.btproject2.firebase.FirestoreHelper.clearCache()
             com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
@@ -89,12 +90,14 @@ class LoginActivity : AppCompatActivity() {
 
             authHelper.login(email, password,
                 onSuccess = { user ->
+                    HomeActivity.resetThemeSessionFlags()
                     com.example.btproject2.utils.TreePreferences.clear(this)
                     com.example.btproject2.firebase.FirestoreHelper.clearCache()
                     com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
                     com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
 
                     if (com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(user.email)) {
+                        com.example.btproject2.utils.TreePreferences.clearUserRememberedTree(this, user.uid)
                         com.example.btproject2.utils.OnboardingPreferences.resetOnboardingState(this, user.uid)
                         firestoreHelper.saveOnboardingState(
                             user.uid,
@@ -160,12 +163,14 @@ class LoginActivity : AppCompatActivity() {
 
         authHelper.login(account.email, account.password,
             onSuccess = { user ->
+                HomeActivity.resetThemeSessionFlags()
                 com.example.btproject2.utils.TreePreferences.clear(this)
                 com.example.btproject2.firebase.FirestoreHelper.clearCache()
                 com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
                 com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().resetForTesting()
 
                 if (com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(account.email)) {
+                    com.example.btproject2.utils.TreePreferences.clearUserRememberedTree(this, user.uid)
                     com.example.btproject2.utils.OnboardingPreferences.resetOnboardingState(this, user.uid)
                     firestoreHelper.saveOnboardingState(
                         user.uid,
@@ -192,7 +197,9 @@ class LoginActivity : AppCompatActivity() {
                     authHelper.register(account.email, account.password,
                         onSuccess = { createdUser ->
                             authHelper.updateDisplayName(account.name, onSuccess = {}, onFailure = {})
+                            HomeActivity.resetThemeSessionFlags()
                             com.example.btproject2.utils.TreePreferences.clear(this)
+                            com.example.btproject2.utils.TreePreferences.clearUserRememberedTree(this, createdUser.uid)
                             com.example.btproject2.utils.OnboardingPreferences.resetOnboardingState(this, createdUser.uid)
                             com.example.btproject2.firebase.FirestoreHelper.clearCache()
                             com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()
@@ -230,7 +237,9 @@ class LoginActivity : AppCompatActivity() {
         authHelper.register(email, password,
             onSuccess = { createdUser ->
                 authHelper.updateDisplayName("New Member", onSuccess = {}, onFailure = {})
+                HomeActivity.resetThemeSessionFlags()
                 com.example.btproject2.utils.TreePreferences.clear(this)
+                com.example.btproject2.utils.TreePreferences.clearUserRememberedTree(this, createdUser.uid)
                 com.example.btproject2.utils.OnboardingPreferences.resetOnboardingState(this, createdUser.uid)
                 com.example.btproject2.firebase.FirestoreHelper.clearCache()
                 com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().stopRealtimeListener()

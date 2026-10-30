@@ -252,27 +252,6 @@ class EditMemberActivity : AppCompatActivity() {
 
             val originalPerson = currentPerson ?: return@setOnClickListener
 
-            val updated = originalPerson.copy(
-                firstName = firstName,
-                middleName = middleName,
-                lastName = lastName,
-                suffix = suffix,
-                gender = gender,
-                birthDate = selectedBirthDate,
-                birthPlace = birthPlace,
-                isLiving = isLiving,
-                deathDate = if (!isLiving) effectiveDeathDate else "",
-                deathPlace = if (!isLiving) deathPlace else "",
-                maritalStatus = if (!spouseId.isNullOrEmpty()) "Married" else civil,
-                marriageDate = effectiveMarriageDate,
-                fatherId = fatherId,
-                fatherRelationshipType = fatherRelationshipType,
-                motherId = motherId,
-                motherRelationshipType = motherRelationshipType,
-                spouseId = spouseId,
-                biography = bio
-            )
-
             val effectiveTree = currentPerson?.treeId.orEmpty().ifBlank {
                 intent.getStringExtra("TREE_ID")
                     ?: intent.getStringExtra("treeId")
@@ -292,8 +271,49 @@ class EditMemberActivity : AppCompatActivity() {
                     } else true
                 }
                 .distinctBy { it.id.trim().lowercase() }
+
+            val selectedSpouseObj = spouseId?.let { sid -> effectiveMembers.find { it.id == sid } }
+            val resolvedMaritalStatus = if (!spouseId.isNullOrEmpty()) {
+                if (selectedSpouseObj != null && (!selectedSpouseObj.isLiving || selectedSpouseObj.deathDate.isNotBlank())) {
+                    if (isLiving) "Widowed" else "Married"
+                } else if (civil.equals("Separated", ignoreCase = true) ||
+                    civil.equals("Annulled", ignoreCase = true) ||
+                    civil.equals("Divorced", ignoreCase = true)
+                ) {
+                    civil
+                } else {
+                    "Married"
+                }
+            } else civil
+
+            val updated = originalPerson.copy(
+                firstName = firstName,
+                middleName = middleName,
+                lastName = lastName,
+                suffix = suffix,
+                gender = gender,
+                birthDate = selectedBirthDate,
+                birthPlace = birthPlace,
+                isLiving = isLiving,
+                deathDate = if (!isLiving) effectiveDeathDate else "",
+                deathPlace = if (!isLiving) deathPlace else "",
+                maritalStatus = resolvedMaritalStatus,
+                marriageDate = effectiveMarriageDate,
+                fatherId = fatherId,
+                fatherRelationshipType = fatherRelationshipType,
+                motherId = motherId,
+                motherRelationshipType = motherRelationshipType,
+                spouseId = spouseId,
+                biography = bio
+            )
+
             val treeMap = effectiveMembers.associateBy { it.id }.toMutableMap()
-            treeMap[updated.id] = updated
+            // Keep originalPerson.spouseId & maritalStatus in treeMap during pre-flight spouse check
+            // so changing a living active spouse is properly evaluated against bigamy rules.
+            treeMap[updated.id] = updated.copy(
+                spouseId = originalPerson.spouseId,
+                maritalStatus = originalPerson.maritalStatus
+            )
 
             // Mandatory Step-Parent Rule: Step-parent cannot be saved as biological parent
             if ((fatherId != null && fatherRelationshipType.equals("Step", ignoreCase = true)) ||
@@ -445,6 +465,13 @@ class EditMemberActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val validatedUpdated = if (!spouseId.isNullOrEmpty()) {
+                val linked = originalPerson.withLinkedSpouse(spouseId, updated.maritalStatus)
+                updated.copy(formerSpouseIds = linked.formerSpouseIds)
+            } else {
+                updated
+            }
+
             if (linkResult.hasWarnings) {
                 val hasPosthumousWarning = linkResult.warnings.any { it.title.contains("Posthumous", ignoreCase = true) }
                 val warningText = linkResult.warnings.joinToString("\n") { "⚠️ ${it.message}" }
@@ -455,13 +482,13 @@ class EditMemberActivity : AppCompatActivity() {
                         val currentUserId = authHelper.getCurrentUserId().orEmpty()
                         val conflictMsg = linkResult.warnings.firstOrNull()?.message ?: "Biological relationship warning."
                         val notif = NotificationHelper.createValidationConflictNotification(
-                            treeId = updated.treeId.ifEmpty { TreePreferences.getActiveTreeId(this) },
+                            treeId = validatedUpdated.treeId.ifEmpty { TreePreferences.getActiveTreeId(this) },
                             userId = currentUserId,
-                            memberName = "${updated.firstName} ${updated.lastName}".trim(),
+                            memberName = "${validatedUpdated.firstName} ${validatedUpdated.lastName}".trim(),
                             conflictDetails = conflictMsg
                         )
                         firestoreHelper.addNotification(notif)
-                        val personToSave = if (hasPosthumousWarning) updated.copy(hasTimelineConflict = true) else updated
+                        val personToSave = if (hasPosthumousWarning) validatedUpdated.copy(hasTimelineConflict = true) else validatedUpdated
                         saveUpdatedMember(personToSave, originalPerson)
                     }
                     .setNegativeButton("Cancel", null)
@@ -469,7 +496,7 @@ class EditMemberActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            saveUpdatedMember(updated, originalPerson)
+            saveUpdatedMember(validatedUpdated, originalPerson)
         }
     }
 

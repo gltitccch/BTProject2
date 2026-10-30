@@ -1,4 +1,4 @@
-﻿package com.example.btproject2.ui.activities
+package com.example.btproject2.ui.activities
 
 import android.app.DatePickerDialog
 import android.content.Intent
@@ -383,14 +383,25 @@ class AddMemberActivity : AppCompatActivity() {
                 if (selectedMarriageDate.isNotBlank()) selectedMarriageDate else enteredMarriageDate
             } else ""
 
+            val effectiveMembers = getEffectiveTreeMembers()
+            val selectedSpouseObj = spouseId?.let { sid -> effectiveMembers.find { it.id == sid } }
+            val resolvedMaritalStatus = if (!spouseId.isNullOrEmpty()) {
+                if (selectedSpouseObj != null && (!selectedSpouseObj.isLiving || selectedSpouseObj.deathDate.isNotBlank())) {
+                    if (isLiving) "Widowed" else "Married"
+                } else {
+                    "Married"
+                }
+            } else civil
+
             val tempPerson = Person(
+                id = "__draft_new_member__",
                 firstName = firstName,
                 lastName = lastName,
                 gender = gender,
                 birthDate = selectedDate,
                 isLiving = isLiving,
                 deathDate = deathDate,
-                maritalStatus = if (!spouseId.isNullOrEmpty()) "Married" else civil,
+                maritalStatus = resolvedMaritalStatus,
                 marriageDate = effectiveMarriageDate,
                 motherId = motherId,
                 motherRelationshipType = motherRelationshipType,
@@ -404,7 +415,6 @@ class AddMemberActivity : AppCompatActivity() {
                 documents = attachedDocumentsList
             )
 
-            val effectiveMembers = getEffectiveTreeMembers()
             val treeMap = effectiveMembers.associateBy { it.id }.toMutableMap()
             treeMap[tempPerson.id] = tempPerson
 
@@ -849,7 +859,7 @@ class AddMemberActivity : AppCompatActivity() {
         spinnerSpouse.setDarkAdapter(this, spouseNames)
 
         // Trigger Identify Other Parent dialog if member has a spouse and choice hasn't been made yet
-        if (presetParent != null && !presetParent.spouseId.isNullOrBlank() && coParentChoice == null && !hasPromptedOtherParentDialog) {
+        if (presetParent != null && (presetParent.allSpouseIds().isNotEmpty() || com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouses(presetParent, effectiveMembers).isNotEmpty()) && coParentChoice == null && !hasPromptedOtherParentDialog) {
             hasPromptedOtherParentDialog = true
             com.example.btproject2.utils.AddChildBiologicalParentDialogHelper.showIdentifyOtherParentDialog(
                 context = this,
@@ -876,8 +886,8 @@ class AddMemberActivity : AppCompatActivity() {
                 val role = if (presetIsMother) "Mother" else "Father"
 
                 when (coParentChoice) {
-                    "CURRENT_SPOUSE" -> {
-                        val spouseName = spouseObj?.let { "${it.firstName} ${it.lastName}".trim() } ?: "Spouse"
+                    "CURRENT_SPOUSE", "FORMER_SPOUSE" -> {
+                        val spouseName = (otherParentObj ?: spouseObj)?.let { "${it.firstName} ${it.lastName}".trim() } ?: "Spouse"
                         tvParentBannerText.text = "Adding Child of ${presetParentObj.firstName} and $spouseName (Both biological parents)"
                     }
                     "ANOTHER_PERSON" -> {
@@ -900,7 +910,7 @@ class AddMemberActivity : AppCompatActivity() {
                 if (fatherIdx >= 0) spinnerFather.setSelection(fatherIdx + 1)
                 spinnerFatherType.setSelection(0) // Biological
 
-                if (coParentChoice == "CURRENT_SPOUSE" || coParentChoice == "ANOTHER_PERSON") {
+                if (coParentChoice == "CURRENT_SPOUSE" || coParentChoice == "FORMER_SPOUSE" || coParentChoice == "ANOTHER_PERSON") {
                     val targetMotherId = presetOtherParentId
                     if (targetMotherId != null) {
                         val motherIdx = femaleMembers.indexOfFirst { it.id == targetMotherId }
@@ -917,7 +927,7 @@ class AddMemberActivity : AppCompatActivity() {
                 if (motherIdx >= 0) spinnerMother.setSelection(motherIdx + 1)
                 spinnerMotherType.setSelection(0) // Biological
 
-                if (coParentChoice == "CURRENT_SPOUSE" || coParentChoice == "ANOTHER_PERSON") {
+                if (coParentChoice == "CURRENT_SPOUSE" || coParentChoice == "FORMER_SPOUSE" || coParentChoice == "ANOTHER_PERSON") {
                     val targetFatherId = presetOtherParentId
                     if (targetFatherId != null) {
                         val fatherIdx = maleMembers.indexOfFirst { it.id == targetFatherId }
@@ -1359,10 +1369,11 @@ class AddMemberActivity : AppCompatActivity() {
     }
 
     private fun savePerson(person: Person) {
+        val cleanPerson = if (person.id == "__draft_new_member__") person.copy(id = "") else person
         firestoreHelper.addPerson(
-            person,
+            cleanPerson,
             onSuccess = { savedId ->
-                val savedPerson = person.copy(id = savedId)
+                val savedPerson = cleanPerson.copy(id = savedId)
 
                 val currentUserId = authHelper.getCurrentUserId() ?: ""
                 val currentUserName = authHelper.getCurrentUser()?.displayName ?: "User"

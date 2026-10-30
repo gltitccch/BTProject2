@@ -1086,6 +1086,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         val tvHeadline = dialogView.findViewById<TextView>(R.id.tvWizardQuestionHeadline)
         val tvExplain = dialogView.findViewById<TextView>(R.id.tvWizardQuestionExplain)
         val tvHelper = dialogView.findViewById<TextView>(R.id.tvWizardHelperPrompt)
+        val layoutOptionsGroup = dialogView.findViewById<LinearLayout>(R.id.layoutWizardOptionsGroup)
         val btnPrimary = dialogView.findViewById<Button>(R.id.btnWizardPrimaryChoice)
         val btnSecondary = dialogView.findViewById<Button>(R.id.btnWizardSecondaryChoice)
         val btnPrev = dialogView.findViewById<Button>(R.id.btnWizardPrev)
@@ -1136,6 +1137,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             tvHeadline.text = "“Tree Integrity Verified!”"
             tvExplain.text = "All missing parent and spouse spots have been cleaned up. You can go back to exploring your family tree now."
             tvHelper.text = "✨ 0 issues remaining."
+            layoutOptionsGroup?.removeAllViews()
 
             btnPrimary.isEnabled = true
             btnPrimary.text = "✓ Back to Family Tree"
@@ -1172,17 +1174,81 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             tvExplain.text = item.simpleExplanation
             tvHelper.text = item.helperPrompt
 
-            btnPrimary.isEnabled = true
-            btnSecondary.isEnabled = true
-            btnSecondary.visibility = if (item.canAutoFix) View.GONE else View.VISIBLE
+            btnSecondary.visibility = View.GONE
+            layoutOptionsGroup?.removeAllViews()
 
-            if (item.canAutoFix) {
-                val cleanLabel = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim()
-                btnPrimary.text = "⚡ Apply Safe Fix: $cleanLabel"
+            val currentOptions = if (item.options.isNotEmpty()) {
+                item.options
             } else {
-                btnPrimary.text = item.primaryActionLabel
-                btnSecondary.text = item.secondaryActionLabel
+                listOf(
+                    com.example.btproject2.engine.ConflictScanner.ResolutionOption(
+                        id = "default_safe_fix",
+                        title = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim(),
+                        tag = "Safe Fix",
+                        tagType = "safe",
+                        description = item.simpleExplanation,
+                        actionType = if (item.canAutoFix) com.example.btproject2.engine.ConflictScanner.ResolutionActionType.UNLINK else com.example.btproject2.engine.ConflictScanner.ResolutionActionType.EDIT_PROFILE,
+                        targetField = item.field
+                    )
+                )
             }
+
+            var selectedOptionIndex = currentOptions.indexOfFirst { it.actionType == com.example.btproject2.engine.ConflictScanner.ResolutionActionType.SET_ADOPTIVE }
+            if (selectedOptionIndex < 0) selectedOptionIndex = 0
+
+            val cardViews = mutableListOf<View>()
+
+            fun updateSelectionUI() {
+                val chosen = currentOptions.getOrNull(selectedOptionIndex) ?: currentOptions[0]
+                btnPrimary.isEnabled = true
+                btnPrimary.text = "✨ Apply: ${chosen.title}"
+
+                cardViews.forEachIndexed { idx, cardView ->
+                    val isSelected = idx == selectedOptionIndex
+                    cardView.setBackgroundResource(
+                        if (isSelected) R.drawable.bg_wizard_option_card_selected else R.drawable.bg_wizard_option_card_default
+                    )
+                    val ivRadio = cardView.findViewById<ImageView>(R.id.ivOptionRadio)
+                    ivRadio?.setImageResource(
+                        if (isSelected) R.drawable.ic_wizard_radio_checked else R.drawable.ic_wizard_radio_unchecked
+                    )
+                }
+            }
+
+            currentOptions.forEachIndexed { index, option ->
+                val cardView = layoutInflater.inflate(R.layout.item_wizard_resolution_option, layoutOptionsGroup, false)
+                val tvTitle = cardView.findViewById<TextView>(R.id.tvOptionTitle)
+                val tvBadge = cardView.findViewById<TextView>(R.id.tvOptionBadge)
+                val tvDesc = cardView.findViewById<TextView>(R.id.tvOptionDescription)
+
+                tvTitle.text = option.title
+                tvBadge.text = option.tag
+                when (option.tagType) {
+                    "legal" -> {
+                        tvBadge.setBackgroundResource(R.drawable.badge_pill_mint)
+                        tvBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+                    }
+                    "edit" -> {
+                        tvBadge.setBackgroundResource(R.drawable.badge_pill_slate)
+                        tvBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.text_secondary))
+                    }
+                    else -> {
+                        tvBadge.setBackgroundResource(R.drawable.badge_pill_gold)
+                        tvBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.btn_gold_text))
+                    }
+                }
+                tvDesc.text = option.description
+
+                cardView.setOnClickListener {
+                    selectedOptionIndex = index
+                    updateSelectionUI()
+                }
+
+                cardViews.add(cardView)
+                layoutOptionsGroup?.addView(cardView)
+            }
+
+            updateSelectionUI()
 
             btnPrev.visibility = if (total > 1) View.VISIBLE else View.GONE
             btnPrev.isEnabled = currentIndex > 0
@@ -1199,40 +1265,49 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
                     return@setOnClickListener
                 }
-                if (item.canAutoFix) {
-                    btnPrimary.isEnabled = false
-                    btnPrimary.text = "⏳ Saving..."
-                    firestoreHelper.autoRepairConflict(
-                        conflict = item,
-                        allPersons = allPersonsList,
-                        onSuccess = { updatedPerson ->
-                            runOnUiThread {
-                                if (updatedPerson != null) {
-                                    allPersonsList = allPersonsList.map { if (it.id == updatedPerson.id) updatedPerson else it }
-                                }
-                                activeConflicts.removeAt(currentIndex)
-                                refreshCanvasAfterRepair()
-                                renderCurrentStep()
-                            }
-                        },
-                        onFailure = { err ->
-                            runOnUiThread {
-                                btnPrimary.isEnabled = true
-                                val cleanLabel = item.primaryActionLabel.replace("✨", "").replace("✅", "").trim()
-                                btnPrimary.text = if (item.canAutoFix) "⚡ Apply Safe Fix: $cleanLabel" else item.primaryActionLabel
-                                KinTraceAlert.warning(this, "Could Not Save", err.message ?: "Please try again.")
-                            }
-                        }
-                    )
-                } else {
+
+                val chosen = currentOptions.getOrNull(selectedOptionIndex) ?: currentOptions[0]
+                if (chosen.actionType == com.example.btproject2.engine.ConflictScanner.ResolutionActionType.EDIT_PROFILE) {
                     dialog.dismiss()
+                    val targetPersonId = if (item.field == "motherId" && chosen.id.contains("mother")) {
+                        item.relatedPersonId.ifBlank { item.personId }
+                    } else {
+                        item.personId
+                    }
                     val intent = Intent(this, EditMemberActivity::class.java).apply {
-                        putExtra("personId", item.personId)
+                        putExtra("personId", targetPersonId)
                         putExtra("TREE_ID", treeId)
                         putExtra("isViewer", isViewer)
                     }
                     startActivity(intent)
+                    return@setOnClickListener
                 }
+
+                btnPrimary.isEnabled = false
+                btnPrimary.text = "⏳ Applying Resolution..."
+                firestoreHelper.executeResolutionAction(
+                    conflict = item,
+                    option = chosen,
+                    allPersons = allPersonsList,
+                    onSuccess = { updatedPerson ->
+                        runOnUiThread {
+                            if (updatedPerson != null) {
+                                allPersonsList = allPersonsList.map { if (it.id == updatedPerson.id) updatedPerson else it }
+                            }
+                            activeConflicts.removeAt(currentIndex)
+                            KinTraceAlert.conflict(this, "Resolution Applied", "${chosen.title} saved successfully.")
+                            refreshCanvasAfterRepair()
+                            renderCurrentStep()
+                        }
+                    },
+                    onFailure = { err ->
+                        runOnUiThread {
+                            btnPrimary.isEnabled = true
+                            btnPrimary.text = "✨ Apply: ${chosen.title}"
+                            KinTraceAlert.warning(this, "Could Not Save", err.message ?: "Please try again.")
+                        }
+                    }
+                )
             }
 
             btnSecondary.setOnClickListener {
@@ -1423,6 +1498,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
         val spouseObj = allPersonsList.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, person.spouseId) }
             ?: allPersonsList.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.spouseId, person.id) }
+        val linkedSpouses = com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouses(person, allPersonsList)
 
         val shouldHideBirth = !isOwner && treePrivacy.hideBirthDates
         val shouldHideDeceased = !isOwner && treePrivacy.hideDeceasedStatus
@@ -1431,7 +1507,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         val livingStr = if (!shouldHideDeceased) {
             if (person.isLiving) "Living" else "🕊️ Deceased"
         } else ""
-        val effectiveCivilStatus = if (spouseObj != null) "Married" else person.maritalStatus.ifEmpty { "Single" }
+        val effectiveCivilStatus = if (spouseObj != null) {
+            if ((!spouseObj.isLiving || spouseObj.deathDate.isNotBlank()) && person.isLiving) "Widowed" else "Married"
+        } else {
+            person.maritalStatus.ifEmpty { "Single" }
+        }
         tvSubtitle.text = if (livingStr.isNotEmpty()) {
             "$kinshipSubtitle · $effectiveCivilStatus · $livingStr"
         } else {
@@ -1511,7 +1591,15 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         }
         tvParents.text = parentsText
 
-        val spName = spouseObj?.let { "${it.firstName} ${it.lastName}" } ?: "None"
+        val spName = if (linkedSpouses.size > 1) {
+            linkedSpouses.joinToString(" · ") { sp ->
+                val isPrimary = com.example.btproject2.engine.FamilyLinkValidator.isSameId(sp.id, person.spouseId)
+                val tag = if (isPrimary) "" else if (!sp.isLiving || sp.deathDate.isNotBlank()) " (Late)" else " (Former)"
+                "${sp.firstName} ${sp.lastName}$tag"
+            }
+        } else {
+            (spouseObj ?: linkedSpouses.firstOrNull())?.let { "${it.firstName} ${it.lastName}" } ?: "None"
+        }
         tvSpouse.text = spName
 
         // Documents & Verification Badge
@@ -1896,7 +1984,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 when (which) {
                     0 -> {
                         // Choice 1: Add a biological or adoptive child
-                        if (parent != null && !parent.spouseId.isNullOrBlank()) {
+                        if (parent != null && (parent.allSpouseIds().isNotEmpty() || com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouses(parent, allPersonsList).isNotEmpty())) {
                             com.example.btproject2.utils.AddChildBiologicalParentDialogHelper.showIdentifyOtherParentDialog(
                                 context = this,
                                 parent = parent,
@@ -1955,7 +2043,8 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             val spouseNote = if (!child.spouseId.isNullOrBlank()) {
                 val sp = allPersonsList.find { it.id == child.spouseId }
                 val spName = sp?.let { "${it.firstName} ${it.lastName}" } ?: "existing spouse"
-                " (Married to $spName)"
+                val isWidowed = sp != null && (!sp.isLiving || sp.deathDate.isNotBlank())
+                if (isWidowed) " (Widowed · Late spouse: $spName)" else " (Married to $spName)"
             } else ""
             "${child.firstName} ${child.lastName}$spouseNote"
         }.toTypedArray()
@@ -1966,13 +2055,17 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 val selectedChild = children[which]
                 if (!selectedChild.spouseId.isNullOrBlank()) {
                     val sp = allPersonsList.find { it.id == selectedChild.spouseId }
-                    val spName = sp?.let { "${it.firstName} ${it.lastName}" } ?: "another spouse"
-                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                        .setTitle("Child Already Married")
-                        .setMessage("Unable to add this person as a spouse because one member already has an active spouse relationship.\n\n${selectedChild.firstName} ${selectedChild.lastName} is already married to $spName (Philippine Family Code Articles 35(4) and 40).")
-                        .setPositiveButton("Understood", null)
-                        .show()
-                    return@setItems
+                    val isActiveMarriage = sp != null && sp.isLiving && sp.deathDate.isBlank() &&
+                        selectedChild.maritalStatus.equals("Married", ignoreCase = true)
+                    if (isActiveMarriage) {
+                        val spName = "${sp?.firstName.orEmpty()} ${sp?.lastName.orEmpty()}".trim().ifEmpty { "another spouse" }
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                            .setTitle("Child Already Married")
+                            .setMessage("Unable to add this person as a spouse because one member already has an active spouse relationship.\n\n${selectedChild.firstName} ${selectedChild.lastName} is already married to $spName (Philippine Family Code Articles 35(4) and 40).")
+                            .setPositiveButton("Understood", null)
+                            .show()
+                        return@setItems
+                    }
                 }
 
                 val intent = Intent(this, AddMemberActivity::class.java).apply {
@@ -2588,7 +2681,8 @@ class FamilyTreeView @JvmOverloads constructor(
         val primary: Person,
         val spouse: Person?,
         var generation: Int,
-        val children: MutableList<FamilyUnit> = mutableListOf()
+        val children: MutableList<FamilyUnit> = mutableListOf(),
+        val formerSpouses: MutableList<Person> = mutableListOf()
     ) {
         var width: Float = 0f
         var x: Float = 0f
@@ -2771,6 +2865,7 @@ class FamilyTreeView @JvmOverloads constructor(
             if (op.fatherId != np.fatherId ||
                 op.motherId != np.motherId ||
                 op.spouseId != np.spouseId ||
+                op.formerSpouseIds != np.formerSpouseIds ||
                 op.gender != np.gender ||
                 op.fatherRelationshipType != np.fatherRelationshipType ||
                 op.motherRelationshipType != np.motherRelationshipType
@@ -3234,13 +3329,31 @@ class FamilyTreeView @JvmOverloads constructor(
             return true
         }
 
-        // Mutual spouse resolution (explicit takes priority, inferred shared children only if valid and not prohibited)
+        // Mutual spouse resolution (active/current spouse takes priority over historical/deceased former spouse)
         val spouseMap = mutableMapOf<String, String>()
+        // Pass A: Reciprocal primary spouse links (where neither party lists the other in formerSpouseIds)
         displayPersons.forEach { p ->
             val sId = p.spouseId?.trim()
             if (!sId.isNullOrBlank()) {
                 val spObj = byCanonId[canon(sId)]
-                if (spObj != null && isValidCanvasPair(p, spObj)) {
+                if (spObj != null &&
+                    isValidCanvasPair(p, spObj) &&
+                    p.formerSpouseIds.none { canon(it) == canon(spObj.id) } &&
+                    spObj.formerSpouseIds.none { canon(it) == canon(p.id) } &&
+                    !spouseMap.containsKey(p.id) &&
+                    !spouseMap.containsKey(spObj.id)
+                ) {
+                    spouseMap[p.id] = spObj.id
+                    spouseMap[spObj.id] = p.id
+                }
+            }
+        }
+        // Pass B: Any remaining primary spouseId links where neither party is already paired
+        displayPersons.forEach { p ->
+            val sId = p.spouseId?.trim()
+            if (!sId.isNullOrBlank()) {
+                val spObj = byCanonId[canon(sId)]
+                if (spObj != null && isValidCanvasPair(p, spObj) && !spouseMap.containsKey(p.id) && !spouseMap.containsKey(spObj.id)) {
                     spouseMap[p.id] = spObj.id
                     spouseMap[spObj.id] = p.id
                 }
@@ -3272,7 +3385,7 @@ class FamilyTreeView @JvmOverloads constructor(
             explicitSpouseMap = spouseMap
         )
 
-        // Build Family Units
+        // Build Family Units (including Symmetric Triad Hub for remarried members with former/late spouses)
         val unitMap = mutableMapOf<String, FamilyUnit>()
         val allUnits = mutableListOf<FamilyUnit>()
 
@@ -3299,6 +3412,42 @@ class FamilyTreeView @JvmOverloads constructor(
             allUnits.add(unit)
         }
 
+        // Attach unclaimed former/late spouses into their remarried partner's FamilyUnit to form a Symmetric Triad Hub
+        val unitsToRemove = mutableSetOf<FamilyUnit>()
+        allUnits.forEach { unit ->
+            if (unit in unitsToRemove) return@forEach
+            val hubCandidates = listOfNotNull(unit.primary, unit.spouse)
+            hubCandidates.forEach { member ->
+                val formerIds = member.formerSpouseIds.map { canon(it) }.filter { it.isNotBlank() }.toMutableSet()
+                displayPersons.forEach { other ->
+                    if (canon(other.id) != canon(member.id) &&
+                        canon(other.id) != canon(unit.primary.id) &&
+                        canon(other.id) != canon(unit.spouse?.id) &&
+                        (canon(other.spouseId) == canon(member.id) || other.formerSpouseIds.any { canon(it) == canon(member.id) })
+                    ) {
+                        formerIds.add(canon(other.id))
+                    }
+                }
+                formerIds.forEach { fCanonId ->
+                    val formerPerson = byCanonId[fCanonId]
+                    val formerUnit = formerPerson?.let { unitMap[it.id] ?: unitMap[canon(it.id)] }
+                    if (formerPerson != null &&
+                        formerUnit != null &&
+                        formerUnit != unit &&
+                        formerUnit.spouse == null &&
+                        formerUnit.formerSpouses.isEmpty() &&
+                        isValidCanvasPair(member, formerPerson)
+                    ) {
+                        unit.formerSpouses.add(formerPerson)
+                        unitsToRemove.add(formerUnit)
+                        unitMap[formerPerson.id] = unit
+                        unitMap[canon(formerPerson.id)] = unit
+                    }
+                }
+            }
+        }
+        allUnits.removeAll(unitsToRemove)
+
         // Cycle detection helper to prevent tree mangling
         fun wouldCauseCycle(parent: FamilyUnit, child: FamilyUnit): Boolean {
             if (parent == child) return true
@@ -3319,9 +3468,20 @@ class FamilyTreeView @JvmOverloads constructor(
         // A child unit must be claimed by at most ONE parent unit to prevent duplicate positioning and cross-tree bus distortion.
         val claimedChildUnits = mutableSetOf<FamilyUnit>()
 
-        // Pass 1: Coupled parent units (father + mother) get first priority
-        allUnits.filter { it.spouse != null }.forEach { unit ->
-            val parentKeys = listOfNotNull(unit.primary.id, canon(unit.primary.id), unit.spouse?.id, canon(unit.spouse?.id))
+        // Pass 1: Coupled parent units (father + mother, plus any attached former/late spouses) get first priority
+        allUnits.filter { it.spouse != null || it.formerSpouses.isNotEmpty() }.forEach { unit ->
+            val parentKeys = buildList {
+                add(unit.primary.id)
+                add(canon(unit.primary.id))
+                unit.spouse?.let {
+                    add(it.id)
+                    add(canon(it.id))
+                }
+                unit.formerSpouses.forEach { fs ->
+                    add(fs.id)
+                    add(canon(fs.id))
+                }
+            }
             val childIds = parentKeys.flatMap { pid -> childrenOf[pid].orEmpty() }.distinct()
 
             val seenInUnit = mutableSetOf<FamilyUnit>()
@@ -3347,11 +3507,19 @@ class FamilyTreeView @JvmOverloads constructor(
                     }
                 }
             }
-            unit.children.sortBy { it.primary.birthDate.ifEmpty { it.primary.firstName } }
+            // Sort children so children of former spouses appear on the left, followed by children of current spouse
+            val formerCanonIds = unit.formerSpouses.map { canon(it.id) }.toSet()
+            unit.children.sortWith(
+                compareBy<FamilyUnit> { ch ->
+                    val bioChild = getBiologicalChild(unit, ch)
+                    val isFormerChild = formerCanonIds.contains(canon(bioChild.fatherId)) || formerCanonIds.contains(canon(bioChild.motherId))
+                    if (isFormerChild) 0 else 1
+                }.thenBy { it.primary.birthDate.ifEmpty { it.primary.firstName } }
+            )
         }
 
         // Pass 2: Single-parent units claim any remaining unclaimed children
-        allUnits.filter { it.spouse == null }.forEach { unit ->
+        allUnits.filter { it.spouse == null && it.formerSpouses.isEmpty() }.forEach { unit ->
             val parentKeys = listOfNotNull(unit.primary.id, canon(unit.primary.id))
             val childIds = parentKeys.flatMap { pid -> childrenOf[pid].orEmpty() }.distinct()
 
@@ -3396,7 +3564,8 @@ class FamilyTreeView @JvmOverloads constructor(
         val visitedWidth = mutableSetOf<FamilyUnit>()
         fun computeWidth(u: FamilyUnit): Float {
             if (!visitedWidth.add(u)) return u.width
-            val ownW = if (u.spouse != null) (2 * CARD_W + COUPLE_GAP) else CARD_W
+            val adultCardCount = 1 + (if (u.spouse != null) 1 else 0) + u.formerSpouses.size
+            val ownW = adultCardCount * CARD_W + (adultCardCount - 1) * COUPLE_GAP
             if (u.children.isEmpty()) {
                 u.width = ownW
                 return u.width
@@ -3419,7 +3588,43 @@ class FamilyTreeView @JvmOverloads constructor(
             u.x = centerX
             val yPos = MARGIN + u.generation * ROW_GAP + CARD_H / 2f
 
-            if (u.spouse != null) {
+            if (u.formerSpouses.isNotEmpty() && u.spouse != null) {
+                val (primaryFormers, spouseFormers) = u.formerSpouses.partition { fs ->
+                    u.primary.hasSpouseId(fs.id) || fs.hasSpouseId(u.primary.id)
+                }
+                val orderedCards = buildList {
+                    addAll(primaryFormers)
+                    add(u.primary)
+                    add(u.spouse)
+                    addAll(spouseFormers)
+                }
+                val totalRowW = orderedCards.size * CARD_W + (orderedCards.size - 1) * COUPLE_GAP
+                var curCardX = centerX - totalRowW / 2f + CARD_W / 2f
+                orderedCards.forEach { cardPerson ->
+                    posMap[cardPerson.id] = PointF(curCardX, yPos)
+                    curCardX += CARD_W + COUPLE_GAP
+                }
+            } else if (u.formerSpouses.isNotEmpty()) {
+                val orderedCards = if (u.formerSpouses.size >= 2) {
+                    val half = u.formerSpouses.size / 2
+                    buildList {
+                        addAll(u.formerSpouses.subList(0, half))
+                        add(u.primary)
+                        addAll(u.formerSpouses.subList(half, u.formerSpouses.size))
+                    }
+                } else {
+                    buildList {
+                        addAll(u.formerSpouses)
+                        add(u.primary)
+                    }
+                }
+                val totalRowW = orderedCards.size * CARD_W + (orderedCards.size - 1) * COUPLE_GAP
+                var curCardX = centerX - totalRowW / 2f + CARD_W / 2f
+                orderedCards.forEach { cardPerson ->
+                    posMap[cardPerson.id] = PointF(curCardX, yPos)
+                    curCardX += CARD_W + COUPLE_GAP
+                }
+            } else if (u.spouse != null) {
                 posMap[u.primary.id] = PointF(centerX - CARD_W / 2f - COUPLE_GAP / 2f, yPos)
                 posMap[u.spouse.id] = PointF(centerX + CARD_W / 2f + COUPLE_GAP / 2f, yPos)
             } else {
@@ -3507,7 +3712,7 @@ class FamilyTreeView @JvmOverloads constructor(
         precomputedFallbackLines.clear()
         hitAreas.clear()
 
-        // 1. Precompute Marital Lines and Buses
+        // 1. Precompute Marital Lines and Buses (supports both active marriage and former/late marriages in a triad)
         familyUnits.forEach { unit ->
             val pPos = posMap[unit.primary.id] ?: return@forEach
             val sPos = unit.spouse?.let { posMap[it.id] }
@@ -3532,24 +3737,54 @@ class FamilyTreeView @JvmOverloads constructor(
                 )
             }
 
+            // Render marital lines & buses for any attached former/late spouses
+            unit.formerSpouses.forEach { fs ->
+                val fsPos = posMap[fs.id]
+                val hubPartner = if (unit.primary.hasSpouseId(fs.id) || fs.hasSpouseId(unit.primary.id)) {
+                    unit.primary
+                } else {
+                    unit.spouse ?: unit.primary
+                }
+                val hubPos = posMap[hubPartner.id]
+                if (fsPos != null && hubPos != null && mode != "PEDIGREE") {
+                    val leftCardX = minOf(hubPos.x, fsPos.x)
+                    val rightCardX = maxOf(hubPos.x, fsPos.x)
+                    val leftX = leftCardX + CARD_W / 2f
+                    val rightX = rightCardX - CARD_W / 2f
+                    val pillMidX = (leftX + rightX) / 2f
+                    val pillMidY = hubPos.y
+                    precomputedMaritalLines.add(
+                        PrecomputedMaritalLine(
+                            primaryId = hubPartner.id,
+                            spouseId = fs.id,
+                            leftX = leftX,
+                            rightX = rightX,
+                            y = hubPos.y,
+                            pillMidX = pillMidX,
+                            pillMidY = pillMidY
+                        )
+                    )
+                }
+            }
+
             if (unit.children.isNotEmpty()) {
                 val yParent = pPos.y
                 val parentCardBottom = yParent + CARD_H / 2f
                 val yBus = parentCardBottom + V_GAP * 0.5f
+                val currentPairMidX = if (sPos != null) (pPos.x + sPos.x) / 2f else unit.x
                 val dropStartY = if (unit.spouse != null) pPos.y + 12f else parentCardBottom + ADD_BTN_R
 
                 val childDrops = mutableListOf<PrecomputedChildDrop>()
-                var busLeft = unit.x
-                var busRight = unit.x
+                var busLeft = currentPairMidX
+                var busRight = currentPairMidX
 
                 unit.children.forEach { ch ->
                     val targetPerson = getBiologicalChild(unit, ch)
-                    val isJointOrSingle = (unit.spouse == null) || (
-                        (com.example.btproject2.engine.FamilyLinkValidator.isSameId(unit.primary.id, targetPerson.fatherId) ||
-                         com.example.btproject2.engine.FamilyLinkValidator.isSameId(unit.primary.id, targetPerson.motherId)) &&
-                        (com.example.btproject2.engine.FamilyLinkValidator.isSameId(unit.spouse?.id, targetPerson.fatherId) ||
-                         com.example.btproject2.engine.FamilyLinkValidator.isSameId(unit.spouse?.id, targetPerson.motherId))
-                    )
+                    val belongsToAttachedFormerSpouse = unit.formerSpouses.any { fs ->
+                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.fatherId) ||
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.motherId)
+                    }
+                    val isJointOrSingle = !belongsToAttachedFormerSpouse
                     if (isJointOrSingle) {
                         val cPos = posMap[targetPerson.id]
                         if (cPos != null) {
@@ -3575,7 +3810,7 @@ class FamilyTreeView @JvmOverloads constructor(
                         PrecomputedFamilyBus(
                             primaryId = unit.primary.id,
                             spouseId = unit.spouse?.id,
-                            dropX = unit.x,
+                            dropX = currentPairMidX,
                             dropStartY = dropStartY,
                             yBus = yBus,
                             busLeft = busLeft,
@@ -3583,6 +3818,66 @@ class FamilyTreeView @JvmOverloads constructor(
                             childDrops = childDrops
                         )
                     )
+                }
+
+                // Separate child drop buses for children born to each former/late spouse
+                unit.formerSpouses.forEachIndexed { fsIdx, fs ->
+                    val fsPos = posMap[fs.id] ?: return@forEachIndexed
+                    val hubPartner = if (unit.primary.hasSpouseId(fs.id) || fs.hasSpouseId(unit.primary.id)) {
+                        unit.primary
+                    } else {
+                        unit.spouse ?: unit.primary
+                    }
+                    val hubPos = posMap[hubPartner.id] ?: return@forEachIndexed
+                    val fsMidX = (hubPos.x + fsPos.x) / 2f
+                    val fsBusY = parentCardBottom + V_GAP * (0.42f + (fsIdx % 2) * 0.12f)
+                    val fsDropStartY = hubPos.y + 12f
+
+                    val fsDrops = mutableListOf<PrecomputedChildDrop>()
+                    var fsBusLeft = fsMidX
+                    var fsBusRight = fsMidX
+
+                    unit.children.forEach { ch ->
+                        val targetPerson = getBiologicalChild(unit, ch)
+                        val isFormerJoint =
+                            (com.example.btproject2.engine.FamilyLinkValidator.isSameId(hubPartner.id, targetPerson.fatherId) ||
+                             com.example.btproject2.engine.FamilyLinkValidator.isSameId(hubPartner.id, targetPerson.motherId)) &&
+                            (com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.fatherId) ||
+                             com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.motherId))
+                        if (isFormerJoint) {
+                            val cPos = posMap[targetPerson.id]
+                            if (cPos != null) {
+                                val targetY = cPos.y - CARD_H / 2f
+                                val isNonBio = isNonBiologicalLink(targetPerson, hubPartner.id, fs.id)
+                                fsDrops.add(
+                                    PrecomputedChildDrop(
+                                        childId = targetPerson.id,
+                                        x = cPos.x,
+                                        yBus = fsBusY,
+                                        targetY = targetY,
+                                        isNonBiological = isNonBio
+                                    )
+                                )
+                                if (cPos.x < fsBusLeft) fsBusLeft = cPos.x
+                                if (cPos.x > fsBusRight) fsBusRight = cPos.x
+                            }
+                        }
+                    }
+
+                    if (fsDrops.isNotEmpty()) {
+                        precomputedBuses.add(
+                            PrecomputedFamilyBus(
+                                primaryId = hubPartner.id,
+                                spouseId = fs.id,
+                                dropX = fsMidX,
+                                dropStartY = fsDropStartY,
+                                yBus = fsBusY,
+                                busLeft = fsBusLeft,
+                                busRight = fsBusRight,
+                                childDrops = fsDrops
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -3594,9 +3889,10 @@ class FamilyTreeView @JvmOverloads constructor(
                 val child = getBiologicalChild(u, ch)
                 val cFather = child.fatherId?.trim()
                 val cMother = child.motherId?.trim()
-                val isJointOrSingle = (u.spouse == null) || (
+                val isJointOrSingle = (u.spouse == null && u.formerSpouses.isEmpty()) || (
+                    u.spouse != null &&
                     (com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.primary.id, cFather) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.primary.id, cMother)) &&
-                    (com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse?.id, cFather) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse?.id, cMother))
+                    (com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse.id, cFather) || com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse.id, cMother))
                 )
                 if (isJointOrSingle) {
                     if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.primary.id, cFather) ||
@@ -3609,6 +3905,18 @@ class FamilyTreeView @JvmOverloads constructor(
                         com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse.id, cMother))
                     ) {
                         coveredParentChild.add(Pair(u.spouse.id, child.id))
+                    }
+                }
+                u.formerSpouses.forEach { fs ->
+                    val hubPartner = if (u.primary.hasSpouseId(fs.id) || fs.hasSpouseId(u.primary.id)) u.primary else (u.spouse ?: u.primary)
+                    val isFormerJoint =
+                        (com.example.btproject2.engine.FamilyLinkValidator.isSameId(hubPartner.id, cFather) ||
+                         com.example.btproject2.engine.FamilyLinkValidator.isSameId(hubPartner.id, cMother)) &&
+                        (com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, cFather) ||
+                         com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, cMother))
+                    if (isFormerJoint) {
+                        coveredParentChild.add(Pair(hubPartner.id, child.id))
+                        coveredParentChild.add(Pair(fs.id, child.id))
                     }
                 }
             }
@@ -3961,10 +4269,11 @@ class FamilyTreeView @JvmOverloads constructor(
     }
 
     private fun getBiologicalChild(parentUnit: FamilyUnit, childUnit: FamilyUnit): Person {
-        val parentIds = setOfNotNull(
-            parentUnit.primary.id.trim().lowercase(),
-            parentUnit.spouse?.id?.trim()?.lowercase()
-        )
+        val parentIds = buildSet {
+            add(parentUnit.primary.id.trim().lowercase())
+            parentUnit.spouse?.id?.trim()?.lowercase()?.let { add(it) }
+            parentUnit.formerSpouses.forEach { add(it.id.trim().lowercase()) }
+        }
         if (childUnit.spouse != null) {
             val s = childUnit.spouse
             val sFather = s.fatherId?.trim()?.lowercase()

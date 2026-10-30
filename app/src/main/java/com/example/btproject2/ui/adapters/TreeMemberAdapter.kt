@@ -34,7 +34,7 @@ class TreeMemberAdapter(
                     val hasParents = (!p.fatherId.isNullOrBlank() && byId.containsKey(p.fatherId)) ||
                         (!p.motherId.isNullOrBlank() && byId.containsKey(p.motherId))
                     val childCount = members.count { it.fatherId == p.id || it.motherId == p.id }
-                    val hasSpouse = !p.spouseId.isNullOrBlank() && byId.containsKey(p.spouseId)
+                    val hasSpouse = p.allSpouseIds().any { byId.containsKey(it) }
                     val hubBonus = if (hasParents && childCount > 0) 10 else 0
                     hubBonus + childCount * 2 + (if (hasSpouse) 2 else 0)
                 }.thenBy { it.firstName }

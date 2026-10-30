@@ -41,6 +41,7 @@ object AddChildBiologicalParentDialogHelper {
     enum class CoParentChoice {
         UNKNOWN,
         CURRENT_SPOUSE,
+        FORMER_SPOUSE,
         ANOTHER_PERSON
     }
 
@@ -52,7 +53,7 @@ object AddChildBiologicalParentDialogHelper {
     )
 
     /**
-     * Prompts the user to identify the other biological parent if [parent] has a spouse or partner.
+     * Prompts the user to identify the other biological parent if [parent] has a spouse, former/late spouse, or partner.
      * If [parent] has no spouse, invokes [onResult] directly with [CoParentChoice.UNKNOWN].
      */
     fun showIdentifyOtherParentDialog(
@@ -62,12 +63,13 @@ object AddChildBiologicalParentDialogHelper {
         onResult: (BiologicalParentSelectionResult) -> Unit,
         onCancel: (() -> Unit)? = null
     ) {
-        val spouse = parent.spouseId?.let { sId ->
+        val linkedSpouses = FamilyLinkValidator.findLinkedSpouses(parent, allMembers)
+        val currentSpouse = parent.spouseId?.let { sId ->
             allMembers.find { FamilyLinkValidator.isSameId(it.id, sId) }
-        }
+        } ?: linkedSpouses.firstOrNull()
 
-        // If member has no recorded spouse, other parent is unknown/not recorded by default
-        if (spouse == null) {
+        // If member has no recorded spouse or former spouse, other parent is unknown/not recorded by default
+        if (currentSpouse == null && linkedSpouses.isEmpty()) {
             onResult(
                 BiologicalParentSelectionResult(
                     choice = CoParentChoice.UNKNOWN,
@@ -79,51 +81,84 @@ object AddChildBiologicalParentDialogHelper {
         }
 
         val parentName = "${parent.firstName} ${parent.lastName}".trim()
-        val spouseName = "${spouse.firstName} ${spouse.lastName}".trim()
+        val formerSpouses = linkedSpouses.filter { !FamilyLinkValidator.isSameId(it.id, currentSpouse?.id) }
 
-        val choices = arrayOf(
-            "1. Unknown or not recorded\n   (Connect only $parentName as biological parent)",
-            "2. Current spouse or partner: $spouseName\n   (Connect both as biological parents)",
-            "3. Another person\n   (Select existing person or create new person)"
-        )
+        val choiceLabels = mutableListOf<String>()
+        val choiceActions = mutableListOf<() -> Unit>()
+
+        // Choice 1: Unknown or not recorded
+        choiceLabels.add("1. Unknown or not recorded\n   (Connect only $parentName as biological parent)")
+        choiceActions.add {
+            onResult(
+                BiologicalParentSelectionResult(
+                    choice = CoParentChoice.UNKNOWN,
+                    primaryParent = parent,
+                    otherParent = null
+                )
+            )
+        }
+
+        var nextOptionNumber = 2
+
+        // Choice 2: Current spouse or partner (if present)
+        if (currentSpouse != null) {
+            val spouseName = "${currentSpouse.firstName} ${currentSpouse.lastName}".trim()
+            val statusLabel = if (!currentSpouse.isLiving || currentSpouse.deathDate.isNotBlank()) {
+                "Spouse (Late): $spouseName"
+            } else {
+                "Current spouse or partner: $spouseName"
+            }
+            choiceLabels.add("$nextOptionNumber. $statusLabel\n   (Connect both as biological parents)")
+            choiceActions.add {
+                onResult(
+                    BiologicalParentSelectionResult(
+                        choice = CoParentChoice.CURRENT_SPOUSE,
+                        primaryParent = parent,
+                        otherParent = currentSpouse
+                    )
+                )
+            }
+            nextOptionNumber++
+        }
+
+        // Choice 2b+: Any Former / Late Spouses from prior marriage(s)
+        formerSpouses.forEach { formerSpouse ->
+            val fName = "${formerSpouse.firstName} ${formerSpouse.lastName}".trim()
+            val fTag = if (!formerSpouse.isLiving || formerSpouse.deathDate.isNotBlank()) "Late spouse (Prior marriage)" else "Former spouse (Prior marriage)"
+            choiceLabels.add("$nextOptionNumber. $fTag: $fName\n   (Connect both as biological parents)")
+            choiceActions.add {
+                onResult(
+                    BiologicalParentSelectionResult(
+                        choice = CoParentChoice.FORMER_SPOUSE,
+                        primaryParent = parent,
+                        otherParent = formerSpouse
+                    )
+                )
+            }
+            nextOptionNumber++
+        }
+
+        // Final Choice: Another person
+        val fallbackSpouseForExclusion = currentSpouse ?: linkedSpouses.first()
+        choiceLabels.add("$nextOptionNumber. Another person\n   (Select existing person or create new person)")
+        choiceActions.add {
+            showSelectOrCreateOtherParentDialog(
+                context = context,
+                parent = parent,
+                spouse = fallbackSpouseForExclusion,
+                allMembers = allMembers,
+                onResult = onResult,
+                onCancel = onCancel
+            )
+        }
+
+        val spouseSummary = linkedSpouses.joinToString(", ") { "${it.firstName} ${it.lastName}".trim() }
 
         com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
             .setTitle("Identify Other Biological Parent")
-            .setMessage("$parentName is currently linked with spouse $spouseName.\n\nWho is the other biological parent of this child?")
-            .setItems(choices) { _, which ->
-                when (which) {
-                    0 -> {
-                        // Choice 1: Unknown or not recorded
-                        onResult(
-                            BiologicalParentSelectionResult(
-                                choice = CoParentChoice.UNKNOWN,
-                                primaryParent = parent,
-                                otherParent = null
-                            )
-                        )
-                    }
-                    1 -> {
-                        // Choice 2: Current spouse or partner
-                        onResult(
-                            BiologicalParentSelectionResult(
-                                choice = CoParentChoice.CURRENT_SPOUSE,
-                                primaryParent = parent,
-                                otherParent = spouse
-                            )
-                        )
-                    }
-                    2 -> {
-                        // Choice 3: Another person
-                        showSelectOrCreateOtherParentDialog(
-                            context = context,
-                            parent = parent,
-                            spouse = spouse,
-                            allMembers = allMembers,
-                            onResult = onResult,
-                            onCancel = onCancel
-                        )
-                    }
-                }
+            .setMessage("$parentName is linked with spouse(s): $spouseSummary.\n\nWho is the other biological parent of this child?")
+            .setItems(choiceLabels.toTypedArray()) { _, which ->
+                choiceActions.getOrNull(which)?.invoke()
             }
             .setNegativeButton("Cancel") { _, _ -> onCancel?.invoke() }
             .show()

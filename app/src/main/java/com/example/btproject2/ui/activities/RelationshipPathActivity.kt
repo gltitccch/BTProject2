@@ -221,7 +221,7 @@ class RelationshipPathActivity : AppCompatActivity() {
 
                 if (i < result.pathFromA.size - 1) {
                     val nextPerson = result.pathFromA[i + 1]
-                    val isSpouseHop = person.spouseId == nextPerson.id || nextPerson.spouseId == person.id
+                    val isSpouseHop = person.hasSpouseId(nextPerson.id) || nextPerson.hasSpouseId(person.id)
                     val pipeLabel = when {
                         isSpouseHop -> "💍 Married to (Marriage Bridge)"
                         person.fatherId == nextPerson.id || person.motherId == nextPerson.id -> "Biological Child of"
@@ -236,7 +236,7 @@ class RelationshipPathActivity : AppCompatActivity() {
                 val lastA = result.pathFromA.lastOrNull()
                 val pathDown = result.pathFromB.reversed()
                 val firstDown = pathDown.getOrNull(1)
-                val firstIsSpouseHop = lastA != null && firstDown != null && (lastA.spouseId == firstDown.id || firstDown.spouseId == lastA.id)
+                val firstIsSpouseHop = lastA != null && firstDown != null && (lastA.hasSpouseId(firstDown.id) || firstDown.hasSpouseId(lastA.id))
                 addConnectorPipe(
                     pathContainer,
                     isAscending = false,
@@ -267,7 +267,7 @@ class RelationshipPathActivity : AppCompatActivity() {
 
                     if (i < pathDown.size - 1) {
                         val nextDown = pathDown[i + 1]
-                        val isSpouseHop = person.spouseId == nextDown.id || nextDown.spouseId == person.id
+                        val isSpouseHop = person.hasSpouseId(nextDown.id) || nextDown.hasSpouseId(person.id)
                         addConnectorPipe(
                             pathContainer,
                             isAscending = false,

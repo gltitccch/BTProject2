@@ -40,14 +40,14 @@ class TreeHealthCalculator {
         val total = allPersons.size
         val withBirth = allPersons.count { it.birthDate.isNotEmpty() }
         val withParents = allPersons.count { it.fatherId != null || it.motherId != null }
-        val withSpouse = allPersons.count { it.spouseId != null }
+        val withSpouse = allPersons.count { it.allSpouseIds().isNotEmpty() }
         val childIds = allPersons.flatMap { listOfNotNull(it.fatherId, it.motherId) }.toSet()
-        val spouseTargetIds = allPersons.mapNotNull { it.spouseId?.takeIf { s -> s.isNotBlank() } }.toSet()
+        val spouseTargetIds = allPersons.flatMap { it.allSpouseIds() }.toSet()
         val orphans = allPersons.count {
             it.fatherId.isNullOrBlank() &&
                 it.motherId.isNullOrBlank() &&
                 it.id !in childIds &&
-                it.spouseId.isNullOrBlank() &&
+                it.allSpouseIds().isEmpty() &&
                 it.id !in spouseTargetIds
         }
 
@@ -64,9 +64,9 @@ class TreeHealthCalculator {
             val hasNoParents = p.fatherId.isNullOrBlank() && p.motherId.isNullOrBlank()
             if (!hasNoParents) return@count false
             val isFoundingAncestor = p.id in childIds
-            val isMarriedInSpouse = (!p.spouseId.isNullOrBlank() || p.id in spouseTargetIds) &&
+            val isMarriedInSpouse = (p.allSpouseIds().isNotEmpty() || p.id in spouseTargetIds) &&
                 allPersons.any { sp ->
-                    (sp.id == p.spouseId || sp.spouseId == p.id) &&
+                    (p.hasSpouseId(sp.id) || sp.hasSpouseId(p.id)) &&
                         (!sp.fatherId.isNullOrBlank() || !sp.motherId.isNullOrBlank() || sp.id in childIds)
                 }
             !isFoundingAncestor && !isMarriedInSpouse

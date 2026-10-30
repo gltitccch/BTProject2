@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardOptionRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_wizard_option_card_default"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <!-- Radio Circle Indicator -->
+    <ImageView
+        android:id="@+id/ivOptionRadio"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="Select this resolution option"
+        android:src="@drawable/ic_wizard_radio_unchecked" />
+
+    <!-- Content Block -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Title Row with Badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvOptionTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Resolution Title"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvOptionBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/badge_pill_gold"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="2dp"
+                android:text="Safe Fix"
+                android:textColor="@color/btn_gold_text"
+                android:textSize="9.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/tvOptionDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:lineSpacingExtra="1dp"
+            android:text="Clear explanation of what happens when this option is chosen."
+            android:textColor="@color/text_secondary"
+            android:textSize="11.5sp" />
+    </LinearLayout>
+</LinearLayout>

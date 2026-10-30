@@ -47,6 +47,11 @@ class MergePreviewEngine {
         }
 
         // Build merged person (prefer A's data, fill gaps from B)
+        val chosenSpouseId = personA.spouseId ?: personB.spouseId
+        val mergedFormerSpouses = (personA.formerSpouseIds + personB.formerSpouseIds + listOfNotNull(personA.spouseId, personB.spouseId))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && !FamilyLinkValidator.isSameId(it, chosenSpouseId) }
+            .distinct()
         val merged = Person(
             id = personA.id,
             firstName = personA.firstName.ifEmpty { personB.firstName },
@@ -60,7 +65,8 @@ class MergePreviewEngine {
             motherRelationshipType = personA.motherRelationshipType.ifEmpty { personB.motherRelationshipType },
             fatherId = personA.fatherId ?: personB.fatherId,
             fatherRelationshipType = personA.fatherRelationshipType.ifEmpty { personB.fatherRelationshipType },
-            spouseId = personA.spouseId ?: personB.spouseId,
+            spouseId = chosenSpouseId,
+            formerSpouseIds = mergedFormerSpouses,
             treeId = personA.treeId.ifEmpty { personB.treeId },
             createdBy = personA.createdBy.ifEmpty { personB.createdBy },
             createdAt = minOf(personA.createdAt, personB.createdAt),
@@ -83,6 +89,11 @@ class MergePreviewEngine {
         personB: Person,
         overrides: Map<String, String> // e.g. "Birth Date" -> "1985-05-12"
     ): Person {
+        val chosenSpouseId = overrides["Spouse"] ?: (personA.spouseId ?: personB.spouseId)
+        val mergedFormerSpouses = (personA.formerSpouseIds + personB.formerSpouseIds + listOfNotNull(personA.spouseId, personB.spouseId))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && !FamilyLinkValidator.isSameId(it, chosenSpouseId) }
+            .distinct()
         return Person(
             id = personA.id,
             firstName = overrides["First Name"] ?: personA.firstName.ifEmpty { personB.firstName },
@@ -94,7 +105,8 @@ class MergePreviewEngine {
             birthPlace = overrides["Birth Place"] ?: personA.birthPlace.ifEmpty { personB.birthPlace },
             motherId = overrides["Mother"] ?: (personA.motherId ?: personB.motherId),
             fatherId = overrides["Father"] ?: (personA.fatherId ?: personB.fatherId),
-            spouseId = overrides["Spouse"] ?: (personA.spouseId ?: personB.spouseId),
+            spouseId = chosenSpouseId,
+            formerSpouseIds = mergedFormerSpouses,
             treeId = personA.treeId.ifEmpty { personB.treeId },
             createdBy = personA.createdBy.ifEmpty { personB.createdBy },
             createdAt = minOf(personA.createdAt, personB.createdAt),

@@ -44,8 +44,18 @@ class HomeActivity : AppCompatActivity() {
         private var pendingThemeWaveMode: String = ThemePreferences.THEME_DARK
         private var justCompletedThemeMorphInSession: Boolean = false
         private var isPlayingThemeMorphAnimation: Boolean = false
+        private var lastSessionUserId: String = ""
+
+        fun resetThemeSessionFlags() {
+            isRecreatingFromEmptyStateThemeSwitch = false
+            pendingCornerDockMorph = false
+            pendingCornerButtonPop = false
+            justCompletedThemeMorphInSession = false
+            isPlayingThemeMorphAnimation = false
+        }
     }
 
+    private var isFirstResumeAfterCreate: Boolean = true
     private val activeThemeOnboardingAnimators = mutableListOf<android.animation.ValueAnimator>()
 
     private val authHelper = AuthHelper()
@@ -429,7 +439,11 @@ class HomeActivity : AppCompatActivity() {
 
         refreshQuestHudUi()
         refreshNotificationBadge()
-        resolveAndLoadTree()
+        if (isFirstResumeAfterCreate) {
+            isFirstResumeAfterCreate = false
+        } else {
+            resolveAndLoadTree()
+        }
     }
 
     private fun updateAllThemeToggles() {
@@ -454,8 +468,32 @@ class HomeActivity : AppCompatActivity() {
             return
         }
 
-        val cachedTreeId = TreePreferences.getActiveTreeId(this)
-        val cachedTreeName = TreePreferences.getActiveTreeName(this)
+        if (lastSessionUserId.isNotEmpty() && lastSessionUserId != currentUserId) {
+            resetThemeSessionFlags()
+        }
+        lastSessionUserId = currentUserId
+
+        val isNewUserPreview = com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(
+            authHelper.getCurrentUser()?.email
+        )
+
+        var cachedTreeId = TreePreferences.getActiveTreeId(this)
+        var cachedTreeName = TreePreferences.getActiveTreeName(this)
+
+        // Restore per-user remembered tree at 0ms if active session was cleared on account switch
+        if (cachedTreeId.isEmpty() && !isNewUserPreview) {
+            val rememberedId = TreePreferences.getRememberedTreeIdForUser(this, currentUserId)
+            val rememberedName = TreePreferences.getRememberedTreeNameForUser(this, currentUserId)
+            if (rememberedId.isNotEmpty()) {
+                cachedTreeId = rememberedId
+                cachedTreeName = rememberedName
+                TreePreferences.setActiveTree(this, rememberedId, rememberedName, currentUserId)
+            }
+            val rememberedTrees = TreePreferences.getRememberedTreesForUser(this, currentUserId)
+            if (rememberedTrees.isNotEmpty() && userOwnedTrees.isEmpty()) {
+                userOwnedTrees = rememberedTrees
+            }
+        }
 
         val layoutHomeShimmer = findViewById<View?>(R.id.layoutHomeShimmer)
 
@@ -463,6 +501,7 @@ class HomeActivity : AppCompatActivity() {
             this.treeId = cachedTreeId
             layoutStatsHeader.visibility = View.VISIBLE
             findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  ${cachedTreeName.ifEmpty { "Family Tree" }}"
+            CentralTreeSynchronizer.getInstance().startRealtimeListener(cachedTreeId)
             loadStatsForTree(cachedTreeId)
             if (pendingCornerButtonPop) {
                 pendingCornerButtonPop = false
@@ -470,57 +509,92 @@ class HomeActivity : AppCompatActivity() {
                 justCompletedThemeMorphInSession = true
                 playPostRecreateSpinAndWave(pendingThemeWaveMode, isEmptyCornerPill = false)
             }
-        } else if (isRecreatingFromEmptyStateThemeSwitch || isPlayingThemeMorphAnimation || pendingCornerDockMorph || pendingCornerButtonPop || justCompletedThemeMorphInSession) {
-            // Instant 0ms Empty State restoration during theme switch animation (never show shimmer skeleton)
+        } else if (isRecreatingFromEmptyStateThemeSwitch || isPlayingThemeMorphAnimation || pendingCornerDockMorph || pendingCornerButtonPop) {
+            // Instant 0ms Empty State restoration ONLY during an active theme switch animation
             layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
             showNoTreeEmptyState()
         } else {
-            // Fresh login / switch account: preserve shimmer skeleton while Firestore resolves user's trees (prevents 0.1s blink)
+            // Fresh login / switch account: preserve shimmer skeleton while Firestore resolves user's trees (prevents premature empty state)
             layoutStatsHeader.visibility = View.GONE
             layoutPopulatedState.visibility = View.GONE
             layoutEmptyState.visibility = View.GONE
             layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.startShimmer(it) }
         }
 
+        var resolvedProfileTreeId = ""
         firestoreHelper.getUserProfile(currentUserId,
             onSuccess = { profile ->
-                val profileTreeId = profile?.currentTreeId.orEmpty()
-                firestoreHelper.getUserTrees(currentUserId,
-                    onSuccess = { trees ->
-                        userOwnedTrees = trees
-                        if (trees.isEmpty()) {
-                            this.treeId = ""
-                            TreePreferences.clear(this)
-                            layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
-                            showNoTreeEmptyState()
-                            return@getUserTrees
-                        }
+                resolvedProfileTreeId = profile?.currentTreeId.orEmpty()
+            },
+            onFailure = {}
+        )
 
-                        val targetTree = trees.firstOrNull { it.id == cachedTreeId }
-                            ?: trees.firstOrNull { it.id == profileTreeId }
-                            ?: trees.first()
+        firestoreHelper.getUserTrees(currentUserId,
+            onSuccess = { trees ->
+                if (trees.isNotEmpty()) {
+                    userOwnedTrees = trees
+                    TreePreferences.saveUserTreesList(this, currentUserId, trees)
 
-                        val treeChanged = this.treeId != targetTree.id
-                        this.treeId = targetTree.id
-                        TreePreferences.setActiveTree(this, targetTree.id, targetTree.name)
-                        CentralTreeSynchronizer.getInstance().startRealtimeListener(targetTree.id)
+                    val currentActivePrefId = TreePreferences.getActiveTreeId(this)
+                    val targetTree = trees.firstOrNull { it.id == currentActivePrefId }
+                        ?: trees.firstOrNull { it.ownerId == currentUserId }
+                        ?: trees.firstOrNull { it.id == resolvedProfileTreeId }
+                        ?: trees.first()
 
-                        layoutStatsHeader.visibility = View.VISIBLE
-                        findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  ${targetTree.name}"
-                        if (treeChanged || cachedTreeId.isEmpty()) {
-                            loadStatsForTree(targetTree.id)
-                        }
-                    },
-                    onFailure = {
-                        if (cachedTreeId.isEmpty()) {
-                            layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
-                            showNoTreeEmptyState()
-                        }
+                    val treeChanged = this.treeId != targetTree.id
+                    this.treeId = targetTree.id
+                    TreePreferences.setActiveTree(this, targetTree.id, targetTree.name, currentUserId)
+                    CentralTreeSynchronizer.getInstance().startRealtimeListener(targetTree.id)
+
+                    layoutStatsHeader.visibility = View.VISIBLE
+                    layoutEmptyState.visibility = View.GONE
+                    findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  ${targetTree.name}"
+                    if (treeChanged || cachedTreeId.isEmpty() || layoutPopulatedState.visibility != View.VISIBLE) {
+                        loadStatsForTree(targetTree.id)
                     }
-                )
+                    return@getUserTrees
+                }
+
+                // Fallback: if getUserTrees returned empty, verify if user profile has a currentTreeId before declaring no tree
+                val fallbackTreeId = resolvedProfileTreeId.ifEmpty { cachedTreeId }
+                if (fallbackTreeId.isNotEmpty() && !isNewUserPreview) {
+                    firestoreHelper.getTree(fallbackTreeId,
+                        onSuccess = { fallbackTree ->
+                            if (fallbackTree != null) {
+                                userOwnedTrees = listOf(fallbackTree)
+                                TreePreferences.saveUserTreesList(this, currentUserId, userOwnedTrees)
+                                this.treeId = fallbackTree.id
+                                TreePreferences.setActiveTree(this, fallbackTree.id, fallbackTree.name, currentUserId)
+                                CentralTreeSynchronizer.getInstance().startRealtimeListener(fallbackTree.id)
+                                layoutStatsHeader.visibility = View.VISIBLE
+                                layoutEmptyState.visibility = View.GONE
+                                findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  ${fallbackTree.name}"
+                                loadStatsForTree(fallbackTree.id)
+                            } else {
+                                this.treeId = ""
+                                TreePreferences.clear(this)
+                                TreePreferences.clearUserRememberedTree(this, currentUserId)
+                                layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+                                showNoTreeEmptyState()
+                            }
+                        },
+                        onFailure = {
+                            if (this.treeId.isEmpty()) {
+                                layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+                                showNoTreeEmptyState()
+                            }
+                        }
+                    )
+                } else {
+                    this.treeId = ""
+                    TreePreferences.clear(this)
+                    TreePreferences.clearUserRememberedTree(this, currentUserId)
+                    layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+                    showNoTreeEmptyState()
+                }
             },
             onFailure = {
-                if (cachedTreeId.isEmpty()) {
+                if (this.treeId.isEmpty() && cachedTreeId.isEmpty()) {
                     layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
                     showNoTreeEmptyState()
                 }
@@ -1221,6 +1295,9 @@ class HomeActivity : AppCompatActivity() {
                     renderRecentActivity(fallbackCache)
                 } else {
                     layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
+                    layoutEmptyState.visibility = View.GONE
+                    layoutStatsHeader.visibility = View.VISIBLE
+                    layoutPopulatedState.visibility = View.VISIBLE
                     tvMemberCount.text = "0"
                     findViewById<TextView>(R.id.tvLivingCount)?.text = "0"
                     findViewById<TextView?>(R.id.tvGenerationCountLarge)?.text = "0"

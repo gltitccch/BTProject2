@@ -185,8 +185,8 @@ class MergeBridgeValidator(
         }
 
         // Existing Spousal Conflict: Parent cannot be married to their child (Art. 37(1))
-        val isSpouse = FamilyLinkValidator.isSameId(proposedParent.spouseId, proposedChild.id) ||
-                FamilyLinkValidator.isSameId(proposedChild.spouseId, proposedParent.id)
+        val isSpouse = proposedParent.hasSpouseId(proposedChild.id) ||
+                proposedChild.hasSpouseId(proposedParent.id)
         if (isSpouse) {
             return ValidationResult.prohibited(
                 "A person cannot be both a biological parent and a spouse of the same individual. Under Article 37(1) of the Family Code, direct lineal parent-child marriages are incestuous and void ab initio."
@@ -234,7 +234,7 @@ class MergeBridgeValidator(
             }
         }
 
-        // Dual-Spouse Bigamy Trap Prevention
+        // Dual-Spouse Bigamy Trap Prevention (allows merging if one marriage dissolved/widowed into a remarriage)
         val aHasSpouse = isCurrentlyMarried(personA, combinedMap)
         val bHasSpouse = isCurrentlyMarried(personB, combinedMap)
         if (aHasSpouse && bHasSpouse) {
@@ -247,12 +247,15 @@ class MergeBridgeValidator(
                                     spouseA.lastName.equals(spouseB.lastName, ignoreCase = true))
                     )
 
-            if (!areSpousesSame) {
+            val isOneSpouseDeceasedOrDissolved = (spouseA != null && (!spouseA.isLiving || spouseA.deathDate.isNotBlank())) ||
+                    (spouseB != null && (!spouseB.isLiving || spouseB.deathDate.isNotBlank()))
+
+            if (!areSpousesSame && !isOneSpouseDeceasedOrDissolved) {
                 val spouseAName = spouseA?.let { "${it.firstName} ${it.lastName}".trim() } ?: "an existing spouse"
                 val spouseBName = spouseB?.let { "${it.firstName} ${it.lastName}".trim() } ?: "an existing spouse"
 
                 return ValidationResult.prohibited(
-                    "Dual-Spouse Conflict (Bigamy Trap): ${personA.firstName} is married to $spouseAName in Tree 1, while ${personB.firstName} is married to $spouseBName in Tree 2. Merging them would create an illegal bigamous marriage with two conflicting spouses under Article 35(4) of the Family Code."
+                    "Dual-Spouse Conflict (Bigamy Trap): ${personA.firstName} is married to $spouseAName in Tree 1, while ${personB.firstName} is married to $spouseBName in Tree 2. Merging them would create an illegal bigamous marriage with two conflicting living spouses under Article 35(4) of the Family Code."
                 )
             }
         }
@@ -304,8 +307,8 @@ class MergeBridgeValidator(
         }
 
         // Existing Spousal Conflict: Prohibits brother-sister incestuous marriages (Art. 37(2))
-        val isSpouse = FamilyLinkValidator.isSameId(personA.spouseId, personB.id) ||
-                FamilyLinkValidator.isSameId(personB.spouseId, personA.id)
+        val isSpouse = personA.hasSpouseId(personB.id) ||
+                personB.hasSpouseId(personA.id)
         if (isSpouse) {
             return ValidationResult.prohibited(
                 "Under Article 37(2) of the Family Code of the Philippines, marriages between brothers and sisters (whether full or half blood) are incestuous and void ab initio. These individuals are currently recorded as spouses."
@@ -356,13 +359,20 @@ class MergeBridgeValidator(
         if (!sId.isNullOrEmpty()) {
             val spouse = personMap[sId.lowercase()]
                 ?: personMap.values.find { FamilyLinkValidator.isSameId(it.id, sId) }
-            // If spouse exists and person is marked Married (or spouse is living or founder marriage intact)
+            // If spouse passed away or dissolved, the person is legally free to remarry
             if (spouse != null) {
+                if (!spouse.isLiving || spouse.deathDate.isNotBlank()) return false
+                if (spouse.maritalStatus.equals("Divorced", ignoreCase = true) ||
+                    spouse.maritalStatus.equals("Annulled", ignoreCase = true) ||
+                    spouse.maritalStatus.equals("Separated", ignoreCase = true)
+                ) {
+                    return false
+                }
                 return true
             }
         }
 
-        return person.maritalStatus.equals("Married", ignoreCase = true)
+        return person.maritalStatus.equals("Married", ignoreCase = true) && !sId.isNullOrEmpty()
     }
 
     private fun resolveSpouse(person: Person, personMap: Map<String, Person>): Person? {

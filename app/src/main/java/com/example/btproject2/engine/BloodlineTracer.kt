@@ -209,22 +209,34 @@ class BloodlineTracer {
         personB: Person,
         personMap: Map<String, Person>
     ): TraceResult? {
-        // 1. Spousal check (Current Marriage - Art. 35(4) / Art. 40)
-        if (personA.spouseId == personB.id || personB.spouseId == personA.id) {
+        // 1. Spousal check (Current Marriage or Former/Deceased Marriage - Art. 35(4) / Art. 40)
+        if (personA.hasSpouseId(personB.id) || personB.hasSpouseId(personA.id)) {
+            val isFormerMarriage = personA.formerSpouseIds.any { it.equals(personB.id, ignoreCase = true) } ||
+                personB.formerSpouseIds.any { it.equals(personA.id, ignoreCase = true) }
+            val isEitherDeceased = !personA.isLiving || !personB.isLiving
+            val relLabel = when {
+                isFormerMarriage && isEitherDeceased -> "Former / Late Spouse (Prior Marriage)"
+                isFormerMarriage -> "Former Spouse (Prior Marriage)"
+                else -> "Spouse (Legally Married)"
+            }
             return TraceResult(
                 personA = personA, personB = personB,
                 isRelated = true,
-                relationshipType = "Spouse (Legally Married)",
+                relationshipType = relLabel,
                 relationshipCategory = "Affinity / Marital",
                 degreeOfConsanguinity = 0,
                 commonAncestor = null,
                 pathFromA = listOf(personA),
                 pathFromB = listOf(personB),
-                explanation = "${personA.firstName} and ${personB.firstName} are recorded as spouses. Under Philippine Law, a person who is currently married cannot enter into another marriage without prior judicial declaration of nullity (Bigamy, Art. 35(4) & Art. 40 Family Code).",
+                explanation = if (isFormerMarriage) {
+                    "${personA.firstName} and ${personB.firstName} are recorded as spouses from a prior marriage (${relLabel})."
+                } else {
+                    "${personA.firstName} and ${personB.firstName} are recorded as spouses. Under Philippine Law, a person who is currently married cannot enter into another marriage without prior judicial declaration of nullity (Bigamy, Art. 35(4) & Art. 40 Family Code)."
+                },
                 distanceA = 0, distanceB = 0,
-                legalStatus = "Void (Existing Marriage)",
+                legalStatus = if (isFormerMarriage) "Prior Marriage Record" else "Void (Existing Marriage)",
                 legalArticle = "Art. 35(4) / Art. 40 Family Code",
-                isMarriageProhibited = true,
+                isMarriageProhibited = !isFormerMarriage,
                 legalDescription = "Existing Marriage Impediment: Bigamous marriage is void ab initio under Article 35, Paragraph 4 and Article 40 of the Family Code."
             )
         }
@@ -262,12 +274,12 @@ class BloodlineTracer {
         val bFather = personB.fatherId?.let { personMap[it] }
         val bMother = personB.motherId?.let { personMap[it] }
 
-        val aStepChildOfB = (aFather != null && aFather.spouseId == personB.id) ||
-                (aMother != null && aMother.spouseId == personB.id) ||
+        val aStepChildOfB = (aFather != null && (aFather.hasSpouseId(personB.id) || personB.hasSpouseId(aFather.id))) ||
+                (aMother != null && (aMother.hasSpouseId(personB.id) || personB.hasSpouseId(aMother.id))) ||
                 (personA.fatherId == personB.id && personA.fatherRelationshipType.equals("Step", ignoreCase = true)) ||
                 (personA.motherId == personB.id && personA.motherRelationshipType.equals("Step", ignoreCase = true))
-        val bStepChildOfA = (bFather != null && bFather.spouseId == personA.id) ||
-                (bMother != null && bMother.spouseId == personA.id) ||
+        val bStepChildOfA = (bFather != null && (bFather.hasSpouseId(personA.id) || personA.hasSpouseId(bFather.id))) ||
+                (bMother != null && (bMother.hasSpouseId(personA.id) || personA.hasSpouseId(bMother.id))) ||
                 (personB.fatherId == personA.id && personB.fatherRelationshipType.equals("Step", ignoreCase = true)) ||
                 (personB.motherId == personA.id && personB.motherRelationshipType.equals("Step", ignoreCase = true))
 
@@ -297,10 +309,7 @@ class BloodlineTracer {
         val bParentsList = listOfNotNull(bFather, bMother)
         val parentsAreMarried = aParentsList.any { ap ->
             bParentsList.any { bp ->
-                ap.id != bp.id && (
-                    (!ap.spouseId.isNullOrBlank() && ap.spouseId == bp.id) ||
-                    (!bp.spouseId.isNullOrBlank() && bp.spouseId == ap.id)
-                )
+                ap.id != bp.id && (ap.hasSpouseId(bp.id) || bp.hasSpouseId(ap.id))
             }
         }
         val isBioRel = { r: String? -> r.isNullOrBlank() || r.equals("Biological", ignoreCase = true) }
@@ -308,8 +317,8 @@ class BloodlineTracer {
                 (personA.motherId != null && personA.motherId == personB.motherId && isBioRel(personA.motherRelationshipType) && isBioRel(personB.motherRelationshipType))
 
         if (parentsAreMarried && !sharesAnyBio) {
-            val connectingParentA = aParentsList.first { ap -> bParentsList.any { bp -> ap.spouseId == bp.id || bp.spouseId == ap.id } }
-            val connectingParentB = bParentsList.first { bp -> connectingParentA.spouseId == bp.id || bp.spouseId == connectingParentA.id }
+            val connectingParentA = aParentsList.first { ap -> bParentsList.any { bp -> ap.hasSpouseId(bp.id) || bp.hasSpouseId(ap.id) } }
+            val connectingParentB = bParentsList.first { bp -> connectingParentA.hasSpouseId(bp.id) || bp.hasSpouseId(connectingParentA.id) }
             return TraceResult(
                 personA = personA,
                 personB = personB,
@@ -379,11 +388,11 @@ class BloodlineTracer {
         // 5. Parent-in-Law & Child-in-Law (Art. 38(3) / Art. 38(4) Family Code — Direct Affinity)
         val childOfAMarriedToB = personMap.values.firstOrNull { child ->
             (child.fatherId == personA.id || child.motherId == personA.id) &&
-                    (child.spouseId == personB.id || personB.spouseId == child.id)
+                    (child.hasSpouseId(personB.id) || personB.hasSpouseId(child.id))
         }
         val childOfBMarriedToA = personMap.values.firstOrNull { child ->
             (child.fatherId == personB.id || child.motherId == personB.id) &&
-                    (child.spouseId == personA.id || personA.spouseId == child.id)
+                    (child.hasSpouseId(personA.id) || personA.hasSpouseId(child.id))
         }
 
         if (childOfAMarriedToB != null || childOfBMarriedToA != null) {
@@ -427,10 +436,12 @@ class BloodlineTracer {
         }
 
         // 6. Siblings-in-Law (Brother-in-Law / Sister-in-Law — Collateral Affinity)
-        val spouseOfA = personA.spouseId?.let { personMap[it] }
-            ?: personMap.values.firstOrNull { it.spouseId == personA.id }
-        val spouseOfB = personB.spouseId?.let { personMap[it] }
-            ?: personMap.values.firstOrNull { it.spouseId == personB.id }
+        val spousesOfA = (personA.allSpouseIds().mapNotNull { personMap[it] } +
+            personMap.values.filter { it.hasSpouseId(personA.id) }).distinctBy { it.id }
+        val spousesOfB = (personB.allSpouseIds().mapNotNull { personMap[it] } +
+            personMap.values.filter { it.hasSpouseId(personB.id) }).distinctBy { it.id }
+        val spouseOfA = spousesOfA.firstOrNull()
+        val spouseOfB = spousesOfB.firstOrNull()
 
         fun areBioOrAdoptiveSiblings(p1: Person, p2: Person): Boolean {
             if (p1.id == p2.id) return false
@@ -439,11 +450,13 @@ class BloodlineTracer {
             return sharesFather || sharesMother
         }
 
-        val aSpouseIsSiblingOfB = spouseOfA != null && areBioOrAdoptiveSiblings(spouseOfA, personB)
-        val bSpouseIsSiblingOfA = spouseOfB != null && areBioOrAdoptiveSiblings(spouseOfB, personA)
+        val matchingSpouseOfA = spousesOfA.firstOrNull { areBioOrAdoptiveSiblings(it, personB) }
+        val matchingSpouseOfB = spousesOfB.firstOrNull { areBioOrAdoptiveSiblings(it, personA) }
+        val aSpouseIsSiblingOfB = matchingSpouseOfA != null
+        val bSpouseIsSiblingOfA = matchingSpouseOfB != null
 
         if (aSpouseIsSiblingOfB || bSpouseIsSiblingOfA) {
-            val connectingSpouse = if (aSpouseIsSiblingOfB) spouseOfA!! else spouseOfB!!
+            val connectingSpouse = if (aSpouseIsSiblingOfB) matchingSpouseOfA!! else matchingSpouseOfB!!
             return TraceResult(
                 personA = personA,
                 personB = personB,
@@ -467,13 +480,17 @@ class BloodlineTracer {
         }
 
         // 7. Universal Extended Spouse-Bridge Affinity (Grandparent-in-Law, Uncle/Aunt-in-Law, Cousin-in-Law, etc.)
-        val bioAToSpouseB = if (spouseOfB != null && spouseOfB.id != personA.id) {
-            traceBiologicalOnly(personA.id, spouseOfB.id, personMap)
-        } else null
+        val matchedSpouseBPair = spousesOfB
+            .filter { it.id != personA.id }
+            .mapNotNull { spB -> traceBiologicalOnly(personA.id, spB.id, personMap)?.let { spB to it } }
+            .minByOrNull { it.second.distanceA + it.second.distanceB }
+        val bioAToSpouseB = matchedSpouseBPair?.second
 
-        val bioBToSpouseA = if (spouseOfA != null && spouseOfA.id != personB.id) {
-            traceBiologicalOnly(spouseOfA.id, personB.id, personMap)
-        } else null
+        val matchedSpouseAPair = spousesOfA
+            .filter { it.id != personB.id }
+            .mapNotNull { spA -> traceBiologicalOnly(spA.id, personB.id, personMap)?.let { spA to it } }
+            .minByOrNull { it.second.distanceA + it.second.distanceB }
+        val bioBToSpouseA = matchedSpouseAPair?.second
 
         if (bioAToSpouseB != null || bioBToSpouseA != null) {
             val viaSpouseB = bioAToSpouseB != null && (
@@ -481,7 +498,7 @@ class BloodlineTracer {
                     (bioAToSpouseB.distanceA + bioAToSpouseB.distanceB) <= (bioBToSpouseA.distanceA + bioBToSpouseA.distanceB)
                 )
             val bioTrace = if (viaSpouseB) bioAToSpouseB!! else bioBToSpouseA!!
-            val connectingSpouse = if (viaSpouseB) spouseOfB!! else spouseOfA!!
+            val connectingSpouse = if (viaSpouseB) matchedSpouseBPair!!.first else matchedSpouseAPair!!.first
             val bloodRelative = if (viaSpouseB) personA else personB
             val marriedInPerson = if (viaSpouseB) personB else personA
 
@@ -550,7 +567,7 @@ class BloodlineTracer {
         val childrenOfA = personMap.values.filter { it.fatherId == personA.id || it.motherId == personA.id }
         val childrenOfB = personMap.values.filter { it.fatherId == personB.id || it.motherId == personB.id }
         val marriedChildrenPair = childrenOfA.firstNotNullOfOrNull { cA ->
-            val cB = childrenOfB.firstOrNull { it.id != cA.id && (cA.spouseId == it.id || it.spouseId == cA.id) }
+            val cB = childrenOfB.firstOrNull { it.id != cA.id && (cA.hasSpouseId(it.id) || it.hasSpouseId(cA.id)) }
             if (cB != null) cA to cB else null
         }
         if (marriedChildrenPair != null) {

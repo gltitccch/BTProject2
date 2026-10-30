@@ -57,7 +57,7 @@ object InAppUpdateManager {
     const val KEY_LAST_SEEN_VERSION = "key_last_seen_version"
     private const val SUPPRESSION_DURATION_MS = 24 * 60 * 60 * 1000L // 24 hours
 
-    const val CURRENT_RELEASE_NOTES = "• Full-Screen Segmented Studio for Account & Demo Vault with Minimalist Dropdown Bar\n• Dual Vault Modes: Mode 1 (Personal & Clan Accounts) & Mode 2 (Admin & Defense Clans)\n• Account Registration & Email Verification Shield Pop-Up Guard for 1-Tap Keycards\n• Warm Linen & Amber Bronze Theme Standards with Zero Green in Light Mode"
+    const val CURRENT_RELEASE_NOTES = "• Guided Family Tree Multi-Option Resolution Stepper with Context-Aware Decision Choices\n• Legal Adoption Childbirth Age Exemption under Philippine Domestic Adoption Law (RA 8552 / RA 11642)\n• Real-Time Tree Health & Integrity Synchronization across Interactive Canvas and Audit Screens\n• Warm Linen & Amber Bronze Theme Standards with Zero Green in Light Mode"
 
     /**
      * Builds the canonical zero-cost GitHub Releases direct APK download link for a given version tag.
@@ -94,15 +94,15 @@ object InAppUpdateManager {
 
                 val targetReleaseNotes = CURRENT_RELEASE_NOTES
 
-                // If remote code is < 7L OR remote record lacks a valid release HTTPS APK link,
+                // If remote code is < 8L OR remote record lacks a valid release HTTPS APK link,
                 // OR remote releaseNotes need updating to include the latest fixes,
-                // align Firestore to the active v1.3.4 (versionCode = 7) release pointing to GitHub Releases.
-                if (currentRemoteCode < 7L || (currentRemoteCode == 7L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
+                // align Firestore to the active v1.3.5 (versionCode = 8) release pointing to GitHub Releases.
+                if (currentRemoteCode < 8L || (currentRemoteCode == 8L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
                     val currentConfig = AppVersionConfig(
-                        versionCode = 7L,
-                        versionName = "v1.3.4",
+                        versionCode = 8L,
+                        versionName = "v1.3.5",
                         releaseNotes = targetReleaseNotes,
-                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.4"),
+                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.5"),
                         isMandatory = false,
                         publishedBy = "system@kintrace.ph"
                     )
@@ -127,7 +127,7 @@ object InAppUpdateManager {
                 context.packageManager.getPackageInfo(context.packageName, 0).versionCode.toLong()
             }
         } catch (_: Exception) {
-            7L
+            8L
         }
     }
 
