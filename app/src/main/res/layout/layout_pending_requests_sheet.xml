@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet_dialog"
+    android:padding="20dp">
+
+    <!-- Top Drag Handle -->
+    <View
+        android:layout_width="48dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_bottom_sheet_handle"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Header Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🍃"
+            android:textSize="20sp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tvSheetTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pending Role Requests"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/tvSheetCountBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1 Pending"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            android:textColor="#060D09"
+            android:background="@drawable/badge_pill_gold"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp"
+            android:layout_marginEnd="10dp" />
+
+        <TextView
+            android:id="@+id/btnSheetClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="✕"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#A0B2A6"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSheetSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Review relatives asking for Editor access to edit nodes, add members, and organize branches."
+        android:textSize="12.5sp"
+        android:textColor="#94A3B8"
+        android:lineSpacingExtra="2dp"
+        android:layout_marginBottom="14dp" />
+
+    <!-- Batch Approve All Action Button -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnApproveAllRequests"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:text="⚡ Approve All as Editors"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="#060D09"
+        android:background="@drawable/bg_botanical_gold_gradient_btn"
+        android:textAllCaps="false"
+        android:layout_marginBottom="14dp" />
+
+    <!-- Scrollable Pending Requests List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSheetPendingRequests"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="true"
+        android:maxHeight="360dp" />
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/layoutSheetEmptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingVertical="30dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✨"
+            android:textSize="32sp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="All Caught Up!"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#F4F7F4"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No pending role upgrade requests for this tree."
+            android:textSize="12.5sp"
+            android:textColor="#A0B2A6" />
+    </LinearLayout>
+
+</LinearLayout>

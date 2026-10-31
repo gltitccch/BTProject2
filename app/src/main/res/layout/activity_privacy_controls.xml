@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -265,29 +266,96 @@
                 android:nestedScrollingEnabled="false"
                 android:layout_marginBottom="16dp" />
 
-            <!-- PENDING ACCESS REQUESTS SECTION (Optional/Dynamic) -->
+            <!-- ISOLATED PENDING REQUESTS ENTRY TILE (Zero Flooding) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPendingRequestsTile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="@color/gold_accent"
+                app:cardBackgroundColor="@color/forest_card">
+
+                <LinearLayout
+                    android:id="@+id/btnOpenPendingRequestsSheet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:gravity="center"
+                        android:text="🍃"
+                        android:textSize="18sp"
+                        android:background="@drawable/badge_pill_dark"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvPendingRequestsTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pending Role Requests"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#F4F7F4" />
+
+                        <TextView
+                            android:id="@+id/tvPendingRequestsSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tap to review and grant Editor keys"
+                            android:textSize="11.5sp"
+                            android:textColor="#A0B2A6"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvPendingCountBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1 Pending"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold"
+                        android:textColor="#060D09"
+                        android:background="@drawable/badge_pill_gold"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="›"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="#D4AF37" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Hidden legacy container retained for zero crash risk -->
             <LinearLayout
                 android:id="@+id/layoutPendingRequests"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="24dp"
                 android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Pending Access Requests"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/warning"
-                    android:layout_marginBottom="8dp" />
-
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvPendingRequests"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false" />
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
             <!-- HIDDEN INFORMATION (REDACTION) -->

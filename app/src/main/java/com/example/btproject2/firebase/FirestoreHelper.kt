@@ -3450,8 +3450,12 @@ class FirestoreHelper {
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
-        val docRef = db.collection("tree_members").document()
-        val memberWithId = treeMember.copy(id = docRef.id)
+        val docRef = if (treeMember.id.isNotBlank()) {
+            db.collection("tree_members").document(treeMember.id)
+        } else {
+            db.collection("tree_members").document()
+        }
+        val memberWithId = if (treeMember.id.isNotBlank()) treeMember else treeMember.copy(id = docRef.id)
         docRef.set(memberWithId)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }
@@ -4203,10 +4207,55 @@ class FirestoreHelper {
         currentRole: String,
         requestedRole: String,
         featureName: String,
+        requesterEmail: String = "",
         onComplete: (Boolean) -> Unit = {}
     ) {
         val cleanRequester = requesterName.ifBlank { "A family member" }
         val cleanFeature = featureName.ifBlank { "tree management features" }
+
+        // Persist or update member status as Pending in tree_members collection so Owner receives it
+        if (treeId.isNotBlank() && requesterId.isNotBlank()) {
+            getUserMembership(
+                userId = requesterId,
+                treeId = treeId,
+                onSuccess = { existing ->
+                    val resolvedEmail = requesterEmail.ifBlank { existing?.userEmail.orEmpty() }
+                    val memberRecord = existing?.copy(
+                        role = "Viewer",
+                        status = "Pending",
+                        userName = cleanRequester,
+                        userEmail = resolvedEmail,
+                        lastActiveAt = System.currentTimeMillis()
+                    ) ?: TreeMember(
+                        id = "${treeId}_${requesterId}",
+                        treeId = treeId,
+                        userId = requesterId,
+                        userName = cleanRequester,
+                        userEmail = resolvedEmail,
+                        role = "Viewer",
+                        status = "Pending",
+                        joinedAt = System.currentTimeMillis(),
+                        lastActiveAt = System.currentTimeMillis()
+                    )
+                    addTreeMember(memberRecord, onSuccess = {}, onFailure = {})
+                },
+                onFailure = {
+                    val fallbackMember = TreeMember(
+                        id = "${treeId}_${requesterId}",
+                        treeId = treeId,
+                        userId = requesterId,
+                        userName = cleanRequester,
+                        userEmail = requesterEmail,
+                        role = "Viewer",
+                        status = "Pending",
+                        joinedAt = System.currentTimeMillis(),
+                        lastActiveAt = System.currentTimeMillis()
+                    )
+                    addTreeMember(fallbackMember, onSuccess = {}, onFailure = {})
+                }
+            )
+        }
+
         val dispatchToOwner: (String, String) -> Unit = { resolvedOwnerId, resolvedTreeName ->
             val treeLabel = resolvedTreeName.ifBlank { "your family tree" }
             addNotification(

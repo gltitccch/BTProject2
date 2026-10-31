@@ -38,6 +38,7 @@ class PendingRequestAdapter(
         private val tvAvatar: TextView = view.findViewById(R.id.tvPendingAvatar)
         private val tvName: TextView = view.findViewById(R.id.tvPendingName)
         private val tvEmail: TextView = view.findViewById(R.id.tvPendingEmail)
+        private val tvRequestedRoleTag: TextView? = view.findViewById(R.id.tvRequestedRoleTag)
         private val btnApprove: Button = view.findViewById(R.id.btnApprove)
         private val btnReject: Button = view.findViewById(R.id.btnReject)
 
@@ -51,6 +52,7 @@ class PendingRequestAdapter(
             tvAvatar.text = initial
             tvName.text = member.userName.ifBlank { member.userEmail.substringBefore("@") }
             tvEmail.text = member.userEmail
+            tvRequestedRoleTag?.text = "🍃 Wants: Editor Access"
 
             btnApprove.setOnClickListener { onApprove(member) }
             btnReject.setOnClickListener { onReject(member) }

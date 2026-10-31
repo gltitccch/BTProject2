@@ -2,69 +2,108 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
+    android:orientation="vertical"
     android:background="@drawable/card_bg"
-    android:padding="12dp"
-    android:layout_marginBottom="8dp">
-
-    <TextView
-        android:id="@+id/tvPendingAvatar"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:gravity="center"
-        android:text="U"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/white"
-        android:background="@drawable/avatar_bg"
-        android:layout_marginEnd="12dp" />
+    android:padding="14dp"
+    android:layout_marginBottom="10dp">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
+        <!-- Avatar Initial -->
         <TextView
-            android:id="@+id/tvPendingName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="User Name"
-            android:textSize="14sp"
+            android:id="@+id/tvPendingAvatar"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:gravity="center"
+            android:text="U"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary" />
+            android:textColor="#F4F7F4"
+            android:background="@drawable/avatar_bg"
+            android:layout_marginEnd="12dp" />
 
+        <!-- Name & Email -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvPendingName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="User Name"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tvPendingEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="user@email.com"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Requested Role Badge -->
         <TextView
-            android:id="@+id/tvPendingEmail"
+            android:id="@+id/tvRequestedRoleTag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="user@email.com"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginTop="2dp" />
+            android:text="🍃 Editor"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#D4AF37"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btnApprove"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:text="Approve"
-        android:textSize="12sp"
-        android:textColor="@color/white"
-        android:background="@drawable/btn_primary_bg"
-        android:textAllCaps="false"
-        android:layout_marginEnd="6dp" />
+    <!-- Divider Line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#1E4530"
+        android:layout_marginVertical="10dp" />
 
-    <Button
-        android:id="@+id/btnReject"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:text="Reject"
-        android:textSize="12sp"
-        android:textColor="@color/danger"
-        android:background="@drawable/btn_danger_bg"
-        android:textAllCaps="false" />
+    <!-- Action Buttons Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end|center_vertical">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnReject"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Decline"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#EF4444"
+            android:background="@drawable/badge_pill_dark"
+            android:paddingHorizontal="14dp"
+            android:textAllCaps="false"
+            android:layout_marginEnd="8dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnApprove"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Approve as Editor ✓"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#060D09"
+            android:background="@drawable/bg_botanical_gold_gradient_btn"
+            android:paddingHorizontal="16dp"
+            android:textAllCaps="false" />
+    </LinearLayout>
 
 </LinearLayout>
-

@@ -201,7 +201,8 @@ class ActionRestrictedDialog : DialogFragment() {
                         requesterName = requesterName,
                         currentRole = userTier.displayRoleName,
                         requestedRole = requiredTier.displayRoleName,
-                        featureName = actionAttempted
+                        featureName = actionAttempted,
+                        requesterEmail = currentUser?.email.orEmpty()
                     )
                 }
 

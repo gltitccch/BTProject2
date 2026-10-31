@@ -248,11 +248,44 @@ class NotificationsActivity : AppCompatActivity() {
             applyFilter()
         }
 
-        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+        val builder = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle(com.example.btproject2.utils.NotificationHelper.sanitizeNotificationTitle(item.title))
             .setMessage(item.message)
-            .setPositiveButton("Got It") { d, _ -> d.dismiss() }
-            .show()
+
+        if (item.type == "role_upgrade_request" && item.targetId.isNotBlank()) {
+            builder.setPositiveButton("Approve as Editor ✓") { d, _ ->
+                d.dismiss()
+                val targetMemberId = "${item.treeId}_${item.targetId}"
+                firestoreHelper.updateTreeMemberRole(
+                    memberId = targetMemberId,
+                    role = "Editor",
+                    status = "Approved",
+                    onSuccess = {
+                        val decisionNotif = com.example.btproject2.utils.NotificationHelper.createAccessDecisionNotification(
+                            treeId = item.treeId,
+                            applicantUserId = item.targetId,
+                            treeName = "your family tree",
+                            approved = true,
+                            assignedRole = "Editor"
+                        )
+                        firestoreHelper.addNotification(decisionNotif)
+                        com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeLayoutChanged(
+                            treeId = item.treeId,
+                            sourceScreen = "NotificationsActivity"
+                        )
+                        android.widget.Toast.makeText(this, "✓ Member approved as Editor!", android.widget.Toast.LENGTH_SHORT).show()
+                    },
+                    onFailure = {
+                        android.widget.Toast.makeText(this, "Approval failed: ${it.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+            builder.setNegativeButton("Close", null)
+        } else {
+            builder.setPositiveButton("Got It") { d, _ -> d.dismiss() }
+        }
+
+        builder.show()
     }
 
     private fun markAllAsRead() {

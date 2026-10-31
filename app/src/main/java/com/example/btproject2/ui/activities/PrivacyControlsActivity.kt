@@ -48,6 +48,11 @@ class PrivacyControlsActivity : AppCompatActivity() {
     private lateinit var authorizedAdapter: AuthorizedMemberAdapter
     private lateinit var pendingAdapter: PendingRequestAdapter
 
+    private var cardPendingRequestsTile: View? = null
+    private var tvPendingCountBadge: TextView? = null
+    private var btnOpenPendingRequestsSheet: View? = null
+    private var currentPendingMembers: List<TreeMember> = emptyList()
+
     private var currentTree: FamilyTree? = null
     private var currentSettings = PrivacySettings(treeId = treeId)
 
@@ -75,6 +80,17 @@ class PrivacyControlsActivity : AppCompatActivity() {
         layoutPendingRequests = findViewById(R.id.layoutPendingRequests)
         rvPendingRequests = findViewById(R.id.rvPendingRequests)
 
+        cardPendingRequestsTile = findViewById(R.id.cardPendingRequestsTile)
+        tvPendingCountBadge = findViewById(R.id.tvPendingCountBadge)
+        btnOpenPendingRequestsSheet = findViewById(R.id.btnOpenPendingRequestsSheet)
+
+        btnOpenPendingRequestsSheet?.setOnClickListener {
+            showPendingRequestsBottomSheet()
+        }
+        cardPendingRequestsTile?.setOnClickListener {
+            showPendingRequestsBottomSheet()
+        }
+
         btnBack.setOnClickListener { finish() }
 
         val btnQuickAssistPrivacy = findViewById<TextView>(R.id.btnQuickAssistPrivacy)
@@ -85,6 +101,49 @@ class PrivacyControlsActivity : AppCompatActivity() {
         }
 
         btnGateBackToHome.setOnClickListener { finish() }
+
+        val btnGateSendLeafRequest = findViewById<Button?>(R.id.btnGateSendLeafRequest)
+        btnGateSendLeafRequest?.setOnClickListener {
+            val user = authHelper.getCurrentUser()
+            val userId = user?.uid.orEmpty()
+            val userName = user?.displayName?.takeIf { it.isNotBlank() }
+                ?: user?.email?.substringBefore("@")
+                ?: "A Family Member"
+            val userEmail = user?.email.orEmpty()
+
+            btnGateSendLeafRequest.isEnabled = false
+            btnGateSendLeafRequest.text = "🍃 Floating Golden Leaf to Tree Owner..."
+
+            firestoreHelper.sendRoleUpgradeRequestToOwner(
+                treeId = treeId,
+                treeName = currentTree?.name.orEmpty(),
+                ownerId = currentTree?.ownerId.orEmpty(),
+                requesterId = userId,
+                requesterName = userName,
+                currentRole = "Viewer",
+                requestedRole = "Editor",
+                featureName = "Privacy & Access Control",
+                requesterEmail = userEmail,
+                onComplete = { success ->
+                    if (success) {
+                        btnGateSendLeafRequest.text = "🌳 Golden Leaf Reached the Tree Owner!"
+                        Toast.makeText(
+                            this,
+                            "🍃 Your Golden Leaf request was dispatched to the Tree Owner!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        btnGateSendLeafRequest.isEnabled = true
+                        btnGateSendLeafRequest.text = "🍃 Send Golden Leaf Request to Tree Owner"
+                        Toast.makeText(
+                            this,
+                            "Could not reach Tree Owner. Please check your connection.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            )
+        }
 
         val tvJwtStatusChip = findViewById<TextView?>(R.id.tvJwtStatusChip)
         val cardZeroKnowledgeStatus = findViewById<View?>(R.id.cardZeroKnowledgeStatus)
@@ -335,13 +394,17 @@ class PrivacyControlsActivity : AppCompatActivity() {
                 } else {
                     val approved = members.filter { it.status.equals("Approved", ignoreCase = true) }
                     val pending = members.filter { it.status.equals("Pending", ignoreCase = true) }
+                    currentPendingMembers = pending
 
                     authorizedAdapter.submitList(approved)
 
                     if (pending.isNotEmpty()) {
-                        layoutPendingRequests.visibility = View.VISIBLE
+                        cardPendingRequestsTile?.visibility = View.VISIBLE
+                        tvPendingCountBadge?.text = "${pending.size} Pending"
+                        layoutPendingRequests.visibility = View.GONE
                         pendingAdapter.submitList(pending)
                     } else {
+                        cardPendingRequestsTile?.visibility = View.GONE
                         layoutPendingRequests.visibility = View.GONE
                     }
                 }
@@ -494,47 +557,136 @@ class PrivacyControlsActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun approveMember(member: TreeMember) {
-        val roles = arrayOf("Editor (Can add/edit)", "Viewer (View only)")
-        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-            .setTitle("Approve ${member.userName}")
-            .setItems(roles) { _, which ->
-                val assignedRole = if (which == 0) "Editor" else "Viewer"
-                firestoreHelper.updateTreeMemberRole(member.id, assignedRole, "Approved",
-                    onSuccess = {
-                        // 8.a Access approval notification to applicant
-                        if (member.userId.isNotEmpty()) {
-                            val treeName = currentTree?.name ?: "Family Tree"
-                            val notif = NotificationHelper.createAccessDecisionNotification(
-                                treeId = treeId,
-                                applicantUserId = member.userId,
-                                treeName = treeName,
-                                approved = true,
-                                assignedRole = assignedRole
-                            )
-                            firestoreHelper.addNotification(notif)
-                        }
+    private fun showPendingRequestsBottomSheet() {
+        val sheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val sheetView = layoutInflater.inflate(R.layout.layout_pending_requests_sheet, null)
+        sheetDialog.setContentView(sheetView)
 
-                        KinTraceAlert.show(this, "${member.userName} approved as $assignedRole")
-                        loadMembers()
-                    },
-                    onFailure = {
-                        KinTraceAlert.show(this, "Approval failed")
-                    }
-                )
+        val tvSheetCountBadge = sheetView.findViewById<TextView>(R.id.tvSheetCountBadge)
+        val btnSheetClose = sheetView.findViewById<View>(R.id.btnSheetClose)
+        val btnApproveAllRequests = sheetView.findViewById<Button>(R.id.btnApproveAllRequests)
+        val rvSheetPendingRequests = sheetView.findViewById<RecyclerView>(R.id.rvSheetPendingRequests)
+        val layoutSheetEmptyState = sheetView.findViewById<View>(R.id.layoutSheetEmptyState)
+
+        btnSheetClose?.setOnClickListener { sheetDialog.dismiss() }
+
+        val sheetPendingList = currentPendingMembers.toMutableList()
+        lateinit var sheetAdapter: PendingRequestAdapter
+
+        fun updateSheetUi() {
+            if (sheetPendingList.isEmpty()) {
+                layoutSheetEmptyState?.visibility = View.VISIBLE
+                rvSheetPendingRequests?.visibility = View.GONE
+                btnApproveAllRequests?.visibility = View.GONE
+                tvSheetCountBadge?.text = "0 Pending"
+                cardPendingRequestsTile?.visibility = View.GONE
+            } else {
+                layoutSheetEmptyState?.visibility = View.GONE
+                rvSheetPendingRequests?.visibility = View.VISIBLE
+                btnApproveAllRequests?.visibility = View.VISIBLE
+                btnApproveAllRequests?.isEnabled = true
+                btnApproveAllRequests?.text = "⚡ Approve All as Editors (${sheetPendingList.size})"
+                tvSheetCountBadge?.text = "${sheetPendingList.size} Pending"
+                cardPendingRequestsTile?.visibility = View.VISIBLE
+                tvPendingCountBadge?.text = "${sheetPendingList.size} Pending"
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
+
+        sheetAdapter = PendingRequestAdapter(
+            onApprove = { member ->
+                singleApproveMember(member) {
+                    sheetPendingList.removeAll { it.id == member.id }
+                    currentPendingMembers = sheetPendingList.toList()
+                    sheetAdapter.submitList(sheetPendingList.toList())
+                    updateSheetUi()
+                }
+            },
+            onReject = { member ->
+                rejectMember(member) {
+                    sheetPendingList.removeAll { it.id == member.id }
+                    currentPendingMembers = sheetPendingList.toList()
+                    sheetAdapter.submitList(sheetPendingList.toList())
+                    updateSheetUi()
+                }
+            }
+        )
+
+        rvSheetPendingRequests?.layoutManager = LinearLayoutManager(this)
+        rvSheetPendingRequests?.adapter = sheetAdapter
+        sheetAdapter.submitList(sheetPendingList.toList())
+        updateSheetUi()
+
+        btnApproveAllRequests?.setOnClickListener {
+            if (sheetPendingList.isEmpty()) return@setOnClickListener
+            btnApproveAllRequests.isEnabled = false
+            btnApproveAllRequests.text = "⚡ Granting Editor Access to All..."
+            val toApprove = sheetPendingList.toList()
+            var completedCount = 0
+
+            toApprove.forEach { member ->
+                singleApproveMember(member) {
+                    completedCount++
+                    if (completedCount >= toApprove.size) {
+                        sheetPendingList.clear()
+                        currentPendingMembers = emptyList()
+                        sheetAdapter.submitList(emptyList())
+                        updateSheetUi()
+                        Toast.makeText(this, "⚡ All ${toApprove.size} requests approved as Editors!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
+        sheetDialog.show()
     }
 
-    private fun rejectMember(member: TreeMember) {
+    private fun singleApproveMember(member: TreeMember, onDone: (() -> Unit)? = null) {
+        val assignedRole = "Editor"
+        firestoreHelper.updateTreeMemberRole(
+            memberId = member.id,
+            role = assignedRole,
+            status = "Approved",
+            onSuccess = {
+                val treeName = currentTree?.name ?: "Family Tree"
+                if (member.userId.isNotEmpty()) {
+                    val notif = NotificationHelper.createAccessDecisionNotification(
+                        treeId = treeId,
+                        applicantUserId = member.userId,
+                        treeName = treeName,
+                        approved = true,
+                        assignedRole = assignedRole
+                    )
+                    firestoreHelper.addNotification(notif)
+                }
+
+                // Notify Central Tree Synchronizer for immediate live sync
+                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeLayoutChanged(
+                    treeId = treeId,
+                    sourceScreen = "PrivacyControlsActivity"
+                )
+
+                Toast.makeText(this, "✓ ${member.userName} approved as Editor!", Toast.LENGTH_SHORT).show()
+                loadMembers()
+                onDone?.invoke()
+            },
+            onFailure = {
+                Toast.makeText(this, "Approval failed: ${it.message}", Toast.LENGTH_SHORT).show()
+                onDone?.invoke()
+            }
+        )
+    }
+
+    private fun approveMember(member: TreeMember) {
+        singleApproveMember(member)
+    }
+
+    private fun rejectMember(member: TreeMember, onDone: (() -> Unit)? = null) {
         com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Reject Request")
             .setMessage("Reject access request from ${member.userName}?")
             .setPositiveButton("Reject") { _, _ ->
                 firestoreHelper.deleteTreeMember(member.id,
                     onSuccess = {
-                        // 8.a Access rejection notification to applicant
                         if (member.userId.isNotEmpty()) {
                             val treeName = currentTree?.name ?: "Family Tree"
                             val notif = NotificationHelper.createAccessDecisionNotification(
@@ -547,15 +699,19 @@ class PrivacyControlsActivity : AppCompatActivity() {
                             firestoreHelper.addNotification(notif)
                         }
 
-                        KinTraceAlert.show(this, "Request rejected")
+                        Toast.makeText(this, "Request rejected", Toast.LENGTH_SHORT).show()
                         loadMembers()
+                        onDone?.invoke()
                     },
                     onFailure = {
-                        KinTraceAlert.show(this, "Rejection failed")
+                        Toast.makeText(this, "Rejection failed", Toast.LENGTH_SHORT).show()
+                        onDone?.invoke()
                     }
                 )
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton("Cancel") { _, _ ->
+                onDone?.invoke()
+            }
             .show()
     }
 
