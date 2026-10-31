@@ -57,7 +57,7 @@ object InAppUpdateManager {
     const val KEY_LAST_SEEN_VERSION = "key_last_seen_version"
     private const val SUPPRESSION_DURATION_MS = 24 * 60 * 60 * 1000L // 24 hours
 
-    const val CURRENT_RELEASE_NOTES = "• Successive Remarriages & Prior Spouses Engine with Philippine Family Code Art. 35/37/38/41 Validation\n• Guided Family Tree Multi-Option Resolution Stepper with Context-Aware Decision Choices\n• Legal Adoption Childbirth Age Exemption under Philippine Domestic Adoption Law (RA 8552 / RA 11642)\n• Real-Time Tree Health & Integrity Synchronization across Interactive Canvas and Audit Screens\n• Warm Linen & Amber Bronze Theme Standards with Zero Green in Light Mode"
+    const val CURRENT_RELEASE_NOTES = "• Free-Moving Node Pencil Mode & Bendable Golden Connector Handles with 2-Step Guided Tour\n• Strict Editor & Owner Tree Organization Permission Gate (Exclusively Hidden for Guest Viewers)\n• Golden Leaf Role Upgrade Request System with Instant Firestore Ticket Persistence & Anti-Spam Guard\n• Isolated Pending Requests Entry Tile on Owner's Privacy Screen (Zero Interface Flooding)\n• Dedicated Review Bottom Sheet Drawer with Single-Tap and Batch Approvals\n• Navigation Island Crest Clearance Fix on Home and Bloodline Trace Screens"
 
     /**
      * Builds the canonical zero-cost GitHub Releases direct APK download link for a given version tag.
@@ -94,15 +94,15 @@ object InAppUpdateManager {
 
                 val targetReleaseNotes = CURRENT_RELEASE_NOTES
 
-                // If remote code is < 8L OR remote record lacks a valid release HTTPS APK link,
+                // If remote code is < 9L OR remote record lacks a valid release HTTPS APK link,
                 // OR remote releaseNotes need updating to include the latest fixes,
-                // align Firestore to the active v1.3.5 (versionCode = 8) release pointing to GitHub Releases.
-                if (currentRemoteCode < 8L || (currentRemoteCode == 8L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
+                // align Firestore to the active v1.3.6 (versionCode = 9) release pointing to GitHub Releases.
+                if (currentRemoteCode < 9L || (currentRemoteCode == 9L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
                     val currentConfig = AppVersionConfig(
-                        versionCode = 8L,
-                        versionName = "v1.3.5",
+                        versionCode = 9L,
+                        versionName = "v1.3.6",
                         releaseNotes = targetReleaseNotes,
-                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.5"),
+                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.6"),
                         isMandatory = false,
                         publishedBy = "system@kintrace.ph"
                     )
