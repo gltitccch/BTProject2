@@ -703,7 +703,28 @@ class AddMemberActivity : AppCompatActivity() {
                 if (isFinishing || isDestroyed) return@getTree
                 val maxCap = tree?.effectiveQuota ?: 50
                 val tierLabel = if (maxCap >= 200) "Extended Clan Tier" else "Free Tier"
-                tvBadge.text = "👥 Clan Capacity: $currentCount / $maxCap Members • $tierLabel"
+                val requested = tree?.quotaExpansionRequested == true
+                val isOwner = tree != null && tree.ownerId == authHelper.getCurrentUserId()
+                if (tree != null) {
+                    currentTreeQuota = maxCap
+                    isQuotaExpansionRequested = requested
+                    currentTreeName = tree.name.ifBlank { currentTreeName }
+                }
+                val actionSuffix = when {
+                    !isOwner -> ""
+                    requested -> "  ⏳ Queued"
+                    else -> "  ⚡ Expand +${com.example.btproject2.models.FamilyTree.EXPANSION_STEP} ›"
+                }
+                tvBadge.text = "👥 Clan Capacity: $currentCount / $maxCap Members • $tierLabel$actionSuffix"
+                if (isOwner) {
+                    tvBadge.isClickable = true
+                    tvBadge.setOnClickListener {
+                        showOnDemandQuotaExpansionDialog(currentCount, maxCap, isQuotaExpansionRequested)
+                    }
+                } else {
+                    tvBadge.setOnClickListener(null)
+                    tvBadge.isClickable = false
+                }
                 val colorRes = if (currentCount >= maxCap) {
                     R.color.danger
                 } else if (currentCount >= maxCap - 5) {
@@ -1296,6 +1317,58 @@ class AddMemberActivity : AppCompatActivity() {
         savePerson(person)
     }
 
+    /**
+     * On-demand Clan Expansion request, available to the Tree Owner at any member count
+     * (not only when the tree is already full).
+     */
+    private fun showOnDemandQuotaExpansionDialog(liveCount: Int, quota: Int, alreadyRequested: Boolean) {
+        val step = com.example.btproject2.models.FamilyTree.EXPANSION_STEP
+        val nextTierCap = quota + step
+        if (alreadyRequested) {
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                .setTitle("⏳ Expansion Already Queued")
+                .setMessage("Your request to expand '$currentTreeName' to $nextTierCap members is waiting in the System Admin Citadel. You'll get a notification once it's approved.")
+                .setPositiveButton("Understood", null)
+                .show()
+            return
+        }
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+            .setTitle("👑 Request Free Clan Expansion")
+            .setMessage(
+                "'$currentTreeName' currently has $liveCount of $quota member slots used.\n\n" +
+                    "Request a free Tier Expansion (+$step capacity, up to $nextTierCap members) from the System Admin Citadel?"
+            )
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("⚡ Request +$step") { _, _ ->
+                submitQuotaExpansionRequest(liveCount)
+            }
+            .show()
+    }
+
+    private fun submitQuotaExpansionRequest(liveCount: Int) {
+        if (treeId.isBlank()) return
+        val email = authHelper.getCurrentUser()?.email.orEmpty()
+        firestoreHelper.requestTreeQuotaExpansion(
+            treeId = treeId,
+            requesterEmail = email,
+            onSuccess = {
+                isQuotaExpansionRequested = true
+                if (!isFinishing && !isDestroyed) {
+                    refreshQuotaBadge(treeId, liveCount)
+                    KinTraceAlert.security(
+                        this,
+                        "Expansion Requested",
+                        "Request sent to Admin Citadel (+${com.example.btproject2.models.FamilyTree.EXPANSION_STEP} Cap for $currentTreeName).",
+                        "QUEUED"
+                    )
+                }
+            },
+            onFailure = { err ->
+                KinTraceAlert.warning(this, "Request Failed", err.message ?: "Unable to submit expansion request.")
+            }
+        )
+    }
+
     private fun showFreemiumCapDialog(liveCount: Int, quota: Int, alreadyRequested: Boolean) {
         val nextTierCap = quota + com.example.btproject2.models.FamilyTree.EXPANSION_STEP
         val statusNote = if (alreadyRequested) {
@@ -1313,7 +1386,7 @@ class AddMemberActivity : AppCompatActivity() {
             .setNegativeButton("Close", null)
 
         if (!alreadyRequested && treeId.isNotBlank()) {
-            builder.setPositiveButton("⚡ Request Expansion (+${com.example.btproject2.models.FamilyTree.EXPANSION_STEP} Cap)") { _, _ ->
+            builder.setPositiveButton("⚡ Request +${com.example.btproject2.models.FamilyTree.EXPANSION_STEP}") { _, _ ->
                 val email = authHelper.getCurrentUser()?.email.orEmpty()
                 firestoreHelper.requestTreeQuotaExpansion(
                     treeId = treeId,

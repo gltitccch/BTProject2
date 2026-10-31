@@ -133,6 +133,9 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                 onSuccess = { tree ->
                     val isTreeOwner = tree != null && (tree.ownerId.isEmpty() || tree.ownerId == user.uid)
                     if (isTreeOwner) {
+                        if (tree != null) {
+                            bindClanCapacityCard(view, tree)
+                        }
                         val tier = com.example.btproject2.utils.BotanicalRolePolicy.BotanicalTier.CANOPY_OWNER
                         tvRoleTag?.text = "${tier.symbol} ${tier.shortTag}"
                         tvRoleTag?.setTextColor(tier.primaryColorHex)
@@ -372,6 +375,87 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                 KinTraceAlert.show(context, "Failed to delete account: ${err.message}")
             }
         )
+    }
+
+    /**
+     * Binds the Tree Owner's Clan Capacity & Tier card: live member count, progress bar,
+     * tier pill, and an on-demand Freemium expansion request (routed to the Admin Citadel).
+     */
+    private fun bindClanCapacityCard(root: View, tree: com.example.btproject2.models.FamilyTree) {
+        val card = root.findViewById<View?>(R.id.cardClanCapacity) ?: return
+        val tvTier = root.findViewById<TextView?>(R.id.tvClanTierPill)
+        val progress = root.findViewById<android.widget.ProgressBar?>(R.id.progressClanCapacity)
+        val tvCount = root.findViewById<TextView?>(R.id.tvClanCapacityCount)
+        val btnRequest = root.findViewById<TextView?>(R.id.btnRequestClanExpansion)
+        val step = com.example.btproject2.models.FamilyTree.EXPANSION_STEP
+
+        card.visibility = View.VISIBLE
+
+        fun render(liveCount: Int, quota: Int, requested: Boolean) {
+            if (!isAdded) return
+            val tierLabel = if (quota >= 200) "Extended Clan Tier" else "Free Tier"
+            tvTier?.text = tierLabel
+            progress?.progress = ((liveCount * 100f) / quota.coerceAtLeast(1)).toInt().coerceIn(0, 100)
+            val remaining = (quota - liveCount).coerceAtLeast(0)
+            tvCount?.text = "Recorded: $liveCount / $quota members • $remaining slots left"
+            if (requested) {
+                btnRequest?.text = "⏳ Expansion Queued in Admin Citadel"
+                btnRequest?.alpha = 0.6f
+                btnRequest?.isEnabled = false
+            } else {
+                btnRequest?.text = "⚡ Request Free Tier Expansion (+$step Cap)"
+                btnRequest?.alpha = 1f
+                btnRequest?.isEnabled = true
+            }
+        }
+
+        val quota = tree.effectiveQuota
+        render(tree.memberCount.coerceAtLeast(0), quota, tree.quotaExpansionRequested)
+
+        // Replace the stored count with the live count of people actually in this tree
+        var liveCount = tree.memberCount.coerceAtLeast(0)
+        firestoreHelper.getPersonsByTree(
+            treeId = tree.id,
+            onSuccess = { persons ->
+                liveCount = persons.size
+                render(liveCount, quota, tree.quotaExpansionRequested)
+            },
+            onFailure = {}
+        )
+
+        btnRequest?.setOnClickListener {
+            val ctx = context ?: return@setOnClickListener
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(ctx)
+                .setTitle("👑 Request Free Clan Expansion")
+                .setMessage(
+                    "'${tree.name.ifBlank { "Your family tree" }}' currently has $liveCount of $quota member slots used.\n\n" +
+                        "Request a free Tier Expansion (+$step capacity, up to ${quota + step} members) from the System Admin Citadel?"
+                )
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("⚡ Request +$step") { _, _ ->
+                    btnRequest.isEnabled = false
+                    firestoreHelper.requestTreeQuotaExpansion(
+                        treeId = tree.id,
+                        requesterEmail = authHelper.getCurrentUser()?.email.orEmpty(),
+                        onSuccess = {
+                            render(liveCount, quota, true)
+                            context?.let {
+                                KinTraceAlert.security(
+                                    it,
+                                    "Expansion Requested",
+                                    "Request sent to Admin Citadel (+$step Cap for ${tree.name}).",
+                                    "QUEUED"
+                                )
+                            }
+                        },
+                        onFailure = { err ->
+                            btnRequest.isEnabled = true
+                            context?.let { KinTraceAlert.show(it, err.message ?: "Unable to submit expansion request.") }
+                        }
+                    )
+                }
+                .show()
+        }
     }
 
     private fun showDirectChangePasswordDialog() {

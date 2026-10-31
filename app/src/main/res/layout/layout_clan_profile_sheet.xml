@@ -206,6 +206,81 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Section 1b: Clan Capacity & Tier (Tree Owner only) -->
+        <LinearLayout
+            android:id="@+id/cardClanCapacity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_quick_assist_card"
+            android:padding="14dp"
+            android:layout_marginBottom="14dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="👑 CLAN CAPACITY &amp; TIER"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:id="@+id/tvClanTierPill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="3dp"
+                    android:text="Free Tier"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent" />
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/progressClanCapacity"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="@color/gold_accent"
+                android:progressBackgroundTint="@color/forest_card_border"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvClanCapacityCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Checking clan capacity..."
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:id="@+id/btnRequestClanExpansion"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/btn_gold_primary"
+                android:gravity="center"
+                android:text="⚡ Request Free Tier Expansion (+150 Cap)"
+                android:textSize="12.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/btn_gold_text"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
         <!-- Section 2: Security Credentials (Two Horizontal Action Tiles) -->
         <TextView
             android:layout_width="wrap_content"
