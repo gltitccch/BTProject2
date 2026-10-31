@@ -1322,7 +1322,7 @@
             <!-- Bottom spacer to scroll clear of Floating Navigation Island -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="80dp" />
+                android:layout_height="96dp" />
 
         </LinearLayout>
     </ScrollView>

@@ -22,6 +22,10 @@ import com.example.btproject2.engine.KinshipTitleHelper
 import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.AttachedDocument
 import com.example.btproject2.models.Person
+import com.example.btproject2.models.CustomTreeLayout
+import com.example.btproject2.models.CustomNodePosition
+import com.example.btproject2.models.CustomBusOffset
+import com.example.btproject2.models.LayoutHistoryAction
 import com.example.btproject2.sync.AffectedScreen
 import com.example.btproject2.sync.CentralTreeSynchronizer
 import com.example.btproject2.sync.ConflictChoice
@@ -55,6 +59,13 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     private val centralFamilyService = com.example.btproject2.service.FamilyRelationshipService()
     private val authHelper = com.example.btproject2.firebase.AuthHelper()
     internal lateinit var treeView: FamilyTreeView
+
+    private lateinit var layoutOrganizeModeBar: LinearLayout
+    private lateinit var btnUndoLayout: TextView
+    private lateinit var btnResetLayout: TextView
+    private lateinit var btnDoneOrganize: TextView
+    private var btnToggleOrganizeMode: TextView? = null
+
     private var treeId = ""
 
     private var isOwner: Boolean = true
@@ -219,10 +230,12 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                 anchor = anchorView,
                 showConnect = isOwner,
                 showAudit = true,
+                showOrganize = !isViewer,
                 onConnect = { btnConnectBranchesShortcut?.performClick() },
                 onAudit = { findViewById<TextView>(R.id.btnAuditTree)?.performClick() },
                 onExport = { findViewById<TextView>(R.id.btnExportTreeShortcut)?.performClick() },
-                onLegend = { findViewById<TextView>(R.id.btnInteractiveLegend)?.performClick() }
+                onLegend = { findViewById<TextView>(R.id.btnInteractiveLegend)?.performClick() },
+                onOrganize = { setOrganizeMode(true) }
             )
         }
 
@@ -397,6 +410,36 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         findViewById<View>(R.id.btnZoomOut)?.setOnClickListener { treeView.zoomOut() }
         findViewById<View>(R.id.btnResetView)?.setOnClickListener { treeView.resetView() }
 
+        layoutOrganizeModeBar = findViewById(R.id.layoutOrganizeModeBar)
+        btnUndoLayout = findViewById(R.id.btnUndoLayout)
+        btnResetLayout = findViewById(R.id.btnResetLayout)
+        btnDoneOrganize = findViewById(R.id.btnDoneOrganize)
+        btnToggleOrganizeMode = findViewById(R.id.btnToggleOrganizeMode)
+
+        btnToggleOrganizeMode?.setOnClickListener {
+            setOrganizeMode(!treeView.isOrganizeMode)
+        }
+
+        btnUndoLayout.setOnClickListener {
+            treeView.undoLastAction()
+        }
+
+        btnResetLayout.setOnClickListener {
+            treeView.resetCustomLayout()
+            val effectiveTreeId = treeId.ifBlank { com.example.btproject2.utils.TreePreferences.getActiveTreeId(this) }
+            firestoreHelper.saveCustomTreeLayout(treeView.exportCustomLayout(effectiveTreeId))
+        }
+
+        btnDoneOrganize.setOnClickListener {
+            setOrganizeMode(false)
+            val effectiveTreeId = treeId.ifBlank { com.example.btproject2.utils.TreePreferences.getActiveTreeId(this) }
+            val layout = treeView.exportCustomLayout(effectiveTreeId)
+            firestoreHelper.saveCustomTreeLayout(layout, onSuccess = {
+                Toast.makeText(this, "Tree layout saved!", Toast.LENGTH_SHORT).show()
+            })
+        }
+
+
         chipMainTree.setOnClickListener { setMode("MAIN") }
         chipPedigree.setOnClickListener { setMode("PEDIGREE") }
         chipTraceHighlight.setOnClickListener { setMode("TRACE_HIGHLIGHT") }
@@ -471,6 +514,14 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             listenerKey = subscriberKey,
             allPersonsList = allPersonsList,
             focalPedigreePersonId = focalPedigreePersonId,
+            onTreeLayoutChanged = {
+                val effectiveTreeId = treeId.ifBlank { com.example.btproject2.utils.TreePreferences.getActiveTreeId(this@InteractiveTreeActivity) }
+                firestoreHelper.getCustomTreeLayout(effectiveTreeId, onSuccess = { layout ->
+                    if (layout != null) {
+                        treeView.applyCustomLayout(layout)
+                    }
+                })
+            },
             onTreeUpdated = { updatedList, requiresRelayout ->
                 allPersonsList = updatedList
                 if (highlightPersonAId?.let { id -> updatedList.none { it.id == id } } == true ||
@@ -571,6 +622,35 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         syncCoordinator.allPersonsList = allPersonsList
         syncCoordinator.focalPedigreePersonId = focalPedigreePersonId
         syncCoordinator.applySyncEvent(event)
+    }
+
+    
+    private fun setOrganizeMode(enabled: Boolean) {
+        if (isViewer && enabled) {
+            Toast.makeText(this, "View-only access cannot customize tree layout", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (currentMode == "PEDIGREE" && enabled) {
+            Toast.makeText(this, "Organize Mode is for Main Tree only", Toast.LENGTH_SHORT).show()
+            return
+        }
+        treeView.isOrganizeMode = enabled
+        layoutOrganizeModeBar.visibility = if (enabled) View.VISIBLE else View.GONE
+        btnToggleOrganizeMode?.isSelected = enabled
+        if (enabled) {
+            Toast.makeText(this, "Organize Mode: Drag cards or gold elbow handles to rearrange", Toast.LENGTH_SHORT).show()
+            if (!isViewer) {
+                com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
+                    activity = this,
+                    feature = com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.ORGANIZE_MODE,
+                    treeId = treeId
+                )
+            }
+        } else {
+            if (com.example.btproject2.utils.KinTraceSpotlightManager.getActiveFeatureKey() == com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.ORGANIZE_MODE) {
+                com.example.btproject2.utils.KinTraceSpotlightManager.dismissActiveOverlay()
+            }
+        }
     }
 
     private fun setMode(mode: String) {
@@ -873,6 +953,26 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
                     mrcaIds = mrcaIds,
                     isAffinityTrace = isAffinityTrace
                 )
+                if (!focalPedigreePersonId.isNullOrEmpty()) {
+                    treeView.post {
+                        treeView.centerOnPerson(focalPedigreePersonId!!, animate = false)
+                    }
+                }
+
+                // Synchronously apply local cached custom layout immediately if available
+                val cachedLayout = com.example.btproject2.firebase.FirestoreHelper.getCachedCustomLayout(effectiveTreeId)
+                if (cachedLayout != null && (cachedLayout.nodePositions.isNotEmpty() || cachedLayout.busOffsets.isNotEmpty())) {
+                    treeView.applyCustomLayout(cachedLayout)
+                }
+                // Asynchronously fetch latest custom layout from Firestore to guarantee persistence across app restarts
+                firestoreHelper.getCustomTreeLayout(
+                    treeId = effectiveTreeId,
+                    onSuccess = { layout ->
+                        if (layout != null && (layout.nodePositions.isNotEmpty() || layout.busOffsets.isNotEmpty())) {
+                            treeView.applyCustomLayout(layout)
+                        }
+                    }
+                )
                 checkForTreeConflicts(list)
                 DocumentHelper.compactOversizedInlineDocuments(this, list)
 
@@ -966,6 +1066,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             layoutInteractiveViewerBanner?.visibility = View.VISIBLE
             btnConnectBranchesShortcut?.visibility = View.GONE
         }
+        btnToggleOrganizeMode?.visibility = if (isViewer) View.GONE else View.VISIBLE
         tvInteractiveTreeRoleBadge?.setOnClickListener {
             com.example.btproject2.utils.BotanicalRoleFlashManager.showRoleAssignedCeremony(
                 activity = this,
@@ -1402,6 +1503,35 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             if (targetId != null) {
                 showMemberProfileDialog(targetId)
             }
+        }
+    }
+
+    fun closeTutorialProfileDialog() {
+        if (!isFinishing && !isDestroyed) {
+            val spotlightView = com.example.btproject2.utils.KinTraceSpotlightManager.getActiveSpotlightView()
+            val activityRoot = findViewById<ViewGroup>(android.R.id.content)
+            if (spotlightView != null && activityRoot != null && spotlightView.parent !== activityRoot) {
+                try {
+                    (spotlightView.parent as? ViewGroup)?.removeView(spotlightView)
+                    activityRoot.addView(
+                        spotlightView,
+                        ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    )
+                    spotlightView.bringToFront()
+                } catch (_: Exception) {}
+            }
+
+            activeProfileDialog?.let { dialog ->
+                dialog.setOnDismissListener(null)
+                if (dialog.isShowing) {
+                    dialog.dismiss()
+                }
+            }
+            activeProfileDialog = null
+            activeProfilePersonId = null
         }
     }
 
@@ -2164,6 +2294,60 @@ class FamilyTreeView @JvmOverloads constructor(
 ) : View(context) {
 
     var isExportMode: Boolean = false
+
+    private val pWaypointGlow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#48D4AF37")
+        style = Paint.Style.FILL
+    }
+    private val pWaypointInner = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#D4AF37")
+        style = Paint.Style.FILL
+    }
+    private val pWaypointBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        style = Paint.Style.STROKE
+        strokeWidth = 2.5f
+    }
+    private val pWaypointPip = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        style = Paint.Style.FILL
+    }
+
+    data class TreeWaypointHandle(
+        val id: String,
+        val busId: String,
+        var x: Float,
+        var y: Float
+    )
+    val waypointHandles = mutableListOf<TreeWaypointHandle>()
+
+    var isOrganizeMode: Boolean = false
+        set(value) {
+            field = value
+            precomputeMainTreeConnectorsAndHitAreas()
+            invalidate()
+        }
+
+    val customNodePositions = mutableMapOf<String, CustomNodePosition>()
+    val customBusOffsets = mutableMapOf<String, CustomBusOffset>()
+    val undoStack = java.util.ArrayDeque<LayoutHistoryAction>()
+
+    var onUndoStackChanged: ((count: Int) -> Unit)? = null
+    var onLayoutModified: (() -> Unit)? = null
+
+    private var draggedHandle: TreeWaypointHandle? = null
+    private var draggedCardPersonId: String? = null
+    private var draggedSpouseId: String? = null
+    private var dragStartTouchX = 0f
+    private var dragStartTouchY = 0f
+    private var dragStartCardX = 0f
+    private var dragStartCardY = 0f
+    private var dragStartSpouseX = 0f
+    private var dragStartSpouseY = 0f
+    private var dragStartBusY = 0f
+    private var dragStartDropX = 0f
+    private var isDraggingInOrganize = false
+
     var isViewerMode: Boolean = false
     var treePrivacy: com.example.btproject2.models.PrivacySettings = com.example.btproject2.models.PrivacySettings()
 
@@ -2593,7 +2777,9 @@ class FamilyTreeView @JvmOverloads constructor(
         val rightX: Float,
         val y: Float,
         val pillMidX: Float,
-        val pillMidY: Float
+        val pillMidY: Float,
+        val leftY: Float = y,
+        val rightY: Float = y
     )
 
     private data class PrecomputedChildDrop(
@@ -2612,7 +2798,10 @@ class FamilyTreeView @JvmOverloads constructor(
         val yBus: Float,
         val busLeft: Float,
         val busRight: Float,
-        val childDrops: List<PrecomputedChildDrop>
+        val childDrops: List<PrecomputedChildDrop>,
+        val bridgeTargetX: Float = (busLeft + busRight) / 2f,
+        val bridgeStepY: Float = (dropStartY + yBus) / 2f,
+        val hasSteppedBridge: Boolean = false
     )
 
     private data class PrecomputedFallbackLine(
@@ -3134,6 +3323,9 @@ class FamilyTreeView @JvmOverloads constructor(
             computeHorizontalPedigreeLayout()
         } else {
             computeMainDownwardLayout()
+            customNodePositions.forEach { (pId, customPos) ->
+                posMap[pId]?.set(customPos.x, customPos.y)
+            }
         }
         precomputeCardDisplayData()
     }
@@ -3514,7 +3706,7 @@ class FamilyTreeView @JvmOverloads constructor(
                     val bioChild = getBiologicalChild(unit, ch)
                     val isFormerChild = formerCanonIds.contains(canon(bioChild.fatherId)) || formerCanonIds.contains(canon(bioChild.motherId))
                     if (isFormerChild) 0 else 1
-                }.thenBy { it.primary.birthDate.ifEmpty { it.primary.firstName } }
+                }.thenBy { getBiologicalChild(unit, it).birthDate.ifEmpty { getBiologicalChild(unit, it).firstName } }
             )
         }
 
@@ -3570,12 +3762,29 @@ class FamilyTreeView @JvmOverloads constructor(
                 u.width = ownW
                 return u.width
             }
-            var kidsTotal = 0f
-            u.children.forEachIndexed { idx, ch ->
-                kidsTotal += computeWidth(ch)
-                if (idx > 0) kidsTotal += SIBLING_GAP
+            val allLeaves = u.children.all { it.children.isEmpty() }
+            if (allLeaves && u.children.size >= 4) {
+                val tier1Count = (u.children.size + 1) / 2
+                var tier1W = 0f
+                for (i in 0 until tier1Count) {
+                    tier1W += computeWidth(u.children[i])
+                    if (i > 0) tier1W += SIBLING_GAP
+                }
+                var tier2W = 0f
+                for (i in tier1Count until u.children.size) {
+                    tier2W += computeWidth(u.children[i])
+                    if (i > tier1Count) tier2W += SIBLING_GAP
+                }
+                val kidsTotal = maxOf(tier1W, tier2W)
+                u.width = maxOf(ownW, kidsTotal)
+            } else {
+                var kidsTotal = 0f
+                u.children.forEachIndexed { idx, ch ->
+                    kidsTotal += computeWidth(ch)
+                    if (idx > 0) kidsTotal += SIBLING_GAP
+                }
+                u.width = maxOf(ownW, kidsTotal)
             }
-            u.width = maxOf(ownW, kidsTotal)
             return u.width
         }
 
@@ -3583,10 +3792,10 @@ class FamilyTreeView @JvmOverloads constructor(
 
         // Assign Coordinates recursively with cycle guard
         val visitedPos = mutableSetOf<FamilyUnit>()
-        fun assignPos(u: FamilyUnit, centerX: Float) {
+        fun assignPos(u: FamilyUnit, centerX: Float, yOffset: Float = 0f) {
             if (!visitedPos.add(u)) return
             u.x = centerX
-            val yPos = MARGIN + u.generation * ROW_GAP + CARD_H / 2f
+            val yPos = MARGIN + u.generation * ROW_GAP + CARD_H / 2f + yOffset
 
             if (u.formerSpouses.isNotEmpty() && u.spouse != null) {
                 val (primaryFormers, spouseFormers) = u.formerSpouses.partition { fs ->
@@ -3632,13 +3841,37 @@ class FamilyTreeView @JvmOverloads constructor(
             }
 
             if (u.children.isNotEmpty()) {
-                val kidsTotalW = u.children.sumOf { it.width.toDouble() }.toFloat() +
-                        (u.children.size - 1) * SIBLING_GAP
-                var curLeft = centerX - kidsTotalW / 2f
-                u.children.forEach { ch ->
-                    val cCenter = curLeft + ch.width / 2f
-                    assignPos(ch, cCenter)
-                    curLeft += ch.width + SIBLING_GAP
+                val allLeaves = u.children.all { it.children.isEmpty() }
+                if (allLeaves && u.children.size >= 4) {
+                    val tier1Count = (u.children.size + 1) / 2
+                    val tier1 = u.children.take(tier1Count)
+                    val tier2 = u.children.drop(tier1Count)
+
+                    val tier1W = tier1.sumOf { it.width.toDouble() }.toFloat() + (tier1.size - 1) * SIBLING_GAP
+                    var curLeft1 = centerX - tier1W / 2f
+                    tier1.forEach { ch ->
+                        val cCenter = curLeft1 + ch.width / 2f
+                        assignPos(ch, cCenter, yOffset = 0f)
+                        curLeft1 += ch.width + SIBLING_GAP
+                    }
+
+                    val tier2W = tier2.sumOf { it.width.toDouble() }.toFloat() + (tier2.size - 1) * SIBLING_GAP
+                    var curLeft2 = centerX - tier2W / 2f
+                    val tier2YOffset = ROW_GAP
+                    tier2.forEach { ch ->
+                        val cCenter = curLeft2 + ch.width / 2f
+                        assignPos(ch, cCenter, yOffset = tier2YOffset)
+                        curLeft2 += ch.width + SIBLING_GAP
+                    }
+                } else {
+                    val kidsTotalW = u.children.sumOf { it.width.toDouble() }.toFloat() +
+                            (u.children.size - 1) * SIBLING_GAP
+                    var curLeft = centerX - kidsTotalW / 2f
+                    u.children.forEach { ch ->
+                        val cCenter = curLeft + ch.width / 2f
+                        assignPos(ch, cCenter, yOffset = 0f)
+                        curLeft += ch.width + SIBLING_GAP
+                    }
                 }
             }
         }
@@ -3707,6 +3940,7 @@ class FamilyTreeView @JvmOverloads constructor(
     }
 
     private fun precomputeMainTreeConnectorsAndHitAreas() {
+        waypointHandles.clear()
         precomputedMaritalLines.clear()
         precomputedBuses.clear()
         precomputedFallbackLines.clear()
@@ -3718,21 +3952,24 @@ class FamilyTreeView @JvmOverloads constructor(
             val sPos = unit.spouse?.let { posMap[it.id] }
 
             if (sPos != null && mode != "PEDIGREE") {
-                val leftCardX = minOf(pPos.x, sPos.x)
-                val rightCardX = maxOf(pPos.x, sPos.x)
-                val leftX = leftCardX + CARD_W / 2f
-                val rightX = rightCardX - CARD_W / 2f
+                val isPLeft = pPos.x <= sPos.x
+                val leftPos = if (isPLeft) pPos else sPos
+                val rightPos = if (isPLeft) sPos else pPos
+                val leftX = leftPos.x + CARD_W / 2f
+                val rightX = rightPos.x - CARD_W / 2f
                 val pillMidX = (leftX + rightX) / 2f
-                val pillMidY = pPos.y
+                val pillMidY = (leftPos.y + rightPos.y) / 2f
                 precomputedMaritalLines.add(
                     PrecomputedMaritalLine(
                         primaryId = unit.primary.id,
                         spouseId = unit.spouse.id,
                         leftX = leftX,
                         rightX = rightX,
-                        y = pPos.y,
+                        y = leftPos.y,
                         pillMidX = pillMidX,
-                        pillMidY = pillMidY
+                        pillMidY = pillMidY,
+                        leftY = leftPos.y,
+                        rightY = rightPos.y
                     )
                 )
             }
@@ -3747,21 +3984,24 @@ class FamilyTreeView @JvmOverloads constructor(
                 }
                 val hubPos = posMap[hubPartner.id]
                 if (fsPos != null && hubPos != null && mode != "PEDIGREE") {
-                    val leftCardX = minOf(hubPos.x, fsPos.x)
-                    val rightCardX = maxOf(hubPos.x, fsPos.x)
-                    val leftX = leftCardX + CARD_W / 2f
-                    val rightX = rightCardX - CARD_W / 2f
+                    val isHubLeft = hubPos.x <= fsPos.x
+                    val leftPos = if (isHubLeft) hubPos else fsPos
+                    val rightPos = if (isHubLeft) fsPos else hubPos
+                    val leftX = leftPos.x + CARD_W / 2f
+                    val rightX = rightPos.x - CARD_W / 2f
                     val pillMidX = (leftX + rightX) / 2f
-                    val pillMidY = hubPos.y
+                    val pillMidY = (leftPos.y + rightPos.y) / 2f
                     precomputedMaritalLines.add(
                         PrecomputedMaritalLine(
                             primaryId = hubPartner.id,
                             spouseId = fs.id,
                             leftX = leftX,
                             rightX = rightX,
-                            y = hubPos.y,
+                            y = leftPos.y,
                             pillMidX = pillMidX,
-                            pillMidY = pillMidY
+                            pillMidY = pillMidY,
+                            leftY = leftPos.y,
+                            rightY = rightPos.y
                         )
                     )
                 }
@@ -3770,54 +4010,210 @@ class FamilyTreeView @JvmOverloads constructor(
             if (unit.children.isNotEmpty()) {
                 val yParent = pPos.y
                 val parentCardBottom = yParent + CARD_H / 2f
-                val yBus = parentCardBottom + V_GAP * 0.5f
                 val currentPairMidX = if (sPos != null) (pPos.x + sPos.x) / 2f else unit.x
                 val dropStartY = if (unit.spouse != null) pPos.y + 12f else parentCardBottom + ADD_BTN_R
 
-                val childDrops = mutableListOf<PrecomputedChildDrop>()
-                var busLeft = currentPairMidX
-                var busRight = currentPairMidX
+                val allLeaves = unit.children.all { it.children.isEmpty() }
+                val isTiered = allLeaves && unit.children.size >= 4
 
-                unit.children.forEach { ch ->
-                    val targetPerson = getBiologicalChild(unit, ch)
-                    val belongsToAttachedFormerSpouse = unit.formerSpouses.any { fs ->
-                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.fatherId) ||
-                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.motherId)
-                    }
-                    val isJointOrSingle = !belongsToAttachedFormerSpouse
-                    if (isJointOrSingle) {
-                        val cPos = posMap[targetPerson.id]
-                        if (cPos != null) {
-                            val targetY = cPos.y - CARD_H / 2f
-                            val isNonBio = isNonBiologicalLink(targetPerson, unit.primary.id, unit.spouse?.id)
-                            childDrops.add(
-                                PrecomputedChildDrop(
-                                    childId = targetPerson.id,
-                                    x = cPos.x,
-                                    yBus = yBus,
-                                    targetY = targetY,
-                                    isNonBiological = isNonBio
+                if (isTiered) {
+                    val tier1Count = (unit.children.size + 1) / 2
+                    val tier1 = unit.children.take(tier1Count)
+                    val tier2 = unit.children.drop(tier1Count)
+
+                    // Tier 1 Bus
+                    val tier1Drops = mutableListOf<PrecomputedChildDrop>()
+                    var busLeft1 = currentPairMidX
+                    var busRight1 = currentPairMidX
+                    val yBus1 = parentCardBottom + V_GAP * 0.5f
+
+                    tier1.forEach { ch ->
+                        val targetPerson = getBiologicalChild(unit, ch)
+                        val belongsToAttachedFormerSpouse = unit.formerSpouses.any { fs ->
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.fatherId) ||
+                                com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.motherId)
+                        }
+                        if (!belongsToAttachedFormerSpouse) {
+                            val cPos = posMap[targetPerson.id]
+                            if (cPos != null) {
+                                val targetY = cPos.y - CARD_H / 2f
+                                val isNonBio = isNonBiologicalLink(targetPerson, unit.primary.id, unit.spouse?.id)
+                                tier1Drops.add(
+                                    PrecomputedChildDrop(
+                                        childId = targetPerson.id,
+                                        x = cPos.x,
+                                        yBus = yBus1,
+                                        targetY = targetY,
+                                        isNonBiological = isNonBio
+                                    )
                                 )
-                            )
-                            if (cPos.x < busLeft) busLeft = cPos.x
-                            if (cPos.x > busRight) busRight = cPos.x
+                                if (cPos.x < busLeft1) busLeft1 = cPos.x
+                                if (cPos.x > busRight1) busRight1 = cPos.x
+                            }
                         }
                     }
-                }
 
-                if (childDrops.isNotEmpty()) {
-                    precomputedBuses.add(
-                        PrecomputedFamilyBus(
-                            primaryId = unit.primary.id,
-                            spouseId = unit.spouse?.id,
-                            dropX = currentPairMidX,
-                            dropStartY = dropStartY,
-                            yBus = yBus,
-                            busLeft = busLeft,
-                            busRight = busRight,
-                            childDrops = childDrops
+                    if (tier1Drops.isNotEmpty()) {
+                        val minX1 = tier1Drops.minOf { it.x }
+                        val maxX1 = tier1Drops.maxOf { it.x }
+                        val hasBridge1 = currentPairMidX < minX1 || currentPairMidX > maxX1
+                        val bridgeTargetX1 = if (currentPairMidX < minX1) minX1 else if (currentPairMidX > maxX1) maxX1 else currentPairMidX
+                        val bridgeStepY1 = (dropStartY + yBus1) / 2f
+                        precomputedBuses.add(
+                            PrecomputedFamilyBus(
+                                primaryId = unit.primary.id,
+                                spouseId = unit.spouse?.id,
+                                dropX = currentPairMidX,
+                                dropStartY = dropStartY,
+                                yBus = yBus1,
+                                busLeft = minX1,
+                                busRight = maxX1,
+                                childDrops = tier1Drops,
+                                bridgeTargetX = bridgeTargetX1,
+                                bridgeStepY = bridgeStepY1,
+                                hasSteppedBridge = hasBridge1
+                            )
                         )
-                    )
+                    }
+
+                    // Tier 2 Bus (staggered directly below Tier 1)
+                    val tier2Drops = mutableListOf<PrecomputedChildDrop>()
+                    val firstTier1Y = tier1Drops.firstOrNull()?.targetY ?: (yBus1 + V_GAP * 0.5f)
+                    val tier1CardBottom = firstTier1Y + CARD_H
+                    val yBus2 = tier1CardBottom + V_GAP * 0.5f
+
+                    tier2.forEach { ch ->
+                        val targetPerson = getBiologicalChild(unit, ch)
+                        val belongsToAttachedFormerSpouse = unit.formerSpouses.any { fs ->
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.fatherId) ||
+                                com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.motherId)
+                        }
+                        if (!belongsToAttachedFormerSpouse) {
+                            val cPos = posMap[targetPerson.id]
+                            if (cPos != null) {
+                                val targetY = cPos.y - CARD_H / 2f
+                                val isNonBio = isNonBiologicalLink(targetPerson, unit.primary.id, unit.spouse?.id)
+                                tier2Drops.add(
+                                    PrecomputedChildDrop(
+                                        childId = targetPerson.id,
+                                        x = cPos.x,
+                                        yBus = yBus2,
+                                        targetY = targetY,
+                                        isNonBiological = isNonBio
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    if (tier2Drops.isNotEmpty()) {
+                        val minX2 = tier2Drops.minOf { it.x }
+                        val maxX2 = tier2Drops.maxOf { it.x }
+                        val hasBridge2 = currentPairMidX < minX2 || currentPairMidX > maxX2
+                        val bridgeTargetX2 = if (currentPairMidX < minX2) minX2 else if (currentPairMidX > maxX2) maxX2 else currentPairMidX
+                        val bridgeStepY2 = (yBus1 + yBus2) / 2f
+                        precomputedBuses.add(
+                            PrecomputedFamilyBus(
+                                primaryId = unit.primary.id,
+                                spouseId = unit.spouse?.id,
+                                dropX = currentPairMidX,
+                                dropStartY = yBus1,
+                                yBus = yBus2,
+                                busLeft = minX2,
+                                busRight = maxX2,
+                                childDrops = tier2Drops,
+                                bridgeTargetX = bridgeTargetX2,
+                                bridgeStepY = bridgeStepY2,
+                                hasSteppedBridge = hasBridge2
+                            )
+                        )
+                    }
+                } else {
+                    val childDrops = mutableListOf<PrecomputedChildDrop>()
+
+                    val avgChildY = unit.children.mapNotNull { ch ->
+                        val bio = getBiologicalChild(unit, ch)
+                        posMap[bio.id]?.y
+                    }.average().toFloat().takeIf { !it.isNaN() } ?: (pPos.y + 100f)
+                    val isParentsAbove = pPos.y <= avgChildY
+
+                    val defaultDropStartY = if (isParentsAbove) {
+                        if (unit.spouse != null) pPos.y + 12f else parentCardBottom + ADD_BTN_R
+                    } else {
+                        if (unit.spouse != null) pPos.y - 12f else (pPos.y - CARD_H / 2f) - 8f
+                    }
+                    val defaultYBus = if (isParentsAbove) {
+                        parentCardBottom + V_GAP * 0.5f
+                    } else {
+                        (pPos.y - CARD_H / 2f) - V_GAP * 0.5f
+                    }
+
+                    val customBus = customBusOffsets[unit.primary.id]
+                    val yBus = customBus?.yBus ?: defaultYBus
+                    val dropX = customBus?.dropX ?: currentPairMidX
+                    val dropStartY = defaultDropStartY
+
+                    unit.children.forEach { ch ->
+                        val targetPerson = getBiologicalChild(unit, ch)
+                        val belongsToAttachedFormerSpouse = unit.formerSpouses.any { fs ->
+                            com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.fatherId) ||
+                                com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, targetPerson.motherId)
+                        }
+                        val isJointOrSingle = !belongsToAttachedFormerSpouse
+                        if (isJointOrSingle) {
+                            val cPos = posMap[targetPerson.id]
+                            if (cPos != null) {
+                                val targetY = if (cPos.y >= yBus) {
+                                    cPos.y - CARD_H / 2f
+                                } else {
+                                    cPos.y + CARD_H / 2f + ADD_BTN_R
+                                }
+                                val isNonBio = isNonBiologicalLink(targetPerson, unit.primary.id, unit.spouse?.id)
+                                childDrops.add(
+                                    PrecomputedChildDrop(
+                                        childId = targetPerson.id,
+                                        x = cPos.x,
+                                        yBus = yBus,
+                                        targetY = targetY,
+                                        isNonBiological = isNonBio
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    if (childDrops.isNotEmpty()) {
+                        val minX = childDrops.minOf { it.x }
+                        val maxX = childDrops.maxOf { it.x }
+                        val hasBridge = dropX < minX || dropX > maxX
+                        val bridgeTargetX = if (dropX < minX) minX else if (dropX > maxX) maxX else dropX
+                        val bridgeStepY = (dropStartY + yBus) / 2f
+
+                        precomputedBuses.add(
+                            PrecomputedFamilyBus(
+                                primaryId = unit.primary.id,
+                                spouseId = unit.spouse?.id,
+                                dropX = dropX,
+                                dropStartY = dropStartY,
+                                yBus = yBus,
+                                busLeft = minX,
+                                busRight = maxX,
+                                childDrops = childDrops,
+                                bridgeTargetX = bridgeTargetX,
+                                bridgeStepY = bridgeStepY,
+                                hasSteppedBridge = hasBridge
+                            )
+                        )
+                        // Interactive gold grab handle for bending connector line
+                        waypointHandles.add(
+                            TreeWaypointHandle(
+                                id = "handle_${unit.primary.id}",
+                                busId = unit.primary.id,
+                                x = dropX,
+                                y = if (hasBridge) bridgeStepY else yBus
+                            )
+                        )
+                    }
                 }
 
                 // Separate child drop buses for children born to each former/late spouse
@@ -3834,8 +4230,6 @@ class FamilyTreeView @JvmOverloads constructor(
                     val fsDropStartY = hubPos.y + 12f
 
                     val fsDrops = mutableListOf<PrecomputedChildDrop>()
-                    var fsBusLeft = fsMidX
-                    var fsBusRight = fsMidX
 
                     unit.children.forEach { ch ->
                         val targetPerson = getBiologicalChild(unit, ch)
@@ -3858,13 +4252,17 @@ class FamilyTreeView @JvmOverloads constructor(
                                         isNonBiological = isNonBio
                                     )
                                 )
-                                if (cPos.x < fsBusLeft) fsBusLeft = cPos.x
-                                if (cPos.x > fsBusRight) fsBusRight = cPos.x
                             }
                         }
                     }
 
                     if (fsDrops.isNotEmpty()) {
+                        val fsMinX = fsDrops.minOf { it.x }
+                        val fsMaxX = fsDrops.maxOf { it.x }
+                        val fsHasBridge = fsMidX < fsMinX || fsMidX > fsMaxX
+                        val fsBridgeTargetX = if (fsMidX < fsMinX) fsMinX else if (fsMidX > fsMaxX) fsMaxX else fsMidX
+                        val fsBridgeStepY = (fsDropStartY + fsBusY) / 2f
+
                         precomputedBuses.add(
                             PrecomputedFamilyBus(
                                 primaryId = hubPartner.id,
@@ -3872,9 +4270,12 @@ class FamilyTreeView @JvmOverloads constructor(
                                 dropX = fsMidX,
                                 dropStartY = fsDropStartY,
                                 yBus = fsBusY,
-                                busLeft = fsBusLeft,
-                                busRight = fsBusRight,
-                                childDrops = fsDrops
+                                busLeft = fsMinX,
+                                busRight = fsMaxX,
+                                childDrops = fsDrops,
+                                bridgeTargetX = fsBridgeTargetX,
+                                bridgeStepY = fsBridgeStepY,
+                                hasSteppedBridge = fsHasBridge
                             )
                         )
                     }
@@ -3943,13 +4344,10 @@ class FamilyTreeView @JvmOverloads constructor(
             if (sharedUnit != null) {
                 val primaryPos = posMap[sharedUnit.primary.id]
                 if (primaryPos != null) {
-                    val parentCardBottom = primaryPos.y + CARD_H / 2f
-                    val pY = primaryPos.y + 12f // Start directly from the couple's marriage ring pill
-                    val cY = cPos.y - CARD_H / 2f
-                    val isStep = cY > parentCardBottom
-                    // Route cleanly in the lower bus channel below the + buttons (+14f) and main bus (+34f)
-                    val laneShift = (precomputedFallbackLines.size % 2) * 8f
-                    val midY = parentCardBottom + V_GAP * 0.68f + laneShift
+                    val isChildBelow = cPos.y >= primaryPos.y
+                    val pY = if (isChildBelow) primaryPos.y + 12f else primaryPos.y - 12f
+                    val cY = if (isChildBelow) cPos.y - CARD_H / 2f else cPos.y + CARD_H / 2f + ADD_BTN_R
+                    val midY = (pY + cY) / 2f
                     val isNonBio = isNonBiologicalLink(p, sharedUnit.primary.id, sharedUnit.spouse?.id)
                     precomputedFallbackLines.add(
                         PrecomputedFallbackLine(
@@ -3960,7 +4358,7 @@ class FamilyTreeView @JvmOverloads constructor(
                             pY = pY,
                             cX = cPos.x,
                             cY = cY,
-                            isStep = isStep,
+                            isStep = true,
                             midY = midY,
                             isNonBiological = isNonBio
                         )
@@ -3970,12 +4368,10 @@ class FamilyTreeView @JvmOverloads constructor(
                 uncoveredParents.forEach { pid ->
                     val pPos = posMap[pid]
                     if (pPos != null) {
-                        val parentCardBottom = pPos.y + CARD_H / 2f
-                        val pY = parentCardBottom + ADD_BTN_R // Start below the green + button
-                        val cY = cPos.y - CARD_H / 2f
-                        val isStep = cY > parentCardBottom
-                        val laneShift = (precomputedFallbackLines.size % 2) * 8f
-                        val midY = parentCardBottom + V_GAP * 0.68f + laneShift
+                        val isChildBelow = cPos.y >= pPos.y
+                        val pY = if (isChildBelow) pPos.y + CARD_H / 2f + ADD_BTN_R else (pPos.y - CARD_H / 2f) - 8f
+                        val cY = if (isChildBelow) cPos.y - CARD_H / 2f else cPos.y + CARD_H / 2f + ADD_BTN_R
+                        val midY = (pY + cY) / 2f
                         val isNonBioFallback = isNonBiologicalLink(p, pid, null)
                         precomputedFallbackLines.add(
                             PrecomputedFallbackLine(
@@ -3986,7 +4382,7 @@ class FamilyTreeView @JvmOverloads constructor(
                                 pY = pY,
                                 cX = cPos.x,
                                 cY = cY,
-                                isStep = isStep,
+                                isStep = true,
                                 midY = midY,
                                 isNonBiological = isNonBioFallback
                             )
@@ -4109,7 +4505,9 @@ class FamilyTreeView @JvmOverloads constructor(
         // 1. Marital Lines & Center Pills (Zero allocations!)
         for (i in 0 until precomputedMaritalLines.size) {
             val m = precomputedMaritalLines[i]
-            if (m.rightX < cullLeft || m.leftX > cullRight || m.y < cullTop || m.y > cullBottom) continue
+            val minMY = minOf(m.leftY, m.rightY)
+            val maxMY = maxOf(m.leftY, m.rightY)
+            if (m.rightX < cullLeft || m.leftX > cullRight || maxMY < cullTop || minMY > cullBottom) continue
 
             val isMaritalTrace = isTraceMode &&
                     ((highlightIds.contains(m.primaryId) && highlightIds.contains(m.spouseId)) ||
@@ -4120,10 +4518,22 @@ class FamilyTreeView @JvmOverloads constructor(
                 else -> pSpouseLine
             }
 
-            if (isMaritalTrace) {
-                canvas.drawLine(m.leftX, m.y, m.rightX, m.y, pGoldPathGlow)
+            if (kotlin.math.abs(m.leftY - m.rightY) < 6f) {
+                if (isMaritalTrace) {
+                    canvas.drawLine(m.leftX, m.y, m.rightX, m.y, pGoldPathGlow)
+                }
+                canvas.drawLine(m.leftX, m.y, m.rightX, m.y, mPaint)
+            } else {
+                sharedLinePath.reset()
+                sharedLinePath.moveTo(m.leftX, m.leftY)
+                sharedLinePath.lineTo(m.pillMidX, m.leftY)
+                sharedLinePath.lineTo(m.pillMidX, m.rightY)
+                sharedLinePath.lineTo(m.rightX, m.rightY)
+                if (isMaritalTrace) {
+                    canvas.drawPath(sharedLinePath, pGoldPathGlow)
+                }
+                canvas.drawPath(sharedLinePath, mPaint)
             }
-            canvas.drawLine(m.leftX, m.y, m.rightX, m.y, mPaint)
 
             // Elegant Marital Center Pill: [ 💍 ]
             val mPillW = 36f
@@ -4140,10 +4550,10 @@ class FamilyTreeView @JvmOverloads constructor(
         // 2. Parent Drop -> Horizontal Bus -> Child Drops (Zero allocations with Frustum Culling!)
         for (i in 0 until precomputedBuses.size) {
             val bus = precomputedBuses[i]
-            val minBusX = minOf(bus.dropX, bus.busLeft)
-            val maxBusX = maxOf(bus.dropX, bus.busRight)
-            val minBusY = bus.dropStartY
-            val maxBusY = bus.childDrops.maxOfOrNull { it.targetY } ?: bus.yBus
+            val minBusX = minOf(bus.dropX, bus.busLeft, bus.bridgeTargetX)
+            val maxBusX = maxOf(bus.dropX, bus.busRight, bus.bridgeTargetX)
+            val minBusY = minOf(bus.dropStartY, bus.yBus, bus.bridgeStepY)
+            val maxBusY = maxOf(bus.dropStartY, bus.yBus, bus.bridgeStepY, bus.childDrops.maxOfOrNull { it.targetY } ?: bus.yBus)
             if (maxBusX < cullLeft || minBusX > cullRight || maxBusY < cullTop || minBusY > cullBottom) continue
 
             val isParentOnTrace = isTraceMode && (
@@ -4155,15 +4565,25 @@ class FamilyTreeView @JvmOverloads constructor(
                 (bus.spouseId != null && mrcaPersonIds.contains(bus.spouseId))
             )
 
-            // Draw default parent drop & bus bar
+            // Draw default parent drop & smart stepped highway bridge
             val busBasePaint = if (isTraceMode) pLineDim else pLine
-            canvas.drawLine(bus.dropX, bus.dropStartY, bus.dropX, bus.yBus, busBasePaint)
+            if (bus.hasSteppedBridge) {
+                canvas.drawLine(bus.dropX, bus.dropStartY, bus.dropX, bus.bridgeStepY, busBasePaint)
+                canvas.drawLine(bus.dropX, bus.bridgeStepY, bus.bridgeTargetX, bus.bridgeStepY, busBasePaint)
+                canvas.drawLine(bus.bridgeTargetX, bus.bridgeStepY, bus.bridgeTargetX, bus.yBus, busBasePaint)
+            } else {
+                canvas.drawLine(bus.dropX, bus.dropStartY, bus.dropX, bus.yBus, busBasePaint)
+            }
+
+            // Draw local children's bus bar (strictly from busLeft to busRight)
             canvas.drawLine(bus.busLeft, bus.yBus, bus.busRight, bus.yBus, busBasePaint)
 
-            // Draw vertical drop into top of each child card
+            // Draw vertical drop into top/bottom of each child card
             for (j in 0 until bus.childDrops.size) {
                 val drop = bus.childDrops[j]
-                if (drop.x < cullLeft || drop.x > cullRight || drop.targetY < cullTop || drop.yBus > cullBottom) continue
+                val dropMinY = minOf(drop.yBus, drop.targetY)
+                val dropMaxY = maxOf(drop.yBus, drop.targetY)
+                if (drop.x < cullLeft || drop.x > cullRight || dropMaxY < cullTop || dropMinY > cullBottom) continue
 
                 val isChildOnTrace = isTraceMode && (highlightIds.contains(drop.childId) || drop.childId == mrcaPersonId || mrcaPersonIds.contains(drop.childId))
                 val isSegmentTrace = isParentOnTrace && isChildOnTrace
@@ -4171,22 +4591,36 @@ class FamilyTreeView @JvmOverloads constructor(
                 if (isSegmentTrace) {
                     // Double-pass glowing bloodline path
                     sharedTracePath.reset()
-                    sharedTracePath.moveTo(bus.dropX, bus.dropStartY)
-                    sharedTracePath.lineTo(bus.dropX, bus.yBus)
+                    if (bus.hasSteppedBridge) {
+                        sharedTracePath.moveTo(bus.dropX, bus.dropStartY)
+                        sharedTracePath.lineTo(bus.dropX, bus.bridgeStepY)
+                        sharedTracePath.lineTo(bus.bridgeTargetX, bus.bridgeStepY)
+                        sharedTracePath.lineTo(bus.bridgeTargetX, bus.yBus)
+                    } else {
+                        sharedTracePath.moveTo(bus.dropX, bus.dropStartY)
+                        sharedTracePath.lineTo(bus.dropX, bus.yBus)
+                    }
                     sharedTracePath.lineTo(drop.x, bus.yBus)
                     sharedTracePath.lineTo(drop.x, drop.targetY)
                     canvas.drawPath(sharedTracePath, pGoldPathGlow)
                     canvas.drawPath(sharedTracePath, pGoldPathLine)
                 } else {
-                    if (drop.targetY > drop.yBus) {
-                        val cLinePaint = when {
-                            drop.isNonBiological -> if (isTraceMode) pLineAdoptiveDim else pLineAdoptive
-                            isTraceMode -> pLineDim
-                            else -> pLine
-                        }
-                        canvas.drawLine(drop.x, drop.yBus, drop.x, drop.targetY, cLinePaint)
+                    val cLinePaint = when {
+                        drop.isNonBiological -> if (isTraceMode) pLineAdoptiveDim else pLineAdoptive
+                        isTraceMode -> pLineDim
+                        else -> pLine
                     }
+                    canvas.drawLine(drop.x, drop.yBus, drop.x, drop.targetY, cLinePaint)
                 }
+            }
+        }
+
+        if (isOrganizeMode) {
+            for (handle in waypointHandles) {
+                canvas.drawCircle(handle.x, handle.y, 16f, pWaypointGlow)
+                canvas.drawCircle(handle.x, handle.y, 10f, pWaypointInner)
+                canvas.drawCircle(handle.x, handle.y, 10f, pWaypointBorder)
+                canvas.drawCircle(handle.x, handle.y, 4f, pWaypointPip)
             }
         }
 
@@ -4207,20 +4641,10 @@ class FamilyTreeView @JvmOverloads constructor(
             val isLineOnTrace = isTraceMode && isPOnPath && isParentOnPath
 
             sharedLinePath.reset()
-            if (f.isStep) {
-                sharedLinePath.moveTo(f.pX, f.pY)
-                sharedLinePath.lineTo(f.pX, f.midY)
-                sharedLinePath.lineTo(f.cX, f.midY)
-                sharedLinePath.lineTo(f.cX, f.cY)
-            } else {
-                sharedLinePath.moveTo(f.pX, f.pY)
-                val ctrlOffset = 100f
-                sharedLinePath.cubicTo(
-                    f.pX + ctrlOffset, f.pY,
-                    f.cX + ctrlOffset, f.cY,
-                    f.cX, f.cY
-                )
-            }
+            sharedLinePath.moveTo(f.pX, f.pY)
+            sharedLinePath.lineTo(f.pX, f.midY)
+            sharedLinePath.lineTo(f.cX, f.midY)
+            sharedLinePath.lineTo(f.cX, f.cY)
 
             if (isLineOnTrace) {
                 canvas.drawPath(sharedLinePath, pGoldPathGlow)
@@ -4544,9 +4968,202 @@ class FamilyTreeView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (isOrganizeMode && !isViewerMode && mode != "PEDIGREE") {
+            val canvasX = toCanvasX(event.x)
+            val canvasY = toCanvasY(event.y)
+
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    // 1. Check if hit waypoint handle (radius ~ 32f)
+                    val hitHandle = waypointHandles.find { h ->
+                        val dx = canvasX - h.x
+                        val dy = canvasY - h.y
+                        kotlin.math.sqrt(dx * dx + dy * dy) <= 32f
+                    }
+                    if (hitHandle != null) {
+                        draggedHandle = hitHandle
+                        dragStartTouchX = canvasX
+                        dragStartTouchY = canvasY
+                        dragStartBusY = hitHandle.y
+                        dragStartDropX = hitHandle.x
+                        isDraggingInOrganize = true
+                        parent?.requestDisallowInterceptTouchEvent(true)
+                        return true
+                    }
+
+                    // 2. Check if hit any person card
+                    val hitCard = hitAreas.reversed().find { h ->
+                        !h.tag.startsWith("add:") && !h.tag.startsWith("ancestor:") &&
+                            kotlin.math.abs(canvasX - h.cx) <= CARD_W / 2f &&
+                            kotlin.math.abs(canvasY - h.cy) <= CARD_H / 2f
+                    }
+                    if (hitCard != null) {
+                        draggedCardPersonId = hitCard.tag
+                        val cardPos = posMap[hitCard.tag]
+                        if (cardPos != null) {
+                            dragStartCardX = cardPos.x
+                            dragStartCardY = cardPos.y
+                            dragStartTouchX = canvasX
+                            dragStartTouchY = canvasY
+                            draggedSpouseId = null // 100% Free Move: individual card movement with zero restrictions
+
+                            isDraggingInOrganize = true
+                            parent?.requestDisallowInterceptTouchEvent(true)
+                            return true
+                        }
+                    }
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    if (isDraggingInOrganize) {
+                        val dx = canvasX - dragStartTouchX
+                        val dy = canvasY - dragStartTouchY
+
+                        if (draggedHandle != null) {
+                            val handle = draggedHandle!!
+                            val newY = dragStartBusY + dy
+                            handle.y = newY
+                            customBusOffsets[handle.busId] = CustomBusOffset(
+                                busId = handle.busId,
+                                yBus = newY,
+                                dropX = handle.x
+                            )
+                            precomputeMainTreeConnectorsAndHitAreas()
+                            invalidate()
+                            return true
+                        }
+
+                        if (draggedCardPersonId != null) {
+                            val newCardX = dragStartCardX + dx
+                            val newCardY = dragStartCardY + dy
+                            posMap[draggedCardPersonId!!]?.set(newCardX, newCardY)
+                            customNodePositions[draggedCardPersonId!!] = CustomNodePosition(newCardX, newCardY)
+
+                            precomputeMainTreeConnectorsAndHitAreas()
+                            invalidate()
+                            return true
+                        }
+                    }
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (isDraggingInOrganize) {
+                        if (draggedHandle != null) {
+                            val handle = draggedHandle!!
+                            if (kotlin.math.abs(handle.y - dragStartBusY) > 3f) {
+                                undoStack.push(
+                                    LayoutHistoryAction.BendLine(
+                                        busId = handle.busId,
+                                        prevYBus = dragStartBusY,
+                                        newYBus = handle.y,
+                                        prevDropX = dragStartDropX,
+                                        newDropX = handle.x
+                                    )
+                                )
+                                onUndoStackChanged?.invoke(undoStack.size)
+                                onLayoutModified?.invoke()
+                            }
+                        } else if (draggedCardPersonId != null) {
+                            val cardPos = posMap[draggedCardPersonId!!]
+                            if (cardPos != null && (kotlin.math.abs(cardPos.x - dragStartCardX) > 3f || kotlin.math.abs(cardPos.y - dragStartCardY) > 3f)) {
+                                undoStack.push(
+                                    LayoutHistoryAction.MoveNode(
+                                        personId = draggedCardPersonId!!,
+                                        spouseId = null,
+                                        prevX = dragStartCardX,
+                                        prevY = dragStartCardY,
+                                        newX = cardPos.x,
+                                        newY = cardPos.y
+                                    )
+                                )
+                                onUndoStackChanged?.invoke(undoStack.size)
+                                onLayoutModified?.invoke()
+                            }
+                        }
+
+                        draggedHandle = null
+                        draggedCardPersonId = null
+                        draggedSpouseId = null
+                        isDraggingInOrganize = false
+                        parent?.requestDisallowInterceptTouchEvent(false)
+                        return true
+                    }
+                }
+            }
+        }
+
         scaleDetector.onTouchEvent(event)
         gestureDetector.onTouchEvent(event)
         return true
+    }
+
+    fun undoLastAction() {
+        if (undoStack.isEmpty()) return
+        when (val action = undoStack.pop()) {
+            is LayoutHistoryAction.MoveNode -> {
+                posMap[action.personId]?.set(action.prevX, action.prevY)
+                customNodePositions[action.personId] = CustomNodePosition(action.prevX, action.prevY)
+                if (action.spouseId != null && action.prevSpouseX != null && action.prevSpouseY != null) {
+                    posMap[action.spouseId]?.set(action.prevSpouseX, action.prevSpouseY)
+                    customNodePositions[action.spouseId] = CustomNodePosition(action.prevSpouseX, action.prevSpouseY)
+                }
+            }
+            is LayoutHistoryAction.BendLine -> {
+                val handle = waypointHandles.find { it.busId == action.busId }
+                handle?.y = action.prevYBus
+                customBusOffsets[action.busId] = CustomBusOffset(
+                    busId = action.busId,
+                    yBus = action.prevYBus,
+                    dropX = action.prevDropX
+                )
+            }
+        }
+        precomputeMainTreeConnectorsAndHitAreas()
+        invalidate()
+        onUndoStackChanged?.invoke(undoStack.size)
+        onLayoutModified?.invoke()
+    }
+
+    fun resetCustomLayout() {
+        customNodePositions.clear()
+        customBusOffsets.clear()
+        undoStack.clear()
+        computeLayout()
+        invalidate()
+        onUndoStackChanged?.invoke(0)
+        onLayoutModified?.invoke()
+    }
+
+    fun exportCustomLayout(treeId: String): CustomTreeLayout {
+        return CustomTreeLayout(
+            treeId = treeId,
+            nodePositions = customNodePositions.toMap(),
+            busOffsets = customBusOffsets.toMap(),
+            updatedAt = System.currentTimeMillis()
+        )
+    }
+
+    fun applyCustomLayout(layout: CustomTreeLayout) {
+        customNodePositions.clear()
+        customNodePositions.putAll(layout.nodePositions)
+        customBusOffsets.clear()
+        customBusOffsets.putAll(layout.busOffsets)
+        computeLayout()
+        invalidate()
+    }
+
+
+    
+    fun toCanvasX(screenX: Float): Float {
+        val originX = offsetX + (width - canvasW) / 2f
+        val pivotX = width / 2f
+        return (screenX - pivotX) / scaleFactor + pivotX - originX
+    }
+
+    fun toCanvasY(screenY: Float): Float {
+        val originY = offsetY + MARGIN / 2f
+        val pivotY = height / 2f
+        return (screenY - pivotY) / scaleFactor + pivotY - originY
     }
 
     private fun handleTap(screenX: Float, screenY: Float) {

@@ -61,5 +61,10 @@ enum class SyncChangeType {
     /**
      * 11. A clan merge request was created, approved, rejected, cancelled, completed, or failed.
      */
-    CLAN_MERGE_REQUEST_UPDATED
+    CLAN_MERGE_REQUEST_UPDATED,
+
+    /**
+     * 12. A user custom-routes or organizes node positions and connector line bends.
+     */
+    TREE_LAYOUT_CHANGED
 }

@@ -22,10 +22,12 @@ object TreeToolsPopoverHelper {
         anchor: View,
         showConnect: Boolean,
         showAudit: Boolean = true,
+        showOrganize: Boolean = true,
         onConnect: () -> Unit,
         onAudit: () -> Unit,
         onExport: () -> Unit,
-        onLegend: () -> Unit
+        onLegend: () -> Unit,
+        onOrganize: () -> Unit = {}
     ) {
         val contentView = LayoutInflater.from(context).inflate(R.layout.popup_tree_tools, null)
 
@@ -33,9 +35,11 @@ object TreeToolsPopoverHelper {
         val rowAudit = contentView.findViewById<View>(R.id.rowToolAudit)
         val rowExport = contentView.findViewById<View>(R.id.rowToolExport)
         val rowLegend = contentView.findViewById<View>(R.id.rowToolLegend)
+        val rowOrganize = contentView.findViewById<View>(R.id.rowToolOrganizeLayout)
 
         rowConnect?.visibility = if (showConnect) View.VISIBLE else View.GONE
         rowAudit?.visibility = if (showAudit) View.VISIBLE else View.GONE
+        rowOrganize?.visibility = if (showOrganize) View.VISIBLE else View.GONE
 
         val density = context.resources.displayMetrics.density
         val widthPx = (225 * density).toInt()
@@ -74,6 +78,11 @@ object TreeToolsPopoverHelper {
         rowExport?.setOnClickListener {
             popupWindow.dismiss()
             onExport()
+        }
+
+        rowOrganize?.setOnClickListener {
+            popupWindow.dismiss()
+            onOrganize()
         }
 
         rowLegend?.setOnClickListener {

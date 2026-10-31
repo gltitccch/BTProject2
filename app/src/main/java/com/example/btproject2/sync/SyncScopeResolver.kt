@@ -320,5 +320,21 @@ object SyncScopeResolver {
             affectedFields = setOf("clanMergeRequest")
         )
     }
+
+    /**
+     * Resolves the affected scope when custom node positions or line bends are updated.
+     */
+    fun resolveTreeLayoutChanged(treeId: String): AffectedScope {
+        return AffectedScope(
+            treeId = treeId,
+            primaryPersonId = "",
+            relatedPersonIds = emptySet(),
+            affectedScreens = setOf(AffectedScreen.INTERACTIVE_TREE),
+            requiresStructuralRelayout = true,
+            requiresKinshipRecomputation = false,
+            affectedFields = setOf("treeLayout")
+        )
+    }
 }
+
 

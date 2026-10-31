@@ -1,4 +1,4 @@
-package com.example.btproject2.utils
+﻿package com.example.btproject2.utils
 
 import android.app.Activity
 import android.graphics.RectF
@@ -42,8 +42,11 @@ object KinTraceSpotlightManager {
         FAMILY_RECORDS("tutorial_family_records"),
         CREATE_TREE("tutorial_create_tree"),
         JOIN_TREE("tutorial_join_tree"),
-        FAMILY_INSIGHTS("tutorial_family_insights")
+        FAMILY_INSIGHTS("tutorial_family_insights"),
+        ORGANIZE_MODE("tutorial_organize_mode")
     }
+
+    fun getActiveFeatureKey(): TutorialFeatureKey? = activeFeatureKey
 
     private var activeOverlayRef: WeakReference<KinTraceSpotlightView>? = null
     private var activeActivityRef: WeakReference<Activity>? = null
@@ -71,6 +74,12 @@ object KinTraceSpotlightManager {
                 ?: com.example.btproject2.utils.TreePreferences.getActiveTreeId(activity)
         }
 
+        val isViewerUser = (activity as? com.example.btproject2.ui.activities.InteractiveTreeActivity)?.isViewerUser()
+            ?: (activity as? com.example.btproject2.ui.activities.FamilyTreeActivity)?.isViewerUser()
+            ?: activity.intent?.getBooleanExtra("isViewer", false)
+            ?: false
+        if (feature == TutorialFeatureKey.ORGANIZE_MODE && isViewerUser) return
+
         if (OnboardingPreferences.hasSeenTutorial(activity, feature.key, treeId = resolvedTreeId)) return
         if (activeFeatureKey == feature && activeOverlayRef?.get()?.isAttachedToWindow == true) return
         val pendingKey = if (!resolvedTreeId.isNullOrBlank()) "${resolvedTreeId}_${feature.key}" else feature.key
@@ -85,7 +94,13 @@ object KinTraceSpotlightManager {
             pendingFeatures.remove(pendingKey)
             pendingRunnables.remove(pendingKey)
             if (activity.isFinishing || activity.isDestroyed) return@Runnable
-            if (OnboardingPreferences.hasSeenTutorial(activity, feature.key, treeId = resolvedTreeId)) return@Runnable
+            val isViewerUser = (activity as? com.example.btproject2.ui.activities.InteractiveTreeActivity)?.isViewerUser()
+            ?: (activity as? com.example.btproject2.ui.activities.FamilyTreeActivity)?.isViewerUser()
+            ?: activity.intent?.getBooleanExtra("isViewer", false)
+            ?: false
+        if (feature == TutorialFeatureKey.ORGANIZE_MODE && isViewerUser) return@Runnable
+
+        if (OnboardingPreferences.hasSeenTutorial(activity, feature.key, treeId = resolvedTreeId)) return@Runnable
             if (activeFeatureKey == feature && activeOverlayRef?.get()?.isAttachedToWindow == true) return@Runnable
             val effectiveDialogProvider = dialogProvider ?: { (activity as? com.example.btproject2.ui.activities.InteractiveTreeActivity)?.getActiveProfileDialog() }
             val resolvedSteps = steps ?: getPresetStepsForActivity(activity, feature)
@@ -692,7 +707,22 @@ object KinTraceSpotlightManager {
                             icon = "✏️",
                             title = "Edit Details & Full Life Story",
                             description = "Use 'Edit' to fix misspelled names, birth years, or change photos. Tap 'Full Profile' right beside it to open their complete timeline and family stories!",
-                            proTip = "📖 Tip: The Full Profile screen lets you view their lifetime milestones and write personal stories."
+                            proTip = "📖 Tip: The Full Profile screen lets you view their lifetime milestones and write personal stories.",
+                            onStepEnter = {
+                                val act = activeActivityRef?.get() as? com.example.btproject2.ui.activities.InteractiveTreeActivity
+                                act?.openTutorialFounderProfile()
+                            }
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.btnToggleOrganizeMode,
+                            icon = "✎",
+                            title = "Free Move & Custom Layout",
+                            description = "Tap this pencil icon to freely drag any person to wherever you want on screen! You can bend connector lines using golden elbow handles, and use ↩ Undo to step backward anytime.",
+                            proTip = "💡 Tip: Your personalized positions are automatically saved to your account in the cloud!",
+                            onStepEnter = {
+                                val act = activeActivityRef?.get() as? com.example.btproject2.ui.activities.InteractiveTreeActivity
+                                act?.closeTutorialProfileDialog()
+                            }
                         )
                     )
                 }
@@ -803,6 +833,29 @@ object KinTraceSpotlightManager {
                     proTip = "🛡️ Tip: Your request is sent securely directly to the tree owner."
                 )
             )
+
+            TutorialFeatureKey.ORGANIZE_MODE -> {
+                if (isViewer) {
+                    emptyList()
+                } else {
+                    listOf(
+                        SpotlightStep(
+                            targetViewId = R.id.layoutOrganizeModeBar,
+                            icon = "🛠️",
+                            title = "Organize Controls & Single-Step Undo",
+                            description = "You are now in Organize Mode! Freely drag any family card anywhere. Tap ↩ Undo to step backward one move at a time, or ↺ Reset to restore default layout.",
+                            proTip = "💡 Tip: Every card moves 100% independently with no auto-clumping!"
+                        ),
+                        SpotlightStep(
+                            targetViewId = R.id.btnDoneOrganize,
+                            icon = "🟡",
+                            title = "Bend Connector Lines & Save",
+                            description = "See those glowing golden dots at the line corners? Drag any dot to bend pipes around obstacles! When you are satisfied, tap Done ✓ to save your custom layout to the cloud.",
+                            proTip = "✨ Tip: Lines stay orthogonal with clean 90° bends and 0° tilt at card borders."
+                        )
+                    )
+                }
+            }
 
             TutorialFeatureKey.FAMILY_INSIGHTS -> listOf(
                 SpotlightStep(

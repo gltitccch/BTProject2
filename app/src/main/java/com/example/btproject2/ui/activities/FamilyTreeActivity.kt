@@ -231,6 +231,7 @@ class FamilyTreeActivity : AppCompatActivity() {
                 anchor = anchorView,
                 showConnect = !isViewer,
                 showAudit = true,
+                showOrganize = false,
                 onConnect = {
                     val activeTreeId = treeId.ifBlank { com.example.btproject2.utils.TreePreferences.getActiveTreeId(this@FamilyTreeActivity) }
                     val intent = Intent(this, MergeBranchesActivity::class.java).apply {

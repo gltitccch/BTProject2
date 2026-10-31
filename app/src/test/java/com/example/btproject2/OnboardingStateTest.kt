@@ -1,4 +1,4 @@
-package com.example.btproject2
+﻿package com.example.btproject2
 
 import com.example.btproject2.models.UserOnboardingState
 import org.junit.Assert.assertEquals
@@ -143,7 +143,7 @@ class OnboardingStateTest {
         assertTrue(state.seenTutorialKeys.isEmpty())
 
         val allKeys = com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.values()
-        assertEquals(15, allKeys.size)
+        assertEquals(16, allKeys.size)
 
         for (feature in allKeys) {
             val steps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(feature)
@@ -278,7 +278,7 @@ class OnboardingStateTest {
         val interactiveSteps = com.example.btproject2.utils.KinTraceSpotlightManager.getPresetSteps(
             com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.INTERACTIVE_TREE
         )
-        assertEquals("Interactive Tree must have exactly 9 progressive steps", 9, interactiveSteps.size)
+        assertEquals("Interactive Tree must have exactly 10 progressive steps", 10, interactiveSteps.size)
         assertEquals(R.id.treeContainer, interactiveSteps[0].targetViewId)
         assertEquals(R.id.ivProfilePhoto, interactiveSteps[1].targetViewId)
         assertEquals(R.id.tvProfileKinshipBadge, interactiveSteps[2].targetViewId)
@@ -288,6 +288,7 @@ class OnboardingStateTest {
         assertEquals(R.id.btnProfileAddChild, interactiveSteps[6].targetViewId)
         assertEquals(R.id.btnProfileAddSpouse, interactiveSteps[7].targetViewId)
         assertEquals(R.id.btnProfileEdit, interactiveSteps[8].targetViewId)
+        assertEquals(R.id.btnToggleOrganizeMode, interactiveSteps[9].targetViewId)
 
         interactiveSteps.forEach { step ->
             assertTrue("Step title must be in layman terms", step.title.isNotBlank())
@@ -311,7 +312,8 @@ class OnboardingStateTest {
             R.id.btnProfileToggleVitalStatus,
             R.id.btnProfileAddChild,
             R.id.btnProfileAddSpouse,
-            R.id.btnProfileEdit
+            R.id.btnProfileEdit,
+            R.id.btnToggleOrganizeMode
         )
         viewerSteps.forEach { step ->
             assertFalse(

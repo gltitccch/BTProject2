@@ -21,6 +21,7 @@ class InteractiveTreeSyncCoordinator(
     var allPersonsList: List<Person> = emptyList(),
     var focalPedigreePersonId: String? = null,
     var onTreeUpdated: ((List<Person>, Boolean) -> Unit)? = null,
+    var onTreeLayoutChanged: (() -> Unit)? = null,
     var onMemberEvictedFromAvatarCache: ((String) -> Unit)? = null,
     var onActiveProfileRefreshed: ((String) -> Unit)? = null,
     var onActiveProfileDismissed: ((String) -> Unit)? = null
@@ -134,7 +135,11 @@ class InteractiveTreeSyncCoordinator(
             }
 
             SyncChangeType.TREE_CREATED -> {}
-            SyncChangeType.CLAN_MERGE_REQUEST_UPDATED -> {}
+                        SyncChangeType.CLAN_MERGE_REQUEST_UPDATED -> {}
+            SyncChangeType.TREE_LAYOUT_CHANGED -> {
+                onTreeLayoutChanged?.invoke()
+                onTreeUpdated?.invoke(allPersonsList, true)
+            }
         }
     }
 

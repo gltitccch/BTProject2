@@ -4,6 +4,7 @@ import com.example.btproject2.models.ActivityRecord
 import com.example.btproject2.models.AdminAuditLog
 import com.example.btproject2.models.ArchivedMemberRecord
 import com.example.btproject2.models.ClanMergeRequest
+import com.example.btproject2.models.CustomTreeLayout
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.InviteCodeRecord
 import com.example.btproject2.models.MergeCollisionRecord
@@ -38,6 +39,13 @@ class FirestoreHelper {
     companion object {
         @Volatile
         private var inMemoryPersonsCache: List<Person>? = null
+
+        private val inMemoryLayoutCache = mutableMapOf<String, CustomTreeLayout>()
+
+        fun getCachedCustomLayout(treeId: String): CustomTreeLayout? {
+            if (treeId.isBlank()) return null
+            return inMemoryLayoutCache[treeId]
+        }
 
         @Volatile
         var lastActiveMergeSnapshot: MergeRollbackSnapshot? = null
@@ -2759,6 +2767,59 @@ class FirestoreHelper {
         db.collection("trees").document(treeId).get()
             .addOnSuccessListener { doc ->
                 onSuccess(documentToFamilyTree(doc))
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+
+    fun saveCustomTreeLayout(
+        layout: CustomTreeLayout,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (layout.treeId.isBlank()) {
+            onSuccess()
+            return
+        }
+        inMemoryLayoutCache[layout.treeId] = layout
+        db.collection("trees").document(layout.treeId)
+            .collection("layout_metadata").document("custom_layout")
+            .set(layout, SetOptions.merge())
+            .addOnSuccessListener {
+                CentralTreeSynchronizer.getInstance().notifyTreeLayoutChanged(layout.treeId)
+                onSuccess()
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun getCustomTreeLayout(
+        treeId: String,
+        onSuccess: (CustomTreeLayout?) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (treeId.isBlank()) {
+            onSuccess(null)
+            return
+        }
+        val cached = inMemoryLayoutCache[treeId]
+        if (cached != null) {
+            onSuccess(cached)
+        }
+        db.collection("trees").document(treeId)
+            .collection("layout_metadata").document("custom_layout")
+            .get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    val remote = doc.toObject(CustomTreeLayout::class.java)
+                    if (remote != null) {
+                        inMemoryLayoutCache[treeId] = remote
+                        onSuccess(remote)
+                    } else if (cached == null) {
+                        onSuccess(null)
+                    }
+                } else if (cached == null) {
+                    onSuccess(null)
+                }
             }
             .addOnFailureListener { onFailure(it) }
     }

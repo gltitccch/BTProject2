@@ -437,6 +437,27 @@ class CentralTreeSynchronizer private constructor() {
         publishConfirmedEvent(event)
     }
 
+    
+    /**
+     * 12. A user custom-routes or organizes node positions and connector line bends.
+     */
+    fun notifyTreeLayoutChanged(
+        treeId: String,
+        sourceScreen: String = "Interactive Tree"
+    ) {
+        val scope = SyncScopeResolver.resolveTreeLayoutChanged(treeId)
+        val event = TreeSyncEvent(
+            changeType = SyncChangeType.TREE_LAYOUT_CHANGED,
+            treeId = treeId,
+            scope = scope,
+            primaryPerson = null,
+            affectedPersons = emptyList(),
+            sourceScreenDescription = sourceScreen,
+            isConfirmedSave = true
+        )
+        publishConfirmedEvent(event)
+    }
+
     // ══════════════════════════════════════════════════════════════
     // EVENT BROADCAST & CONFLICT DISPATCH ENGINE
     // ══════════════════════════════════════════════════════════════

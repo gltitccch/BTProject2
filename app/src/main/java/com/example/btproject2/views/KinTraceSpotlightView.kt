@@ -746,6 +746,13 @@ class KinTraceSpotlightView @JvmOverloads constructor(
             return true
         }
 
+        // Always prioritize touches on the spotlight tooltip card (Next Step, Prev Step, Dismiss)
+        val tooltipRect = android.graphics.Rect()
+        tooltipView.getHitRect(tooltipRect)
+        if (tooltipView.visibility == View.VISIBLE && tooltipRect.contains(ev.x.toInt(), ev.y.toInt())) {
+            return super.dispatchTouchEvent(ev)
+        }
+
         // If the active step allows pass-through touches (or targets treeContainer in Step 1) and touch is inside cutout:
         val currentStep = steps.getOrNull(currentStepIndex)
         val shouldPassThrough = currentStep?.passThroughTouches == true || currentStep?.targetViewId == R.id.treeContainer

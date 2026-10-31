@@ -144,4 +144,37 @@ class KinshipTitleTest {
         assertEquals("PATRIARCH", KinshipTitleHelper.resolveTitle(grandfather, null, allMembers))
         assertEquals("MATRIARCH", KinshipTitleHelper.resolveTitle(grandmother, null, allMembers))
     }
+
+    @Test
+    fun testYoungerAuntAndOlderNieceKinshipResolution() {
+        // Grandparents Lucas & Sofia
+        val gpFather = Person(id = "gp_f", firstName = "Lucas", lastName = "Santos", gender = "Male", birthDate = "1965-03-15", spouseId = "gp_m")
+        val gpMother = Person(id = "gp_m", firstName = "Sofia", lastName = "Santos", gender = "Female", birthDate = "1968-07-20", spouseId = "gp_f")
+
+        // Firstborn daughter Rowena (b. 1986)
+        val rowena = Person(id = "rowena", firstName = "Rowena", lastName = "Santos", gender = "Female", birthDate = "1986-04-10", fatherId = "gp_f", motherId = "gp_m", spouseId = "diego")
+        val diego = Person(id = "diego", firstName = "Diego", lastName = "Del Rosario", gender = "Male", birthDate = "1984-06-15", spouseId = "rowena")
+
+        // Late-born baby aunt Clarita (b. 2016, age 10) & late-born baby uncle Leo (b. 2018, age 8)
+        val claritaAunt = Person(id = "clarita_aunt", firstName = "Clarita", lastName = "Santos", gender = "Female", birthDate = "2016-04-12", fatherId = "gp_f", motherId = "gp_m")
+        val leoUncle = Person(id = "leo_uncle", firstName = "Leo", lastName = "Santos", gender = "Male", birthDate = "2018-09-05", fatherId = "gp_f", motherId = "gp_m")
+
+        // Older niece Danielle (b. 2004, age 22) & older nephew Marco (b. 2008, age 18)
+        val danielleNiece = Person(id = "danielle_niece", firstName = "Danielle", lastName = "Del Rosario", gender = "Female", birthDate = "2004-06-18", fatherId = "diego", motherId = "rowena")
+        val marcoNephew = Person(id = "marco_nephew", firstName = "Marco", lastName = "Del Rosario", gender = "Male", birthDate = "2008-03-24", fatherId = "diego", motherId = "rowena")
+
+        val clan = listOf(gpFather, gpMother, rowena, diego, claritaAunt, leoUncle, danielleNiece, marcoNephew)
+
+        // 1. From Danielle's viewpoint (22yo niece inspecting her 10yo aunt & 8yo uncle)
+        assertEquals("AUNT", KinshipTitleHelper.resolveTitle(claritaAunt, danielleNiece, clan))
+        assertEquals("UNCLE", KinshipTitleHelper.resolveTitle(leoUncle, danielleNiece, clan))
+
+        // 2. From Clarita's viewpoint (10yo aunt inspecting her 22yo niece & 18yo nephew)
+        assertEquals("NIECE", KinshipTitleHelper.resolveTitle(danielleNiece, claritaAunt, clan))
+        assertEquals("NEPHEW", KinshipTitleHelper.resolveTitle(marcoNephew, claritaAunt, clan))
+
+        // 3. From Leo's viewpoint (8yo uncle inspecting his 22yo niece & 18yo nephew)
+        assertEquals("NIECE", KinshipTitleHelper.resolveTitle(danielleNiece, leoUncle, clan))
+        assertEquals("NEPHEW", KinshipTitleHelper.resolveTitle(marcoNephew, leoUncle, clan))
+    }
 }

@@ -154,7 +154,8 @@ class PedigreeFanChartSyncCoordinator(
             }
 
             SyncChangeType.TREE_CREATED -> {}
-            SyncChangeType.CLAN_MERGE_REQUEST_UPDATED -> {}
+                        SyncChangeType.CLAN_MERGE_REQUEST_UPDATED -> {}
+            SyncChangeType.TREE_LAYOUT_CHANGED -> {}
         }
     }
 

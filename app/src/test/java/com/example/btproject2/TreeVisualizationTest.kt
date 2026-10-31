@@ -354,6 +354,38 @@ class TreeVisualizationTest {
         // Validate hierarchy
         assertTrue(com.example.btproject2.engine.GenerationHierarchyEngine.validateHierarchy(family, genMap))
     }
+
+    @Test
+    fun testMultiRowSiblingTieringReducesWidthForLargeSiblingGroups() {
+        val cardW = 150f
+        val siblingGap = 36f
+        val coupleGap = 28f
+
+        // A couple with 4 leaf children (like Christian & Giselle's 4 children)
+        val childCount = 4
+        val singleRowWidth = childCount * cardW + (childCount - 1) * siblingGap
+        assertEquals("Single row 4 children width must be 708px", 708f, singleRowWidth, 0.001f)
+
+        // Multi-Row Tiered layout wraps 4 children into 2 tiers of 2
+        val tier1Count = (childCount + 1) / 2
+        val tier2Count = childCount - tier1Count
+        val tier1Width = tier1Count * cardW + (tier1Count - 1) * siblingGap
+        val tier2Width = tier2Count * cardW + (tier2Count - 1) * siblingGap
+        val tieredWidth = maxOf(tier1Width, tier2Width)
+
+        assertEquals("Tier 1 has 2 children", 2, tier1Count)
+        assertEquals("Tier 2 has 2 children", 2, tier2Count)
+        assertEquals("Tiered width for 4 children must be 336px", 336f, tieredWidth, 0.001f)
+
+        val coupleCardWidth = 2 * cardW + coupleGap // 328px
+        // 336px is an almost perfect match with 328px parent couple width!
+        assertTrue("Tiered width (336px) is within 10px of parent couple width (328px)",
+            kotlin.math.abs(tieredWidth - coupleCardWidth) <= 10f)
+
+        val reductionPercentage = ((singleRowWidth - tieredWidth) / singleRowWidth) * 100f
+        assertTrue("Width reduction must exceed 50%", reductionPercentage > 50f)
+    }
 }
+
 
 
