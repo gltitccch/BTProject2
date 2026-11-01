@@ -145,23 +145,6 @@ class PrivacyControlsActivity : AppCompatActivity() {
             )
         }
 
-        val tvJwtStatusChip = findViewById<TextView?>(R.id.tvJwtStatusChip)
-        val cardZeroKnowledgeStatus = findViewById<View?>(R.id.cardZeroKnowledgeStatus)
-        authHelper.verifyActiveJwtSession { summary ->
-            if (summary != null && summary.isValidStructure && !summary.isExpired) {
-                val mins = summary.remainingMinutes.coerceAtLeast(1)
-                tvJwtStatusChip?.text = "🎟️ JWT ${summary.algorithm} Verified (${mins}m)"
-            } else {
-                tvJwtStatusChip?.text = "🎟️ JWT RS256 Verified"
-            }
-        }
-        cardZeroKnowledgeStatus?.setOnClickListener {
-            KinTraceAlert.show(
-                this,
-                "🛡️ Zero-Knowledge Cloud Protection is active: Birthplaces, passing places, and biographies are automatically sealed with AES-256-GCM before syncing to Cloud Firestore."
-            )
-        }
-
         setupRecyclerViews()
         checkOwnerAccessAndLoad()
 

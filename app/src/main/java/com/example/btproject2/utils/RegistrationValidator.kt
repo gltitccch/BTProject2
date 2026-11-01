@@ -16,21 +16,80 @@ object RegistrationValidator {
         "^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$"
     )
 
-    // Known disposable / temporary email domains to reject burner accounts offline
+    // Curated list of known disposable and temporary email domains to reject burner accounts
     private val DISPOSABLE_DOMAINS = setOf(
+        "temp.ph",
         "mailinator.com",
         "tempmail.com",
+        "tempmail.net",
+        "temp-mail.org",
         "10minutemail.com",
         "guerrillamail.com",
+        "guerrillamailblock.com",
         "trashmail.com",
         "sharklasers.com",
         "yopmail.com",
         "getairmail.com",
         "dispostable.com",
-        "temp-mail.org",
         "fakeinbox.com",
-        "nada.ltd"
+        "nada.ltd",
+        "burnermail.io",
+        "burner.com",
+        "dropmail.me",
+        "mohmal.com",
+        "crazymailing.com",
+        "inboxkitten.com",
+        "throwawaymail.com",
+        "mytemp.email",
+        "generator.email",
+        "armyspy.com",
+        "cuvox.de",
+        "dayrep.com",
+        "fleckens.hu",
+        "gustr.com",
+        "jourrapide.com",
+        "rhyta.com",
+        "superrito.com",
+        "teleworm.us",
+        "tinemail.com"
     )
+
+    private val EXACT_BURNER_LABELS = setOf(
+        "temp", "burner", "fake", "trash", "throwaway", "disposable",
+        "dispostable", "fakeinbox", "guerrilla", "mailinator", "yopmail"
+    )
+
+    private val COMPOUND_BURNER_KEYWORDS = listOf(
+        "tempmail", "temp-mail", "temporarymail", "tempinbox",
+        "burnermail", "burner-mail", "fakemail", "fake-mail",
+        "trashmail", "trash-mail", "throwawaymail", "throwaway-mail",
+        "disposablemail", "disposable-mail", "10minutemail", "10min",
+        "guerrillamail", "sharklasers", "inboxkitten", "dropmail",
+        "mohmal", "crazymailing", "getnada", "getairmail"
+    )
+
+    val RECOMMENDED_DOMAINS = listOf("@gmail.com", "@yahoo.com", "@outlook.com", "@icloud.com")
+
+    /**
+     * Checks if a domain is a known burner/disposable service or contains suspicious burner heuristics.
+     */
+    fun isDisposableDomain(domain: String): Boolean {
+        val cleanDomain = domain.trim().lowercase()
+        if (cleanDomain.isEmpty()) return false
+
+        // 1. Direct domain or subdomain blacklist match (e.g. "temp.ph", "xyz.mailinator.com")
+        if (DISPOSABLE_DOMAINS.any { cleanDomain == it || cleanDomain.endsWith(".$it") }) {
+            return true
+        }
+
+        // 2. Structural label analysis (checks each dot-separated part of the domain)
+        val labels = cleanDomain.split(".")
+        return labels.any { label ->
+            EXACT_BURNER_LABELS.contains(label) ||
+            label.startsWith("temp-") || label.endsWith("-temp") ||
+            COMPOUND_BURNER_KEYWORDS.any { compound -> label.contains(compound) }
+        }
+    }
 
     sealed class FieldResult {
         object Valid : FieldResult()
@@ -82,7 +141,7 @@ object RegistrationValidator {
             return FieldResult.Invalid("Please enter a valid email address.")
         }
         val domain = trimmed.substringAfter("@")
-        if (DISPOSABLE_DOMAINS.contains(domain)) {
+        if (isDisposableDomain(domain)) {
             return FieldResult.Invalid("Disposable email addresses are not permitted.")
         }
         return FieldResult.Valid

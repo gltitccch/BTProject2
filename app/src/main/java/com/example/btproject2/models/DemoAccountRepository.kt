@@ -115,6 +115,41 @@ object DemoAccountRepository {
 
     fun getAllVaultAccounts(): List<DemoAccount> = DEMO_ACCOUNTS + customAccounts
 
+    fun getCustomFolders(): List<VaultFolder> = synchronized(this) { customFolders.toList() }
+
+    fun getCustomAccounts(): List<DemoAccount> = synchronized(this) { customAccounts.toList() }
+
+    @Synchronized
+    fun setCloudVaultData(
+        cloudFolders: List<VaultFolder>,
+        cloudAccounts: List<DemoAccount>,
+        context: Context? = null
+    ) {
+        val cloudFolderIds = cloudFolders.map { it.id }.toSet()
+        val recentLocalFolders = customFolders.filter {
+            it.id !in cloudFolderIds && (System.currentTimeMillis() - it.createdAt < 15_000L)
+        }
+        customFolders.clear()
+        customFolders.addAll(cloudFolders)
+        customFolders.addAll(recentLocalFolders)
+
+        val cloudAccountIds = cloudAccounts.map { it.id }.toSet()
+        val recentLocalAccounts = customAccounts.filter {
+            it.id !in cloudAccountIds && it.id.startsWith("cred_")
+        }
+        customAccounts.clear()
+        customAccounts.addAll(cloudAccounts)
+        for (recent in recentLocalAccounts) {
+            if (customAccounts.none { it.folderId == recent.folderId && it.email.equals(recent.email, ignoreCase = true) }) {
+                customAccounts.add(recent)
+            }
+        }
+
+        if (context != null) {
+            saveVaultToStorage(context)
+        }
+    }
+
     fun findById(id: String): DemoAccount? =
         getAllVaultAccounts().firstOrNull { it.id.equals(id, ignoreCase = true) }
 

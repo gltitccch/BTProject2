@@ -69,7 +69,11 @@ class RegistrationValidationTest {
         assertTrue(RegistrationValidator.validateEmail("user@.com") is RegistrationValidator.FieldResult.Invalid)
         assertTrue(RegistrationValidator.validateEmail("user@domain..com") is RegistrationValidator.FieldResult.Invalid)
 
-        // Blocked disposable / burner domains
+        // Blocked disposable / burner domains and heuristic patterns (including @temp.ph)
+        val tempPhResult = RegistrationValidator.validateEmail("optismiclemon15@temp.ph")
+        assertTrue(tempPhResult is RegistrationValidator.FieldResult.Invalid)
+        assertEquals("Disposable email addresses are not permitted.", (tempPhResult as RegistrationValidator.FieldResult.Invalid).errorMessage)
+
         val disposable1 = RegistrationValidator.validateEmail("spammer@tempmail.com")
         assertTrue(disposable1 is RegistrationValidator.FieldResult.Invalid)
         assertEquals("Disposable email addresses are not permitted.", (disposable1 as RegistrationValidator.FieldResult.Invalid).errorMessage)
@@ -81,10 +85,18 @@ class RegistrationValidationTest {
         val disposable3 = RegistrationValidator.validateEmail("test@10minutemail.com")
         assertTrue(disposable3 is RegistrationValidator.FieldResult.Invalid)
 
-        // Valid emails
+        val burnerHeuristic1 = RegistrationValidator.validateEmail("clanmember@fake-mail.com")
+        assertTrue(burnerHeuristic1 is RegistrationValidator.FieldResult.Invalid)
+
+        val burnerHeuristic2 = RegistrationValidator.validateEmail("test@burner.ph")
+        assertTrue(burnerHeuristic2 is RegistrationValidator.FieldResult.Invalid)
+
+        // Valid emails (including educational and standard domains)
         assertTrue(RegistrationValidator.validateEmail("user@example.com") is RegistrationValidator.FieldResult.Valid)
         assertTrue(RegistrationValidator.validateEmail("firstname.lastname+tag@company.co.uk") is RegistrationValidator.FieldResult.Valid)
         assertTrue(RegistrationValidator.validateEmail("john_doe123@gmail.com") is RegistrationValidator.FieldResult.Valid)
+        assertTrue(RegistrationValidator.validateEmail("scholar@temple.edu") is RegistrationValidator.FieldResult.Valid)
+        assertTrue(RegistrationValidator.validateEmail("student@up.edu.ph") is RegistrationValidator.FieldResult.Valid)
     }
 
     @Test

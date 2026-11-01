@@ -5701,6 +5701,145 @@ class FirestoreHelper {
         } catch (_: Exception) {
         }
     }
+
+    fun fetchCloudVaultFolders(
+        onSuccess: (List<com.example.btproject2.models.VaultFolder>) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        db.collection("vault_folders")
+            .get()
+            .addOnSuccessListener { snap ->
+                val folders = snap.documents.mapNotNull { doc ->
+                    val id = doc.getString("id") ?: doc.id
+                    val name = doc.getString("name") ?: return@mapNotNull null
+                    val icon = doc.getString("iconEmoji") ?: "📁"
+                    val mode = com.example.btproject2.models.VaultMode.fromKey(doc.getString("vaultMode"))
+                    val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                    com.example.btproject2.models.VaultFolder(
+                        id = id,
+                        name = name,
+                        iconEmoji = icon,
+                        vaultMode = mode,
+                        isSystemFolder = false,
+                        createdAt = createdAt
+                    )
+                }
+                onSuccess(folders)
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun fetchCloudVaultAccounts(
+        onSuccess: (List<com.example.btproject2.models.DemoAccount>) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        db.collection("vault_accounts")
+            .get()
+            .addOnSuccessListener { snap ->
+                val accounts = snap.documents.mapNotNull { doc ->
+                    val id = doc.getString("id") ?: doc.id
+                    val name = doc.getString("name") ?: return@mapNotNull null
+                    val email = doc.getString("email") ?: return@mapNotNull null
+                    val roleBadge = doc.getString("roleBadge") ?: "MEMBER"
+                    val roleTitle = doc.getString("roleTitle") ?: roleBadge
+                    val encPass = doc.getString("password") ?: ""
+                    val plainPass = com.example.btproject2.utils.KinTraceCryptoEngine.decryptField(
+                        encPass,
+                        "kintrace_dual_mode_vault_2026"
+                    )
+                    val summary = doc.getString("treeSummary") ?: "Verified Account"
+                    val icon = doc.getString("emojiIcon") ?: "👤"
+                    val mode = com.example.btproject2.models.VaultMode.fromKey(doc.getString("vaultMode"))
+                    val folderId = doc.getString("folderId") ?: "user_personal"
+                    val folderName = doc.getString("folderName") ?: "Personal Accounts"
+                    com.example.btproject2.models.DemoAccount(
+                        id = id,
+                        name = name,
+                        roleTitle = roleTitle,
+                        roleBadge = roleBadge,
+                        email = email,
+                        password = plainPass,
+                        treeSummary = summary,
+                        emojiIcon = icon,
+                        badgeColorRes = com.example.btproject2.R.color.gold_accent,
+                        vaultMode = mode,
+                        folderId = folderId,
+                        folderName = folderName,
+                        isCustomAccount = true
+                    )
+                }
+                onSuccess(accounts)
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun listenToCloudVault(
+        onFoldersUpdate: (List<com.example.btproject2.models.VaultFolder>) -> Unit,
+        onAccountsUpdate: (List<com.example.btproject2.models.DemoAccount>) -> Unit
+    ): Pair<ListenerRegistration, ListenerRegistration> {
+        val folderReg = db.collection("vault_folders")
+            .addSnapshotListener { snap, _ ->
+                if (snap != null) {
+                    val folders = snap.documents.mapNotNull { doc ->
+                        val id = doc.getString("id") ?: doc.id
+                        val name = doc.getString("name") ?: return@mapNotNull null
+                        val icon = doc.getString("iconEmoji") ?: "📁"
+                        val mode = com.example.btproject2.models.VaultMode.fromKey(doc.getString("vaultMode"))
+                        val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                        com.example.btproject2.models.VaultFolder(
+                            id = id,
+                            name = name,
+                            iconEmoji = icon,
+                            vaultMode = mode,
+                            isSystemFolder = false,
+                            createdAt = createdAt
+                        )
+                    }
+                    onFoldersUpdate(folders)
+                }
+            }
+
+        val accountReg = db.collection("vault_accounts")
+            .addSnapshotListener { snap, _ ->
+                if (snap != null) {
+                    val accounts = snap.documents.mapNotNull { doc ->
+                        val id = doc.getString("id") ?: doc.id
+                        val name = doc.getString("name") ?: return@mapNotNull null
+                        val email = doc.getString("email") ?: return@mapNotNull null
+                        val roleBadge = doc.getString("roleBadge") ?: "MEMBER"
+                        val roleTitle = doc.getString("roleTitle") ?: roleBadge
+                        val encPass = doc.getString("password") ?: ""
+                        val plainPass = com.example.btproject2.utils.KinTraceCryptoEngine.decryptField(
+                            encPass,
+                            "kintrace_dual_mode_vault_2026"
+                        )
+                        val summary = doc.getString("treeSummary") ?: "Verified Account"
+                        val icon = doc.getString("emojiIcon") ?: "👤"
+                        val mode = com.example.btproject2.models.VaultMode.fromKey(doc.getString("vaultMode"))
+                        val folderId = doc.getString("folderId") ?: "user_personal"
+                        val folderName = doc.getString("folderName") ?: "Personal Accounts"
+                        com.example.btproject2.models.DemoAccount(
+                            id = id,
+                            name = name,
+                            roleTitle = roleTitle,
+                            roleBadge = roleBadge,
+                            email = email,
+                            password = plainPass,
+                            treeSummary = summary,
+                            emojiIcon = icon,
+                            badgeColorRes = com.example.btproject2.R.color.gold_accent,
+                            vaultMode = mode,
+                            folderId = folderId,
+                            folderName = folderName,
+                            isCustomAccount = true
+                        )
+                    }
+                    onAccountsUpdate(accounts)
+                }
+            }
+
+        return folderReg to accountReg
+    }
 }
 
 

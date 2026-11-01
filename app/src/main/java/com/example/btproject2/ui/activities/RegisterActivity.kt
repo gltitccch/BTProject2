@@ -118,12 +118,48 @@ class RegisterActivity : AppCompatActivity() {
         etPassword.doOnTextChanged { _, _, _, _ -> etPassword.error = null }
         etConfirmPassword.doOnTextChanged { _, _, _, _ -> etConfirmPassword.error = null }
 
-        btnCreate.setOnClickListener {
-            if (!isTosAccepted) {
-                openTermsBottomSheet()
-                return@setOnClickListener
-            }
+        // Quick-fill Domain Chips
+        val chipGmail = findViewById<TextView?>(R.id.chipGmail)
+        val chipYahoo = findViewById<TextView?>(R.id.chipYahoo)
+        val chipOutlook = findViewById<TextView?>(R.id.chipOutlook)
+        val chipIcloud = findViewById<TextView?>(R.id.chipIcloud)
 
+        val attachDomainToEmail: (String) -> Unit = { domainSuffix ->
+            val currentText = etEmail.text.toString().trim()
+            val username = if (currentText.contains("@")) {
+                currentText.substringBefore("@")
+            } else {
+                currentText
+            }
+            if (username.isNotBlank()) {
+                etEmail.setText("$username$domainSuffix")
+                etEmail.setSelection(etEmail.text.length)
+            } else {
+                etEmail.setText(domainSuffix)
+                etEmail.setSelection(0)
+            }
+            etEmail.error = null
+        }
+
+        chipGmail?.setOnClickListener { attachDomainToEmail("@gmail.com") }
+        chipYahoo?.setOnClickListener { attachDomainToEmail("@yahoo.com") }
+        chipOutlook?.setOnClickListener { attachDomainToEmail("@outlook.com") }
+        chipIcloud?.setOnClickListener { attachDomainToEmail("@icloud.com") }
+
+        // Live validation on focus loss
+        etEmail.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val input = etEmail.text.toString().trim()
+                if (input.isNotEmpty()) {
+                    val result = RegistrationValidator.validateEmail(input)
+                    if (result is RegistrationValidator.FieldResult.Invalid) {
+                        etEmail.error = result.errorMessage
+                    }
+                }
+            }
+        }
+
+        btnCreate.setOnClickListener {
             val fullName = etFullName.text.toString().trim().replace("\\s+".toRegex(), " ")
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString()
@@ -135,6 +171,35 @@ class RegisterActivity : AppCompatActivity() {
                 password = password,
                 confirmPassword = confirmPassword
             )
+
+            if (!validation.isValid) {
+                var firstErrorField: EditText? = null
+
+                if (validation.confirmPasswordResult is RegistrationValidator.FieldResult.Invalid) {
+                    etConfirmPassword.error = validation.confirmPasswordResult.errorMessage
+                    firstErrorField = etConfirmPassword
+                }
+                if (validation.passwordResult is RegistrationValidator.FieldResult.Invalid) {
+                    etPassword.error = validation.passwordResult.errorMessage
+                    firstErrorField = etPassword
+                }
+                if (validation.emailResult is RegistrationValidator.FieldResult.Invalid) {
+                    etEmail.error = validation.emailResult.errorMessage
+                    firstErrorField = etEmail
+                }
+                if (validation.fullNameResult is RegistrationValidator.FieldResult.Invalid) {
+                    etFullName.error = validation.fullNameResult.errorMessage
+                    firstErrorField = etFullName
+                }
+
+                firstErrorField?.requestFocus()
+                return@setOnClickListener
+            }
+
+            if (!isTosAccepted) {
+                openTermsBottomSheet()
+                return@setOnClickListener
+            }
 
             if (!validation.isValid) {
                 var firstErrorField: EditText? = null

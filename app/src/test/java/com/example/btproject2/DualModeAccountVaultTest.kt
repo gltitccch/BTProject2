@@ -179,5 +179,46 @@ class DualModeAccountVaultTest {
         val wrongPass = com.example.btproject2.utils.KeycardAccountVerifier.VerificationOutcome.WrongPassword("user@gmail.com")
         assertTrue(wrongPass.message.contains("password"))
     }
+
+    @Test
+    fun testCloudVaultDataSynchronization() {
+        val cloudFolder = com.example.btproject2.models.VaultFolder(
+            id = "cloud_folder_1",
+            name = "Defense Panelists",
+            iconEmoji = "🛡️",
+            vaultMode = VaultMode.ADMIN_DEMO
+        )
+        val cloudAccount = com.example.btproject2.models.DemoAccount(
+            id = "cloud_acc_1",
+            name = "Panelist Guest",
+            roleTitle = "Evaluation Specialist",
+            roleBadge = "ADMIN",
+            email = "panelist@kintrace.ph",
+            password = "SecurePassword2026",
+            treeSummary = "Live Cloud Synced Account",
+            emojiIcon = "🎓",
+            vaultMode = VaultMode.ADMIN_DEMO,
+            folderId = "cloud_folder_1",
+            folderName = "Defense Panelists",
+            isCustomAccount = true
+        )
+
+        DemoAccountRepository.setCloudVaultData(
+            cloudFolders = listOf(cloudFolder),
+            cloudAccounts = listOf(cloudAccount)
+        )
+
+        val adminFolders = DemoAccountRepository.getFoldersByMode(VaultMode.ADMIN_DEMO)
+        assertTrue(adminFolders.any { it.id == "cloud_folder_1" && it.name == "Defense Panelists" })
+
+        val accountsInCloudFolder = DemoAccountRepository.getAccountsInFolder("cloud_folder_1")
+        assertEquals(1, accountsInCloudFolder.size)
+        assertEquals("panelist@kintrace.ph", accountsInCloudFolder.first().email)
+        assertEquals("SecurePassword2026", accountsInCloudFolder.first().password)
+
+        val foundByEmail = DemoAccountRepository.findByEmail("panelist@kintrace.ph")
+        assertNotNull(foundByEmail)
+        assertEquals("Panelist Guest", foundByEmail?.name)
+    }
 }
 

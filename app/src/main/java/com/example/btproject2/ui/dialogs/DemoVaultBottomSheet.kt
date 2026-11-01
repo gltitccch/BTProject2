@@ -52,6 +52,65 @@ class DemoVaultBottomSheet : BottomSheetDialogFragment() {
     private var activeFolderId: String? = null
     private val firestoreHelper by lazy { FirestoreHelper() }
     private val authHelper by lazy { AuthHelper() }
+    private var vaultListeners: Pair<com.google.firebase.firestore.ListenerRegistration, com.google.firebase.firestore.ListenerRegistration>? = null
+
+    override fun onStart() {
+        super.onStart()
+        startCloudVaultListener()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        vaultListeners?.let {
+            it.first.remove()
+            it.second.remove()
+        }
+        vaultListeners = null
+    }
+
+    private fun startCloudVaultListener() {
+        vaultListeners?.let {
+            it.first.remove()
+            it.second.remove()
+        }
+        var latestFolders: List<VaultFolder>? = null
+        var latestAccounts: List<DemoAccount>? = null
+
+        vaultListeners = firestoreHelper.listenToCloudVault(
+            onFoldersUpdate = { folders ->
+                latestFolders = folders
+                val ctx = context ?: return@listenToCloudVault
+                activity?.runOnUiThread {
+                    if (!isAdded || isDetached) return@runOnUiThread
+                    DemoAccountRepository.setCloudVaultData(
+                        cloudFolders = folders,
+                        cloudAccounts = latestAccounts ?: DemoAccountRepository.getCustomAccounts(),
+                        context = ctx
+                    )
+                    val root = view ?: return@runOnUiThread
+                    val currentFolders = DemoAccountRepository.getFoldersByMode(currentMode, ctx)
+                    if (activeFolderId == null || currentFolders.none { it.id == activeFolderId }) {
+                        activeFolderId = currentFolders.firstOrNull()?.id
+                    }
+                    renderVaultState(root)
+                }
+            },
+            onAccountsUpdate = { accounts ->
+                latestAccounts = accounts
+                val ctx = context ?: return@listenToCloudVault
+                activity?.runOnUiThread {
+                    if (!isAdded || isDetached) return@runOnUiThread
+                    DemoAccountRepository.setCloudVaultData(
+                        cloudFolders = latestFolders ?: DemoAccountRepository.getCustomFolders(),
+                        cloudAccounts = accounts,
+                        context = ctx
+                    )
+                    val root = view ?: return@runOnUiThread
+                    renderVaultState(root)
+                }
+            }
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
