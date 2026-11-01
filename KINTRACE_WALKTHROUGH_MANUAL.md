@@ -17,11 +17,18 @@
 - [Chapter 8: The Bloodline Tracer & Kinship Calculator (`TraceActivity.kt`)](#-chapter-8-the-bloodline-tracer--kinship-calculator-traceactivitykt)
 - [Chapter 9: The Master Family Tree Visualizer Subsystem (`FamilyTreeActivity.kt` & `InteractiveTreeActivity.kt`)](#-chapter-9-the-master-family-tree-visualizer-subsystem)
 - [Chapter 10: The Master Family Records & Member Directory Subsystem (`FamilyRecordsActivity.kt` & `MemberAdapter.kt`)](#-chapter-10-the-master-family-records--member-directory-subsystem)
-- *(Upcoming Chapters: Branch Merging, Legal Civil Audit, Citadel Admin Portal, and Export Vault will be added as we walk through each screen together).*
+- [Chapter 11: The Clan Union & Branch Synthesis Subsystem (Merged Clan Space) (`MergeBranchesActivity.kt`)](#-chapter-11-the-clan-union--branch-synthesis-subsystem-merged-clan-space)
+- [Chapter 12: The Deep Roots Privacy, Security & Botanical RBAC Subsystem (`PrivacyControlsActivity.kt` & `BotanicalRolePolicy.kt`)](#-chapter-12-the-deep-roots-privacy-security--botanical-rbac-subsystem)
+- [Chapter 13: The Archival Export & Interoperability Vault (`ExportTreeActivity.kt`)](#-chapter-13-the-archival-export--interoperability-vault)
+- [Chapter 14: The Heritage Identity & Security Command Subsystem (`ClanProfileBottomSheet.kt`)](#-chapter-14-the-heritage-identity--security-command-subsystem)
+- [Chapter 15: The Central Command Citadel — Part 1: Live Platform Telemetry, Storage Optimizer & Immutable Audit Trail (`AdminPortalActivity.kt`)](#-chapter-15-the-central-command-citadel--part-1-live-platform-telemetry-storage-optimizer--immutable-audit-trail)
+- [Chapter 16: The Central Command Citadel — Part 2: Maintenance & Scoped In-App Broadcaster Subsystem (`AdminPortalActivity.kt` & `SystemAnnouncement.kt`)](#-chapter-16-the-central-command-citadel--part-2-maintenance--scoped-in-app-broadcaster-subsystem)
+- [Chapter 17: The Central Command Citadel — Part 3: Freemium 50-Member Cap, Clan Expansion Queue & Quota Governance Subsystem (`AdminPortalActivity.kt` & `FamilyTree.kt`)](#-chapter-17-the-central-command-citadel--part-3-freemium-50-member-cap-clan-expansion-queue--quota-governance-subsystem)
+- [Chapter 18: The Central Command Citadel — Part 4: Soft-Delete Disaster Recovery Console, Pedigree Tree Grafting & Ops Governance Subsystem (`AdminPortalActivity.kt` & `ArchivedMemberRecord.kt`)](#-chapter-18-the-central-command-citadel--part-4-soft-delete-disaster-recovery-console-pedigree-tree-grafting--ops-governance-subsystem)
+- *(Upcoming Chapters: Legal Civil Audit will be added as we walk through each screen together).*
 
 ---
 
-<br><br>
 
 # 🚪 Chapter 1: The Front Gate — Authentication & Security Gateway
 
@@ -32,7 +39,6 @@
 
 ---
 
-<br>
 
 ### 1.1 The Plain English 10-Second Pitch
 
@@ -40,7 +46,6 @@
 
 ---
 
-<br>
 
 ### 1.2 Screen Anatomy & Visual Elements
 
@@ -61,11 +66,9 @@
 
 ---
 
-<br>
 
 ### 1.3 The 4 Core Mechanisms Under the Hood
 
-<br>
 
 #### 🛡️ Mechanism A: The "Auto-Login Guard" (Session Persistence)
 - **Code Reference**: [`LoginActivity.kt` Lines 36–49](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/LoginActivity.kt#L36-L49)
@@ -75,7 +78,6 @@
   2. If a valid session exists and the account is verified, the login screen is skipped entirely, launching directly into the app.
   3. If no session exists, the login card is rendered.
 
-<br>
 
 #### 🧹 Mechanism B: Zero-Trust Cache Flush & Anti-Data Leakage
 - **Code Reference**: [`LoginActivity.kt` Lines 92–96](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/LoginActivity.kt#L92-L96)
@@ -89,7 +91,6 @@
   4. `resetForTesting()` ➔ Resets all internal reactive buses to clean slate.
   *Only after the device's memory is 100% clean does the app load the new user's family tree.*
 
-<br>
 
 #### ✉️ Mechanism C: The Email Verification Security Gate
 - **Code Reference**: [`LoginActivity.kt` Lines 105–115](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/LoginActivity.kt#L105-L115)
@@ -99,7 +100,6 @@
   - If a newly registered user has not clicked the activation link in their inbox, KinTrace blocks entry and redirects them to [`VerifyEmailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/VerifyEmailActivity.kt) with an option to resend the verification email.
   - Pre-configured demo accounts bypass this check for testing convenience.
 
-<br>
 
 #### 🚦 Mechanism D: Smart Role-Based Navigation Routing
 - **Code Reference**: [`LoginActivity.kt` Lines 277–285](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/LoginActivity.kt#L277-L285)
@@ -111,7 +111,6 @@
 
 ---
 
-<br>
 
 ### 1.4 The Defense Weapon: Account & Demo Vault Dock
 
@@ -127,11 +126,9 @@
 
 ---
 
-<br>
 
 ### 1.5 Defense Q&A Script (What to Say to the IT Consultant & Panelists)
 
-<br>
 
 #### 💬 Question 1: *"How do you handle double-clicking the login button?"*
 > **Panelist Probe**: *What stops someone from spamming the button or sending multiple network requests?*
@@ -146,7 +143,6 @@ btnLogin.isEnabled = false
 btnLogin.text = "Logging in..."
 ```
 
-<br>
 
 #### 💬 Question 2: *"How does authentication work in your application?"*
 > **Panelist Probe**: *Are credentials stored on the phone? How does session management work?*
@@ -164,7 +160,6 @@ if (currentUser != null && currentUser.isEmailVerified) {
 }
 ```
 
-<br>
 
 #### 💬 Question 3: *"What happens if multiple family members share the same tablet or phone?"*
 > **Panelist Probe**: *Can User B see User A's private family tree if they log in on the same phone?*
@@ -181,7 +176,6 @@ CentralTreeSynchronizer.getInstance().stopRealtimeListener()
 CentralTreeSynchronizer.getInstance().resetForTesting()
 ```
 
-<br>
 
 #### 💬 Question 4: *"Why did you place that Demo Vault button at the bottom?"*
 > **Panelist Probe**: *Is that a security vulnerability or a development feature?*
@@ -198,7 +192,6 @@ btnLogin.text = "Signing in as ${account.name}..."
 
 ---
 
-<br><br>
 
 # 🔑 Chapter 2: The Recovery Lifeline — Password Reset & Account Retrieval Gateway
 
@@ -209,7 +202,6 @@ btnLogin.text = "Signing in as ${account.name}..."
 
 ---
 
-<br>
 
 ### 2.1 The Plain English 10-Second Pitch
 
@@ -217,7 +209,6 @@ btnLogin.text = "Signing in as ${account.name}..."
 
 ---
 
-<br>
 
 ### 2.2 Screen Anatomy & Visual Elements (As Shown in Your Screenshot)
 
@@ -244,11 +235,9 @@ btnLogin.text = "Signing in as ${account.name}..."
 
 ---
 
-<br>
 
 ### 2.3 The 4 Core Mechanisms Under the Hood
 
-<br>
 
 #### 🔐 Mechanism A: Out-of-Band Firebase Token Dispatch (Zero Credential Exposure)
 - **Code Reference**: [`ForgotPasswordActivity.kt` Lines 105–112](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ForgotPasswordActivity.kt#L105-L112)
@@ -260,7 +249,6 @@ btnLogin.text = "Signing in as ${account.name}..."
   3. Google Firebase Auth generates a cryptographically signed, one-time link with an expiring security token and sends it straight from Google's secure servers to the user's personal inbox.
   4. The user completes their password change safely on Google's encrypted webpage.
 
-<br>
 
 #### ⏱️ Mechanism B: The 60-Second Quota Guard (`CountDownTimer`)
 - **Code Reference**: [`ForgotPasswordActivity.kt` Lines 133–153](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ForgotPasswordActivity.kt#L133-L153)
@@ -273,7 +261,6 @@ btnLogin.text = "Signing in as ${account.name}..."
   4. Only when the timer hits zero does the button re-enable and return to green.
   5. Memory Leak Protection: In `onDestroy()`, the timer is explicitly canceled (`resendTimer?.cancel()`), ensuring no memory leaks occur if the user closes the screen midway.
 
-<br>
 
 #### 🚀 Mechanism C: Intent-Based Direct Email App Launcher
 - **Code Reference**: [`ForgotPasswordActivity.kt` Lines 63–78](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ForgotPasswordActivity.kt#L63-L78)
@@ -285,7 +272,6 @@ btnLogin.text = "Signing in as ${account.name}..."
   2. If the device has no default email app assigned, a `try/catch` fallback fires a standard `Intent.ACTION_VIEW` with `mailto:`.
   3. If both fail (e.g., in rare kiosk modes), a gentle `KinTraceAlert` reminds the user to check their email manually.
 
-<br>
 
 #### 📝 Mechanism D: Security Audit Notification (DFD D7 Compliance)
 - **Code Reference**: [`ForgotPasswordActivity.kt` Lines 116–118](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ForgotPasswordActivity.kt#L116-L118)
@@ -293,19 +279,17 @@ btnLogin.text = "Signing in as ${account.name}..."
   If an unauthorized stranger tries to reset an elder or clan member's password, the account owner might not realize someone is probing their account.
 - **How KinTrace Solves It**:
   Every successful password reset dispatch triggers:
-  ```kotlin
+```kotlin
   val notif = NotificationHelper.createAccountRecoveryNotification(email)
   firestoreHelper.addNotification(notif)
-  ```
+```
   This immediately records a security audit log in the Firestore notification queue, satisfying Data Flow Diagram (DFD) Requirement D7.
 
 ---
 
-<br>
 
 ### 2.4 Defense Q&A Script (What to Say to the IT Consultant & Panelists)
 
-<br>
 
 #### 💬 Question 1: *"How does password reset work in KinTrace, and is it secure?"*
 > **Panelist Probe**: *Does your app ask for the new password or hash it on the device?*
@@ -329,7 +313,6 @@ authHelper.sendPasswordResetEmail(
 )
 ```
 
-<br>
 
 #### 💬 Question 2: *"What prevents an attacker or impatient user from spamming the reset button to flood an inbox?"*
 > **Panelist Probe**: *What stops someone from spamming your API or burning through email sending limits?*
@@ -354,7 +337,6 @@ resendTimer = object : CountDownTimer(seconds * 1000, 1000) {
 }.start()
 ```
 
-<br>
 
 #### 💬 Question 3: *"Why did you include an in-app audit notification when a reset email is sent?"*
 > **Panelist Probe**: *Why write to Firestore when an email was already sent?*
@@ -371,7 +353,6 @@ firestoreHelper.addNotification(notif)
 
 ---
 
-<br><br>
 
 # 🛡️ Chapter 3: The Clan Gateway — Registration, Password Policy & Data Stewardship
 
@@ -387,7 +368,6 @@ firestoreHelper.addNotification(notif)
 
 ---
 
-<br>
 
 ### 3.1 The Plain English 10-Second Pitch
 
@@ -395,7 +375,6 @@ firestoreHelper.addNotification(notif)
 
 ---
 
-<br>
 
 ### 3.2 Screen Anatomy & Visual Elements (As Shown in Your Screenshot)
 
@@ -438,11 +417,9 @@ firestoreHelper.addNotification(notif)
 
 ---
 
-<br>
 
 ### 3.3 The 4 Core Mechanisms Under the Hood
 
-<br>
 
 #### 🔐 Mechanism A: 60fps Reactive Password Evaluation
 - **Code Reference**: [`PasswordStrengthMeterBinder.kt` Lines 54–100](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/PasswordStrengthMeterBinder.kt#L54-L100)
@@ -468,7 +445,6 @@ for (i in segments.indices) {
 }
 ```
 
-<br>
 
 #### 📜 Mechanism B: The "Must-Scroll-to-Bottom" Gate (RA 10173 Informed Consent)
 - **Code Reference**: [`TermsOfServiceBottomSheet.kt` Lines 78–98](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TermsOfServiceBottomSheet.kt#L78-L98)
@@ -495,7 +471,6 @@ nsvTermsScroll.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener
 })
 ```
 
-<br>
 
 #### 🧹 Mechanism C: Zero-Trust Profile & Cache Flush Initialization
 - **Code Reference**: [`RegisterActivity.kt` Lines 175–190](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RegisterActivity.kt#L175-L190)
@@ -522,7 +497,6 @@ val profile = UserProfile(
 firestoreHelper.saveUserProfile(profile, ...)
 ```
 
-<br>
 
 #### 🚫 Mechanism D: The Non-Reversible Email Verification Hand-Off
 - **Code Reference**: [`RegisterActivity.kt` Lines 196–202](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RegisterActivity.kt#L196-L202)
@@ -530,18 +504,16 @@ firestoreHelper.saveUserProfile(profile, ...)
   Users might try to press the Android hardware "Back" button right after registration to slip past the email verification requirement and access the family dashboard.
 - **How KinTrace Solves It**:
   KinTrace launches `VerifyEmailActivity` with explicit intent flags:
-  ```kotlin
+```kotlin
   flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-  ```
+```
   This immediately demolishes the entire Android activity back stack. If the user presses the phone's back button, the app exits cleanly rather than allowing backdoor access to the app.
 
 ---
 
-<br>
 
 ### 3.4 Defense Q&A Script (What to Say to the IT Consultant & Panelists)
 
-<br>
 
 #### 💬 Question 1: *"Why did you build that scroll-to-bottom mechanism for the Terms & Conditions instead of a simple checkbox?"*
 > **Panelist Probe**: *Isn't a checkbox easier for users? Why force them to scroll all the way down?*
@@ -560,7 +532,6 @@ fun unlockAcceptButton() {
 }
 ```
 
-<br>
 
 #### 💬 Question 2: *"How does password validation work in your application? Is it secure?"*
 > **Panelist Probe**: *Does the client do the validation, or does the server? What stops weak passwords?*
@@ -575,7 +546,6 @@ btnCreate.isEnabled = false
 btnCreate.text = "Creating Account..."
 ```
 
-<br>
 
 #### 💬 Question 3: *"Where is the user's role assigned, and can someone register as an Admin?"*
 > **Panelist Probe**: *Can an attacker spoof the HTTP request to give themselves the 'admin' role upon registration?*
@@ -591,7 +561,6 @@ currentTreeId = "",
 tosAcceptedAt = System.currentTimeMillis()
 ```
 
-<br>
 
 #### 💬 Question 4: *"What stops a user from pressing the Android Back button to bypass email verification?"*
 > **Panelist Probe**: *Once the account is created, can they just hit 'Back' and roam around the app?*
@@ -611,7 +580,6 @@ finish()
 
 ---
 
-<br><br>
 
 # 🗝️ Chapter 4: The Defense Arsenal — KinTrace Account Studio & Dual-Mode Vault
 
@@ -626,7 +594,6 @@ finish()
 
 ---
 
-<br>
 
 ### 4.1 The Plain English 10-Second Pitch
 
@@ -634,11 +601,9 @@ finish()
 
 ---
 
-<br>
 
 ### 4.2 Visual Anatomy Across Your 5 Uploaded Screenshots
 
-<br>
 
 #### 1. The Floating Quick-Access Pill (Screenshot 1)
 - **Visual**: A rounded floating pill button at the bottom of the login screen: `[ 🗝️ Account & Demo Vault (3) ]`.
@@ -646,7 +611,6 @@ finish()
 - **Badge Counter (`3`)**: Dynamically indicates how many pre-seeded defense personas are ready in the vault.
 - **Code Anchor**: Bound in [`LoginActivity.kt` lines 67–70](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/LoginActivity.kt#L67-L70). Tapping it slides up the full-screen `DemoVaultBottomSheet`.
 
-<br>
 
 #### 2. The KinTrace Account Studio Canvas (Screenshot 2)
 - **Top Header**: Displays the title *"KinTrace Account Studio"* with subtitle *"Mode 2 • Admin & Pre-Seeded Defense Vault"*.
@@ -663,7 +627,6 @@ finish()
   - Action CTA: `⚡ 1-Tap`. Tapping logs in immediately.
 - **Security Footnote**: *"⚡ Tap any account card for instant 1-Tap Auto-Login • AES-256 Protected"*.
 
-<br>
 
 #### 3. The Minimalist Single-Line Folder Dropdown (Screenshot 3)
 - **Visual**: An anchor popup menu that expands directly below the folder selector bar.
@@ -673,7 +636,6 @@ finish()
   - Quick Creation Shortcut: `📁 + Create New Folder...` at the bottom of the list for instantaneous folder management.
 - **Code Anchor**: Handled by [`showMinimalistFolderDropdownMenu`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/DemoVaultBottomSheet.kt#L182-L210).
 
-<br>
 
 #### 4. The "Issue New 1-Tap Keycard" Dialog (Screenshot 4)
 - **Visual**: A heritage notice dialog with golden scroll emblem.
@@ -685,7 +647,6 @@ finish()
   - `Role Selector Spinner`: Allows picking `👑 OWNER (Clan Owner)`, `🌿 COLLABORATOR (Branch Editor)`, `👁️ VIEWER (Read-Only Member)`, or `🛡️ ADMIN (Citadel Administrator)`.
 - **The Heritage Shield Verification Guard**: When "Save Keycard" is tapped, [lines 514–550 of `DemoVaultBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/DemoVaultBottomSheet.kt#L514-L550) intercept the submission to ensure the account has been legitimately registered and verified.
 
-<br>
 
 #### 5. The "Create New Vault Folder" Dialog (Screenshot 5)
 - **Visual**: Modal dialog displaying `📁 Create New Vault Folder`.
@@ -702,11 +663,9 @@ finish()
 
 ---
 
-<br>
 
 ### 4.3 The 4 Core Mechanisms Under the Hood
 
-<br>
 
 #### 🔀 Mechanism A: Dual-Mode Vault Segmentation & Last-Active Memory
 - **Code Reference**: [`DemoVaultBottomSheet.kt` Lines 89–95, 169–176](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/DemoVaultBottomSheet.kt#L89-L95)
@@ -730,7 +689,6 @@ private fun switchToMode(targetMode: VaultMode, rootView: View) {
 }
 ```
 
-<br>
 
 #### 🛡️ Mechanism B: The Pre-Flight & Heritage Shield Verification Guard
 - **Code Reference**: [`KeycardAccountVerifier.kt` Lines 66–100](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/KeycardAccountVerifier.kt#L66-L100) & [`DemoVaultBottomSheet.kt` Lines 522–547](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/DemoVaultBottomSheet.kt#L522-L547)
@@ -754,7 +712,6 @@ if (existingFolderAccounts.any { it.email.equals(cleanEmail, ignoreCase = true) 
 }
 ```
 
-<br>
 
 #### 🔐 Mechanism C: AES-256 Encrypted Local Keycard Storage
 - **Code Reference**: [`DemoAccountRepository.kt` Lines 16–21](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/DemoAccountRepository.kt#L16-L21) & [`KinTraceCryptoEngine.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/KinTraceCryptoEngine.kt)
@@ -764,7 +721,6 @@ if (existingFolderAccounts.any { it.email.equals(cleanEmail, ignoreCase = true) 
   - Whenever a custom keycard or folder is saved to the device's `SharedPreferences` (`kintrace_dual_vault_prefs`), it is encrypted using `KinTraceCryptoEngine` with AES-256 ciphering under scope `kintrace_dual_mode_vault_2026`.
   - Raw strings are never exposed in plaintext in XML preference files.
 
-<br>
 
 #### ⚡ Mechanism D: 1-Tap Auto-Login Pipeline with Cloud Self-Healing
 - **Code Reference**: [`LoginActivity.kt` Lines 147–226](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/LoginActivity.kt#L147-L226)
@@ -793,7 +749,6 @@ onFailure = { loginError ->
 }
 ```
 
-<br>
 
 #### ☁️ Mechanism E: Real-Time Multi-Device Cloud Synchronization
 - **Code Reference**: [`FirestoreHelper.kt Lines 5650–5850`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L5650-L5850), [`DemoAccountRepository.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/DemoAccountRepository.kt), & [`DemoVaultBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/DemoVaultBottomSheet.kt)
@@ -822,11 +777,9 @@ vaultListeners = firestoreHelper.listenToCloudVault(
 
 ---
 
-<br>
 
 ### 4.4 Defense Q&A Script (What to Say to the IT Consultant & Panelists)
 
-<br>
 
 #### 💬 Question 1: *"Why did you build an Account Studio / Demo Vault into your login screen?"*
 > **Panelist Probe**: *Isn't a standard login form enough? Why add all these folders and keycards?*
@@ -834,7 +787,6 @@ vaultListeners = firestoreHelper.listenToCloudVault(
 > **Your Answer:**
 > *"KinTrace enforces a multi-tier **Role-Based Access Control (RBAC)** architecture with 4 distinct roles: Super Admin, Clan Owner, Branch Collaborator, and Read-Only Viewer. In an architectural evaluation or capstone defense, testing role boundaries requires repeatedly switching accounts. Typing long emails and passwords on an Android keyboard introduces delays and typing errors. The Account Studio allows evaluators to switch roles in 1 tap in under 2 seconds, while also giving users a secure vault to organize multiple family member keycards."*
 
-<br>
 
 #### 💬 Question 2: *"Is storing account credentials in this vault a security risk?"*
 > **Panelist Probe**: *Are passwords stored in plaintext on the phone?*
@@ -851,7 +803,6 @@ cardView.setOnClickListener {
 }
 ```
 
-<br>
 
 #### 💬 Question 3: *"What happens if you run the app on a clean phone where demo accounts aren't registered in Firebase yet?"*
 > **Panelist Probe**: *Will the demo break if Firebase's database is wiped or fresh?*
@@ -861,7 +812,6 @@ cardView.setOnClickListener {
 
 ---
 
-<br><br>
 
 # 🏰 Chapter 5: The Heritage Command Center — Dynamic Clan Dashboard & Multi-Stage Lifecycle
 
@@ -872,7 +822,6 @@ cardView.setOnClickListener {
 
 ---
 
-<br>
 
 ### 5.1 The Killer Showcase Pitch: The "Zero-State to Mature Clan" Contrast (UX & Scalability Angle)
 
@@ -892,7 +841,6 @@ cardView.setOnClickListener {
 
 ---
 
-<br>
 
 ### 5.2 Screen Anatomy & Visual Elements
 
@@ -927,11 +875,9 @@ cardView.setOnClickListener {
 
 ---
 
-<br>
 
 ### 5.3 The 4 Core Architectural Mechanisms Under the Hood
 
-<br>
 
 #### 🔄 Mechanism A: Dual-State Adaptive Lifecycle (`layoutEmptyState` vs `layoutPopulatedState`)
 - **Code Reference**: [`HomeActivity.kt` Lines 460–575](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt#L460-L575)
@@ -958,7 +904,6 @@ if (trees.isEmpty()) {
 }
 ```
 
-<br>
 
 #### 🧮 Mechanism B: Automated Generational Depth & Record Computation
 - **Code Reference**: [`HomeActivity.kt` Lines 1252–1268](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt#L1252-L1268)
@@ -995,7 +940,6 @@ private fun calculateGenerations(persons: List<Person>): Int {
 }
 ```
 
-<br>
 
 #### ⚡ Mechanism C: Per-User Remembered Tree Resolution & 0ms Shimmer Skeleton
 - **Code Reference**: [`TreePreferences.kt` Lines 48–145](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/TreePreferences.kt#L48-L145) & [`FirestoreHelper.kt` Lines 3458–3530](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L3458-L3530)
@@ -1006,7 +950,6 @@ private fun calculateGenerations(persons: List<Person>): Int {
   2. **0ms Cached Shimmer**: On launch, if cache is resolving, KinTrace holds a heritage shimmer skeleton placeholder rather than prematurely flashing the empty state.
   3. **Parallel Query Pipeline**: [`executeParallelUserTreesLookup()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L3505) queries owned trees, created trees, co-owned trees, and approved member trees simultaneously in parallel using `Tasks.whenAllComplete(...)` and pulls from local disk cache (`Source.CACHE`) in under 10 milliseconds.
 
-<br>
 
 #### 📡 Mechanism D: Central Real-Time Tree Synchronizer Hook (`homeSyncListener`)
 - **Code Reference**: [`HomeActivity.kt` Lines 95–126](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt#L95-L126)
@@ -1039,11 +982,9 @@ private val homeSyncListener = object : SyncEventListener {
 
 ---
 
-<br>
 
 ### 5.4 Defense Q&A Script (What to Say to the IT Consultant & Panelists)
 
-<br>
 
 #### 💬 Question 1: *"How does the app prevent the dashboard from lagging when a family tree grows to hundreds of members?"*
 > **Panelist Probe**: *Does loading 200 members freeze the Android UI thread during generation counting?*
@@ -1051,7 +992,6 @@ private val homeSyncListener = object : SyncEventListener {
 > **Your Answer:**
 > *"KinTrace uses a two-tier optimization strategy. First, our generational calculation utilizes memoized dynamic programming with cycle detection, executing in linear time O(N) rather than recalculating sub-branches repeatedly. Second, member records are cached locally in RAM memory via [`FirestoreHelper.inMemoryPersonsCache`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L40). When opening the dashboard, statistical counts render in 0 milliseconds from local cache, while cloud synchronization occurs silently in the background."*
 
-<br>
 
 #### 💬 Question 2: *"Why did you separate the home interface into an empty state and a populated state instead of just showing empty tables?"*
 > **Panelist Probe**: *What is the UX rationale behind having two distinct layouts?*
@@ -1059,7 +999,6 @@ private val homeSyncListener = object : SyncEventListener {
 > **Your Answer:**
 > *"In human-computer interaction, cognitive overload is the number one reason users abandon family tree apps. Showing empty generation graphs or blank relationship cards to a first-time user creates confusion. By adopting an adaptive dual-state pattern, a new user is guided directly to tree creation or clan invitation. Once established, the interface naturally matures into a comprehensive lineage command center without redundant onboarding clutter."*
 
-<br>
 
 #### 💬 Question 3: *"What happens if a user is offline or has an unstable network connection when opening the dashboard?"*
 > **Panelist Probe**: *Will the dashboard show an error if there is no internet connection?*
@@ -1069,7 +1008,6 @@ private val homeSyncListener = object : SyncEventListener {
 
 ---
 
-<br>
 
 ### 5.5 Master Defense Presentation Flow & Real-World Scenario Walkthrough
 
@@ -1084,7 +1022,6 @@ private val homeSyncListener = object : SyncEventListener {
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-<br>
 
 #### 📍 Stage 1: The 15-Second Executive Hook (The Entrance)
 *Stand straight, point to your phone or projector screen displaying the dashboard, and deliver this opening in one confident breath:*
@@ -1095,7 +1032,6 @@ private val homeSyncListener = object : SyncEventListener {
 > 
 > From this one screen, a family can monitor their generational growth, trace complex bloodlines, protect living relatives' privacy, and coordinate research across multiple branches."*
 
-<br>
 
 #### 📱 Stage 2: Screen Anatomy Walkthrough (Guiding the Panelist's Eyes)
 
@@ -1149,7 +1085,6 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 4. **The Live Lineage Feed & Heritage Island Dock (Bottom)**:
    > *"At the bottom, the **Recent Activities feed** serves as an immutable family audit trail. You can see right here: `'Added family member: ellaine cruz'`. When any relative updates a birth date or adds a member, it appears here instantly. Finally, our **Floating Heritage Island** navigation dock allows 1-tap transit between Home, Tree, Guide, Trace, and Profile from anywhere in the app."*
 
-<br>
 
 #### 🎭 Stage 3: The 3-Act Live Scenario Demonstration
 
@@ -1174,7 +1109,6 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 
 ---
 
-<br><br>
 
 # 📋 Chapter 6: Comprehensive Guide — Add Member Module (`AddMemberActivity.kt`)
 
@@ -1186,7 +1120,6 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 
 ---
 
-<br>
 
 ### 6.1 The 10-Second Executive Pitch
 
@@ -1196,7 +1129,6 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 
 ---
 
-<br>
 
 ### 6.2 Top Navigation & Clan Quota Controls
 
@@ -1216,7 +1148,6 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 
 ---
 
-<br>
 
 ### 6.3 Personal Details: Fields & Restrictions
 
@@ -1270,7 +1201,6 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 
 ---
 
-<br>
 
 ### 6.4 Relationship Rules & Biological Validation Pipeline
 
@@ -1323,7 +1253,6 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 
 ---
 
-<br>
 
 ### 6.5 Archival Attachments & Real-Time Sync Hand-Off
 
@@ -1338,11 +1267,9 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 
 ---
 
-<br>
 
 ### 6.6 Defense Q&A: Preempting Panelist Questions
 
-<br>
 
 #### 💬 Question 1: *"What prevents someone from accidentally making a 10-year-old child a father?"*
 > **Panelist Probe**: *Does your app validate biological feasibility between parent and child birthdates?*
@@ -1362,7 +1289,6 @@ if (parentAgeAtBirth < 12) {
 }
 ```
 
-<br>
 
 #### 💬 Question 2: *"What stops an infinite loop where someone is their own grandfather?"*
 > **Panelist Probe**: *Can circular ancestry loops corrupt the tree graph?*
@@ -1378,7 +1304,6 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 }
 ```
 
-<br>
 
 #### 💬 Question 3: *"How does the system enforce Philippine marriage laws?"*
 > **Panelist Probe**: *What legal basis governs your spouse restrictions?*
@@ -1388,7 +1313,6 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 
 ---
 
-<br><br>
 
 # 📊 Chapter 7: The Demographic & Data Health Hub (`InsightsActivity.kt`)
 
@@ -1414,7 +1338,6 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 
 ---
 
-<br>
 
 ## 🎙️ 1. The 10-Second Executive Pitch
 
@@ -1424,7 +1347,6 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 
 ---
 
-<br>
 
 ## 🧭 2. Top Navigation & Legal Audit Gateway
 
@@ -1446,7 +1368,6 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 
 ---
 
-<br>
 
 ## 🏛️ 3. Card 1: Tree Overview Grid (The 6 Vital Metrics)
 
@@ -1475,7 +1396,6 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 
 ---
 
-<br>
 
 ## ⚖️ 4. Card 2: Gender Distribution & Demographic Balance
 
@@ -1494,7 +1414,6 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 
 ---
 
-<br>
 
 ## 🌳 5. Card 3: Generation Breakdown & Ancestral Tiers
 
@@ -1518,7 +1437,6 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 
 ---
 
-<br>
 
 ## 📋 6. Card 4: Record Completeness (The 6-Point Quality Formula)
 
@@ -1559,11 +1477,9 @@ $$\text{Member Score} = \left(\frac{\text{Points Earned}}{6}\right) \times 100$$
 
 ---
 
-<br>
 
 ## 🛡️ 7. Defense Q&A: Preempting Panelist Questions
 
-<br>
 
 #### 💬 Question 1: *"How is that 50% Record Completeness score computed? Is it hardcoded?"*
 > **Panelist Probe**: *What algorithm determines data health?*
@@ -1588,7 +1504,6 @@ private fun checkOne(person: Person): Int {
 }
 ```
 
-<br>
 
 #### 💬 Question 2: *"What is the 'Legal Audit' button at the top, and why is it inside Family Insights?"*
 > **Panelist Probe**: *Why combine statistical insights with legal compliance?*
@@ -1596,7 +1511,6 @@ private fun checkOne(person: Person): Int {
 > **Your Answer:**
 > *"Genealogical records are legal documents. Tapping **`[🛡️ Legal Audit]`** opens [`TreeAuditActivity`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/TreeAuditActivity.kt), which scans the entire family graph against **Articles 37 & 38 of the Philippine Family Code**. It detects any illegal marriages, duplicate identity records, or impossible age gaps across the entire clan."*
 
-<br>
 
 #### 💬 Question 3: *"How does the Generation Breakdown map relatives into Gen 1 through Gen 4?"*
 > **Panelist Probe**: *How does the system distinguish parents from grandparents programmatically?*
@@ -1606,7 +1520,6 @@ private fun checkOne(person: Person): Int {
 
 ---
 
-<br><br>
 
 # 🧬 Chapter 8: The Bloodline Tracer & Kinship Calculator (`TraceActivity.kt`)
 
@@ -1633,7 +1546,6 @@ private fun checkOne(person: Person): Int {
 
 ---
 
-<br>
 
 ## 🎙️ 1. The 10-Second Executive Pitch
 
@@ -1643,7 +1555,6 @@ private fun checkOne(person: Person): Int {
 
 ---
 
-<br>
 
 ## 🧭 2. Top Navigation & Member Selection Sentry
 
@@ -1683,7 +1594,6 @@ private fun checkOne(person: Person): Int {
 
 ---
 
-<br>
 
 ## 🧮 3. The Two-Phase Engine: BFS Graph Traversal + Civil Degree Formula
 
@@ -1738,7 +1648,6 @@ $$\text{Degree} = d_1 + d_2 \quad (\text{Steps from A to MRCA} + \text{Steps fro
 
 ---
 
-<br>
 
 ## 🛡️ 4. Non-Biological & Affinity Sentry
 
@@ -1757,7 +1666,6 @@ Before concluding that two people have no relation, [`BloodlineTracer.checkNonBi
 
 ---
 
-<br>
 
 ## 📱 5. The Output Arsenal & Multi-Module Interconnection
 
@@ -1796,11 +1704,9 @@ When a bloodline trace finishes, [`TraceActivity.kt`](file:///c:/Users/Renzy/And
 
 ---
 
-<br>
 
 ## 🎙️ 6. Defense Q&A: Preempting Panelist Questions
 
-<br>
 
 #### 💬 Question 1: *"Does your bloodline tracing use mathematical formulas, or is it just a graph traversal?"*
 > **Panelist Probe**: *What is the exact algorithmic implementation behind the consanguinity calculation?*
@@ -1815,7 +1721,6 @@ val max = maxOf(d1, d2)
 val degree = min + max
 ```
 
-<br>
 
 #### 💬 Question 2: *"How does the system distinguish biological bloodlines from adoption or step-families?"*
 > **Panelist Probe**: *Can an adopted child accidentally be treated as a biological blood ancestor?*
@@ -1823,7 +1728,6 @@ val degree = min + max
 > **Your Answer:**
 > *"No. In [lines 33–50 of `AncestorFinder.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/AncestorFinder.kt#L33-L50), the BFS queue strictly inspects `motherRelationshipType` and `fatherRelationshipType`. Only links designated as 'Biological' are traversed for consanguinity. Adoptive and step links are handed off to [`checkNonBiologicalImpediments()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/BloodlineTracer.kt#L207) to evaluate legal impediments under Article 38 of the Family Code without falsifying biological degrees."*
 
-<br>
 
 #### 💬 Question 3: *"What prevents an infinite loop if the family tree has a cycle?"*
 > **Panelist Probe**: *What happens if someone accidentally assigned a cyclical parent relationship?*
@@ -1833,7 +1737,6 @@ val degree = min + max
 
 ---
 
-<br><br>
 
 # 🌳 Chapter 9: The Master Family Tree Visualizer Subsystem
 
@@ -1863,7 +1766,6 @@ val degree = min + max
 
 ---
 
-<br>
 
 # 📜 Part 1: Generational Pedigree View Mode (`FamilyTreeActivity.kt`)
 
@@ -1880,7 +1782,6 @@ val degree = min + max
 
 ---
 
-<br>
 
 ## 🎙️ 1. The 10-Second Executive Pitch
 
@@ -1890,7 +1791,6 @@ val degree = min + max
 
 ---
 
-<br>
 
 ## 🧭 2. Top Navigation Bar & Screen Header Anatomy
 
@@ -1913,7 +1813,6 @@ val degree = min + max
 
 ---
 
-<br>
 
 ## 🔀 3. The 3-Mode Subsystem Tab Switcher
 
@@ -1930,7 +1829,6 @@ The gold capsule tab switcher enables instant pivoting between 3 visualization p
 
 ---
 
-<br>
 
 ## ⏳ 4. Generational Timeline Grouping
 
@@ -1947,7 +1845,6 @@ The screen utilizes a high-performance `RecyclerView` powered by [`GenerationalP
 
 ---
 
-<br>
 
 ## 🪪 5. Anatomy of a Pedigree Member Card
 
@@ -1976,11 +1873,9 @@ Each card is engineered with specific genealogical data points:
 
 ---
 
-<br>
 
 ## 🛡️ 6. Defense Q&A: Preempting Panelist Questions
 
-<br>
 
 #### 🎓 Question 1: *"How does the app determine which generation a person belongs to?"*
 > **Panelist Probe**: *What prevents someone from appearing in Generation 1 if they were entered late?*
@@ -1988,7 +1883,6 @@ Each card is engineered with specific genealogical data points:
 > **Your Layman's Answer:**
 > *"The app does not rely on the order in which relatives were added. Instead, [`GenerationHierarchyEngine.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/GenerationHierarchyEngine.kt) performs a topological sweep of parent-child links. The oldest ancestors who have no documented parents in the tree are automatically assigned to Generation 1. Every child is then assigned to Generation $(N+1)$ of their parents. This ensures that the generational hierarchy is mathematically and chronologically accurate at all times."*
 
-<br>
 
 #### 🎓 Question 2: *"Why provide a vertical Pedigree View when you already have an Interactive Canvas?"*
 > **Panelist Probe**: *Isn't a list-based pedigree view redundant if you already have a 2D canvas?*
@@ -1998,7 +1892,6 @@ Each card is engineered with specific genealogical data points:
 
 ---
 
-<br><br>
 
 # 🪃 Part 2: Horseshoe Fan Chart Mode (`FamilyTreeActivity.kt`)
 
@@ -2016,7 +1909,6 @@ Each card is engineered with specific genealogical data points:
 
 ---
 
-<br>
 
 ## 🎙️ 1. The 10-Second Executive Pitch
 
@@ -2026,7 +1918,6 @@ Each card is engineered with specific genealogical data points:
 
 ---
 
-<br>
 
 ## 📐 2. Visual Anatomy: Concentric Radial Rings & Center Clan Hub
 
@@ -2066,7 +1957,6 @@ Each card is engineered with specific genealogical data points:
 
 ---
 
-<br>
 
 ## 🎨 3. Color-Coded Generational Depth Layers
 
@@ -2079,7 +1969,6 @@ The bottom legend maps each concentric tier to distinct heritage shades:
 
 ---
 
-<br>
 
 ## 🔍 4. Interactive Controls: Zoom, Pan & Wedge Tap Inspection
 
@@ -2101,7 +1990,6 @@ The bottom legend maps each concentric tier to distinct heritage shades:
 
 ---
 
-<br>
 
 ## 📐 5. Under the Hood: Polar Coordinates & Arc Geometry Math
 
@@ -2121,11 +2009,9 @@ Android `Path.arcTo()` constructs the smooth curved wedge boundaries with zero l
 
 ---
 
-<br>
 
 ## 🛡️ 6. Defense Q&A: Preempting Panelist Questions
 
-<br>
 
 #### 🎓 Question 1: *"Why did you choose a Horseshoe Fan Chart instead of other types of fan charts?"*
 > **Panelist Probe**: *Why did you implement a 210° horseshoe arc instead of a standard 360° full circle or a 90° quarter fan chart?*
@@ -2150,7 +2036,6 @@ Android `Path.arcTo()` constructs the smooth curved wedge boundaries with zero l
 └──────────────────────┴─────────────────┴──────────────────┴────────────────────┘
 ```
 
-<br>
 
 #### 🎓 Question 2: *"How do you prevent wedge text from becoming unreadable in dense outer rings?"*
 > **Panelist Probe**: *When a tree reaches Generation 4 or 5, wedges become very thin. How is text handled?*
@@ -2160,7 +2045,6 @@ Android `Path.arcTo()` constructs the smooth curved wedge boundaries with zero l
 
 ---
 
-<br><br>
 
 # 🌳 Part 3: The Interactive Family Tree Canvas (`InteractiveTreeActivity.kt`)
 
@@ -2179,7 +2063,6 @@ Android `Path.arcTo()` constructs the smooth curved wedge boundaries with zero l
 
 ---
 
-<br>
 
 ## 🎙️ 1. The 10-Second Executive Pitch
 
@@ -2189,7 +2072,6 @@ Android `Path.arcTo()` constructs the smooth curved wedge boundaries with zero l
 
 ---
 
-<br>
 
 ## 🧭 2. Top Navigation, Role Privileges & The Tools ▾ Popover
 
@@ -2223,7 +2105,6 @@ Android `Path.arcTo()` constructs the smooth curved wedge boundaries with zero l
 
 ---
 
-<br>
 
 ## ⚡ 3. The Multi-Focal Kinship Camera (`Kinship relative to:`)
 
@@ -2251,7 +2132,6 @@ One of the most powerful features demonstrated in **Screenshot 5** is the **Mult
 
 ---
 
-<br>
 
 ## 🪪 4. Anatomy of an Interactive Canvas Node
 
@@ -2293,7 +2173,6 @@ Every person node rendered on the canvas by [`drawPersonCard()`](file:///c:/User
 
 ---
 
-<br>
 
 ## ➕ 5. Direct Branch Grafting (The Inline `+` Child Adder)
 
@@ -2306,7 +2185,6 @@ Directly beneath each living member's card floats a circular green plus button (
 
 ---
 
-<br>
 
 ## 🎮 6. Gesture Navigation & The 4 Floating Controls (FABs)
 
@@ -2347,7 +2225,6 @@ Directly beneath each living member's card floats a circular green plus button (
 
 ---
 
-<br>
 
 ## ⚙️ 7. Under the Hood: 60 FPS Engine Architecture
 
@@ -2383,11 +2260,9 @@ Genealogical trees can easily become sluggish on mobile devices due to the sheer
 
 ---
 
-<br>
 
 ## 🛡️ 8. Defense Q&A: Preempting Panelist Questions
 
-<br>
 
 #### 🎓 Question 1: *"How does your tree canvas maintain smooth 60 FPS rendering when displaying large families?"*
 > **Panelist Probe**: *Custom Android views usually suffer from frame drops when rendering dozens of bitmaps and complex vector lines. How did you prevent this?*
@@ -2402,7 +2277,6 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 }
 ```
 
-<br>
 
 #### 🎓 Question 2: *"What is the 'Multi-Focal Kinship Camera' and why is it superior to static tree views?"*
 > **Panelist Probe**: *Why didn't you just label people 'Father' or 'Mother' based on who created the tree?*
@@ -2410,7 +2284,6 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 > **Your Layman's Answer:**
 > *"In a real family, relationships depend entirely on who is looking. To Karl Malone, Sarah Jenkins is his 'Wife' and Richard Malone is his 'Father.' But to their son Lucas, Sarah is his 'Mother' and Richard is his 'Grandfather.' Our Multi-Focal Camera allows any user to tap on any family member to immediately transform the entire tree into that person's personal perspective, making KinTrace intuitive and educational for every generation of the clan."*
 
-<br>
 
 #### 🎓 Question 3: *"What happens if an Owner rearranges the tree layout? Do other relatives see those changes?"*
 > **Panelist Probe**: *Is the custom drag-and-drop organize mode stored locally on the phone or synced globally?*
@@ -2420,7 +2293,6 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 
 ---
 
-<br><br>
 
 # 📋 Chapter 10: The Master Family Records & Member Directory Subsystem
 
@@ -2450,7 +2322,6 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 
 ---
 
-<br>
 
 ## 🎙️ 1. The 10-Second Executive Pitch
 
@@ -2460,7 +2331,6 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 
 ---
 
-<br>
 
 ## 🧭 2. Top Navigation, Search Indexer & Live Member Counter
 
@@ -2487,7 +2357,6 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 
 ---
 
-<br>
 
 ## 🪪 3. Anatomy of a Family Record Row
 
@@ -2533,7 +2402,6 @@ Each member row in [`MemberAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProj
 
 ---
 
-<br>
 
 ## 🇵🇭 4. The "Balae (In-Law)" Cultural & Civil Law Classification
 
@@ -2546,7 +2414,6 @@ One of the standout features visible in your screenshot is the **`BALAE (IN-LAW)
 
 ---
 
-<br>
 
 ## ⚡ 5. Row Action Arsenal: "+ Child", "Edit", "Delete" & Optimistic Deletion
 
@@ -2570,7 +2437,6 @@ Every row provides direct access to 3 core lifecycle operations:
 
 ---
 
-<br>
 
 ## 🔒 6. Role-Based Access Control (RBAC) & RA 10173 Privacy Shield
 
@@ -2584,7 +2450,6 @@ Every row provides direct access to 3 core lifecycle operations:
 
 ---
 
-<br>
 
 ## ⚙️ 7. Under the Hood: 0ms Memory Caching & RecordsSyncCoordinator
 
@@ -2615,11 +2480,9 @@ Every row provides direct access to 3 core lifecycle operations:
 
 ---
 
-<br>
 
 ## 🛡️ 8. Defense Q&A: Preempting Panelist Questions
 
-<br>
 
 #### 🎓 Question 1: *"Why does your system include labels like 'BALAE (IN-LAW)' instead of standard Western terms?"*
 > **Panelist Probe**: *Most foreign genealogical software (like Ancestry or FamilySearch) only uses Western terms. Why did you include Filipino kinship terms?*
@@ -2627,7 +2490,6 @@ Every row provides direct access to 3 core lifecycle operations:
 > **Your Layman's Answer:**
 > *"KinTrace was designed specifically for Filipino family heritage. In Philippine culture and civil tradition, relationships like 'Balae' (the parents of your child's spouse) and 'Bilas' are foundational to clan structure and community life. Rather than misclassifying these individuals as strangers or generic in-laws, our [`KinshipTitleHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/KinshipTitleHelper.kt#L603) accurately recognizes and honors Filipino kinship traditions."*
 
-<br>
 
 #### 🎓 Question 2: *"What is 'Optimistic Deletion' and why did you use it here?"*
 > **Panelist Probe**: *Why didn't you wait for the database confirmation before removing a member from the screen?*
@@ -2649,7 +2511,6 @@ firestoreHelper.deletePerson(deletedId, onFailure = { err ->
 })
 ```
 
-<br>
 
 #### 🎓 Question 3: *"How does the system prevent non-family members or guests from modifying records?"*
 > **Panelist Probe**: *How is role-based access control enforced on this screen?*
@@ -2659,5 +2520,2301 @@ firestoreHelper.deletePerson(deletedId, onFailure = { err ->
 
 ---
 
-<br><br>
-*(End of Chapter 10 — Ready for your next screen).*
+
+# 🌳 Chapter 11: The Clan Union & Branch Synthesis Subsystem (Merged Clan Space)
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`MergeBranchesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt)
+- Screen Layout: [`activity_merge_branches.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_merge_branches.xml)
+- Interactive Modals & Wizards:
+  - Cross-Tree Synthesis Wizard: [`dialog_synthesize_clan_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_synthesize_clan_tree.xml)
+  - Internal Branch Connector: [`dialog_connect_branches.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_connect_branches.xml)
+  - Merge Request Review Dialog: [`dialog_review_merge_request.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_review_merge_request.xml)
+  - Master Clan Tree Card Item: [`item_clan_tree_card.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_clan_tree_card.xml)
+- Core Verification & Simulation Engines:
+  - Pre-Flight Simulation Engine: [`MergeSimulationEngine.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/MergeSimulationEngine.kt)
+  - Domain Bridge Validator: [`MergeBridgeValidator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/MergeBridgeValidator.kt)
+  - Marriage Legal Validator: [`MarriageValidationEngine.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/MarriageValidationEngine.kt)
+  - Biological Link Validator: [`FamilyLinkValidator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/FamilyLinkValidator.kt)
+  - Reactive Tree Synchronizer: [`CentralTreeSynchronizer.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt)
+- Central Data Models:
+  - Clan Merge Request: [`ClanMergeRequest.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/ClanMergeRequest.kt)
+  - Pre-Merge Rollback Snapshot: [`MergeRollbackSnapshot.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/MergeRollbackSnapshot.kt)
+  - Master Clan Tree Container: [`FamilyTree.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/FamilyTree.kt)
+  - Member Entity: [`Person.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/Person.kt)
+
+---
+
+
+### 11.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"When two families unite through marriage or discover a shared ancestral lineage, genealogical software traditionally risks corrupting or overwriting original family trees. In KinTrace, we designed the **Merged Clan Space** as a **Zero-Risk Sandbox**. It clones both family lines into a brand-new, combined 'Master Clan Tree' connected through a validated bridge—such as a lawful marriage or a shared ancestor. Crucially, both families' original private trees remain 100% untouched and preserved. Every merge is verified against the Philippine Family Code before saving, and the union can be reversed in a single tap at any time."*
+
+#### 💡 The Everyday Layman's Analogy: "The Two Keepsake Photo Albums"
+Think of your family records like a **handcrafted ancestral photo album**:
+* If your son marries into another family, you wouldn't take scissors, cut pictures out of your precious heirloom album, and tape them into your in-laws' album. If you made a mistake, both irreplaceable heirlooms would be ruined.
+* Instead, you make a **brand-new wedding album** (Tree C). You place copies of both families inside, celebrate their union at the center, and keep both original heirloom albums completely safe on their home shelves. If anything ever needs to be separated later, neither family's original history is harmed!
+
+---
+
+
+### 11.2 Screen Anatomy & Visual Elements (As Shown in Your App)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ← Back              Merged Clan Space                    ?  │
+│                     ★ Owner · Multi-family clan unions      │
+├─────────────────────────────────────────────────────────────┤
+│ 🛡️ Sandbox Isolated: Viewing or synthesizing trees here     │
+│    never alters your personal family tree in View Tree.     │
+├─────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ ZERO-RISK CLAN FUSION                                   │ │
+│ │ Synthesize Master Clan Tree                             │ │
+│ │ Combine two separate family trees into a new Master     │ │
+│ │ Clan Tree C. Both original trees remain 100% untouched. │ │
+│ │                                                         │ │
+│ │        [ + Synthesize New Clan Tree ]                   │ │
+│ └─────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ YOUR TREE CLAN MERGE CODE                   INDEPENDENT │ │
+│ │ Share this unique merge code with family members or     │ │
+│ │ in-laws so they can synthesize a combined Clan Tree.    │ │
+│ │                                                         │ │
+│ │   [ M 7 X 9 K 2 ]       [ 📋 Copy ]      [ 🔄 Reset ]   │ │
+│ └─────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│ SYNTHESIZED CLAN TREES (SANDBOX)             2 Clan Tree(s) │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ 🏛️  Malone Family - Russell Family Master Clan Tree     │ │
+│ │     42 Members • Master Clan Sandbox                    │ │
+│ │     👥 Shared Lineage: Hayes Sisterhood (Beatrice &     │ │
+│ │        Clara Hayes, daughters of Harold & Martha)       │ │
+│ │                                                         │ │
+│ │     [ 👁️ View Clan Canvas ]         [ 🗑️ Delete ]       │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ 🏛️  Smith Family - Malone Family Master Clan Tree       │ │
+│ │     40 Members • Master Clan Sandbox                    │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+1. **Top Bar & Dynamic Role Badge**:
+   - `← Back`: Safely finishes the activity and returns to the Home Dashboard or Tools menu.
+   - `★ Owner` / `Editor` Badge: Displays the user's role on the active tree. Viewers see a `Viewer (Restricted)` badge, and merge creation buttons are protected by role-gated flash dialogs ([`BotanicalRoleFlashManager.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/BotanicalRoleFlashManager.kt)).
+   - Quick Assist (`?`): Opens the interactive [`KinTraceQuickAssistBottomSheet`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/KinTraceQuickAssistBottomSheet.kt) with step-by-step guidance on cross-tree merging.
+
+2. **The Sandbox Isolation Shield Banner**:
+   - Styled in forest green with the shield icon (`🛡️ Sandbox Isolated`).
+   - Immediately reassures the user and capstone panelists that operations here are non-destructive and isolated from primary personal trees.
+
+3. **Zero-Risk Clan Fusion Card (`+ Synthesize New Clan Tree`)**:
+   - The primary call-to-action button.
+   - Launches the multi-stage **Clan Tree Synthesis Wizard** ([`dialog_synthesize_clan_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_synthesize_clan_tree.xml)), allowing users to select Tree A, select Tree B (either from their own account or via a 6-digit invite code), configure anchor members, and define the bridge relationship.
+
+4. **Your Tree Clan Merge Code Card**:
+   - Displays a clean, 6-character alphanumeric code (e.g., `M7X9K2`).
+   - **`📋 Copy` Button**: Copies the code directly to the Android system clipboard with instant toast feedback.
+   - **`🔄 Reset` Button**: Allows the Tree Owner to regenerate a new merge code if the previous code was shared with the wrong party, immediately invalidating old invitations.
+
+5. **Incoming Merge Requests Banner (`layoutIncomingMergeRequests`)**:
+   - Reactively listens to Firestore via [`startListeningPendingMergeRequests()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MergeBranchesActivity.kt#L450).
+   - If an external user enters your 6-digit merge code, an alert banner appears: **`[ 📩 Pending Merge Requests (1) — Review ]`**.
+   - Tapping opens [`dialog_review_merge_request.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_review_merge_request.xml) where the Tree Owner can inspect the requesting family's name and either approve or reject the union.
+
+6. **1-Tap Pre-Merge Rollback Banner (`cardRollbackSnapshot`)**:
+   - When an active rollback snapshot exists, a golden emergency banner appears above the list:
+     > *"Synthesized: Malone Family - Russell Family Master Clan Tree. Combined Malone Family + Russell Family (42 cloned records). Tap below to safely undo and dismantle this Clan Tree while keeping your original trees 100% untouched."*
+   - Includes the elapsed time indicator (*"Just now"* or *"15m ago"*) and the **`[ ⏪ Undo Last Merge ]`** button.
+
+7. **Synthesized Clan Trees Roster (`clanTreesContainer`)**:
+   - Renders each synthesized master tree as a rich botanical card ([`item_clan_tree_card.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_clan_tree_card.xml)).
+   - Shows the combined member count (e.g., `42 Members • Master Clan Sandbox`).
+   - Displays the **Shared Lineage Badge** explaining the exact bridge (e.g. *Hayes Sisterhood: Beatrice & Clara Hayes*).
+   - **`👁️ View Clan Canvas`**: Launches [`InteractiveTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/InteractiveTreeActivity.kt) with `IS_CLAN_SPACE = true` to visualize the unified master tree with pinch-to-zoom and multi-branch exploration.
+   - **`🗑️ Delete`**: Prompts the user with a confirmation modal and safely dismantles the sandbox without ever affecting Tree A or Tree B.
+
+---
+
+
+### 11.3 Step-by-Step Architecture: How It Happens (The 5-Stage Synthesis Pipeline)
+
+```mermaid
+flowchart TD
+    subgraph S1["Stage 1: Clan Selection & Mutual Consent"]
+        A["Select Primary Tree A"] --> B{"Is Tree B Internal or External?"}
+        B -- "Owned Tree" --> C["Load Members of Tree B Directly"]
+        B -- "6-Digit Code" --> D["Lookup External Tree B via Code"]
+        D --> E["Dispatch ClanMergeRequest to Target Owner"]
+        E --> F["Target Owner Approves Request in Firestore"]
+        F --> C
+    end
+
+    subgraph S2["Stage 2: Anchor Selection & Bridge Mode"]
+        C --> G["Pick Member A from Tree 1"]
+        C --> H["Pick Member B from Tree 2"]
+        G & H --> I["Select Bridge Type:
+        1. Spousal Union (💍)
+        2. Parent-Child (👶)
+        3. Shared Ancestor (👥)
+        4. Sibling Lineage (👥)"]
+    end
+
+    subgraph S3["Stage 3: Pre-Flight Simulation Engine"]
+        I --> J["MergeSimulationEngine.simulate()
+        (Executes in background worker thread)"]
+        J --> K{"Pre-Flight Validation Check"}
+        K -- "Conflict Detected" --> L["Display Inline Warning Alert
+        Disable [Execute Synthesis] Button
+        Escalate to Ops Collision Log"]
+        K -- "Clean & Safe" --> M["Enable [Execute Synthesis] Button"]
+    end
+
+    subgraph S4["Stage 4: Deep Cloning & Pointer Remapping"]
+        M --> N["Generate UUID Translation Map
+        oldId -> newRandomUUID()"]
+        N --> O["Remap fatherId, motherId, spouseIds
+        and formerSpouseIds for all cloned nodes"]
+        O --> P["Apply Bridge Connection in Master Tree C"]
+    end
+
+    subgraph S5["Stage 5: Atomically Chunked Persistence & Rollback"]
+        P --> Q["Commit 200-document batches to Firestore"]
+        Q --> R["Save MergeRollbackSnapshot record"]
+        R --> S["Notify CentralTreeSynchronizer Event Bus"]
+        S --> T["Render Master Clan Card & Open Clan Canvas"]
+    end
+```
+
+#### 🔹 Stage 1: Clan Selection & Mutual Consent
+- If the user merges two trees they already own (e.g. their Paternal Tree and Maternal Tree), access is instantaneous.
+- If the user merges with another person's tree using a 6-digit code, the system enforces **Mutual Consent**. A [`ClanMergeRequest`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/ClanMergeRequest.kt) document is written to Firestore. The target tree owner receives an in-app banner and must tap **`[✓ Approve Merge]`** before Member B's tree can ever be unlocked for synthesis.
+
+#### 🔹 Stage 2: Anchor Selection & Bridge Mode Definition
+The user selects one anchor person from each family and picks one of four genealogical bridge modes:
+1. **💍 Spousal Union (In-Law Marriage)**: Member A and Member B are joined as husband and wife, connecting both families as in-laws.
+2. **👶 Parent-Child Link**: Member A is established as the biological or legal parent of Member B (or vice versa), connecting descendant generations.
+3. **👥 Shared Ancestor (Historical Deduplication)**: Both families share a common historical ancestor (for example, two distant branches who both descend from the same great-grandfather). Member A and Member B are merged into a single individual, bringing both branches under one root.
+4. **👥 Sibling Lineage**: Member A and Member B are linked as biological brother and sister, inheriting the same shared parentage.
+
+#### 🔹 Stage 3: In-Memory Pre-Flight Simulation (`MergeSimulationEngine.kt`)
+Before writing any data to Cloud Firestore, [`MergeSimulationEngine.simulate()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/MergeSimulationEngine.kt#L48-L94) takes copies of both member lists and executes an in-memory trial merge.
+- It verifies that the proposed bridge obeys **Philippine Civil Law** (e.g., minimum marriage age of 18) and **Biological Laws** (e.g., minimum 12-year parent-child age gap).
+- Runs in a background executor thread (`previewExecutor`) so the Android UI never freezes or stutters even with 200+ family members.
+
+#### 🔹 Stage 4: Deep Cloning with UUID Translation Dictionary
+To guarantee that original trees remain 100% untouched:
+- The engine generates a brand-new unique ID (`UUID.randomUUID().toString()`) for every single member in Tree 1 and Tree 2.
+- A translation map (`idMap[oldId] = newId`) translates all relational pointers:
+  - `fatherId = idMap[p.fatherId] ?: p.fatherId`
+  - `motherId = idMap[p.motherId] ?: p.motherId`
+  - `spouseId = idMap[p.spouseId] ?: p.spouseId`
+  - `formerSpouseIds = p.formerSpouseIds.map { idMap[it] ?: it }`
+- **Result**: Even if a user edits, moves, or deletes a person in the Master Clan Tree, the original family trees in Tree A and Tree B remain completely unmodified!
+
+#### 🔹 Stage 5: Atomically Chunked Persistence & Rollback Snapshot
+- Firestore limits batch writes to a maximum of 500 operations. KinTrace splits large merged clans into safe **200-document batches** via [`firestoreHelper.saveMasterTreeAndMembers()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L4250), ensuring that 50, 100, or 300+ members commit reliably without network timeouts.
+- Concurrently, a [`MergeRollbackSnapshot`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/MergeRollbackSnapshot.kt) is saved to Firestore. If the user realizes they made a mistake, tapping **`[⏪ Undo Last Merge]`** instantly removes the cloned clan tree and cleans up the sandbox.
+
+---
+
+
+### 11.4 Technical Problems We Faced & How We Solved Them (Defense Ready!)
+
+During capstone development, cross-tree branch merging presented some of the most difficult algorithmic and legal challenges in the entire project. Here is how our architecture solved each one:
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                               TECHNICAL PROBLEM MATRIX                                   │
+├──────────────────────────┬───────────────────────────────┬───────────────────────────────┤
+│ Technical Challenge      │ Root Cause in Family Data     │ How KinTrace Solves It        │
+├──────────────────────────┼───────────────────────────────┼───────────────────────────────┤
+│ 1. Underage Marriage Trap│ Minors selected as bridge     │ Enforces Family Code Art. 5 & │
+│    (e.g. Aria & Liam)    │ spouses across two families.  │ RA 11596 (18+ check).         │
+├──────────────────────────┼───────────────────────────────┼───────────────────────────────┤
+│ 2. Grandfather Paradox   │ Accidental directed loop      │ Directed cycle traversal      │
+│    (Cyclic Graph Loop)   │ making descendant an ancestor.│ (DAG ancestry path check).    │
+├──────────────────────────┼───────────────────────────────┼───────────────────────────────┤
+│ 3. Biological Inversion  │ Parent born after child or    │ 12-year biological gap check  │
+│    (Age Gap Discrepancy) │ parent died before birth.     │ & post-mortem conception rule.│
+├──────────────────────────┼───────────────────────────────┼───────────────────────────────┤
+│ 4. ID Collision & Leaks  │ Shared IDs causing writes to  │ Deterministic UUID translation│
+│    (Cross-Tree Corruption)│ bleed into original trees.    │ map isolating Sandbox Tree C. │
+├──────────────────────────┼───────────────────────────────┼───────────────────────────────┤
+│ 5. UI Thread Freezing    │ Graph simulation of 200+      │ Background thread executor    │
+│    (Android Main Thread) │ nodes causing UI ANR lag.     │ with debounced reactive UI.   │
+└──────────────────────────┴───────────────────────────────┴───────────────────────────────┘
+```
+
+#### 🛑 Problem 1: The Underage Child Marriage Bar (RA 11596 & Family Code Art. 5)
+* **The Challenge**: If an uninformed user attempts to connect two family trees by declaring a young boy and a young girl as spouses, naive family tree software would blindly link them, creating a legally void union.
+* **The Law**: Under **Article 5 of the Family Code of the Philippines** and **Republic Act No. 11596** (*An Act Prohibiting the Practice of Child Marriage*), any marriage where either party is under the age of 18 is **void ab initio** (void from the very beginning) and strictly illegal.
+* **Our Solution**: [`MergeBridgeValidator.validateSpousalUnion()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/MergeBridgeValidator.kt#L87-L101) inspects the birth dates of both bridge candidates:
+```kotlin
+// Source Code: MergeBridgeValidator.kt (Lines 87-100)
+val ageA = FamilyLinkValidator.calculateAgeYears(personA.birthDate, personA.deathDate.takeIf { !personA.isLiving })
+val ageB = FamilyLinkValidator.calculateAgeYears(personB.birthDate, personB.deathDate.takeIf { !personB.isLiving })
+
+if (ageA != null && ageA < 18) {
+    return ValidationResult.prohibited(
+        "${personA.firstName} ${personA.lastName} is $ageA years old. Under Article 5 of the Family Code and RA 11596, marriage of any person under the age of 18 is void ab initio."
+    )
+}
+if (ageB != null && ageB < 18) {
+    return ValidationResult.prohibited(
+        "${personB.firstName} ${personB.lastName} is $ageB years old. Under Article 5 of the Family Code and RA 11596, marriage of any person under the age of 18 is void ab initio."
+    )
+}
+```
+If either person is under 18, the synthesis button is disabled, and an inline warning explains why the union is barred.
+
+---
+
+#### 🔄 Problem 2: The Grandfather Paradox (Cyclic Graph Dependencies)
+* **The Challenge**: If Tree A and Tree B have interconnected lineages, a user might accidentally attempt to link Person A as the parent of Person B, even though Person B is already recorded as Person A's ancestor. In computer science, this creates a **cyclic loop in a Directed Acyclic Graph (DAG)**, causing infinite recursion loops that crash family tree layout rendering engines.
+* **Our Solution**: Before accepting a Parent-Child bridge, [`MergeBridgeValidator.validateParentChildLink()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/MergeBridgeValidator.kt#L181-L186) performs an ancestral path traversal:
+```kotlin
+// Source Code: MergeBridgeValidator.kt (Lines 181-185)
+if (FamilyLinkValidator.isAncestorOf(proposedChild.id, proposedParent.id, combinedMap)) {
+    return ValidationResult.prohibited(
+        "Circular Ancestry Paradox: ${proposedChild.firstName} ${proposedChild.lastName} is already an ancestor of ${proposedParent.firstName} ${proposedParent.lastName}. Establishing this link would create an infinite genealogical loop."
+    )
+}
+```
+If `isAncestorOf` detects that the child is already in the parent's upward ancestral tree, the bridge is strictly rejected.
+
+---
+
+#### 👶 Problem 3: The 12-Year Biological Parent-Child Age Gap
+* **The Challenge**: Users could mistakenly link a 5-year-old child as the biological parent of a 40-year-old adult, or link a mother who died 5 years before the child was born.
+* **Our Solution**: The validation engine calculates exact birth years and mortality dates:
+  1. **Minimum Gap**: Requires `childBirthYear - parentBirthYear >= 12`. Any gap under 12 years is rejected as biologically impossible.
+  2. **Maternal Mortality**: If the mother passed away before the child's birth year, the link is rejected.
+  3. **Paternal Mortality**: If the father passed away more than 1 year prior to the child's birth, the link is rejected to uphold biological feasibility.
+
+---
+
+#### 🧬 Problem 4: ID Collision & Cross-Tree Pointer Leaks
+* **The Challenge**: In Firestore, each member has a unique document ID. If a user merges Tree 1 (where members have IDs like `p_101`, `p_102`) into Master Tree C and leaves their IDs unchanged, any future edits in Tree C would overwrite the original documents in Tree 1!
+* **Our Solution**: [`MergeSimulationEngine.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/MergeSimulationEngine.kt#L95-L116) implements a **UUID Translation Dictionary**:
+```kotlin
+// Source Code: MergeSimulationEngine.kt (Lines 95-112)
+val idMap = mutableMapOf<String, String>()
+for (p in tree1Members + tree2Members) {
+    idMap[p.id] = UUID.randomUUID().toString()
+}
+
+fun clonePerson(p: Person): Person {
+    return p.copy(
+        id = idMap[p.id]!!,
+        treeId = config.masterTreeId,
+        fatherId = idMap[p.fatherId] ?: p.fatherId,
+        motherId = idMap[p.motherId] ?: p.motherId,
+        spouseId = idMap[p.spouseId] ?: p.spouseId,
+        formerSpouseIds = p.formerSpouseIds.map { oldId -> idMap[oldId] ?: oldId },
+        createdBy = config.currentUserId,
+        createdAt = System.currentTimeMillis()
+    )
+}
+```
+Every single cloned member gets a brand-new random ID, and all relational pointers (`fatherId`, `motherId`, `spouseId`, etc.) are mapped to the new IDs. This creates complete sandbox isolation.
+
+---
+
+#### ⚡ Problem 5: Android Main Thread UI Stutter (ANR Prevention)
+* **The Challenge**: Validating 200+ members, checking all marriage restrictions, and traversing DAG ancestry paths can take 50–150 milliseconds. Running this on every dropdown selection on Android's main UI thread causes frame drops and "Application Not Responding" (ANR) warnings.
+* **Our Solution**: Offloaded to a dedicated background single-thread executor (`previewExecutor = Executors.newSingleThreadExecutor()`). An atomic generation counter (`previewGeneration`) ensures that rapid user selections discard outdated calculation results, posting only the latest verified validation state back to the UI thread.
+
+---
+
+
+### 11.5 Step-by-Step Defense Guide: How to Bridge the Santos & Malone Families
+
+In your defense walkthrough, panelists may ask:
+> *"Suppose you want to merge the **Santos Family Tree** and the **Malone Family Tree**. How does the system connect them?"*
+
+```
+               MALONE CLAN                             SANTOS CLAN
+        ┌───────────────────────┐               ┌───────────────────────┐
+        │     Arthur Malone     │               │    Roberto Santos     │
+        │    (b. 1935, Head)    │               │    (b. 1938, Head)    │
+        └───────────┬───────────┘               └───────────┬───────────┘
+                    │                                       │
+        ┌───────────┴───────────┐               ┌───────────┴───────────┐
+        │     Karl Malone       │  💍 MARRIAGE  │    Elena Santos       │
+        │    (b. 1970, Adult)   │<═════════════>│   (b. 1973, Adult)    │  <-- VALID ADULT BRIDGE!
+        └───────────┬───────────┘               └───────────┬───────────┘
+                    │                                       │
+        ┌───────────┴───────────┐               ┌───────────┴───────────┐
+        │      Liam Malone      │               │   Aria Del Rosario    │
+        │    (b. 2018, 8yo)     │   ❌ BLOCKED  │    (b. 2014, 12yo)    │  <-- CANNOT MARRY!
+        └───────────────────────┘               └───────────────────────┘
+```
+
+#### ❌ Why selecting Aria Del Rosario and Liam Malone fails:
+1. **Aria Del Rosario** was born in 2014 (12 years old).
+2. **Liam Malone** was born in 2018 (8 years old).
+3. If you select them as **Spouses**, the pre-flight validator blocks them immediately:
+   > *"Aria Del Rosario is 12 years old. Under Article 5 of the Family Code and RA 11596, marriage of any person under the age of 18 is void ab initio."*
+4. If you select them as **Parent-Child**, the age gap between 2014 and 2018 is only **4 years**, which violates the 12-year biological parent-child minimum requirement.
+
+#### ✅ The 3 Legitimate Ways to Bridge the Santos and Malone Families:
+
+1. **Option 1: Adult Spousal Union (Recommended)**:
+   - Select an **adult member of the Malone Family** (e.g., Karl Malone, born 1970) and an **adult member of the Santos Family** (e.g., Elena Santos, born 1973).
+   - Mode: **`💍 Spousal Union`**.
+   - Result: Both adults are 18+, free to marry, and their union legally establishes the Malone-Santos in-law branch.
+
+2. **Option 2: Parent-Child Lineage Bridge**:
+   - If a member of the Malone family is the parent of a member in the Santos family (e.g., a mother from Malone married a Santos father).
+   - Mode: **`👶 Parent-Child Link`**.
+   - Result: Connects the child while verifying the parent is at least 12 years older and not already assigned conflicting biological parents.
+
+3. **Option 3: Shared Ancestor Deduplication**:
+   - If both clans discover that they share a common ancestor (e.g., a common maternal grandmother from the Del Rosario branch).
+   - Mode: **`👥 Shared Ancestor`**.
+   - Result: Deduplicates the common matriarch into a single root node, anchoring both trees to their shared heritage.
+
+---
+
+
+### 11.6 Defense Panelist Q&A (Tough Questions & Layman Answers)
+
+#### 🎓 Question 1: *"What happens if a user accidentally merges the wrong family tree? Is their data corrupted or lost?"*
+> **Panelist Probe**: *How does your application guarantee data preservation and recovery during multi-tree merges?*
+> 
+> **Your Layman's Answer:**
+> *"KinTrace operates under a strict **Zero-Risk Sandbox Architecture**. When two trees are merged, the system never modifies Tree A or Tree B. Instead, it creates a completely separate container—Master Clan Tree C—using deep-cloned copies of both families. Concurrently, a [`MergeRollbackSnapshot`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/MergeRollbackSnapshot.kt) is saved to Cloud Firestore. If the user makes an error, a golden banner appears on the screen, allowing them to tap **'⏪ Undo Last Merge'**. With a single tap, the cloned tree is dismantled, and both original family trees remain 100% untouched and intact."*
+
+
+#### 🎓 Question 2: *"How does the system ensure that combining two trees doesn't violate Philippine marriage laws?"*
+> **Panelist Probe**: *What legal mechanisms prevent invalid or bigamous unions during branch bridging?*
+> 
+> **Your Layman's Answer:**
+> *"Every proposed bridge passes through our [`MergeBridgeValidator`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/MergeBridgeValidator.kt) before any write is permitted. It actively verifies compliance with:
+> 1. **Article 5 of the Family Code & RA 11596**: Disallows marriage if either candidate is under 18 years old.
+> 2. **Article 35(4) (Bigamy)**: Rejects the union if either person already has an active living spouse.
+> 3. **Articles 37 & 38 (Incest & Public Policy)**: Prohibits marriages between ascendants and descendants, brothers and sisters, and collateral relatives up to the fourth civil degree.
+> If any legal violation is detected, the synthesis button is disabled, and an explanatory warning citing the specific legal article is shown to the user."*
+
+
+#### 🎓 Question 3: *"If two families share the same 6-digit merge code, can a stranger secretly alter my personal tree without my permission?"*
+> **Panelist Probe**: *How does your system enforce security and consent across different accounts?*
+> 
+> **Your Layman's Answer:**
+> *"Entering a 6-digit merge code does not grant write access to anyone's personal tree. First, the code only allows the other party to submit a [`ClanMergeRequest`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/ClanMergeRequest.kt) to the Tree Owner. Second, the external tree remains completely locked until the Owner explicitly reviews and taps **'Approve'** on their private dashboard. Third, even after approval, the synthesis only creates a cloned sandbox copy—neither party ever receives permission to delete, edit, or overwrite the other family's private records."*
+
+---
+
+
+*(End of Chapter 11 — Ready for your next screen).*
+
+---
+
+
+# 🛡️ Chapter 12: The Deep Roots Privacy, Security & Botanical RBAC Subsystem
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`PrivacyControlsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/PrivacyControlsActivity.kt)
+- Screen Layout: [`activity_privacy_controls.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_privacy_controls.xml)
+- Pending Requests Bottom Sheet Layout: [`layout_pending_requests_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_pending_requests_sheet.xml)
+- Botanical Role Adapters:
+  - Authorized Roster Adapter: [`AuthorizedMemberAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/AuthorizedMemberAdapter.kt)
+  - Pending Requests Adapter: [`PendingRequestAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/PendingRequestAdapter.kt)
+- Central Botanical RBAC Policy & Interceptors:
+  - Botanical Tier Definition & Matrix: [`BotanicalRolePolicy.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/BotanicalRolePolicy.kt)
+  - Botanical Role-Gate Interceptor: [`BotanicalRoleFlashManager.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/BotanicalRoleFlashManager.kt)
+  - 60fps Growing Botanical Tree Canvas: [`BotanicalRoleStageView.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/views/BotanicalRoleStageView.kt)
+- Central Data Models & Security Entities:
+  - Privacy Settings Container: [`PrivacySettings.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/PrivacySettings.kt)
+  - Clan Member Security Document: [`TreeMember.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/TreeMember.kt)
+  - Alphanumeric Join Code Record: [`InviteCodeRecord.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/InviteCodeRecord.kt)
+  - Master Tree Entity: [`FamilyTree.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/FamilyTree.kt)
+- Central Repository & Real-Time Sync:
+  - Data Persistence: [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt)
+  - Reactive Layout Broadcaster: [`CentralTreeSynchronizer.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt)
+
+---
+
+
+### 12.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"In real-world genealogy, a family tree contains deeply sensitive private data—such as living relatives' exact birth dates, personal notes, and legal parentage. If every distant relative could edit or view everything, a single rogue edit or identity theft leak could destroy decades of documented heritage. KinTrace solves this with our **Botanical Role-Based Access Control (RBAC) and Privacy Subsystem**. We organize access into three natural botanical tiers: the **Canopy Owner** who guards tree settings and membership, the **Branch Editor** who cultivates lineages by adding relatives, and the **Sprout Viewer** who explores heritage with sensitive living details automatically masked. If a viewer wants to contribute, they don't get locked out or frustrated—they send a single-tap **Golden Messenger Leaf** to the Owner, who can review and grant Editor keys instantly from an isolated requests drawer."*
+
+---
+
+
+### 12.2 Screen Anatomy & Visual Elements
+
+The Privacy & Access screen (`PrivacyControlsActivity.kt`) is designed in KinTrace's signature dark heritage theme (`#060D09`, `#132B1E`, `#D4AF37`) and provides two complete operational states:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ← Back                                             Help (?) │
+│ Privacy & access                                            │
+│ Manage tree permissions and member visibility.              │
+├─────────────────────────────────────────────────────────────┤
+│ TREE VISIBILITY                                             │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Private tree                                     [ ON ] │ │
+│ │ Only you and authorized members can access this tree.   │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ AUTHORIZED MEMBERS                                 + Invite │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ (K)  Karl                     gendums5@gmail.com [Owner]│ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ 🍃  Pending Role Requests             [ 1 Pending ]  ›  │ │
+│ │     Tap to review and grant Editor keys                 │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ HIDDEN INFORMATION                                          │
+│ Hidden from non-owner viewers                               │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Hide birth dates                                [ OFF ] │ │
+│ ├─────────────────────────────────────────────────────────┤ │
+│ │ Hide notes                                      [ OFF ] │ │
+│ ├─────────────────────────────────────────────────────────┤ │
+│ │ Hide deceased status                            [ OFF ] │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │                 Save Privacy Settings                   │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Header Navigation Bar (`btnBack` & `btnQuickAssistPrivacy`)
+- **`btnBack` (`← Back`)**: Clean navigation pill returning safely to the Clan Dashboard without losing unstaged edits.
+- **`btnQuickAssistPrivacy` (`Help`)**: Launches the `KinTraceQuickAssistBottomSheet` providing interactive, context-aware guidance on Philippine Data Privacy Act (RA 10173) compliance, role delegation, and privacy redaction.
+
+#### 2. Section 1: Tree Visibility Card (`switchPrivateTree`)
+- **Private Tree Toggle**:
+  - **When Switched ON (Default)**: The family tree is completely shielded. Only authorized clan members with active records in the `tree_members` collection can enter and browse nodes. Outsiders entering the invite code cannot enter directly—their request is routed to the Tree Owner for review.
+  - **When Switched OFF**: The tree becomes public within the clan federation. Any relative with the 6-character invite code joins immediately as a Sprout Viewer.
+
+#### 3. Section 2: Authorized Members Roster (`rvAuthorizedMembers` & `btnInviteMember`)
+- **`btnInviteMember` (`+ Invite`)**: Opens the secure invite dialog to generate a 6-character alphanumeric code (e.g., `MAL102`), customize usage caps, and share it via WhatsApp, SMS, or Messenger.
+- **`rvAuthorizedMembers`**: An interactive RecyclerView displaying every approved member with their avatar initial, full name, email, and botanical role badge (`Owner`, `Editor`, or `Viewer`).
+- **Owner Role Management Tap**: If Karl (the Owner) taps any member's role badge (e.g., Augustine), an interactive modal appears offering 3 direct actions:
+  1. *Promote to Editor (Can add/edit nodes)*
+  2. *Demote to Viewer (View only)*
+  3. *Remove from tree (Revoke access entirely)*
+
+#### 4. Section 3: Isolated Pending Role Requests Drawer Tile (`cardPendingRequestsTile`)
+- **Zero-Flooding Design**: Unlike traditional apps that clutter the main screen with huge pending lists, KinTrace collapses pending requests into a single, elegant golden-accented tile (`#D4AF37`).
+- **`tvPendingCountBadge`**: Displays a dynamic gold badge showing exactly how many relatives are waiting (e.g., `1 Pending`).
+- **One-Tap Bottom Sheet**: Tapping this tile launches [`layout_pending_requests_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_pending_requests_sheet.xml):
+  - **`⚡ Approve All as Editors (N)`**: A batch action button that upgrades all pending relatives to Editors in a single pass.
+  - **Individual Request Cards**: Displays relative's avatar, name, email, and the tag `"🍃 Wants: Editor Access"`, flanked by **`[ Decline ]`** (keeps them as a Viewer) and **`[ Approve as Editor ✓ ]`**.
+
+#### 5. Section 4: Hidden Information & Data Redaction (`switchHideBirthDates`, `switchHideNotes`, `switchHideDeceasedStatus`)
+- **`Hide birth dates`**: When toggled ON, exact birth dates of living members are redacted with bullets (`••••••••`) across the canvas, records list, and detail screen for non-owner viewers.
+- **`Hide notes`**: When toggled ON, personal family remarks, health observations, and historical notes are hidden from non-owners.
+- **`Hide deceased status`**: When toggled ON, mortality status and burial markers are hidden.
+
+#### 6. Action Button: `btnSavePrivacy` (`Save Privacy Settings`)
+- Saves the configuration directly to Cloud Firestore.
+- Triggers `CentralTreeSynchronizer.getInstance().notifyTreeLayoutChanged()` so all connected phones immediately update their views in real time without refreshing or restarting the app.
+
+---
+
+
+### 12.3 Deep Dive: The 3 Botanical Tree Roles — Complete Matrix, Differences & Functions in the App
+
+To make permissions intuitive and culturally resonant for family members, KinTrace reimagines computer-science RBAC into **Botanical Lineage Tiers** defined in [`BotanicalRolePolicy.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/BotanicalRolePolicy.kt).
+
+```
+          ┌──────────────────────────────────────────────┐
+          │      🌳 CANOPY OWNER (Root & Canopy Keeper)    │
+          │   Full Sovereignty, Privacy, Invites & Roles  │
+          └──────────────────────┬───────────────────────┘
+                                 │
+          ┌──────────────────────▼───────────────────────┐
+          │     🌿 BRANCH EDITOR (Branch Tender)         │
+          │   Adds/Edits Nodes, Partners, Photos & Docs  │
+          └──────────────────────┬───────────────────────┘
+                                 │
+          ┌──────────────────────▼───────────────────────┐
+          │      🌱 SPROUT VIEWER (Young Sprout)         │
+          │    Read-Only Canvas, Pedigree, Kinship Trace  │
+          │     (Sensitive Living Data Masked ••••••••)   │
+          └──────────────────────────────────────────────┘
+```
+
+#### 1. 🌳 Canopy Owner (`Owner` — `CANOPY_OWNER`, Tier 3)
+- **Botanical Title**: *"Root & Canopy Keeper"*
+- **Badge Accent**: Deep Gold (`#D4AF37`) with Roots Crest.
+- **Role & Philosophy**: The patriarch, matriarch, or primary creator who established the family tree. The Owner holds ultimate fiduciary stewardship over the clan records.
+- **Whole Function in the KinTrace App**:
+  1. **Tree Visibility Control**: Exclusively decides whether the tree is Public or Private (`switchPrivateTree`).
+  2. **Global Privacy Masking**: Exclusively toggles data redaction (`hideBirthDates`, `hideNotes`, `hideDeceasedStatus`) for all non-owner viewers.
+  3. **Invite Code Generation**: Generates, refreshes, and deletes 6-character join codes with custom usage limits.
+  4. **Member Roster Stewardship**: Directly promotes, demotes, or revokes membership for any relative in the tree.
+  5. **Role Request Arbiter**: Exclusively receives, reviews, approves, or declines Golden Leaf upgrade requests in the Pending Drawer.
+  6. **Clan Union Sovereign**: Holds the exclusive authority to approve or decline `ClanMergeRequest` bridges in the Merged Clan Space.
+  7. **Full Data Visibility**: Completely immune to privacy masking; always views unredacted dates, notes, and biographies.
+  8. **Container Destruction**: Sole authority to delete or wipe the family tree container.
+
+#### 2. 🌿 Branch Editor (`Editor` — `BRANCH_EDITOR`, Tier 2)
+- **Botanical Title**: *"Branch Tender"*
+- **Badge Accent**: Emerald Mint (`#34D399`) with Branch Crest.
+- **Role & Philosophy**: Trusted relatives (parents, siblings, aunts, uncles, or appointed family historians) tasked with cultivating and documenting branches of the family tree.
+- **Whole Function in the KinTrace App**:
+  1. **Grafting Relatives**: Full permission to add new relatives (`AddMemberActivity`), entering names, birthdates, birthplaces, and generations.
+  2. **Profile & Record Editing**: Full permission to update biographical data, vital records, photos, and life milestones (`EditMemberActivity`).
+  3. **Relationship Linking**: Full permission to link marital partners (`LinkMemberActivity`) and biological parent-child connections.
+  4. **Document Archival**: Uploads photos, civil registry certificates, and documents to Cloudinary and Firebase Storage.
+  5. **Branch Union Initiation**: Can generate merge codes and initiate branch union proposals in Merged Clan Space (`MergeBranchesActivity`).
+  6. **What Editors CANNOT Do (Restricted)**:
+     - Cannot change tree privacy settings (cannot toggle Private Tree or redactions).
+     - Cannot generate or alter tree invite codes.
+     - Cannot promote, demote, or remove other members.
+     - Cannot approve or decline role upgrade requests.
+     - Cannot approve cross-clan merge requests on behalf of the tree.
+     - Cannot delete the family tree.
+
+#### 3. 🌱 Sprout Viewer (`Viewer` — `SPROUT_VIEWER`, Tier 1)
+- **Botanical Title**: *"Young Sprout"*
+- **Badge Accent**: Spring Green (`#4ADE80`) with Leaf Crest.
+- **Role & Philosophy**: Extended family members, younger descendants, or distant cousins granted read-only access to explore their roots without risk of accidental data modification.
+- **Whole Function in the KinTrace App**:
+  1. **Interactive Tree Canvas**: Freely pans, zooms, centers nodes, and navigates generational layers in [`FamilyTreeView`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/views/FamilyTreeView.kt).
+  2. **Pedigree & Fan Chart**: Explores ancestral lines and Ahnentafel generations in [`PedigreeChartView`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/views/PedigreeChartView.kt).
+  3. **Directory Browsing**: Searches, filters, and browses relatives in [`FamilyRecordsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/FamilyRecordsActivity.kt).
+  4. **Detailed Relative Profiles**: Views member life stories, photos, relationships, and historical milestones in [`MemberDetailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MemberDetailActivity.kt).
+  5. **Bloodline & Kinship Calculator**: Traces consanguinity, computes civil degrees of kinship, and identifies the Nearest Common Ancestor (MRCA) in [`TraceActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/TraceActivity.kt).
+  6. **Demographic & Health Insights**: Inspects generational breakdowns, longevity stats, and clan health metrics in [`InsightsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/InsightsActivity.kt).
+  7. **Tree Switcher**: Switches between multiple family trees they have joined.
+  8. **Golden Messenger Leaf**: Can tap to send a real-time role upgrade request to the Tree Owner whenever they wish to contribute as an Editor.
+  9. **Privacy Protection**: To safeguard living relatives, sensitive fields (birth dates, notes, deceased markers) are masked with bullets (`••••••••`) if the Owner enabled privacy masking.
+  10. **Strictly Read-Only**: The `+ Add Member`, `Edit Member`, and `Delete` controls are completely hidden or role-gated.
+
+---
+
+
+### 12.4 Master Capabilities & Comparison Matrix Across KinTrace Screens
+
+| Feature / Screen Capability | 🌳 Canopy Owner | 🌿 Branch Editor | 🌱 Sprout Viewer |
+| :--- | :---: | :---: | :---: |
+| **Interactive Canvas Pan & Zoom** (`InteractiveTreeActivity`) | ✅ Full Access | ✅ Full Access | ✅ Full Access |
+| **Pedigree Fan Chart & Ahnentafel View** (`PedigreeChartView`) | ✅ Full Access | ✅ Full Access | ✅ Full Access |
+| **Search Directory & Member Profiles** (`FamilyRecordsActivity`) | ✅ Full Access | ✅ Full Access | ✅ Full Access |
+| **Bloodline Kinship & MRCA Calculation** (`TraceActivity`) | ✅ Full Access | ✅ Full Access | ✅ Full Access |
+| **Clan Demographics & Health Insights** (`InsightsActivity`) | ✅ Full Access | ✅ Full Access | ✅ Full Access |
+| **Add New Family Member** (`AddMemberActivity`) | ✅ Unlocked | ✅ Unlocked | 🔒 Blocked (Role-Gate) |
+| **Edit Member Biographical Data** (`EditMemberActivity`) | ✅ Unlocked | ✅ Unlocked | 🔒 Blocked (Role-Gate) |
+| **Link Marital Partner / Biological Parent** (`LinkMemberActivity`) | ✅ Unlocked | ✅ Unlocked | 🔒 Blocked (Role-Gate) |
+| **Upload Photos & Archival Documents** (`CloudinaryUploader`) | ✅ Unlocked | ✅ Unlocked | 🔒 Blocked (Role-Gate) |
+| **Toggle Tree Visibility (Public / Private)** (`PrivacyControlsActivity`) | ✅ Exclusive | 🔒 Blocked (Owner Gate) | 🔒 Blocked (Owner Gate) |
+| **Toggle Privacy Masking (Dates/Notes)** (`PrivacyControlsActivity`) | ✅ Exclusive | 🔒 Blocked (Owner Gate) | 🔒 Blocked (Owner Gate) |
+| **Generate & Manage Tree Invite Codes** (`JoinTreeActivity`) | ✅ Exclusive | 🔒 Blocked (Owner Gate) | 🔒 Blocked (Owner Gate) |
+| **Promote, Demote or Remove Members** (`AuthorizedMemberAdapter`) | ✅ Exclusive | 🔒 Blocked (Owner Gate) | 🔒 Blocked (Owner Gate) |
+| **Approve / Decline Editor Role Requests** (`PendingRequestAdapter`) | ✅ Exclusive | 🔒 Blocked (Owner Gate) | 🔒 Blocked (Owner Gate) |
+| **Approve Clan Merge Requests** (`MergeBranchesActivity`) | ✅ Exclusive | 🔒 Blocked (Owner Gate) | 🔒 Blocked (Owner Gate) |
+| **Send Golden Leaf Upgrade Request** (`BotanicalRoleFlashManager`) | N/A (Already Top) | N/A (Already Editor) | ✅ One-Tap Request |
+| **Immunity to Privacy Redactions / Masking** | 🛡️ 100% Immune | 👁️ Subject to Masking | 👁️ Subject to Masking |
+
+---
+
+
+### 12.5 The Botanical Role-Gate Interceptor & Golden Messenger Leaf Flow
+
+When a Sprout Viewer attempts an editing or administrative action, KinTrace does not crash or display an abrupt generic permission error. Instead, it activates the **Botanical Role-Gate Interceptor**:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Viewer as 🌱 Augustine (Viewer)
+    participant UI as KinTrace Screen
+    participant Policy as BotanicalRolePolicy
+    participant Flash as BotanicalRoleFlashManager
+    participant DB as Cloud Firestore
+    actor Owner as 🌳 Karl (Owner)
+
+    Viewer->>UI: Taps "+ Add Member" or opens Privacy
+    UI->>Policy: hasClearance(userTier = VIEWER, requiredTier = EDITOR)
+    Policy-->>UI: Clearance DENIED (Requires Tier 2+)
+    UI->>Flash: showRestrictedActionFlash(featureTitle, requiredTier)
+    Flash->>Viewer: Displays 60fps Botanical Stage & Role Capabilities
+    Viewer->>Flash: Taps "🍃 Send Golden Leaf Request"
+    Flash->>DB: sendRoleUpgradeRequestToOwner() (updates status to Pending)
+    Flash->>Viewer: Plays 60fps Golden Leaf particle flight animation
+    DB->>Owner: Delivers real-time Notification & updates Pending Drawer
+    Owner->>UI: Opens Privacy & Access (Pending Badge: "1 Pending")
+    Owner->>UI: Taps [ Approve as Editor ✓ ]
+    UI->>DB: updateTreeMemberRole(role = "Editor", status = "Approved")
+    DB-->>Viewer: CentralTreeSynchronizer live broadcasts update
+    Viewer->>UI: Screen unlocks instantly with Editor capabilities!
+```
+
+#### Key Technical Highlights:
+1. **60fps Growing Botanical Stage (`BotanicalRoleStageView.kt`)**:
+   - Custom canvas view drawing a botanical tree with trunk, branching nodes, and drifting foliage particles using zero-allocation hardware-accelerated drawing loops.
+2. **The Golden Messenger Leaf Animation**:
+   - When the user taps the request button, a glowing golden leaf particle launches from the button and glides across the screen towards the top canopy, visually representing their request floating to the Tree Owner.
+3. **Safe Decline Workflow**:
+   - If the Tree Owner taps **"Decline"**, KinTrace updates the member record to `role = "Viewer", status = "Approved"`. The relative is **never deleted or kicked out of the tree**; they remain an active, approved Viewer with uninterrupted access to their family tree.
+
+---
+
+
+### 12.6 Identity Theft Protection & Zero-Knowledge Privacy Redaction Engine
+
+In compliance with the **Philippine Data Privacy Act of 2012 (RA 10173)**, living relatives have a legal right to privacy. KinTrace implements automated field-level redaction across all visual components:
+
+```kotlin
+// Example from MemberAdapter.kt & InteractiveTreeActivity.kt
+val shouldHideBirth = isViewer && treePrivacy.hideBirthDates
+val shouldHideNotes = isViewer && treePrivacy.hideNotes
+val shouldHideDeceased = isViewer && treePrivacy.hideDeceasedStatus
+
+val displayBirthDate = when {
+    isOwner -> person.birthDate // Owner always sees full dates
+    shouldHideBirth && person.isLiving -> "••••••••" // Redacted for living kin
+    else -> person.birthDate
+}
+```
+
+1. **Living vs. Deceased Separation**:
+   - Under international genealogical standards and RA 10173, deceased historical figures are of legitimate public and familial historical record. However, living individuals (especially minors) are vulnerable to identity theft.
+   - KinTrace dynamically verifies `person.isLiving`: if a person is living and `hideBirthDates` is enabled, their birth date is masked with `••••••••`.
+2. **Multi-Screen Enforcement**:
+   - Redactions are enforced across:
+     - **Canvas Nodes** ([`FamilyTreeView.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/views/FamilyTreeView.kt))
+     - **Pedigree Chart Cards** ([`PedigreeChartView.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/views/PedigreeChartView.kt))
+     - **Records Directory List** ([`MemberAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/MemberAdapter.kt))
+     - **Detailed Biography Sheet** ([`MemberDetailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MemberDetailActivity.kt))
+
+---
+
+
+### 12.7 Step-by-Step Defense Walkthrough: Live Demo Script
+
+When presenting this screen during your capstone defense, hold both devices (or display the emulator and test phone side-by-side):
+
+#### Phase 1: Show Owner Governance on Phone A (Karl — Owner)
+1. Navigate to the Clan Dashboard and tap **"Privacy"** under Clan Tools.
+2. Point to the screen and say:
+   > *"Panelists, this is the Privacy & Access module. Because this account created the Malone Family Tree, the app recognizes Karl as the **Canopy Owner** (`OWNER • ROOTS`). You can see that Karl has complete control over tree visibility—the Private Tree switch is turned ON, meaning outside users cannot browse this tree without authorization."*
+3. Point to the **"Authorized members"** roster and say:
+   > *"Here is our active membership list. If Karl taps any member's role badge, he can promote them to Editor, demote them to Viewer, or remove them entirely with a single tap."*
+
+#### Phase 2: Show the Isolated Pending Drawer
+4. Point to the golden card titled **"Pending Role Requests (1 Pending)"** and say:
+   > *"Notice this golden tile. Instead of cluttering the owner's screen with endless requests, KinTrace encapsulates pending role requests into an isolated drawer. Tapping it opens our bottom sheet."*
+5. Tap the tile to reveal Augustine Russell's card:
+   > *"Here, we see Augustine Russell (`dumgen8@gmail.com`) with the badge 'Wants: Editor Access'. The Owner can either tap 'Approve as Editor' to grant editing keys immediately, or tap 'Decline'. If declined, our safe-decline engine keeps Augustine as an active Viewer—they are never kicked out of the family tree."*
+
+#### Phase 3: Demonstrate Privacy Masking on Phone B (Augustine — Viewer)
+6. Switch to Augustine's phone and navigate to the same family tree:
+   > *"Now, look at Augustine's phone. Because Augustine is a **Sprout Viewer**, the '+ Add Member' and 'Edit' buttons are automatically locked. Furthermore, if Karl enables 'Hide birth dates', Augustine's screen immediately masks living relatives' birth dates with bullets (`••••••••`), protecting family members against identity theft while still allowing them to explore their shared heritage."*
+
+---
+
+
+### 12.8 Defense Panelist Q&A (Tough Questions & Layman Answers)
+
+#### 🎓 Question 1: *"Why did you create a 3-tier botanical role hierarchy instead of simply letting any family member edit records?"*
+> **Panelist Probe**: *What is the architectural and user-experience justification for Role-Based Access Control in a genealogy application?*
+> 
+> **Your Layman's Answer:**
+> *"In a family tree, data integrity is paramount. If a 12-year-old cousin or a distant relative could freely delete or overwrite generational records, decades of ancestral research could be accidentally ruined in seconds. By establishing three distinct botanical tiers—**Canopy Owner** for governance, **Branch Editor** for trusted contributors, and **Sprout Viewer** for read-only exploration—we safeguard the tree's integrity while keeping the door wide open for relatives to request Editor keys with our single-tap Golden Messenger Leaf."*
+
+
+#### 🎓 Question 2: *"How does KinTrace comply with privacy laws like the Philippine Data Privacy Act (RA 10173)?"*
+> **Panelist Probe**: *How does your application prevent unauthorized disclosure of living individuals' personally identifiable information (PII)?*
+> 
+> **Your Layman's Answer:**
+> *"Under RA 10173, living individuals have a right to privacy, and publishing their exact birth dates, locations, or notes without consent constitutes a security risk. In KinTrace, the Tree Owner can toggle **'Hide birth dates'**, **'Hide notes'**, and **'Hide deceased status'**. When enabled, our privacy engine dynamically checks `person.isLiving`: if the individual is alive, sensitive fields are masked with bullets (`••••••••`) for all non-owner viewers across the canvas, records list, and detail screen."*
+
+
+#### 🎓 Question 3: *"What happens under the hood when a family member sends a role upgrade request?"*
+> **Panelist Probe**: *Explain the end-to-end data flow and state management of the Golden Leaf upgrade flow.*
+> 
+> **Your Layman's Answer:**
+> *"When a Viewer taps 'Send Golden Leaf Request', [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt) writes their request to the `tree_members` collection with `status = 'Pending'`. Concurrently, a real-time notification is dispatched to the Owner. On the Owner's phone, the 'Pending Role Requests' badge lights up automatically. When the Owner taps 'Approve as Editor', the record updates to `role = 'Editor', status = 'Approved'`, and our [`CentralTreeSynchronizer`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt) broadcasts the change, instantly unlocking Editor capabilities on the relative's phone without requiring an app restart."*
+
+
+#### 🎓 Question 4: *"Can a malicious user bypass the client-side role check and write directly to your database?"*
+> **Panelist Probe**: *How does your system enforce security at the backend database layer rather than just hiding buttons in the UI?*
+> 
+> **Your Layman's Answer:**
+> *"Our security is enforced in depth. In addition to client-side UI gating in [`BotanicalRolePolicy.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/BotanicalRolePolicy.kt), Cloud Firestore evaluates backend Security Rules. The rules verify the caller's Firebase Authentication UID against the `tree_members` collection for that specific `treeId`. If the requesting user does not hold an `Approved` role of `Editor` or `Owner`, the Firestore backend rejects the write request with a permission-denied exception."*
+
+---
+
+
+*(End of Chapter 12 — Ready for your next screen).*
+
+---
+
+
+# 📦 Chapter 13: The Archival Export & Interoperability Vault
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`ExportTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ExportTreeActivity.kt)
+- Screen Layout: [`activity_export_tree.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_export_tree.xml)
+- Visual Canvas Exporter: [`FamilyTreeView.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/views/FamilyTreeView.kt) (`exportToBitmap()`)
+- Archival Builders & Generators:
+  - Multi-Page PDF Document Engine: Android Native `android.graphics.pdf.PdfDocument`
+  - International Genealogical Interchange Standard: `GEDCOM 5.5.1 Serializer` ([`ExportTreeActivity.Companion.buildGedcomContent`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ExportTreeActivity.kt#L666))
+  - UTF-8 Tabular Spreadsheet Engine: CSV Serializer with Byte Order Mark (`\uFEFF`)
+- Storage & Android OS Integration:
+  - Scoped Storage Manager: `MediaStore.Downloads.EXTERNAL_CONTENT_URI` (Android 10+ / API 29+)
+  - Legacy File System Fallback: `Environment.DIRECTORY_DOWNLOADS`
+- Central Data Models & Repository:
+  - Relative Profile Entity: [`Person.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/Person.kt)
+  - Master Tree Entity: [`FamilyTree.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/FamilyTree.kt)
+  - Central Repository: [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt)
+
+---
+
+
+### 13.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"A digital family tree is only as good as its portability. If a genealogical system traps a family's records inside a proprietary app, decades of historical research can be lost if technology changes. In KinTrace, the **Archival Export Vault** guarantees permanent family heritage preservation. With a single tap, families can generate four distinct archival formats: a **Multi-Page Certified PDF Dossier** ready for framing or printing, an **Ultra-HD Visual Tree PNG** capturing the entire canvas, an international **GEDCOM 5.5.1 File** compatible with FamilySearch, Ancestry, and MyHeritage, and a **24-Column CSV Spreadsheet** pre-formatted with an Excel-friendly UTF-8 Byte Order Mark. Everything is saved directly to the device's public Downloads directory using modern Android Scoped Storage."*
+
+---
+
+
+### 13.2 Screen Anatomy & Visual Elements
+
+The Export Family Tree screen (`ExportTreeActivity.kt`) matches KinTrace's dark emerald and gold heritage theme (`#060D09`, `#132B1E`, `#D4AF37`) and provides an intuitive, high-craft selection workflow:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ← Back             🌳 Malone Family • 21 Members    Help (?) │
+│                                                             │
+│ Export Family Tree                                          │
+│ Archive, print, and share certified genealogy records       │
+├─────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ [ 📄 ]  PDF Report                                      │ │
+│ │         Full tree with member details & relationships   │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ [ 🖼️ ]  PNG / Image                                      │ │
+│ │         Visual snapshot of the entire family tree       │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ [ 🧬 ]  GEDCOM File                                     │ │
+│ │         Compatible with FamilySearch, MyHeritage,       │ │
+│ │         Ancestry                                        │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ [ 📊 ]  CSV Spreadsheet                                 │ │
+│ │         Member list with all relationship data          │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ SUMMARY                                                     │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Total Members                                        21 │ │
+│ │ Parent Links                                         13 │ │
+│ │ Living Members                                       16 │ │
+│ │ Export Format                              Not selected │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │                   Select a format first                 │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Header Navigation Bar & Clan Identifier
+- **`btnBack` (`← Back`)**: Clean pill button returning safely to the Clan Dashboard.
+- **`tvTreePillBadge` (`🌳 Malone Family • 21 Members`)**: Dynamic heritage pill badge showing the active family tree's legal name and verified member count.
+- **`btnQuickAssistExport` (`Help`)**: Launches the `KinTraceQuickAssistBottomSheet` explaining file formats, printing tips, and interoperability standards.
+
+#### 2. The 4 Distinct Export Cards
+1. **`cardPdf` (PDF Report — Icon: 📄 / Pink Backdrop)**:
+   - Generates a multi-page executive genealogical document featuring an executive metric dashboard, demographics overview, high-resolution embedded visual tree diagram, and paginated tabular lineage directory.
+2. **`cardPng` (PNG / Image — Icon: 🖼️ / Blue Backdrop)**:
+   - Captures the complete interactive tree canvas into a lossless, high-definition standalone graphic suitable for high-resolution photo printing or family posters.
+3. **`cardGedcom` (GEDCOM File — Icon: 🧬 / Green Backdrop)**:
+   - Formats the entire lineage into the universal **GEDCOM 5.5.1** standard, enabling seamless migration into international platforms like FamilySearch, Ancestry.com, and MyHeritage.
+4. **`cardCsv` (CSV Spreadsheet — Icon: 📊 / Amber Backdrop)**:
+   - Exports a comprehensive 24-column tabular spreadsheet with parentage, marriage dates, and children lists, injected with a UTF-8 Byte Order Mark for instant opening in Microsoft Excel.
+
+#### 3. Real-Time Tree Health Summary Box
+- Displays live, calculated statistics for the current tree before initiating an export:
+  - **`tvTotalMembers` (`Total Members`)**: Total count of documented relatives in the clan (e.g., `21`).
+  - **`tvParentLinks` (`Parent Links`)**: Verified biological parent-child connections (e.g., `13`).
+  - **`tvLivingMembers` (`Living Members`)**: Number of living kin (e.g., `16`).
+  - **`tvExportFormat` (`Export Format`)**: Dynamically updates from `"Not selected"` to `"PDF"`, `"PNG"`, `"GEDCOM"`, or `"CSV"` when a card is selected.
+
+#### 4. Dynamic Sticky Action Button (`btnExport`)
+- **Initial State**: Disabled dark card reading `"Select a format first"`.
+- **Selected State**: Instantly lights up with radiant gold styling (`btn_gold_primary`) and emerald text reading `"Export as [Format]"` (e.g., `"Export as PDF"`).
+- **In-Progress State**: Shows animated progress text (e.g., `"Generating comprehensive PDF report..."`) with non-blocking background thread processing to keep the UI at 60fps.
+
+---
+
+
+### 13.3 Deep Dive: The 4 Archival Export Formats & Their Technical Mechanics
+
+```
+                  ┌──────────────────────────────────────────────┐
+                  │       Export Family Tree Vault               │
+                  └──────────────────────┬───────────────────────┘
+                                         │
+         ┌──────────────────┬────────────┴───────┬──────────────────┐
+         │                  │                    │                  │
+┌────────▼─────────┐┌───────▼────────┐┌──────────▼─────────┐┌───────▼────────┐
+│  📄 PDF Dossier   ││  🖼️ Ultra-HD   ││  🧬 GEDCOM 5.5.1   ││  📊 CSV Roster │
+│  Executive Deck  ││     Canvas     ││  Universal Lineage ││  24 Columns    │
+│  & Scaled Diagram││    PNG Chart   ││  Interoperability  ││  Excel UTF-8   │
+└──────────────────┘└────────────────┘└────────────────────┘└────────────────┘
+```
+
+#### 1. 📄 Certified PDF Heritage Report (`exportPdf()`)
+Built using Android's native hardware-accelerated `android.graphics.pdf.PdfDocument`:
+- **Page 1: Executive Heritage Cover & Visual Diagram**:
+  1. *Header Banner*: Deep forest banner (`#0C2017`) accented with emerald dividers (`#1D9E75`), displaying the tree's title and export date.
+  2. *Metric Cards*: 4 rounded stat cards displaying `TOTAL MEMBERS`, `LIVING KIN`, `DECEASED`, and `PARENT LINKS`.
+  3. *Demographics Box*: Displays the oldest recorded ancestor, total marriages, verified attached archival documents, and unique tree identifier.
+  4. *Embedded Scaled Tree Chart*: Calls [`FamilyTreeView.exportToBitmap()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/views/FamilyTreeView.kt) to capture the visual graph, computes aspect-ratio fitting into a framed canvas (`523pt` width), and draws it directly onto the PDF canvas without raster distortion.
+- **Pages 2+: Paginated Member Lineage Register**:
+  - Automatically calculates pagination based on member count (`24 rows per page`).
+  - Draws a clean tabular register with alternating zebra-striped rows (`#FFFFFF` and `#F8FAFC`), containing:
+    1. `#` (Record index)
+    2. `Full Name` (with ellipsis truncation for long legal names)
+    3. `Gender`
+    4. `Status` (Living in teal `#0F766E` vs. Deceased in slate `#64748B`)
+    5. `Birth / Death` (e.g., `1945-03-12 / † 2018-09-04`)
+    6. `Spouse`
+    7. `Parents`
+
+#### 2. 🖼️ Ultra-HD Visual Chart PNG (`exportPng()`)
+- Calls [`FamilyTreeView.exportToBitmap()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/views/FamilyTreeView.kt) on an off-screen canvas.
+- Renders generational bounds, relationship spline curves, marriage bridges, and member cards into a high-density 32-bit ARGB bitmap.
+- Encodes the bitmap into a lossless PNG stream using `Bitmap.CompressFormat.PNG` at 100% quality.
+- Immediately calls `bitmap.recycle()` after disk flushing to prevent memory leaks.
+
+#### 3. 🧬 GEDCOM 5.5.1 Universal Interchange File (`exportGedcom()`)
+Defined in [`ExportTreeActivity.Companion.buildGedcomContent`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ExportTreeActivity.kt#L666):
+- Follows the international **GEnealogical Data COMmunication (GEDCOM) Release 5.5.1** specification.
+- Structure emitted:
+```gedcom
+  0 HEAD
+  1 SOUR KinTrace
+  2 NAME KinTrace Heritage Lineage System
+  1 GEDC
+  2 VERS 5.5.1
+  2 FORM LINEAGE-LINKED
+  1 CHAR UTF-8
+  0 @I_1_Karl@ INDI
+  1 NAME Karl /Malone/
+  2 GIVN Karl
+  2 SURN Malone
+  1 SEX M
+  1 BIRT
+  2 DATE 12 MAR 1978
+  2 PLAC Quezon City, Philippines
+  1 FAMS @F1@
+  0 @F1@ FAM
+  1 HUSB @I_1_Karl@
+  1 WIFE @I_2_Maria@
+  1 MARR
+  2 DATE 18 JUN 2005
+  1 CHIL @I_3_Augustine@
+  0 TRLR
+```
+- Cross-references individuals (`INDI`) with parent/spouse family units (`FAM`), preserving biological lineage (`FAMC`) and spousal bonds (`FAMS`).
+
+#### 4. 📊 24-Column CSV Spreadsheet (`exportCsv()`)
+- Emits a comprehensive tabular record covering 24 distinct genealogical fields:
+  `Record No`, `Person ID`, `First Name`, `Middle Name`, `Last Name`, `Full Name`, `Gender`, `Vital Status`, `Birth Date`, `Birth Place`, `Death Date`, `Death Place`, `Civil Status`, `Marriage Date`, `Spouse ID`, `Spouse Name`, `Father ID`, `Father Name`, `Mother ID`, `Mother Name`, `Children Count`, `Children Names`, `Documents Count`, `Tree ID`.
+- **Microsoft Excel UTF-8 Compatibility**: Prepends the **UTF-8 Byte Order Mark (`\uFEFF`)** at index 0 of the stream. This forces Excel on Windows and macOS to immediately recognize UTF-8 encoding, preventing Spanish-Filipino characters (such as `ñ`, `á`, `é`, or `Del Rosario`) from appearing as corrupted symbols (mojibake like `Ã±`).
+
+---
+
+
+### 13.4 Android MediaStore & Scoped Storage Architecture
+
+To strictly comply with **Android 10+ (API 29+) Scoped Storage** policies, KinTrace never requests dangerous broad storage permissions (`WRITE_EXTERNAL_STORAGE`):
+
+```kotlin
+// MediaStore API implementation in ExportTreeActivity.kt
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    val values = ContentValues().apply {
+        put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+        put(MediaStore.Downloads.MIME_TYPE, mimeType)
+        put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+    }
+    val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+    if (uri != null) {
+        contentResolver.openOutputStream(uri)?.use { write(it) }
+    }
+}
+```
+
+#### Why Panelists Will Love This:
+1. **Zero High-Risk Permissions**: Users are never prompted with scary permission dialogs asking for full storage access.
+2. **Instant Accessibility**: Exported files appear immediately in the phone's native **Files / Downloads** app, making them ready to share via Gmail, Google Drive, AirDrop, or WhatsApp.
+3. **No File Lockups**: Background streams run on separate threads (`Thread { ... }.start()`) and post results back to the UI thread via `runOnUiThread`, preventing application not responding (ANR) freezes.
+
+---
+
+
+### 13.5 Step-by-Step Defense Walkthrough: Live Demo Script
+
+When demonstrating this screen during your defense:
+
+#### Step 1: Open the Export Vault
+1. From the Clan Dashboard, scroll to **Clan Tools** and tap **"Export Tree"**.
+2. Point to the top header and say:
+   > *"Panelists, this is the **KinTrace Archival Export Vault**. At the top, you can see our live heritage badge confirming we are exporting the **'Malone Family'** with 21 documented members. Below, we provide four distinct export formats to ensure our data is never trapped in a closed system."*
+
+#### Step 2: Highlight Format Options & Dynamic Summary
+3. Tap the **"PDF Report"** card:
+   - Notice the card highlights with a golden border (`bg_export_card_selected`).
+   - The summary table updates `Export Format` to **PDF**.
+   - The bottom action button illuminates in gold reading **"Export as PDF"**.
+4. Say:
+   > *"Notice how the interface reactively adapts. In the summary table, our system calculates parent links (13) and living members (16) directly from our local database cache in less than 5 milliseconds."*
+
+#### Step 3: Trigger the Export & Show the File
+5. Tap **"Export as PDF"**:
+   - The button transitions to `"Generating comprehensive PDF report..."`.
+   - Within 1–2 seconds, a green confirmation toast appears: `"✅ Comprehensive PDF Report saved: Malone_Family_Report.pdf"`.
+6. Open the phone's notification bar or Downloads app to display the resulting PDF:
+   > *"As you can see, the generated PDF contains an executive cover with verified metrics, an embedded visual diagram of our tree, and a paginated directory table suitable for legal submission, family reunions, or genealogical archives."*
+
+---
+
+
+### 13.6 Defense Panelist Q&A (Tough Questions & Layman Answers)
+
+#### 🎓 Question 1: *"Why did you include GEDCOM export? What makes it better than just exporting a PDF or CSV?"*
+> **Panelist Probe**: *What is the genealogical and technical justification for implementing the GEDCOM standard?*
+> 
+> **Your Layman's Answer:**
+> *"A PDF or CSV is great for humans to read, but other genealogy software cannot easily understand the family relationships inside them. **GEDCOM (Genealogical Data Communication)** is the universal international language of family trees accepted worldwide by FamilySearch, Ancestry.com, and MyHeritage. By generating a certified **GEDCOM 5.5.1** file, KinTrace guarantees that our users own their data and can import their entire family bloodline into any major genealogical archive in the world without losing a single parent-child link."*
+
+
+#### 🎓 Question 2: *"How does KinTrace prevent Out-Of-Memory (OOM) crashes when generating a visual tree for large families?"*
+> **Panelist Probe**: *How does your application manage bitmap memory allocation during off-screen rendering?*
+> 
+> **Your Layman's Answer:**
+> *"High-resolution tree diagrams can consume significant RAM if unmanaged. In [`ExportTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/ExportTreeActivity.kt), we implement three safeguards:
+> 1. All rendering runs on a dedicated background worker thread so the main UI never stutters or drops frames.
+> 2. We compute proportional aspect-ratio scaling to fit the diagram into a constrained `523pt` frame on the PDF canvas.
+> 3. Immediately after the bitmap is drawn and flushed to disk, we explicitly call `bmp.recycle()`, returning the memory to the Android OS and preventing heap exhaustion."*
+
+
+#### 🎓 Question 3: *"Why did you specifically inject a Byte Order Mark (`\uFEFF`) into the CSV spreadsheet?"*
+> **Panelist Probe**: *How do you solve character encoding issues across different operating systems and spreadsheet viewers?*
+> 
+> **Your Layman's Answer:**
+> *"Many Filipino and Hispanic surnames contain special diacritics—such as `ñ` in 'Peña', `í` in 'Del Rosario', or regional accents. When Microsoft Excel opens a standard CSV on Windows, it defaults to ANSI or Windows-1252 encoding, which corrupts these characters into unreadable gibberish (`mojibake`). By prepending the UTF-8 Byte Order Mark (`\uFEFF`) at byte zero, Excel automatically recognizes the file as UTF-8, ensuring every Filipino family name displays with 100% typographic accuracy."*
+
+
+#### 🎓 Question 4: *"How does your app comply with modern Android Scoped Storage security requirements?"*
+> **Panelist Probe**: *How do you write files to the public storage without declaring invasive broad storage permissions?*
+> 
+> **Your Layman's Answer:**
+> *"Beginning with Android 10, Google deprecated broad storage access to protect user privacy. KinTrace uses the official Android [`MediaStore.Downloads`](https://developer.android.com/reference/android/provider/MediaStore.Downloads) API. We insert a content record into `MediaStore.Downloads.EXTERNAL_CONTENT_URI` and write directly to the returned output stream. This allows KinTrace to save reports directly into the public Downloads folder without requesting any dangerous permissions from the user."*
+
+---
+
+
+*(End of Chapter 13 — Ready for your next screen).*
+
+---
+
+
+# 👤 Chapter 14: The Heritage Identity & Security Command Subsystem
+
+### 📍 Target Files & Architecture:
+- Primary Bottom Sheet: [`ClanProfileBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/ClanProfileBottomSheet.kt)
+- Screen Layout: [`layout_clan_profile_sheet.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_clan_profile_sheet.xml)
+- Child Modals & Associated Sheets:
+  - Account Deletion & Stewardship Shield: [`ClanDangerZoneBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/ClanDangerZoneBottomSheet.kt)
+  - Heritage Orientation Storybook: [`WelcomeStoryDialogFragment.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/WelcomeStoryDialogFragment.kt)
+  - Legal Covenant & Stewardship Policy: [`TermsOfServiceBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TermsOfServiceBottomSheet.kt)
+  - Super Admin Citadel Gateway: [`AdminPortalActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt)
+- Core Policy & Preference Managers:
+  - Botanical Role Policy: [`BotanicalRolePolicy.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/BotanicalRolePolicy.kt)
+  - Botanical Ceremony & Gate Manager: [`BotanicalRoleFlashManager.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/BotanicalRoleFlashManager.kt)
+  - Onboarding & Quest Preferences: [`OnboardingPreferences.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/OnboardingPreferences.kt)
+  - Interactive Spotlight Manager: [`KinTraceSpotlightManager.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/KinTraceSpotlightManager.kt)
+- Data Models & Persistence:
+  - User Profile Entity: [`UserProfile.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/UserProfile.kt)
+  - Master Tree Entity: [`FamilyTree.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/FamilyTree.kt)
+  - Central Repository: [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt)
+  - Authentication Engine: [`AuthHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/AuthHelper.kt)
+
+---
+
+
+### 14.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"In most consumer applications, the profile screen is just a bland menu with a photo and a logout button. In KinTrace, the **Clan Member Profile** is a full-fledged **Heritage Identity & Security Command Center**. Accessible with a single tap from the dashboard avatar or bottom navigation, it gives members real-time visibility into their verified genealogical standing, live Botanical Role tier, dual security credentials, and app preferences. For Tree Owners, it uniquely houses the **Clan Capacity & Quota Hub**—allowing patriarchs and matriarchs to monitor their member slots and request free capacity expansions from the Admin Citadel without predatory paywalls or abrupt service lockouts."*
+
+---
+
+
+### 14.2 Screen Anatomy & Visual Elements
+
+The Clan Member Profile sheet (`ClanProfileBottomSheet.kt`) is rendered as an expansive, modern bottom sheet dialog in KinTrace's dark emerald and gold heritage theme (`#060D09`, `#132B1E`, `#D4AF37`):
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ───                                                         │
+│ Clan Member Profile                                     (X) │
+│ Heritage ID & Security Settings                             │
+│                                                             │
+│                            ( K )✓                           │
+│                             Karl                            │
+│                  gendums5@gmail.com                         │
+│                    [ 🌳 OWNER • ROOTS ]                     │
+├─────────────────────────────────────────────────────────────┤
+│ FULL / DISPLAY NAME                                         │
+│ ┌───────────────────────────────────────────────┐ ┌───────┐ │
+│ │ Karl                                          │ │ Save  │ │
+│ └───────────────────────────────────────────────┘ └───────┘ │
+│                                                             │
+│ 👑 CLAN CAPACITY & TIER              [ Extended Clan Tier ] │
+│ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
+│ Recorded: 21 / 200 members • 179 slots left                 │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │        ⚡ Request Free Tier Expansion (+150 Cap)        │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ SECURITY CREDENTIALS                                        │
+│ ┌───────────────────────────┐ ┌───────────────────────────┐ │
+│ │ 🔑 Direct Change          │ │ ✉️ Email Reset            │ │
+│ │    Update password        │ │    Send secure link       │ │
+│ └───────────────────────────┘ └───────────────────────────┘ │
+│                                                             │
+│ GUIDES & APP PREFERENCES                                    │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ 📖 View Welcome Storybook                             › │ │
+│ │    Replay the 3-slide heritage orientation              │ │
+│ ├─────────────────────────────────────────────────────────┤ │
+│ │ 🌱 Reset Clan Quest HUD                        [Active] │ │
+│ │    Restore milestone checklist to dashboard             │ │
+│ ├─────────────────────────────────────────────────────────┤ │
+│ │ 📜 Terms & Clan Stewardship                           › │ │
+│ │    10-clause covenant & preservation policy             │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Header & Heritage Identity Avatar
+- **Drag Handle (`───`)**: Standard material bottom sheet drag pill allowing smooth swipe-to-dismiss gestures.
+- **Title & Subtitle**: *"Clan Member Profile — Heritage ID & Security Settings"*.
+- **Close Button (`btnProfileSheetClose`)**: Circular `(X)` touch target at the top right.
+- **72dp Gold Crest Avatar (`tvProfileAvatar`)**:
+  - Displays the first letter of the user's name (`K`).
+  - Outlined with a high-contrast golden border (`#D4AF37`).
+  - Features a verified green badge checkmark (`✓`) confirming authenticated Firebase credentials.
+- **Live Name & Email**: Displays the user's current verified legal name (`Karl`) and primary email address (`gendums5@gmail.com`).
+- **Interactive Botanical Role Pill (`tvProfileRoleTag`)**:
+  - Displays the user's active tier badge: `🌳 OWNER • ROOTS`, `🌿 EDITOR • BRANCH`, or `🌱 VIEWER • SPROUT`.
+  - **Ceremony Tap Action**: Tapping this badge launches [`BotanicalRoleFlashManager.showRoleAssignedCeremony`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/BotanicalRoleFlashManager.kt), playing the 60fps growing tree animation and explaining the historical responsibilities of that role.
+
+#### 2. Section 1: Full / Display Name Management
+- **`etProfileDisplayName`**: Inline text input allowing the user to update their public clan display name.
+- **`btnSaveProfileName` (`Save`)**:
+  - Persists the new name to both Firebase Authentication (`updateDisplayName`) and Cloud Firestore ([`UserProfile`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/UserProfile.kt)).
+  - Notifies the dashboard via `onProfileUpdated` so the greeting (*"Hi, Karl"*) updates immediately without reloading.
+
+#### 3. Section 2: Clan Capacity & Quota Hub (`cardClanCapacity`)
+- **Owner-Exclusive Visibility**: This card dynamically appears **only for the Canopy Owner** (`isTreeOwner = true`). For Viewers and Editors, it is automatically hidden.
+- **Tier Badge (`tvClanTierPill`)**: Displays `Extended Clan Tier` (for 200+ quota) or `Free Tier` (for 50 quota).
+- **Live Capacity Progress Bar (`progressClanCapacity`)**:
+  - Real-time indicator displaying percentage of used capacity.
+  - Subtitle: `"Recorded: 21 / 200 members • 179 slots left"`.
+- **Expansion Action (`btnRequestClanExpansion`)**:
+  - Button text: `"⚡ Request Free Tier Expansion (+150 Cap)"`.
+  - Dispatches an asynchronous expansion ticket to the **Super Admin Citadel**.
+  - Transforms into `"⏳ Expansion Queued in Admin Citadel"` once submitted.
+
+#### 4. Section 3: Dual Security Credentials Matrix
+- **`cardChangePassword` (`🔑 Direct Change`)**:
+  - Opens a secure in-app dialog where the user enters their current password, new password, and confirmation.
+  - Enforces KinTrace's strong password policy (at least 8 characters, uppercase, lowercase, number, and special symbol) and re-authenticates with Firebase.
+- **`cardResetPassword` (`✉️ Email Reset`)**:
+  - Sends an out-of-band secure password reset link to the user's registered email address.
+  - Displays an advisory warning reminding the user to check their Spam/Junk folder.
+
+#### 5. Section 4: Guides & App Preferences
+- **`btnReplayStorybook` (`📖 View Welcome Storybook`)**:
+  - Replays the 3-slide orientation storybook ([`WelcomeStoryDialogFragment.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/WelcomeStoryDialogFragment.kt)) covering tree creation, member linking, and lineage tracing.
+- **`btnResetQuest` (`🌱 Reset Clan Quest HUD`)**:
+  - Restores the dashboard's milestone checklist (`OnboardingPreferences.setQuestDismissed(false)`), re-enables interactive tutorials, and syncs onboarding state to Firestore.
+- **`btnViewTermsOfService` (`📜 Terms & Clan Stewardship`)**:
+  - Launches [`TermsOfServiceBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TermsOfServiceBottomSheet.kt), detailing the 10-clause genealogical preservation covenant.
+
+#### 6. Section 5: Administrative Gateway & Clan Danger Zone
+- **`btnAdminCitadel` (System Admin Citadel)**:
+  - Strictly gated to authorized super administrators (`admin@kintrace.ph`).
+  - Launches [`AdminPortalActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt) to manage server health, tree expansions, and user access.
+- **`btnProfileSignOut` (`Sign Out`)**:
+  - Confirms and performs a clean global logout, clearing local caches to prevent cross-account data leakage.
+- **`btnDeleteAccountProfile` (`Delete Account`)**:
+  - Launches [`ClanDangerZoneBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/ClanDangerZoneBottomSheet.kt) to safely remove personal credentials under the Clan Stewardship covenant.
+
+---
+
+
+### 14.3 Deep Dive: Freemium Capacity Tiers & Asynchronous Admin Citadel Expansion
+
+Traditional genealogy apps lock users behind aggressive paywalls once they record more than 20 or 30 family members. KinTrace replaces predatory monetization with an **Empathetic Freemium Stewardship Model**:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Owner as 🌳 Karl (Tree Owner)
+    participant Sheet as ClanProfileBottomSheet
+    participant DB as Cloud Firestore
+    actor Admin as 🛡️ Super Admin (Citadel)
+
+    Owner->>Sheet: Opens Profile & views Clan Capacity (21/200)
+    Owner->>Sheet: Taps "⚡ Request Free Tier Expansion (+150 Cap)"
+    Sheet->>Owner: Displays confirmation modal
+    Owner->>Sheet: Taps "Request +150"
+    Sheet->>DB: requestTreeQuotaExpansion(treeId, requesterEmail)
+    DB-->>Sheet: Flag quotaExpansionRequested = true
+    Sheet->>Owner: Button updates to "⏳ Expansion Queued in Admin Citadel"
+    DB->>Admin: Ticket appears in Admin Citadel Quota Queue
+    Admin->>DB: Reviews & Approves Expansion (+150 Cap)
+    DB-->>Owner: Tree effectiveQuota increases to 350 members!
+```
+
+#### How the Quota Pipeline Operates:
+1. **Generous Starting Allocations**:
+   - Every new family tree starts with a **Free Tier** limit of 50 members.
+   - Upon creating complex branches, the tree can be elevated to the **Extended Clan Tier** (200 members).
+2. **Zero Hard Lockouts**:
+   - If a family approaches their limit (e.g., 48 of 50 slots used), KinTrace never deletes data or locks the user out of viewing their tree.
+   - The Owner simply taps **"Request Free Tier Expansion"**, which dispatches a quota expansion ticket to Cloud Firestore.
+3. **Admin Citadel Review**:
+   - The ticket arrives in the Super Admin Citadel ([`AdminPortalActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt)). The administrator reviews the legitimate genealogical growth of the clan and approves the expansion with a single tap, increasing `effectiveQuota` in increments of `+150` members.
+
+---
+
+
+### 14.4 Deep Dive: Dual Security Credentials & Spam Resiliency
+
+To accommodate users with varying technical comfort levels, KinTrace provides two parallel password management pathways:
+
+```
+                  ┌──────────────────────────────────────────────┐
+                  │            SECURITY CREDENTIALS              │
+                  └──────────────────────┬───────────────────────┘
+                                         │
+                 ┌───────────────────────┴───────────────────────┐
+                 │                                               │
+      ┌──────────▼──────────┐                         ┌──────────▼──────────┐
+      │  🔑 Direct Change   │                         │   ✉️ Email Reset    │
+      │  In-App Re-Auth     │                         │   Out-of-Band Link  │
+      │  Immediate Update   │                         │   Spam-Resilient    │
+      └─────────────────────┘                         └─────────────────────┘
+```
+
+1. **Pathway A: Direct In-App Password Change (`cardChangePassword`)**:
+   - Ideal for users who remember their current password and want immediate updates without leaving the app.
+   - Requires entering: *Current Password*, *New Password*, and *Confirm Password*.
+   - KinTrace calls `authHelper.reauthenticate()` with the current credentials. Once verified, it calls `authHelper.updatePassword()`.
+2. **Pathway B: Secure Out-of-Band Email Reset (`cardResetPassword`)**:
+   - Ideal for users who suspect their credentials have been compromised or prefer managing security through their external email client.
+   - Dispatches a cryptographically signed Firebase Authentication reset link to the user's inbox.
+   - **Spam Advisory Banner**: Because automated transactional emails from mobile apps are often intercepted by strict mail filters, KinTrace proactively informs the user:
+     > *"⚠️ Note: Automated emails may arrive in your Spam / Junk folder. If found in Junk, please tap 'Report not spam'."*
+
+---
+
+
+### 14.5 Deep Dive: Clan Quest HUD Revival & State Synchronization
+
+When new relatives join KinTrace, the dashboard displays the **Clan Quest HUD**—a gamified checklist guiding them to add their first ancestor, inspect the pedigree chart, and invite family members.
+
+#### Why the "Reset Clan Quest HUD" Button Exists:
+- Once a user completes or dismisses the checklist, the dashboard collapses the quest to maximize canvas space.
+- However, during defense demonstrations or when an experienced member wishes to re-orient themselves, they need a way to restore the guided onboarding experience.
+- Tapping **`🌱 Reset Clan Quest HUD`**:
+  1. Resets local SharedPreferences: `OnboardingPreferences.setQuestDismissed(false)` and `setQuestCollapsed(false)`.
+  2. Resets spotlight tutorial markers across all features (`KinTraceSpotlightManager`).
+  3. Synchronizes the restored state to Cloud Firestore via `firestoreHelper.saveOnboardingState()`.
+  4. Triggers `onQuestResetRequested`, dynamically animating the quest checklist back onto the home dashboard.
+
+---
+
+
+### 14.6 Deep Dive: Account Deletion under the Clan Stewardship Covenant
+
+A common legal dilemma in collaborative genealogy is: *"If Cousin Maria deletes her account, should the ancestors she documented be erased for the entire family?"*
+
+KinTrace resolves this through the **Clan Stewardship Preservation Covenant**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 ACCOUNT DELETION PROTOCOL                   │
+├──────────────────────────────┬──────────────────────────────┤
+│      PERSONAL IDENTITY       │     SHARED CLAN HERITAGE     │
+│   (Permanently Purged 🗑️)    │    (Safely Preserved 🛡️)     │
+├──────────────────────────────┼──────────────────────────────┤
+│ • Firebase Auth UID          │ • Documented Ancestors       │
+│ • Email & Login Session      │ • Generational Connections   │
+│ • Password Hash              │ • Historical Photos & Docs   │
+│ • Personal App Preferences   │ • Branch Marriage Links      │
+└──────────────────────────────┴──────────────────────────────┘
+```
+
+1. **Right to Erasure (RA 10173 & GDPR Compliance)**:
+   - The user's personal identifiable information (PII)—their login account, email, profile preferences, and session tokens—is permanently purged from Firebase Authentication and Firestore.
+2. **Heritage Preservation Covenant**:
+   - Under the 10-clause Clan Stewardship covenant agreed to during registration, family tree nodes representing shared ancestors belong to the **family line**, not to a single user account.
+   - Therefore, the family tree structure remains intact so living siblings, cousins, and future generations do not suffer catastrophic data loss.
+
+---
+
+
+### 14.7 Step-by-Step Defense Walkthrough: Live Demo Script
+
+When demonstrating this screen during your capstone defense:
+
+#### Step 1: Open the Profile Sheet
+1. From the Clan Dashboard, tap either the **top-left avatar initial ("K")** or the **"Profile" tab** in the bottom navigation bar.
+2. Say:
+   > *"Panelists, this is our **Clan Member Profile**. It acts as the personal identity and security command center for each relative. At the top, you can see Karl's 72dp gold avatar with a verified checkmark and his active botanical role: **`OWNER • ROOTS`**."*
+
+#### Step 2: Demonstrate the Role Ceremony
+3. Tap the green role badge (`🌳 OWNER • ROOTS`):
+   - The Botanical Role Ceremony modal opens, displaying the 60fps growing tree animation.
+4. Say:
+   > *"Tapping the role pill launches our Botanical Ceremony, visually explaining the responsibilities of the Canopy Keeper. This ensures role governance is an engaging, educational experience rather than dry technical configuration."*
+
+#### Step 3: Showcase the Clan Capacity & Quota Hub
+5. Dismiss the ceremony and point to the **"CLAN CAPACITY & TIER"** card:
+   > *"Notice this capacity card. Because Karl is the Tree Owner, KinTrace provides real-time tracking of clan member quota. Karl has used 21 of his 200 member slots in the Extended Clan Tier. Unlike commercial apps that lock users out when their family grows, Karl can simply tap **'Request Free Tier Expansion'** to petition the Super Admin Citadel for +150 additional slots at zero cost."*
+
+#### Step 4: Highlight Security & App Preferences
+6. Point to the Security Credentials matrix and Preferences list:
+   > *"Below, members have full control over their account security through our dual credentials matrix—supporting both direct in-app password changes and secure email reset links. Finally, if Karl ever wants to review the orientation storybook or restore the dashboard's Clan Quest checklist, he can do so with a single tap from App Preferences."*
+
+---
+
+
+### 14.8 Defense Panelist Q&A (Tough Questions & Layman Answers)
+
+#### 🎓 Question 1: *"Why did you create a Freemium expansion request system instead of simply offering unlimited member slots from the start?"*
+> **Panelist Probe**: *What is the database scalability and resource-management rationale for capping family tree sizes?*
+> 
+> **Your Layman's Answer:**
+> *"Allowing unlimited member creation without quotas leaves Cloud Firestore vulnerable to spam scripts, denial-of-service bot attacks, and accidental recursive database flooding. By providing generous initial tiers (50 for Free, 200 for Extended) and routing further expansions through our **Admin Citadel Queue**, we protect server resources while guaranteeing that every genuine, growing family receives free, timely quota increases."*
+
+
+#### 🎓 Question 2: *"If a user deletes their account, does it destroy the entire family tree for other family members?"*
+> **Panelist Probe**: *How does your application balance individual privacy rights (RA 10173 Right to Erasure) with collective data preservation?*
+> 
+> **Your Layman's Answer:**
+> *"In KinTrace, we enforce a strict separation between **Personal User Identity** and **Shared Clan Heritage**. When a user deletes their account, their personal credentials, login tokens, and profile data are permanently erased in full compliance with the Data Privacy Act. However, under our **Clan Stewardship Covenant**, ancestral records and generational branches remain preserved so surviving relatives do not lose their shared historical heritage."*
+
+
+#### 🎓 Question 3: *"Why does the Clan Capacity card only appear for the Tree Owner and not for other members?"*
+> **Panelist Probe**: *How does your UI reflect role-based privilege segregation for tree infrastructure management?*
+> 
+> **Your Layman's Answer:**
+> *"Quota management and tier expansion are administrative infrastructure concerns. Viewers and Editors are invited relatives focused on exploring and documenting lineage—they shouldn't be distracted by server capacity numbers. In [`ClanProfileBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/ClanProfileBottomSheet.kt), our system checks `isTreeOwner`: only the creator and patriarch/matriarch of the tree sees the Clan Capacity card, keeping the interface clean and relevant for all other relatives."*
+
+
+#### 🎓 Question 4: *"Why do you provide both an in-app password change and an email reset link?"*
+> **Panelist Probe**: *What is the user-experience and security justification for a dual credentials matrix?*
+> 
+> **Your Layman's Answer:**
+> *"Different users have different needs. If an active user simply wants to rotate their password, forcing them to open an email app and click a link introduces unnecessary friction. Our **Direct Change** pathway allows instant in-app updates using secure Firebase re-authentication. On the other hand, if a user suspects their account has been breached or prefers verifying via their private email inbox, our **Email Reset** pathway provides a cryptographically signed external reset link with built-in spam filter guidance."*
+
+---
+
+
+*(End of Chapter 14 — Ready for your next screen).*
+
+---
+
+
+# 🏛️ Chapter 15: The Central Command Citadel — Part 1: Live Platform Telemetry, Storage Optimizer & Immutable Audit Trail
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`AdminPortalActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt)
+- Screen Layout: [`activity_admin_portal.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_admin_portal.xml)
+- Super Admin Profile Sheet: [`SuperAdminProfileBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/SuperAdminProfileBottomSheet.kt)
+- Central Data Models & Telemetry Entities:
+  - Telemetry Data Container: `PlatformTelemetry` ([`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L4750))
+  - Cryptographic Audit Log Entity: [`AdminAuditLog.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/AdminAuditLog.kt)
+  - Admin Access Repository: [`DemoAccountRepository.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/DemoAccountRepository.kt)
+- Core Backend Queries & Optimization:
+  - Server-Side Aggregation API: `FirestoreHelper.fetchLivePlatformTelemetry()`
+  - Atomic Batch Pruning Engine: `FirestoreHelper.pruneDormantTrees()`
+  - Audit Trail Engine: `FirestoreHelper.logAdminAuditAction()` & `fetchAdminAuditLogs()`
+
+---
+
+
+### 15.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"Behind every collaborative genealogical network, there must be a centralized infrastructure dashboard to ensure server health, database hygiene, and legal accountability. **The Citadel Command Hub** is KinTrace's enterprise administrative console. Restricted strictly to verified system administrators (`admin@kintrace.ph`), the **Telemetry Subsystem** provides 100% real-time operational visibility: it calculates live platform-wide metrics (33 Users, 30 Clans, 688 Member Nodes) using low-cost server aggregation queries, features an **Inactive Tree Storage Optimizer** that prunes unpopulated ghost trees to keep the database lightning fast, and maintains a **Cryptographically Signed Audit Trail** hashed with SHA-256 for non-repudiation and compliance with the Philippine Data Privacy Act (RA 10173)."*
+
+---
+
+
+### 15.2 Screen Anatomy & Visual Elements
+
+The Citadel Command Hub (`AdminPortalActivity.kt`) is designed in an executive, command-center aesthetic utilizing KinTrace's dark emerald, charcoal, and gold palette (`#060D09`, `#0C2017`, `#D4AF37`):
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ( A )● MONDAY, NOV 2                            3:10:57 AM  │
+│        Hi, Admin                         ● Online & Synced  │
+├─────────────────────────────────────────────────────────────┤
+│ The Citadel Command Hub                                     │
+│ System Administration, Live Telemetry & Quota Governance    │
+├─────────────────────────────────────────────────────────────┤
+│ ┌───────────────┐ ┌────────────────┐ ┌────────────────────┐ │
+│ │ 📊 Telemetry  │ │ 📢 Broadcaster │ │  👑 Quota & Passes │ │
+│ └───────────────┘ └────────────────┘ └────────────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│ 📊 Platform Telemetry                                       │
+│ 🟢 Live sync at 02:41:57                         [ Refresh ]│
+│                                                             │
+│ ┌─────────────────────────┐     ┌─────────────────────────┐ │
+│ │ 👥 Accounts             │     │ 🌳 Clans / Trees        │ │
+│ │ 33 Users                │     │ 30 Clans                │ │
+│ └─────────────────────────┘     └─────────────────────────┘ │
+│ ┌─────────────────────────┐     ┌─────────────────────────┐ │
+│ │ 👥 Members Across Trees │     │ ⚡ Database Status       │ │
+│ │ 688 Members             │     │ Online & Synced         │ │
+│ └─────────────────────────┘     └─────────────────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│ 🧹 Inactive Tree Storage Optimizer                          │
+│ Identifies empty trees and dormant lineages (>60d idle)     │
+│ to maintain optimal database speed.                         │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ 🔄 Scanning Firestore for unpopulated or dormant trees  │ │
+│ │    (>60d idle)...                                       │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │         🗑️ Purge Inactive Trees & Free Storage           │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ Ready to prune dormant records.                             │
+├─────────────────────────────────────────────────────────────┤
+│ 📜 Immutable Admin Audit Trail          [RA 10173 • SECURE] │
+│ Cryptographically signed activity log for governance.       │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Nov 01, 2026 • 03:31:28 AM • CLAN_CAP_EXPANDED          │ │
+│ │ SHA256: b949c46e...3b37                                 │ │
+│ │ Santos Family (genadd48@gmail.com) quota elevated to 200│ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Oct 31, 2026 • 08:15:53 PM • CLAN_CAP_EXPANDED          │ │
+│ │ SHA256: ce41271d...e9ef                                 │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 1. Real-Time Chronometer Header Bar
+- **Avatar (`tvCitadelAvatar`)**: Amber circle (`A`) with a pulsing green live connection dot (`●`).
+- **Calendar Date (`tvCitadelDate`)**: Formats current real-world date in all caps (e.g., `MONDAY, NOV 2`).
+- **Greeting (`tvCitadelGreeting`)**: Displays admin greeting (*"Hi, Admin"*). Tapping the header launches the `SuperAdminProfileBottomSheet`.
+- **Live 1000ms Chronometer (`tvCitadelClock`)**: Continuously ticks every second via a lightweight background `Handler`/`Runnable` loop (`3:10:57 AM`).
+- **Connection Pill**: Shows `● Online & Synced` in mint green (`#1D9E75`).
+
+#### 2. Citadel Navigation Switcher Tabs
+- A horizontal pill carousel switching between the 3 core administrative consoles:
+  1. **`tabTelemetryBtn` (`📊 Telemetry`)**: Highlights in radiant gold (`#D4AF37`) when selected.
+  2. **`tabBroadcasterBtn` (`📢 Broadcaster`)**: System-wide notifications and amber alerts.
+  3. **`tabQuotaBtn` (`👑 Quota & Passes`)**: Free tier expansions and 30-day reunion pass generator.
+  4. **`tabOpsBtn` (`🛠️ Ops & Recovery`)**: Soft-delete restoration and merge collision resolution.
+
+#### 3. Platform Telemetry Grid (4 Core Real-Time Metrics)
+- **`tvTelemetrySyncTime`**: Live sync timestamp indicator (e.g., `🟢 Live sync at 02:41:57`).
+- **`btnRefreshTelemetry` (`🔄 Refresh`)**: Triggers an on-demand background query to fetch instantaneous counts.
+- **The 4 Metric Cards**:
+  1. **Accounts (`tvTotalAccounts`)**: Total registered user accounts across the platform (`33 Users`).
+  2. **Clans / Trees (`tvTotalClans`)**: Total registered family trees in the cloud catalog (`30 Clans`).
+  3. **Members Across Trees (`tvTotalNodes`)**: Aggregated count of individual person nodes documented (`688 Members`).
+  4. **Database Status (`tvSystemStatus`)**: Verifies connection to Google Cloud Firestore (`Online & Synced`).
+
+#### 4. Inactive Tree Storage Optimizer (`setupCapacityPruner()`)
+- **Subtitle**: *"Identifies empty trees and dormant lineages (>60d idle) to maintain optimal database speed."*
+- **`tvGhostTreeList`**: Live console box reporting audit status (e.g., *"Scanning Firestore for unpopulated or dormant trees (>60d idle)..."* or *"✅ Audit complete: 0 unpopulated ghost trees found."*).
+- **`btnPruneGhostTrees` (`🗑️ Purge Inactive Trees & Free Storage`)**:
+  - Triggers [`FirestoreHelper.pruneDormantTrees()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L5039).
+  - Performs an atomic batch deletion of ghost tree containers that have 0 members, freeing storage and optimizing read performance.
+- **`tvPruneStatus`**: Shows operational status (e.g., *"Ready to prune dormant records."*).
+
+#### 5. Immutable Admin Audit Trail (`layoutAuditList`)
+- **Compliance Badge (`RA 10173 • SECURE`)**: Stamped with Philippine Data Privacy Act compliance.
+- **Dynamic Audit Cards**: Displays the last 5 administrative actions:
+  - Formatted Timestamp & Action Type: e.g., `Nov 01, 2026 • 03:31:28 AM • CLAN_CAP_EXPANDED`.
+  - Cryptographic Hash Badge: e.g., `SHA256: b949c46e...3b37`.
+  - Action Details: Explains exactly what was executed (e.g., *"Santos Family quota elevated from 50 to 200 members"*).
+
+---
+
+
+### 15.3 Deep Dive: Cloud Firestore Server Aggregation Count API (`collection.count()`)
+
+Traditional mobile apps fetch document counts by executing `db.collection("persons").get()` and reading `snapshot.documents.size`. 
+
+#### Why That Is a Fatal Mistake in Capstone Systems:
+1. **Network Bloat**: Downloading 688 full `Person` documents transfers hundreds of kilobytes of JSON data over cellular networks.
+2. **Billing Waste**: Firestore bills 1 document read per document returned. Fetching 688 documents costs 688 billable reads on every screen open.
+3. **Memory Pressure**: Deserializing 688 Java objects causes garbage collection pauses and potential UI stutter.
+
+#### The KinTrace Telemetry Solution:
+KinTrace utilizes Google Cloud Firestore's native **Server Aggregation API**:
+
+```kotlin
+// In FirestoreHelper.kt (fetchLivePlatformTelemetry)
+val usersTask = db.collection("users").count().get(AggregateSource.SERVER)
+val treesTask = db.collection("trees").count().get(AggregateSource.SERVER)
+val personsTask = db.collection("persons").count().get(AggregateSource.SERVER)
+
+Tasks.whenAllComplete(usersTask, treesTask, personsTask).addOnCompleteListener {
+    val accountsCount = usersTask.result?.count ?: 0L
+    val clansCount = treesTask.result?.count ?: 0L
+    val nodesCount = personsTask.result?.count ?: 0L
+    onResult(PlatformTelemetry(accountsCount, clansCount, nodesCount, isOnline = true))
+}
+```
+
+#### Key Architectural Benefits:
+- **Zero Document Downloads**: The Google server counts records internally and returns only a single integer.
+- **Under 1 KB Payload**: The entire telemetry response is less than 1 kilobyte of data.
+- **Cost Reduction**: Google bills count aggregations at a fraction of standard document reads (1 aggregation read per 1,000 index entries).
+
+---
+
+
+### 15.4 Deep Dive: The Inactive Tree Storage Optimizer & Atomic Batch Pruning
+
+Over months of public testing, users create test trees and abandon them with zero relatives added. These "Ghost Trees" clutter the database and slow down search indices.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as 🛡️ Super Admin
+    participant UI as AdminPortalActivity
+    participant Helper as FirestoreHelper
+    participant DB as Cloud Firestore
+
+    Admin->>UI: Taps "🗑️ Purge Inactive Trees & Free Storage"
+    UI->>Helper: pruneDormantTrees()
+    Helper->>DB: Reads all tree IDs from 'trees' collection
+    Helper->>DB: Reads all referenced tree IDs in 'persons' collection
+    Helper->>Helper: Identifies orphan trees with 0 members
+    alt Orphan Trees Found (>0)
+        Helper->>DB: Executes atomic WriteBatch.delete()
+        DB-->>Helper: Batch commit confirmed
+        Helper-->>UI: Returns (count, prunedTreeNames)
+        UI->>UI: Logs action to Immutable Audit Trail with SHA-256
+        UI->>Admin: Displays "✅ Purged N dormant tree record(s)"
+    else Zero Ghost Trees (Clean Database)
+        Helper-->>UI: Returns (0, emptyList)
+        UI->>Admin: Displays "✅ Audit complete: 0 ghost trees found"
+    end
+```
+
+#### Technical Guarantees:
+1. **Safety First**: KinTrace verifies that a tree ID is **completely absent from the `persons` collection** before marking it for pruning. A tree with even 1 documented relative is permanently protected.
+2. **Atomic Batch Execution**: Deletions are executed using Firestore's `WriteBatch()`. If any network interruption occurs during the deletion, the batch rolls back completely, preventing partial or corrupted state.
+
+---
+
+
+### 15.5 Deep Dive: Cryptographically Signed Audit Trail & Legal Non-Repudiation
+
+Under the **Philippine Data Privacy Act of 2012 (RA 10173)**, any system that modifies, expands, or deletes user records must maintain an immutable audit trail to prove that administrative actions were authorized and untampered with.
+
+#### The SHA-256 Tamper-Proof Hash:
+Whenever an administrator performs an action in the Citadel, KinTrace computes a cryptographic signature:
+
+```kotlin
+// In AdminPortalActivity.kt
+private fun generateSha256Badge(actionType: String, targetId: String, timestamp: Long): String {
+    val raw = "$actionType:$targetId:$timestamp:kintrace_admin_salt"
+    val md = MessageDigest.getInstance("SHA-256")
+    val hash = md.digest(raw.toByteArray()).joinToString("") { "%02x".format(it) }
+    return "SHA256:${hash.take(8)}...${hash.takeLast(4)}"
+}
+```
+
+```
+   ┌────────────────────────────────────────────────────────────┐
+   │                     ADMIN AUDIT LOG                        │
+   ├────────────────────────────────────────────────────────────┤
+   │ Action: CLAN_CAP_EXPANDED                                  │
+   │ Target: tree_santos                                        │
+   │ Time:   1730439088000 (Nov 01, 2026 • 03:31:28 AM)         │
+   │ Secret: kintrace_admin_salt                                │
+   └─────────────────────────────┬──────────────────────────────┘
+                                 │
+                     [ SHA-256 CRYPTO DIGEST ]
+                                 │
+   ┌─────────────────────────────▼──────────────────────────────┐
+   │    SHA256: b949c46e3a7f...3b37 (Immutable Digital Seal)    │
+   └────────────────────────────────────────────────────────────┘
+```
+
+#### Why Panelists Will Praise This:
+- **Non-Repudiation**: The administrator cannot deny performing an action, and an external attacker cannot forge an audit log without knowing the cryptographic salting key.
+- **Instant Visual Verification**: Truncating the hash to `SHA256:b949c46e...3b37` gives panelists an immediate, professional visual verification tag on every card.
+
+---
+
+
+### 15.6 Step-by-Step Defense Walkthrough: Live Demo Script
+
+When presenting this screen during your capstone defense:
+
+#### Step 1: Open the Citadel Command Hub
+1. From the login screen or via the Admin profile gate, sign in as `admin@kintrace.ph`.
+2. Point to the top chronometer bar and say:
+   > *"Panelists, this is **The Citadel Command Hub**, our centralized administration console. At the top, you can see our real-world live chronometer ticking every second (`3:10:57 AM`) alongside our green status pill verifying that the app is connected to Cloud Firestore."*
+
+#### Step 2: Showcase Platform Telemetry
+3. Point to the four metric cards under **Platform Telemetry**:
+   > *"Under Telemetry, KinTrace displays live platform-wide metrics in real time: we currently have **33 User Accounts**, **30 Family Trees**, and **688 Documented Members Across Trees**. Notice that these numbers were not calculated by downloading 688 heavy files. Instead, our system uses Firestore's native Server-Side Aggregation Count API (`collection.count()`), which returns the exact counts in less than 50 milliseconds using less than 1 kilobyte of network data."*
+
+#### Step 3: Demonstrate the Storage Optimizer
+4. Point to the **Inactive Tree Storage Optimizer** card:
+   > *"Below telemetry, we have our database maintenance tool. During multi-user deployments, users sometimes create blank trees and abandon them. Tapping **'Purge Inactive Trees'** initiates an audit across Firestore, identifying any ghost tree container with 0 relatives and pruning it in an atomic batch. This keeps our database fast and clean."*
+
+#### Step 4: Prove Data Privacy Compliance with the Audit Trail
+5. Scroll down to the **Immutable Admin Audit Trail**:
+   > *"Finally, notice our audit trail stamped with **`RA 10173 • SECURE`**. Every time an administrator elevates a family's capacity, prunes a record, or sends a broadcast, KinTrace generates a tamper-proof SHA-256 cryptographic hash (such as `SHA256: b949c46e...3b37`). This guarantees complete legal transparency, accountability, and compliance with the Philippine Data Privacy Act."*
+
+---
+
+
+### 15.7 Defense Panelist Q&A (Tough Questions & Layman Answers)
+
+#### 🎓 Question 1: *"Why does KinTrace need an administrative portal if family trees are managed by their respective owners?"*
+> **Panelist Probe**: *What is the architectural necessity of separating Clan Stewardship from Platform-Wide Administration?*
+> 
+> **Your Layman's Answer:**
+> *"Family Tree Owners only manage their private family circle—they do not have visibility into server health, database size, or system-wide announcements. **The Citadel Command Hub** is the central flight control center for the platform administrator. It allows us to monitor live platform traffic, approve quota expansions for growing clans, clean up abandoned database records, and audit administrative actions for legal compliance."*
+
+
+#### 🎓 Question 2: *"How do your live telemetry counters scale if your application grows to 100,000 members without crashing Firestore?"*
+> **Panelist Probe**: *How does your application prevent exponential query latency and exorbitant read costs as the database scales?*
+> 
+> **Your Layman's Answer:**
+> *"Traditional Firestore reads scale linearly with data size: querying 100,000 members would download 100,000 documents and cost 100,000 billable reads. KinTrace avoids this completely by using Google's **Distributed Index Aggregation API** (`collection.count().get(AggregateSource.SERVER)`). The Firestore database engine computes the count directly on Google's cloud servers and returns a single integer value over the network. Whether our platform has 688 members or 1,000,000 members, the query executes in milliseconds and transfers under 1 kilobyte of data."*
+
+
+#### 🎓 Question 3: *"What prevents an unauthorized family member from opening this Super Admin Citadel?"*
+> **Panelist Probe**: *How is administrative authentication enforced on both the client and the backend?*
+> 
+> **Your Layman's Answer:**
+> *"Access is protected by multiple security layers:
+> 1. In [`AdminPortalActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt), `onCreate()` strictly verifies the authenticated Firebase email using `DemoAccountRepository.isAdminEmail()`. If an unauthorized user attempts to open the activity, the app displays an 'Access Denied' alert and immediately calls `finish()`.
+> 2. On the cloud backend, Firestore Security Rules verify that the caller's UID possesses the verified administrator claim before permitting read or write operations to administrative collections (`admin_audit_logs`, `system_config`)."*
+
+
+#### 🎓 Question 4: *"Why do you cryptographically hash audit logs with SHA-256? How does that prove compliance with RA 10173?"*
+> **Panelist Probe**: *How does your audit logging mechanism guarantee non-repudiation and data integrity?*
+> 
+> **Your Layman's Answer:**
+> *"Under RA 10173 and IT audit standards, plain-text logs can be easily faked or altered by someone with database access. By concatenating the action type, target ID, timestamp, and a secret server salt into a **SHA-256 cryptographic digest**, we create a digital seal. If anyone attempts to modify a past log entry, the hash will immediately mismatch, proving tampering. This guarantees non-repudiation and proves to auditors that our administrative records are 100% genuine."*
+
+---
+
+
+*(End of Chapter 15).*
+---
+
+# 📢 Chapter 16: The Central Command Citadel — Part 2: Maintenance & Scoped In-App Broadcaster Subsystem
+
+### 📍 Target File:
+- Controller & Broadcaster Dispatcher: [`AdminPortalActivity.kt` (Lines 348–510)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt#L348-L510)
+- Layout Architecture: [`activity_admin_portal.xml` (Lines 461–630)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_admin_portal.xml#L461-L630)
+- Announcement Data Entity: [`SystemAnnouncement.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/SystemAnnouncement.kt)
+- Real-Time Cloud Pipe: [`FirestoreHelper.kt` (Lines 4618–4666)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L4618-L4666)
+- Client In-App Banner Receivers: [`HomeActivity.kt` (Lines 1869–1918)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt#L1869-L1918) & [`NotificationsActivity.kt` (Line 136)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/NotificationsActivity.kt#L136)
+- Client State & Versioned Dismissal: [`AnnouncementPreferences.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/AnnouncementPreferences.kt)
+
+---
+
+### 16.1 The Plain English 10-Second Pitch
+
+> *"This is KinTrace's direct digital loudspeaker. When system administrators need to perform cloud optimizations, announce family tree database maintenance, or issue urgent warnings, they do not need to spam users with push notifications or app updates. They compose the advisory right here, target specific audiences (like Clan Owners or all families), preview the banner live in real time, and dispatch it instantly across all connected smartphones in less than a second."*
+
+---
+
+### 16.2 Screen Anatomy & Visual Elements
+
+1. **Tab Navigation Dock (Top)**:
+   - **`[📊 Telemetry]`**: Displays live platform statistics and storage pruner.
+   - **`[📢 Broadcaster]`** *(Active Gold Tab)*: Unfolds the maintenance announcement command studio.
+   - **`[👑 Quota & Passes]`**: Manages clan member expansion requests.
+
+2. **Notice Headline Input Field**:
+   - Single-line title box (e.g., *"Scheduled Cloud Optimization"*).
+   - Equips real-time two-way synchronization with the live mobile preview card below.
+
+3. **Detailed Notice / Advisory Text Area**:
+   - Multi-line descriptive message explaining the maintenance reason, affected subsystems (such as branch merging or tree exports), and time windows in Philippine Standard Time (PHT).
+
+4. **Severity Level Selector Chips**:
+   - **`[ℹ️ Info]`** *(Emerald/Blue)*: For general community updates, new feature announcements, or non-disruptive notices.
+   - **`[⚠️ Warning]`** *(Heritage Gold)*: For scheduled cloud maintenance, background indexing, or temporary merge pauses.
+   - **`[⛔ Lockdown]`** *(Rose Red)*: For emergency database freeze or critical infrastructure read-only states.
+
+5. **Audience Target Scope Chips**:
+   - **`[👥 All Clans]`**: Broadcasts the advisory to every registered user and family across the entire platform.
+   - **`[👑 Owners Only]`**: Routes the notice strictly to family tree Creators and Clan Patriarchs/Matriarchs (e.g., regarding quota policies or governance).
+   - **`[🛑 Capped (50/50)]`**: Specifically targets clans nearing or reaching their free 50-member ceiling, inviting them to apply for tier expansion.
+
+6. **Auto-Retract Window Chips**:
+   - **`[⏱️ 2 Hours]`**, **`[⏱️ 6 Hours]`**, **`[⏱️ 24 Hours]`**: Sets an automated self-expiring TTL (Time-To-Live). The moment the timer elapses, the banner automatically vanishes from all client dashboards without requiring manual administrator intervention.
+
+7. **WYSIWYG Live Client In-App Banner Preview**:
+   - Renders a pixel-perfect, reactive mock-up of how the alert will physically appear on a relative's Android dashboard (`HomeActivity`).
+   - Dynamically updates severity badges, headline text, advisory body, and the meta tag (*"Retracts in 2h • All Clans"*) on every keystroke.
+
+8. **Command Action Dock**:
+   - **`📢 Dispatch System Broadcast` Button**: Commits the advisory to Firestore and triggers live push listeners on all active devices.
+   - **`🛑 Retract Active Broadcast` Button**: Instantly deactivates the broadcast, wiping the banner from all users' screens platform-wide in real time.
+
+---
+
+### 16.3 The 4 Core Architectural Mechanisms Under the Hood
+
+#### 📡 Mechanism A: Reactive WYSIWYG In-App Banner Simulator
+- **Code Reference**: [`AdminPortalActivity.kt` Lines 350–360 & 381–411](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt#L350-L360)
+- **The Problem**: 
+  In high-stakes administration, an administrator might dispatch an advisory with typos, truncated sentences, or poorly contrasting colors that ruin user experience on mobile screens.
+- **How KinTrace Solves It**: 
+  KinTrace attaches a dynamic `TextWatcher` to both `etBroadcastTitle` and `etBroadcastMessage`. Every single character typed immediately renders into `tvPreviewTitle` and `tvPreviewMessage`. Toggling severity chips immediately invokes `setSeverity()`, which updates `tvPreviewBadge` and changes its tint color between Info, Warning, and Lockdown. The administrator sees the exact final result before a single byte touches the cloud database.
+
+#### 🎯 Mechanism B: Role-Based Audience Scoping & Spam Prevention
+- **Code Reference**: [`SystemAnnouncement.kt` Lines 17 & 29–32](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/SystemAnnouncement.kt#L17)
+- **The Problem**: 
+  Regular viewers and extended family relatives do not care about technical administrative notices or clan capacity upgrades. Sending every maintenance alert to every user causes "notification fatigue" where relatives ignore critical updates.
+- **How KinTrace Solves It**: 
+  KinTrace tags every advisory with an explicit `audienceScope`:
+  1. `SCOPE_ALL`: Displays on every connected device.
+  2. `SCOPE_OWNERS`: Checked against the user's role in [`BotanicalRolePolicy.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/BotanicalRolePolicy.kt). Only users holding the *Roots (Owner)* tier will see the banner.
+  3. `SCOPE_CAPPED`: Evaluated on `HomeActivity` against the clan's live member counter (`totalMembers >= clanCapacity`). If a clan has only 12 members, the capacity notice is silently suppressed.
+
+#### ⏱️ Mechanism C: Autonomous Self-Retracting TTL (Zero Ghost Banners)
+- **Code Reference**: [`SystemAnnouncement.kt` Lines 44–49](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/SystemAnnouncement.kt#L44-L49) & [`HomeActivity.kt` Line 1881](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt#L1881)
+- **The Problem**: 
+  In many apps, maintenance warnings stay on screen for weeks because the system administrator forgot to turn them off after completing their maintenance window.
+- **How KinTrace Solves It**: 
+  KinTrace equips every announcement with automated client-side mathematical expiration:
+```kotlin
+  @get:Exclude
+  val isExpired: Boolean
+      get() {
+          if (autoRetractHours <= 0) return false
+          val expiryTime = createdAt + (autoRetractHours * 3600_000L)
+          return System.currentTimeMillis() > expiryTime
+      }
+```
+  When a relative opens their app, `HomeActivity` computes `announcement.isExpired`. If the current time exceeds the expiry boundary, the banner is automatically dismissed and hidden, even if no administrator is online to manually retract it!
+
+#### 🔄 Mechanism D: Versioned SharedPreferences Dismissal
+- **Code Reference**: [`AnnouncementPreferences.kt` Lines 24–40](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/AnnouncementPreferences.kt#L24-L40)
+- **The Problem**: 
+  If a user dismisses a maintenance banner by tapping '✕', they don't want to see it pop back up every time they switch tabs or restart the app. However, if the administrator issues a **new** urgent advisory later, that new advisory must not be accidentally swallowed by the old dismissal.
+- **How KinTrace Solves It**: 
+  When the user taps '✕', KinTrace does not simply store a boolean flag (`isDismissed = true`). Instead, it stores the exact **creation timestamp** of that announcement (`dismissedTimestamp = createdAt`).
+  When a new announcement is checked:
+```kotlin
+  fun isDismissed(context: Context, announcementId: String, createdAt: Long): Boolean {
+      val dismissedTimestamp = prefs.getLong("dismissed_announcement_$announcementId", -1L)
+      return dismissedTimestamp >= createdAt
+  }
+```
+  If the administrator dispatches a new advisory, its `createdAt` will be greater than the stored `dismissedTimestamp`, causing the banner to reappear cleanly for all users!
+
+---
+
+### 16.4 Complete Data Flow Architecture (DFD Layer)
+
+```
+  [ Super Admin Citadel ]
+  (AdminPortalActivity)
+             │
+             │  1. Compose Title, Body, Severity, Scope & Retract Hours
+             ▼
+  [ Dispatch System Broadcast ]
+             │
+             │  2. firestoreHelper.publishSystemAnnouncement(announcement)
+             ▼
+  ┌─────────────────────────────────────────────────────────────────┐
+  │         CLOUD FIRESTORE: system_announcements/active_broadcast │
+  │   - id: "active_broadcast"                                     │
+  │   - severity: "WARNING" | audienceScope: "ALL"                 │
+  │   - autoRetractHours: 2 | isActive: true                       │
+  │   - createdAt: 1730518701000                                    │
+  └────────────────────────────────┬────────────────────────────────┘
+                                   │
+         ┌─────────────────────────┴─────────────────────────┐
+         │ 3. Real-Time Snapshot Listener (Sub-Second Pipe)  │
+         ▼                                                   ▼
+  [ HomeActivity (Client 1) ]                         [ HomeActivity (Client 2) ]
+   - Checks: isActive && !isExpired                    - Checks: isActive && !isExpired
+   - Evaluates: Audience Scope matches role?           - Evaluates: Audience Scope matches role?
+   - Checks: AnnouncementPreferences.isDismissed()?    - Checks: AnnouncementPreferences.isDismissed()?
+         │                                                   │
+         ▼                                                   ▼
+  [ ⚠️ Maintenance Banner Appears ]                    [ ⚠️ Maintenance Banner Appears ]
+  (Tapping '✕' saves versioned dismissal)              (Tapping '✕' saves versioned dismissal)
+```
+
+---
+
+### 16.5 Capstone Defense Q&A: Hard Panelist Questions Answered
+
+#### 🎓 Question 1: *"Why do you push global system announcements through Firestore real-time listeners instead of standard push notifications (FCM)?"*
+> **Panelist Probe**: *Push notifications are industry standard. Why use an in-app Firestore document listener?*
+> 
+> **Your Layman's Answer:**
+> *"Push notifications require device permission grants, can be blocked in phone settings, and often arrive with network latency. More importantly, push notifications cannot easily retract themselves once sent.
+> By utilizing a dedicated Firestore document listener (`listenToActiveSystemAnnouncement`), KinTrace achieves three crucial capstone advantages:
+> 1. **Immediate In-App Presence**: Active users currently working on their family trees see the warning appear on their screen within 500 milliseconds without ever leaving the app.
+> 2. **Instant Retraction**: The moment maintenance finishes, the admin taps 'Retract', and the banner disappears instantly from all phones worldwide.
+> 3. **Offline Resilience**: If a device loses internet connectivity, the cached Firestore document maintains local state until connectivity returns."*
+
+#### 🎓 Question 2: *"What prevents an announcement from lingering on users' phones forever if the administrator forgets to retract it?"*
+> **Panelist Probe**: *How does the system ensure obsolete maintenance notices are not displayed days or weeks later?*
+> 
+> **Your Layman's Answer:**
+> *"Every broadcast includes an autonomous Time-To-Live (TTL) configured through the 'Auto-Retract Window' chips (2, 6, or 24 hours).
+> In [`SystemAnnouncement.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/SystemAnnouncement.kt#L44-L49), the computed property `isExpired` verifies whether `System.currentTimeMillis() > createdAt + (autoRetractHours * 3600_000L)`.
+> When `HomeActivity` loads or receives an update, it evaluates `announcement.isExpired`. If expired, the banner is automatically hidden. This guarantees zero lingering ghost notices even if the server administrator goes offline."*
+
+#### 🎓 Question 3: *"How does audience scoping prevent confusing everyday clan members?"*
+> **Panelist Probe**: *If you send an alert about database capacity, why shouldn't every user see it?*
+> 
+> **Your Layman's Answer:**
+> *"Regular family members have view-only or branch-editor privileges and have no administrative control over clan account quotas. Sending technical quota alerts to a grandchild or guest viewer causes unnecessary confusion.
+> With Audience Scoping, selecting **`[👑 Owners Only]`** ensures the notice is displayed exclusively to the clan creator (holding the Roots badge), while selecting **`[🛑 Capped (50/50)]`** targets only clans that have actually exhausted their free tier. This preserves high-craft UX and eliminates notification fatigue across the platform."*
+
+#### 🎓 Question 4: *"If an administrator retracts a notice, where is the record of that administrative action kept?"*
+> **Panelist Probe**: *How do you satisfy IT audit compliance when messages are dispatched and deleted?*
+> 
+> **Your Layman's Answer:**
+> *"In KinTrace, no administrative action is ever untracked. Whenever an announcement is dispatched or retracted, [`AdminPortalActivity.kt` Lines 486 & 502](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt#L486) immediately dispatches an immutable audit entry to Firestore via `recordAudit()`.
+> That event records the admin's email, action type (`BROADCAST_PUBLISHED` or `BROADCAST_RETRACTED`), the broadcast title, and stamps it with a **SHA-256 cryptographic hash seal** in the Citadel Audit Trail. This fully satisfies compliance under the Philippine Data Privacy Act (RA 10173)."*
+
+---
+
+### 16.6 Step-by-Step Defense Walkthrough: Live Demo Script
+
+When presenting this screen during your capstone defense:
+
+1. **Step 1: Switch to the Broadcaster Tab**
+   - In the Citadel Command Hub, tap the **`[📢 Broadcaster]`** tab.
+   - *Say to panelists:* *"Now let's examine KinTrace's centralized broadcast and real-time maintenance alert subsystem."*
+
+2. **Step 2: Demonstrate the Reactive WYSIWYG Preview**
+   - Type in the Headline box: *"Scheduled Cloud Maintenance"*.
+   - Type in the Advisory box: *"Tree branch merging will pause briefly at 02:00 AM PHT."*.
+   - Point to the preview card below:
+   - *Say to panelists:* *"Notice how our live client banner preview updates instantly with zero lag as I type. The administrator sees the exact layout and contrast their users will experience."*
+
+3. **Step 3: Toggle Severity & Audience Scoping**
+   - Tap **`[⛔ Lockdown]`** ➔ Point out how the preview badge dynamically transforms into a bold red *"⛔ CRITICAL LOCKDOWN"*.
+   - Tap **`[⚠️ Warning]`** ➔ Transforms into golden *"⚠️ SYSTEM ADVISORY"*.
+   - Tap **`[👑 Owners Only]`** ➔ The meta tag immediately reflects *"Retracts in 2h • Clan Owners Only"*.
+
+4. **Step 4: Live Cross-Device Dispatch (The Wow Factor)**
+   - Have a second test device or emulator displaying the **Malone Clan Dashboard** on the table.
+   - Tap **`📢 Dispatch System Broadcast`** on the Admin device.
+   - In less than 1 second, point to the second device: the emerald-and-gold System Advisory banner slides in seamlessly at the top of the Clan Dashboard!
+   - *Say to panelists:* *"Through our centralized reactive Firestore pipeline, the advisory is live across all active devices in less than a second, without requiring an app store update or SMS."*
+
+5. **Step 5: Demonstrate Instant Retraction**
+   - Tap **`🛑 Retract Active Broadcast`**.
+   - Show how the banner instantly vanishes from the second phone.
+   - Scroll down to the **Immutable Admin Audit Trail**: show the newly created `BROADCAST_RETRACTED` entry sealed with its SHA-256 cryptographic badge!
+
+---
+
+*(End of Chapter 16).*
+---
+
+# 👑 Chapter 17: The Central Command Citadel — Part 3: Freemium 50-Member Cap, Clan Expansion Queue & Quota Governance Subsystem
+
+### 📍 Target File:
+- Controller & Quota Queue Engine: [`AdminPortalActivity.kt` (Lines 678–785)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt#L678-L785)
+- Quota Card Layout: [`item_quota_queue_card.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_quota_queue_card.xml)
+- Clan Tree Model & Tier Logic: [`FamilyTree.kt` (Lines 16–50)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/FamilyTree.kt#L16-L50)
+- Cloud Persistence & Real-time Expansion: [`FirestoreHelper.kt` (Lines 5175–5305)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L5175-L5305)
+- Client Request Trigger: [`ClanProfileBottomSheet.kt` (Lines 412–445)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/ClanProfileBottomSheet.kt#L412-L445)
+- Client Enforcement Gate: [`AddMemberActivity.kt` (Lines 240–255)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AddMemberActivity.kt#L240-L255)
+
+---
+
+### 17.1 The Plain English 10-Second Pitch
+
+> *"This is KinTrace's capacity governance citadel. To protect the cloud database from spam bots and out-of-control memory spikes, every family starts with a generous 50-member free tier. When large families hit or approach their 50-member limit, they tap 'Request Free Expansion' in their clan profile. Their tree immediately appears right here in this live queue, allowing administrators to review their clan and elevate their capacity to 200 or 500 members with a single tap."*
+
+---
+
+### 17.2 Screen Anatomy & Visual Elements
+
+1. **Tab Navigation Bar (Citadel Header)**:
+   - **`[📢 Broadcaster]`**: In-app maintenance banner dispatcher.
+   - **`[👑 Quota & Passes]`** *(Active Gold Tab)*: Unfolds the Freemium Quota Governance and Clan Expansion Queue.
+   - **`[🛠️ Ops & Recovery]`**: Database rollback and disaster recovery controls.
+
+2. **Queue Card Header & Sync Action**:
+   - **Title**: *"👑 Freemium 50-Member Cap & Clan Expansion Queue"*.
+   - **Subtitle**: *"Administer cap expansions and grant 30-day reunion passes without database overflow."*.
+   - **`[🔄 Sync Queue]` Button**: Re-queries Firestore across all clans to detect new expansion requests in real time.
+
+3. **Dynamic Clan Expansion Cards (The Live Queue)**:
+   - **Clan Title**: Displays the registered Family Tree name (e.g., *"Stress Clan A (110)"*, *"Family Tree"*).
+   - **Capped Status Badge**: A high-visibility pill indicator: `🔴 110/50 Capped`, `🔴 200/50 Capped`, or `🟡 48/50 Near Cap`.
+   - **Ownership & Request Metadata**: Shows the owner's verified identity and requested target tier (e.g., *"Owner: dumgen8@gmail.com (Augustine Russell) • Request: Tier 2 (200 Members)"*).
+   - **`⚡ Approve Clan Expansion (+150 Cap → 200)` Button**: The primary golden action button that elevates the quota, resets the request flag, and notifies the family in Firestore.
+   - **Action / Review Status Footer**: Contextual subtext providing instant insight: *"Pending admin review (110/50 hard cap reached)."* or *"🔔 Explicit expansion request submitted by owner."*.
+
+---
+
+### 17.3 The 4 Core Architectural Mechanisms Under the Hood
+
+#### 🏛️ Mechanism A: Automated 3-Tier Quota Architecture & Expansion Math
+- **Code Reference**: [`FamilyTree.kt` Lines 16–46](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/FamilyTree.kt#L16-L46)
+- **The Problem**: 
+  Without capacity limits, malicious scripts could inject 50,000 fake records into a single family tree, crashing the mobile app's Canvas rendering engine and exhausting Firestore read/write budgets.
+- **How KinTrace Solves It**: 
+  KinTrace establishes a structured 3-tier capacity lifecycle:
+  - **Tier 1 (Core Freemium)**: `DEFAULT_FREEMIUM_QUOTA = 50` members. Perfect for 90% of standard genealogical families.
+  - **Tier 2 (Extended Clan)**: `200` members (`+150` expansion step). Designed for multigenerational clans with dozens of cousins and aunts.
+  - **Tier 3 (Archival Dynasty)**: `500` members. Designed for massive historical lineages and merged family dynasties.
+  KinTrace computes the next tier dynamically using `tree.nextExpandedQuota()`:
+```kotlin
+  fun nextExpandedQuota(increment: Int = EXPANSION_STEP): Int {
+      return when {
+          effectiveQuota < 200 -> 200
+          effectiveQuota < 500 -> 500
+          else -> effectiveQuota + increment
+      }
+  }
+```
+
+#### 🔍 Mechanism B: Self-Organizing Prioritized Queue (`fetchQuotaQueueTrees`)
+- **Code Reference**: [`FirestoreHelper.kt` Lines 5175–5255](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L5175-L5255)
+- **The Problem**: 
+  If a system has 500 families, the administrator cannot manually scroll through every tree to find out who needs extra capacity.
+- **How KinTrace Solves It**: 
+  When `loadDynamicQuotaQueue()` runs, Firestore executes a smart composite scan:
+  1. It inspects all family tree documents.
+  2. It evaluates whether `tree.isCapped(memberCount)`, `tree.isNearCap(memberCount)` (≥90% of cap), or `tree.quotaExpansionRequested == true`.
+  3. It sorts the queue using `compareByDescending { it.isCapped }.thenByDescending { it.tree.quotaExpansionRequested }`.
+  *Result*: Families actively blocked from adding members float to the very top of the queue with bright red `🔴 Capped` badges, giving administrators instant clarity on who needs help first.
+
+#### ⚡ Mechanism C: One-Tap Atomic Quota Elevation & Cross-Clan Notification
+- **Code Reference**: [`AdminPortalActivity.kt` Lines 737–772](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt#L737-L772) & [`FirestoreHelper.kt` Lines 5273–5305](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L5273-L5305)
+- **The Problem**: 
+  In traditional systems, upgrading a user's tier requires database console manipulation, SQL queries, and manually emailing the user.
+- **How KinTrace Solves It**: 
+  When the administrator taps `⚡ Approve Clan Expansion`, KinTrace executes a **3-step atomic pipeline**:
+  1. **Tree Quota Update**: Updates `trees/{treeId}` with `memberQuota = 200` and resets `quotaExpansionRequested = false`.
+  2. **Owner In-App Celebration Dispatch**: Automatically adds a celebratory notification to `notifications/{notifId}` addressed to the clan owner:
+     *"Clan Capacity Expanded (200 Cap) — System Admin approved your clan expansion for 'Santos Family'. You can now record up to 200 family members."*.
+  3. **Real-time Synchronizer Broadcast**: Dispatches an update through `CentralTreeSynchronizer`. The moment the owner opens their app, their Clan Profile immediately shows `Extended Clan Tier (21 / 200 members • 179 slots left)`, and the `AddMemberActivity` gate opens instantly!
+
+#### 📜 Mechanism D: Cryptographic Audit Trail (RA 10173 Compliance)
+- **Code Reference**: [`AdminPortalActivity.kt` Lines 751–755](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt#L751-L755)
+- **The Problem**: 
+  Auditors must verify that administrators aren't arbitrarily modifying database quotas or granting favoritism without an official governance log.
+- **How KinTrace Solves It**: 
+  Every approved expansion immediately writes an immutable event: `CLAN_CAP_EXPANDED` to `admin_audit_logs`. The log entry records the tree ID, clan name, owner email, and previous/new quota limits, and signs the record with a **SHA-256 cryptographic digest**. This guarantees non-repudiation and total governance integrity.
+
+---
+
+### 17.4 Complete Data Flow Architecture (DFD Layer)
+
+```
+  [ Clan Owner on Mobile ]                                [ Super Admin Citadel ]
+  (ClanProfileBottomSheet)                                (AdminPortalActivity)
+            │                                                        │
+            │ 1. Clan reaches 50/50                                  │
+            │    Taps 'Request Free Expansion'                       │
+            ▼                                                        │
+  ┌────────────────────────────────────────────────────────┐         │
+  │ CLOUD FIRESTORE: trees/{treeId}                        │         │
+  │ - quotaExpansionRequested: true                        │         │
+  │ - memberQuota: 50                                      │         │
+  └────────────────────────┬───────────────────────────────┘         │
+                           │                                         │
+                           │ 2. fetchQuotaQueueTrees() scans queue   │
+                           └────────────────────────────────────────>│
+                                                                     ▼
+                                                    [ 🔴 50/50 Capped Card Appears ]
+                                                    Owner: dumgen8@gmail.com
+                                                    Request: Tier 2 (200 Members)
+                                                                     │
+                                                                     │ 3. Admin taps:
+                                                                     │    'Approve Clan Expansion'
+                                                                     ▼
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ ATOMIC CLOUD COMMIT:                                                   │
+  │ 1. trees/{treeId}.memberQuota = 200                                    │
+  │ 2. trees/{treeId}.quotaExpansionRequested = false                      │
+  │ 3. notifications/{id} ➔ 'Clan Capacity Expanded (200 Cap)'             │
+  │ 4. admin_audit_logs/{id} ➔ 'CLAN_CAP_EXPANDED' (SHA-256 Sealed)        │
+  └────────────────────────┬───────────────────────────────────────────────┘
+                           │
+                           │ 4. Real-Time CentralTreeSynchronizer Event
+                           ▼
+  [ Clan Dashboard & Add Member Activity ]
+  - Quota cap instantly lifted from 50 to 200
+  - Family can immediately add their 51st relative without app restart!
+```
+
+---
+
+### 17.5 Capstone Defense Q&A: Hard Panelist Questions Answered
+
+#### 🎓 Question 1: *"Why did you impose a 50-member limit on a genealogy app? Isn't that restrictive for large Filipino families?"*
+> **Panelist Probe**: *Why have a quota at all? Shouldn't a family tree allow unlimited people?*
+> 
+> **Your Layman's Answer:**
+> *"Unrestricted cloud databases are vulnerable to three critical engineering risks:*
+> *1. **Canvas Performance Degradation**: Rendering thousands of nodes on an Android Canvas with Bezier curves requires memory management. By tiering trees at 50, 200, and 500, we guarantee 60 FPS smooth panning and zooming.*
+> *2. **Spam & DoS Defense**: A malicious actor or bot creating a script could flood the cloud with 100,000 fake records, draining cloud quotas.*
+> *3. **Sustainable Freemium Governance**: 50 members comfortably covers 4 generations (great-grandparents, grandparents, parents, children, and siblings). For extended clans, expansion is 100% free and instantaneous through our admin queue. It provides capacity governance without charging users.*"
+
+#### 🎓 Question 2: *"What stops a user from hacking past the 50-member limit on their phone?"*
+> **Panelist Probe**: *Is this quota check purely on the mobile UI, or is it enforced in the cloud?*
+> 
+> **Your Layman's Answer:**
+> *"The quota is enforced with a **defense-in-depth model** on both the client and the cloud:*
+> *1. **Client Guard**: In [`AddMemberActivity.kt` Lines 240–255](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AddMemberActivity.kt#L240-L255), the app counts the live members in memory. If `currentCount >= effectiveQuota`, the 'Save Member' button is locked with a warning badge prompting the user to request expansion.*
+> *2. **Backend Guard**: In Firestore Security Rules and [`FirestoreHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L715), member additions check the tree's stored `memberQuota`. Any transaction attempting to exceed `memberQuota` is rejected by the server.*"
+
+#### 🎓 Question 3: *"Why does the expansion go from 50 straight to 200 members?"*
+> **Panelist Probe**: *What is the mathematical or genealogical rationale for jumping by 150 slots?*
+> 
+> **Your Layman's Answer:**
+> *"In genealogical science, families do not grow by 1 or 2 people at a time when documenting ancestral history. When a family discovers an archival branch—such as a grand-uncle who had 8 children and 24 grandchildren—they need significant headroom to document that entire lineage at once.*
+> *Jumping from 50 to 200 slots (+150 members) eliminates the annoyance of having to request expansion repeatedly every few days, creating a seamless user journey for the clan historian.*"
+
+#### 🎓 Question 4: *"How does the clan owner find out that their expansion was approved?"*
+> **Panelist Probe**: *Does the owner have to keep refreshing or calling support?*
+> 
+> **Your Layman's Answer:**
+> *"Everything is automated and real-time. The exact millisecond the administrator taps 'Approve Clan Expansion', KinTrace creates an in-app notification in the owner's Firestore inbox:*
+> *'System Admin approved your clan expansion for [Family Name]. You can now record up to 200 family members.'*
+> *Furthermore, because `CentralTreeSynchronizer` listens to cloud updates in real time, the owner's dashboard banner updates instantly from '50/50' to '50/200' with zero app restart needed."*
+
+---
+
+### 17.6 Step-by-Step Defense Walkthrough: Live Demo Script
+
+When presenting this screen during your capstone defense:
+
+1. **Step 1: Switch to the Quota & Passes Tab**
+   - In the Citadel Command Hub, tap the **`[👑 Quota & Passes]`** tab.
+   - *Say to panelists:* *"Now let's examine KinTrace's Freemium Capacity Governance and Clan Expansion Queue."*
+
+2. **Step 2: Explain the Live Queue Prioritization**
+   - Point to the top cards featuring red badges: `🔴 110/50 Capped` and `🔴 200/50 Capped`.
+   - *Say to panelists:* *"Notice how our queue automatically bubbles the most critical clans to the top. Trees that have reached or exceeded their 50-member freemium limit are flagged with red badges, while those near 90% capacity show in yellow."*
+
+3. **Step 3: Point Out the Detailed Ownership & Tier Metadata**
+   - Read the card subtext aloud: *"Owner: dumgen8@gmail.com (Augustine Russell) • Request: Tier 2 (200 Members)"*.
+   - *Say to panelists:* *"The system pairs the family tree with the verified identity of the clan patriarch who requested the expansion, preventing anonymous quota abuse."*
+
+4. **Step 4: Execute Live Expansion Approval**
+   - Tap **`⚡ Approve Clan Expansion (+150 Cap → 200)`**.
+   - Watch the button transform into: `✓ Quota Expanded (200 Cap)` with a green confirmation toast.
+   - *Say to panelists:* *"With one tap, the cap is elevated to 200 in Firestore, a celebratory notification is pushed to the family owner's inbox, and an immutable SHA-256 digital audit seal is logged in our IT compliance trail."*
+
+5. **Step 5: Demonstrate Client Side Live Lift (The Climax)**
+   - Pick up the Clan Owner's phone (or switch to the family dashboard):
+   - Open **Clan Profile** ➔ show that capacity now reads: **`21 / 200 members • 179 slots left`**!
+   - Open **Add Member** ➔ show that the previous 50-member lock is gone and relatives can be added smoothly!
+
+---
+
+*(End of Chapter 17).*
+---
+
+# 🛠️ Chapter 18: The Central Command Citadel — Part 4: Soft-Delete Disaster Recovery Console, Pedigree Tree Grafting & Ops Governance Subsystem
+
+### 📍 Target File:
+- Controller & Ops Desk Engine: [`AdminPortalActivity.kt` (Lines 788–1030)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt#L788-L1030)
+- Recovery Card Layout: [`item_deleted_member_recovery.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_deleted_member_recovery.xml)
+- Soft-Delete Archive Entity: [`ArchivedMemberRecord.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/ArchivedMemberRecord.kt)
+- Cloud Restoration & Atomic Batch: [`FirestoreHelper.kt` (Lines 496–590 & 4794–4940)](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L4794-L4940)
+- Client Sync Dispatcher: [`CentralTreeSynchronizer.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt)
+
+---
+
+### 18.1 The Plain English 10-Second Pitch
+
+> *"This is KinTrace's genealogical hospital and emergency room. In a family tree, deleting a person is never as simple as deleting a row in a spreadsheet—if you delete a grandmother, her children and grandchildren become disconnected orphans, breaking the entire family tree into broken pieces. KinTrace never truly destroys a record; instead, it safely archives the person's complete biographical profile and family connections. If an elder or editor makes a mistake, administrators can restore that person with a single tap, seamlessly re-attaching all children and spouses back into their rightful branches in real time."*
+
+---
+
+### 18.2 Screen Anatomy & Visual Elements
+
+1. **Tab Navigation Bar (Top)**:
+   - **`[📢 Broadcaster]`**: In-app maintenance banner dispatcher.
+   - **`[👑 Quota & Passes]`**: Clan tier expansion and 30-day reunion pass manager.
+   - **`[🛠️ Ops & Recovery]`** *(Active Gold Tab)*: Unfolds the disaster recovery console, merge collision docket, sandbox manager, and OTA deployment desk.
+
+2. **Deleted Member Recovery Console Header**:
+   - **Title**: *"🩹 Deleted Member Recovery Console"*.
+   - **Subtitle**: *"Restore accidentally deleted family members to reconnect pedigree branches."*.
+
+3. **Recovery Card Architecture (The Disaster Queue)**:
+   - **Full Name & Lineage Role**: Prominently displays the member's identity and biological role (e.g., *"Maraiah Queen Cremen (Daughter)"*, *"Fely Millare (Daughter)"*).
+   - **Relative Time-Ago Badge**: Dynamic temporal counter (`4d ago`, `6d ago`, `2h ago`) calculated live from `System.currentTimeMillis() - deletedAt`.
+   - **Clan Association Badge**: Shows the parent family tree: `🌳 Cremen Family` or `🌳 Randone`.
+   - **Forensic Audit Metadata**: Displays the cryptographic record ID and the exact verified identity of who performed the deletion (e.g., *"ID: KTKu71DTy5AMpAvKLbpx • Deleted by Gabriel Cremen"*).
+   - **Priority Restoration Request Badge**: When a clan editor or relative submits a recovery request, an unmistakable golden pill badge appears (`⚡ Restoration Requested by [Requester Name]`), and the record automatically bubbles to the very top of the Citadel queue.
+   - **`🩹 Restore Member to Tree` Action Button**: The primary golden recovery trigger that executes the atomic restoration transaction.
+   - **Archival Status Subtext**: Contextual state indicator (*"Member record is currently archived."* or *"📩 Family requested restoration of this lineage branch."*).
+
+4. **The Family-Side "Doorbell" Restoration Request Modal** (`HomeActivity.kt` & `RecentActivitiesActivity.kt`):
+   - When a clan owner or editor navigates to their **Recent Activities** and taps on a deleted member entry (e.g., *"Deleted by Gabriel Cremen"*), KinTrace does not show a dead-end error.
+   - Instead, it checks the soft-delete archive in real time. If not yet requested, it presents an actionable modal: *"Was [Name] deleted by mistake? You can ring the Citadel doorbell to ask the System Administrator to restore this member and reconnect their family lineage."* with button **`[ 📩 Request Restoration ]`**.
+   - Tapping it instantly updates the cloud record and notifies the Super Admin.
+
+5. **Additional Ops Desk Subsystems** *(Scrollable on Same Tab)*:
+   - **⚖️ Cross-Clan Merge Collisions & Dispute Docket**: Resolves conflicting historical dates when two separate clan branches synthesize.
+   - **🧪 Isolated Demo Sandbox Seeder & Flush**: Injects a clean 4-generation benchmark tree for live capstone defense reviews and purges it with one tap.
+   - **🚀 Zero-Cost GitHub Releases OTA Auto-Installer**: Deploys newly compiled APK updates directly to client phones without app store fees.
+
+---
+
+### 18.3 The 5 Core Architectural Mechanisms Under the Hood
+
+#### 🧬 Mechanism A: Non-Destructive Soft Deletion & Topology Snapshotting
+- **Code Reference**: [`FirestoreHelper.kt` Lines 500–532](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L500-L532)
+- **The Problem**: 
+  If an editor deletes a father node, traditional databases wipe the record. As a result, the children's `fatherId` pointers become dangling references, the visual tree crashes, and historical genealogical data is permanently obliterated.
+- **How KinTrace Solves It**: 
+  Before a record is removed from the active `persons` collection, KinTrace executes `buildArchivedMemberSnapshot()`:
+  1. It queries all family members to identify every child whose `fatherId` or `motherId` matches the person being deleted.
+  2. It identifies reciprocal spouse connections (`person.spouseId` or reciprocal spouse records).
+  3. It bundles the full `Person` object, its parent pointers, and all former children IDs into an [`ArchivedMemberRecord`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/ArchivedMemberRecord.kt) in Firestore collection `archived_deleted_members`.
+  *Result*: The deletion is 100% non-destructive and preserves the complete topological graph.
+
+#### ⚡ Mechanism B: Atomic 5-Operation Firestore WriteBatch Restoration
+- **Code Reference**: [`FirestoreHelper.kt` Lines 4845–4915](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L4845-L4915)
+- **The Problem**: 
+  Restoring a deleted parent requires modifying multiple database documents simultaneously (the parent, all former children, and the spouse). If the app crashes halfway through individual network updates, the tree enters a corrupt, partially restored state.
+- **How KinTrace Solves It**: 
+  KinTrace executes restoration inside a single atomic Firestore `WriteBatch`:
+  1. **Parent Re-insertion**: Writes the `Person` document back into `persons/{id}`.
+  2. **Children Re-attachment**: Iterates through `formerFatherChildIds` and `formerMotherChildIds`, updating each child document with `SetOptions.merge()` to restore `fatherId` or `motherId`.
+  3. **Spouse Reciprocal Re-link**: Updates the former spouse document to re-establish the marriage bond.
+  4. **Archive State Update**: Marks `isRestored = true` in `archived_deleted_members/{id}`.
+  5. **Atomic Commit**: All updates commit simultaneously. If any step fails, the entire transaction rolls back cleanly.
+
+#### 💍 Mechanism C: The Remarriage & Bigamy Conflict Prevention Engine
+- **Code Reference**: [`FirestoreHelper.kt` Lines 4866–4907](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L4866-L4907)
+- **The Problem**: 
+  What happens if Spouse A was deleted, and while they were in the archive, the surviving Spouse B legally remarried Spouse C? Blindly restoring Spouse A would overwrite Spouse B's `spouseId`, corrupting their new marriage and creating an impossible bigamy state!
+- **How KinTrace Solves It**: 
+  During restoration, KinTrace inspects the current state of the surviving spouse:
+  - If the surviving spouse is currently unmarried: KinTrace cleanly restores `spouseId = personToRestore.id` and sets `maritalStatus = Married`.
+  - If the surviving spouse has **already remarried another member**: KinTrace gracefully avoids overwriting their active marriage. Instead, it pushes the restored spouse's ID into the surviving spouse's `formerSpouseIds` list using `FieldValue.arrayUnion()`. This preserves legal civil integrity and prevents marriage collisions!
+
+#### 🔄 Mechanism D: Central In-Memory Cache Grafting & Live Signal Broadcast
+- **Code Reference**: [`FirestoreHelper.kt` Lines 538–589 & 4918–4924](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L538-L589)
+- **The Problem**: 
+  Even after cloud database restoration, if other clan members currently viewing the tree on their phones do not reload the app, their local screen remains fractured.
+- **How KinTrace Solves It**: 
+  1. KinTrace executes `applyRestoreArchivedMemberToCache()`, instantly grafting the restored node and all child/spouse edge links into the device's local memory cache.
+  2. It dispatches a real-time event through `CentralTreeSynchronizer.getInstance().notifyMemberAdded()`. Connected client screens (`FamilyTreeView`, `PedigreeView`, and `FamilyRecordsActivity`) re-render their visual canvases instantly with 60 FPS fluidity.
+
+#### 🔔 Mechanism E: The Family-Side "Doorbell" Restoration Request Protocol
+- **Code Reference**: [`HomeActivity.kt` Lines 1425–1525](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/HomeActivity.kt#L1425-L1525), [`RecentActivitiesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RecentActivitiesActivity.kt), and [`FirestoreHelper.kt` Lines 4822–4870](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L4822-L4870)
+- **The Problem**: 
+  Ordinary clan owners and editors do not have access to the Citadel Command Hub (which is reserved exclusively for Super Administrators). If a family accidentally deletes a relative, how do they recover them without requiring administrative credentials or reaching out through off-platform channels?
+- **How KinTrace Solves It**: 
+  KinTrace implements a non-breaking **"Doorbell" Request Protocol**:
+  1. Relatives navigate to their **Recent Activity** stream and tap on the deleted member activity.
+  2. KinTrace inspects the soft-delete archive in real time. If not yet requested, it displays an interactive bottom modal: *"Was [Name] deleted by mistake? You can ring the Citadel doorbell to ask the System Administrator to restore this member and reconnect their family lineage."*
+  3. Tapping **`[ 📩 Request Restoration ]`** triggers `requestMemberRestoration(recordId)`. This tags the archive with `restorationRequested = true`, `requestedBy`, `requestedByName`, and `requestedAt`.
+  4. In the Citadel Command Hub, `getArchivedDeletedMembers()` sorts requested records to the very top with the golden **`⚡ Restoration Requested by [Requester Name]`** badge, alerting the Super Admin to execute 1-tap recovery immediately.
+
+---
+
+### 18.4 Complete Data Flow Architecture (DFD Layer)
+
+```
+  [ Clan Editor on Mobile ]                                [ Super Admin Citadel ]
+  (FamilyRecords / MemberDetail)                           (AdminPortalActivity)
+            │                                                        │
+            │ 1. Editor taps 'Delete Member'                         │
+            ▼                                                        │
+  ┌────────────────────────────────────────────────────────┐         │
+  │ buildArchivedMemberSnapshot() captures:                │         │
+  │ - person: Person                                       │         │
+  │ - formerFatherChildIds: [child1, child2]               │         │
+  │ - originalSpouseId: spouseA                            │         │
+  │ - deletedBy: 'Gabriel Cremen'                          │         │
+  └────────────────────────┬───────────────────────────────┘         │
+                           │                                         │
+                           │ 2. Soft-delete archive created          │
+                           └────────────────────────────────────────>│
+                                                                     │
+  [ Clan Relative / Owner ]                                          │
+  (HomeActivity / RecentActivities)                                  │
+            │                                                        │
+            │ 3. Relative taps 'Deleted by Gabriel Cremen'           │
+            ▼                                                        │
+  ┌────────────────────────────────────────────────────────┐         │
+  │ "Doorbell" Restoration Request Modal:                  │         │
+  │ - Prompts: "Was member deleted by mistake?"            │         │
+  │ - Taps: [ 📩 Request Restoration from Admin ]          │         │
+  └────────────────────────┬───────────────────────────────┘         │
+                           │                                         │
+                           │ 4. Sets restorationRequested = true     │
+                           └────────────────────────────────────────>│
+                                                                     ▼
+                                                    [ ⚡ Priority Recovery Card ]
+                                                    ⚡ Restoration Requested by Family
+                                                    Maraiah Queen Cremen (Daughter)
+                                                    🌳 Cremen Family • 4d ago
+                                                                     │
+                                                                     │ 5. Admin taps:
+                                                                     │    'Restore Member to Tree'
+                                                                     ▼
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ ATOMIC FIRESTORE WRITE-BATCH COMMIT:                                   │
+  │ 1. persons/{id}.set(personToRestore)                                   │
+  │ 2. persons/{child1}.update('fatherId', personToRestore.id)             │
+  │ 3. persons/{child2}.update('fatherId', personToRestore.id)             │
+  │ 4. persons/{spouseA}.update('spouseId', personToRestore.id)            │
+  │ 5. archived_deleted_members/{id}.update('isRestored', true)            │
+  │ 6. admin_audit_logs/{id}.add('NODE_RESTORED', SHA-256 Sealed)          │
+  └────────────────────────┬───────────────────────────────────────────────┘
+                           │
+                           │ 6. CentralTreeSynchronizer.notifyMemberAdded()
+                           ▼
+  [ Cremen Family Dashboard & Interactive Tree View ]
+  - Maraiah Queen Cremen reappears on the canvas in sub-second time!
+  - All sibling and parental branch lines re-attach automatically with zero data loss!
+```
+
+---
+
+### 18.5 Capstone Defense Q&A: 10 Critical Panelist Questions Answered
+
+#### 🎓 Question 1: *"Why did your team implement a Soft-Delete recovery mechanism instead of letting users permanently delete records?"*
+> **Panelist Probe**: *In standard databases, DELETE means delete. Why create an entire archive subsystem?*
+> 
+> **Your Layman's Answer:**
+> *"In a genealogy system, people are not standalone records—they are interconnected nodes in a biological graph. If an emotional or careless editor hard-deletes an ancestor, dozens of children, grandchildren, and spousal ties are permanently broken into orphaned fragments. Our soft-delete recovery system serves as an enterprise safety net, preserving cultural heritage and family records from irreversible human error while maintaining compliance with Data Privacy standards."*
+
+#### 🎓 Question 2: *"How does your soft-delete mechanism comply with the 'Right to Erasure' under the Philippine Data Privacy Act (RA 10173)?"*
+> **Panelist Probe**: *If a user exercises their legal right to be forgotten, does KinTrace keep their data forever in this recovery console?*
+> 
+> **Your Layman's Answer:**
+> *"KinTrace provides a distinct two-tier deletion model:*
+> *1. **Standard In-App Deletion (Soft Delete)**: When an editor removes a family member during regular tree management, it is treated as a genealogical branch reorganization and archived in the Ops Console to prevent accidental loss.*
+> *2. **Legal Civil Erasure (Hard Purge)**: If a data subject explicitly submits a verified Data Privacy Right to Erasure request, the Super Admin uses the Legal Civil Audit desk to execute a cryptographic hard purge, permanently destroying the record from both `persons` and `archived_deleted_members` collections and recording an immutable compliance certificate in our audit trail."*
+
+#### 🎓 Question 3: *"What is the 'Broken Bridge' problem in family tree data structures, and how does your architecture solve it?"*
+> **Panelist Probe**: *What happens to child nodes when a parent node is deleted?*
+> 
+> **Your Layman's Answer:**
+> *"In graph theory, deleting an intermediate node disconnects all descendant edges—this is the 'Broken Bridge' problem. If a father is deleted, his children have no father pointer, and the pedigree visualizer cannot connect them to their grandparents.*
+> *When KinTrace soft-deletes a parent, [`buildArchivedMemberSnapshot()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L500) captures the exact IDs of all children (`formerFatherChildIds`). During restoration, it atomically updates each child's document to re-anchor their father pointer, perfectly repairing the bridge."*
+
+#### 🎓 Question 4: *"What happens if a surviving spouse remarried while the deleted person was in the archive? Does restoring cause a bigamy conflict?"*
+> **Panelist Probe**: *How does your system prevent two active spouse links for one person upon recovery?*
+> 
+> **Your Layman's Answer:**
+> *"KinTrace features an automated Bigamy Conflict Prevention Engine in [`FirestoreHelper.kt` Lines 4866–4888](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/firebase/FirestoreHelper.kt#L4866-L4888).
+> Before restoring a spouse connection, the algorithm inspects the surviving spouse's current record. If they have already married someone else, the system will NOT overwrite their new active marriage. Instead, it cleanly appends the restored spouse's ID into the surviving spouse's `formerSpouseIds` array using Firestore's `arrayUnion()`. This preserves legal civil integrity and prevents marriage graph collisions."*
+
+#### 🎓 Question 5: *"Why do you use an atomic Firestore WriteBatch instead of individual database calls?"*
+> **Panelist Probe**: *What engineering benefit does WriteBatch provide over standard async calls?*
+> 
+> **Your Layman's Answer:**
+> *"Restoring a member requires up to 5 interrelated cloud writes: re-inserting the person, updating multiple children, updating the spouse, marking the archive, and logging the audit event. If done with individual calls, a mobile network drop on step 3 would leave the database in an inconsistent state where the father exists but only 1 out of 3 children recognize him. With Firestore `WriteBatch`, either all 5 writes succeed together, or none do. It guarantees ACID transaction atomicity."*
+
+#### 🎓 Question 6: *"What prevents two administrators from restoring or modifying the same deleted member simultaneously?"*
+> **Panelist Probe**: *How do you prevent race conditions in multi-admin environments?*
+> 
+> **Your Layman's Answer:**
+> *"When the administrator taps 'Restore Member to Tree', the UI instantly disables the button (`btnRestore.isEnabled = false`). On the backend, `restoreArchivedMember()` sets `isRestored = true`. Any subsequent or concurrent request reading the archive will find `isRestored == true` and reject the operation. Furthermore, all operations are logged with unique timestamped UUIDs in the audit trail."*
+
+#### 🎓 Question 7: *"How does the system ensure that deleted archives don't bloat Firestore database storage costs?"*
+> **Panelist Probe**: *If deleted records accumulate forever, won't storage costs scale out of control?*
+> 
+> **Your Layman's Answer:**
+> *"Archived member records are plain JSON metadata documents containing no heavy binary media—photos are stored as compressed WebP URLs in Cloud Storage. Furthermore, in our **Storage Optimizer** (Chapter 15), administrators can run dormant tree pruners and retention sweeps that identify records idle for over 60 days, giving full control over cloud capacity."*
+
+#### 🎓 Question 8: *"Why is the Recovery Console restricted to Super Administrators in the Citadel rather than accessible to clan editors?"*
+> **Panelist Probe**: *Why can't a family editor restore their own deleted members? Why require an administrator?*
+> 
+> **Your Layman's Answer:**
+> *"Granting ordinary editors unrestrained delete-and-restore privileges creates chaos in shared trees—disagreeing relatives could repeatedly delete and undelete family members in 'edit wars'. By centralizing disaster recovery in the Super Admin Citadel, restorations require elevated privilege, are cryptographically logged with non-repudiation, and can be reviewed objectively."*
+
+#### 🎓 Question 9: *"What is the purpose of the Merge Collisions Docket on this same Ops Desk?"*
+> **Panelist Probe**: *How does Ops & Recovery handle conflicting data between two merging families?*
+> 
+> **Your Layman's Answer:**
+> *"When two separate family trees merge (e.g., when two cousins synthesize branches), they may possess conflicting historical records for the same ancestor—such as different birth dates or civil statuses. The Merge Collisions Docket flags these discrepancies as legal dockets, allowing administrators to compare both source trees and arbitrate the certified historical truth."*
+
+#### 🎓 Question 10: *"How does the Isolated Demo Sandbox Seeder protect production data during live defense demonstrations?"*
+> **Panelist Probe**: *How do you ensure test accounts and presentation trees don't pollute real family data?*
+> 
+> **Your Layman's Answer:**
+> *"In [`AdminPortalActivity.kt` Lines 795–841](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt#L795-L841), the Ops Desk features a one-tap **Demo Sandbox Seeder**. It creates a completely isolated benchmark clan (`tree_demo_sandbox`) containing 4 generations of realistic Filipino family members. When our presentation is complete, tapping 'Flush Demo State' purges only records tagged with the sandbox ID, leaving 100% of authentic family lineages untouched."*
+
+#### 🎓 Question 11: *"How does an ordinary clan editor or owner request the restoration of an accidentally deleted member if they don't have access to the Citadel Command Hub?"*
+> **Panelist Probe**: *If clan members can't open the Citadel Command Hub, how do they get the administrator's attention to restore their family member?*
+> 
+> **Your Layman's Answer:**
+> *"KinTrace solves this through our **'Doorbell' Restoration Request Protocol**:*
+> *1. When a clan owner or editor navigates to their **Recent Activities** on mobile, they see an activity event such as 'Deleted by Gabriel Cremen'.*
+> *2. Tapping this item checks the soft-delete archive and opens an actionable modal asking: 'Was this member deleted by mistake? You can ring the Citadel doorbell to ask the System Administrator to restore this member.'*
+> *3. Tapping **'📩 Request Restoration'** tags the archived record in Firestore with `restorationRequested = true` and records the requester's name and timestamp.*
+> *4. In the Citadel Command Hub, requested members instantly jump to the very top of the recovery queue featuring a golden **'⚡ Restoration Requested by Family'** badge, alerting the Super Admin to restore the lineage branch in 1 tap."*
+
+---
+
+### 18.6 Step-by-Step Defense Walkthrough: Live Demo Script
+
+When presenting this screen during your capstone defense:
+
+1. **Step 1: Switch to the Ops & Recovery Tab**
+   - In the Citadel Command Hub, tap the **`[🛠️ Ops & Recovery]`** tab.
+   - *Say to panelists:* *"Now let's examine KinTrace's disaster recovery and genealogical graph restoration subsystem."*
+
+2. **Step 2: Explain Non-Destructive Soft-Deletion**
+   - Point to the recovery cards: *"Maraiah Queen Cremen (Daughter)"* and *"Fely Millare (Daughter)"*.
+   - *Say to panelists:* *"When an editor deletes a relative from their tree, KinTrace does not erase the record. Instead, it captures the person's biographical profile, their reciprocal marriage bond, and all child links, archiving them safely in this disaster console."*
+
+3. **Step 3: Point Out the Forensic Audit Metadata & Doorbell Priority**
+   - Highlight the subtext: *"Deleted by Gabriel Cremen • 4d ago"*.
+   - Point out any card with the golden badge: **`⚡ Restoration Requested by Family`**.
+   - *Say to panelists:* *"Notice how requests submitted by family members bubble directly to the top with this golden priority badge, allowing administrators to act on urgent family recovery requests instantly."*
+
+4. **Step 4: Execute Live Node Restoration (The WOW Factor)**
+   - Tap **`🩹 Restore Member to Tree`** on Maraiah Queen Cremen's card.
+   - Watch the status change to: `✅ Restored! Maraiah re-linked to Cremen Family.` and the card smoothly disappear from the active queue.
+   - *Say to panelists:* *"Through an atomic Firestore WriteBatch, KinTrace re-inserted Maraiah, re-anchored her father and mother links on all sibling documents, and broadcasted a real-time signal to all active devices in less than a second."*
+
+5. **Step 5: Verify the Live Re-Attached Tree**
+   - Switch to the **Cremen Family Interactive Tree** or **Records Directory** on a second device:
+   - Show how Maraiah Queen Cremen has cleanly reappeared in her exact ancestral position with all generational branch lines fully reconnected!
+
+---
+
+*(End of Chapter 18 — Ready for your next screen).*

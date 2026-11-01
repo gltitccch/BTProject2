@@ -53,11 +53,7 @@ class RecentActivitiesActivity : AppCompatActivity() {
                     }
                     startActivity(intent)
                 } else {
-                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                        .setTitle("Archived Record Notice")
-                        .setMessage("${activity.description}\n\nDeleted member recovery is managed in the System Administrator Citadel.")
-                        .setPositiveButton("OK", null)
-                        .show()
+                    handleDeletedMemberRestorationRequest(activity)
                 }
             } else if (type in listOf("MERGE_COLLISION_BLOCKED", "COLLISION", "MERGE_COLLISION")) {
                 if (isAdmin) {
@@ -188,5 +184,73 @@ class RecentActivitiesActivity : AppCompatActivity() {
             }
         }
         return list.sortedByDescending { it.timestamp }
+    }
+
+    private fun handleDeletedMemberRestorationRequest(activity: ActivityRecord) {
+        val targetId = activity.targetId.ifBlank { return }
+        firestoreHelper.getArchivedMember(
+            recordId = targetId,
+            onSuccess = { archivedRecord ->
+                runOnUiThread {
+                    if (archivedRecord == null) {
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                            .setTitle("Archived Record Notice")
+                            .setMessage("${activity.description}\n\nDeleted member recovery is managed in the System Administrator Citadel.")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    } else if (archivedRecord.isRestored) {
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                            .setTitle("Member Restored")
+                            .setMessage("This family member has already been restored to the tree by the System Administrator!")
+                            .setPositiveButton("Great", null)
+                            .show()
+                    } else if (archivedRecord.restorationRequested) {
+                        val requester = archivedRecord.requestedByName.ifBlank { archivedRecord.requestedBy.ifBlank { "a family member" } }
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                            .setTitle("Restoration Request Pending")
+                            .setMessage("A restoration request for this member was already submitted by $requester.\n\nThe System Administrator has been alerted and will review and restore this branch from the Citadel Command Hub.")
+                            .setPositiveButton("Understood", null)
+                            .show()
+                    } else {
+                        val memberName = "${archivedRecord.person.firstName} ${archivedRecord.person.lastName}".trim().ifBlank { "this member" }
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                            .setTitle("Request Member Restoration")
+                            .setMessage("${activity.description}\n\nWas $memberName deleted by mistake? You can ring the Citadel doorbell to ask the System Administrator to restore this member and reconnect their family lineage.")
+                            .setPositiveButton("📩 Request Restoration") { _, _ ->
+                                firestoreHelper.requestMemberRestoration(
+                                    recordId = targetId,
+                                    onSuccess = {
+                                        runOnUiThread {
+                                            com.example.btproject2.utils.KinTraceAlert.show(
+                                                this,
+                                                "Restoration request submitted! The System Administrator has been alerted."
+                                            )
+                                        }
+                                    },
+                                    onFailure = { ex ->
+                                        runOnUiThread {
+                                            com.example.btproject2.utils.KinTraceAlert.show(
+                                                this,
+                                                "Could not submit request: ${ex.message}"
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                }
+            },
+            onFailure = {
+                runOnUiThread {
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                        .setTitle("Archived Record Notice")
+                        .setMessage("${activity.description}\n\nDeleted member recovery is managed in the System Administrator Citadel.")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
+        )
     }
 }

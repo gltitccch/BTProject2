@@ -2410,7 +2410,7 @@ class FirestoreHelper {
                                 userId = currentUser?.uid.orEmpty(),
                                 userName = currentUser?.displayName ?: currentUser?.email ?: "Editor",
                                 type = "MEMBER_DELETED",
-                                description = "Deleted $memberName from $treeName. Tap to restore via Ops & Recovery Console.",
+                                description = "Deleted $memberName from $treeName. Tap to restore or request recovery.",
                                 targetId = personId,
                                 targetName = memberName,
                                 timestamp = System.currentTimeMillis()
@@ -3640,8 +3640,13 @@ class FirestoreHelper {
                 .filter { doc ->
                     val status = doc.getString("status")?.trim().orEmpty()
                     val role = doc.getString("role")?.trim().orEmpty()
+                    // Allow Approved members, Owners, Editors, Viewers, legacy records with empty status,
+                    // and active members with pending role upgrade requests
                     status.equals("Approved", ignoreCase = true) ||
+                        status.equals("Pending", ignoreCase = true) ||
                         role.equals("Owner", ignoreCase = true) ||
+                        role.equals("Editor", ignoreCase = true) ||
+                        role.equals("Viewer", ignoreCase = true) ||
                         status.isEmpty()
                 }
                 .mapNotNull { it.getString("treeId")?.trim() }
@@ -4799,9 +4804,68 @@ class FirestoreHelper {
                     val unRestored = snapshot.documents.mapNotNull { doc ->
                         val record = doc.toObject(ArchivedMemberRecord::class.java)?.copy(id = doc.id)
                         val docRestored = doc.getBoolean("isRestored") == true || doc.getBoolean("restored") == true || record?.isRestored == true
-                        if (record != null && !docRestored) record else null
-                    }.sortedByDescending { it.deletedAt }
+                        val reqFlag = doc.getBoolean("restorationRequested") == true || record?.restorationRequested == true
+                        if (record != null && !docRestored) {
+                            record.copy(restorationRequested = reqFlag)
+                        } else null
+                    }.sortedWith(
+                        compareByDescending<ArchivedMemberRecord> { it.restorationRequested }
+                            .thenByDescending { it.requestedAt }
+                            .thenByDescending { it.deletedAt }
+                    )
                     onSuccess(unRestored)
+                }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun requestMemberRestoration(
+        recordId: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (recordId.isBlank()) {
+            onFailure(IllegalArgumentException("Record ID cannot be empty"))
+            return
+        }
+
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val updates = mapOf(
+            "restorationRequested" to true,
+            "requestedBy" to (currentUser?.email ?: "user"),
+            "requestedByName" to (currentUser?.displayName ?: currentUser?.email ?: "Family Member"),
+            "requestedAt" to System.currentTimeMillis()
+        )
+
+        db.collection("archived_deleted_members")
+            .document(recordId)
+            .set(updates, SetOptions.merge())
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { err ->
+                onFailure(err)
+            }
+    }
+
+    fun getArchivedMember(
+        recordId: String,
+        onSuccess: (ArchivedMemberRecord?) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (recordId.isBlank()) {
+            onSuccess(null)
+            return
+        }
+
+        db.collection("archived_deleted_members").document(recordId).get()
+            .addOnSuccessListener { doc ->
+                if (doc != null && doc.exists()) {
+                    val record = doc.toObject(ArchivedMemberRecord::class.java)?.copy(id = doc.id)
+                    val reqFlag = doc.getBoolean("restorationRequested") == true || record?.restorationRequested == true
+                    onSuccess(record?.copy(restorationRequested = reqFlag))
+                } else {
+                    onSuccess(null)
                 }
             }
             .addOnFailureListener { onFailure(it) }
@@ -4904,7 +4968,7 @@ class FirestoreHelper {
                 // 4. Mark restored in archive (write both fields for complete compatibility)
                 batch.update(
                     db.collection("archived_deleted_members").document(recordId),
-                    mapOf<String, Any>("isRestored" to true, "restored" to true)
+                    mapOf<String, Any>("isRestored" to true, "restored" to true, "restorationRequested" to false)
                 )
 
                 batch.commit()

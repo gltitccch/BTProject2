@@ -952,6 +952,7 @@ class AdminPortalActivity : AppCompatActivity() {
                             val tvDetails = itemView.findViewById<TextView>(R.id.tvDeletedMemberDetails)
                             val btnRestore = itemView.findViewById<Button>(R.id.btnRestoreMemberItem)
                             val tvStatus = itemView.findViewById<TextView>(R.id.tvDeletedMemberStatus)
+                            val tvBadge = itemView.findViewById<TextView>(R.id.tvRestorationRequestBadge)
                             val rootCard = itemView.findViewById<View>(R.id.cardDeletedMemberRoot)
 
                             val fullName = "${rec.person.firstName} ${rec.person.lastName}".trim().ifBlank { "Family Member" }
@@ -970,6 +971,18 @@ class AdminPortalActivity : AppCompatActivity() {
                             }
                             tvTimeAgo.text = timeStr
                             tvDetails.text = "ID: ${rec.id} • Deleted by ${rec.deletedByName.ifBlank { rec.deletedBy }}"
+
+                            if (rec.restorationRequested) {
+                                tvBadge.visibility = View.VISIBLE
+                                val requester = rec.requestedByName.ifBlank { rec.requestedBy.ifBlank { "Family Member" } }
+                                tvBadge.text = "⚡ Restoration Requested by $requester"
+                                tvStatus.text = "📩 Family requested restoration of this lineage branch."
+                                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
+                            } else {
+                                tvBadge.visibility = View.GONE
+                                tvStatus.text = "Member record is currently archived."
+                                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.danger))
+                            }
 
                             // Pulse highlight if navigated from Recent Activities
                             if (rec.id.equals(highlightMemberId, ignoreCase = true) ||

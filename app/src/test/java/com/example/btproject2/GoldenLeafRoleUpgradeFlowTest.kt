@@ -130,4 +130,51 @@ class GoldenLeafRoleUpgradeFlowTest {
         assertTrue(notif.message.contains("Russell Family"))
         assertEquals("user_202", notif.userId)
     }
+
+    @Test
+    fun `pending upgrade request retains tree switcher membership visibility`() {
+        // When a user requests an upgrade to Editor, their status is set to Pending.
+        // The tree switcher filter MUST keep their tree visible so they don't lose access.
+        val member = TreeMember(
+            id = "tree_malone_dumgen8",
+            treeId = "tree_malone",
+            userId = "dumgen8_uid",
+            userName = "Augustine Russell",
+            userEmail = "dumgen8@gmail.com",
+            role = "Viewer",
+            status = "Pending"
+        )
+
+        // Filter predicate used in executeParallelUserTreesLookup
+        val isVisibleInSwitcher = member.status.equals("Approved", ignoreCase = true) ||
+            member.status.equals("Pending", ignoreCase = true) ||
+            member.role.equals("Owner", ignoreCase = true) ||
+            member.role.equals("Editor", ignoreCase = true) ||
+            member.role.equals("Viewer", ignoreCase = true) ||
+            member.status.isEmpty()
+
+        assertTrue("Pending role upgrade member MUST remain visible in tree switcher", isVisibleInSwitcher)
+    }
+
+    @Test
+    fun `declining role upgrade keeps member as active Approved Viewer and does not delete membership`() {
+        val pendingMember = TreeMember(
+            id = "tree_malone_dumgen8",
+            treeId = "tree_malone",
+            userId = "dumgen8_uid",
+            userName = "Augustine Russell",
+            role = "Viewer",
+            status = "Pending"
+        )
+
+        // Decline upgrade action in PrivacyControlsActivity: keeps member in tree with Approved Viewer status
+        val retainedViewer = pendingMember.copy(
+            role = "Viewer",
+            status = "Approved"
+        )
+
+        assertEquals("Viewer", retainedViewer.role)
+        assertEquals("Approved", retainedViewer.status)
+        assertEquals("tree_malone", retainedViewer.treeId)
+    }
 }

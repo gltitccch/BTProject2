@@ -665,10 +665,13 @@ class PrivacyControlsActivity : AppCompatActivity() {
 
     private fun rejectMember(member: TreeMember, onDone: (() -> Unit)? = null) {
         com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-            .setTitle("Reject Request")
-            .setMessage("Reject access request from ${member.userName}?")
-            .setPositiveButton("Reject") { _, _ ->
-                firestoreHelper.deleteTreeMember(member.id,
+            .setTitle("Decline Role Request")
+            .setMessage("Decline Editor role request from ${member.userName}? They will remain an active Viewer in this family tree.")
+            .setPositiveButton("Decline Upgrade") { _, _ ->
+                firestoreHelper.updateTreeMemberRole(
+                    memberId = member.id,
+                    role = "Viewer",
+                    status = "Approved",
                     onSuccess = {
                         if (member.userId.isNotEmpty()) {
                             val treeName = currentTree?.name ?: "Family Tree"
@@ -677,24 +680,22 @@ class PrivacyControlsActivity : AppCompatActivity() {
                                 applicantUserId = member.userId,
                                 treeName = treeName,
                                 approved = false,
-                                assignedRole = ""
+                                assignedRole = "Viewer"
                             )
                             firestoreHelper.addNotification(notif)
                         }
 
-                        Toast.makeText(this, "Request rejected", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Upgrade declined. ${member.userName} remains a Viewer.", Toast.LENGTH_SHORT).show()
                         loadMembers()
                         onDone?.invoke()
                     },
                     onFailure = {
-                        Toast.makeText(this, "Rejection failed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Decline failed", Toast.LENGTH_SHORT).show()
                         onDone?.invoke()
                     }
                 )
             }
-            .setNegativeButton("Cancel") { _, _ ->
-                onDone?.invoke()
-            }
+            .setNegativeButton("Cancel", null)
             .show()
     }
 
