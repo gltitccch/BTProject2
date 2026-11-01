@@ -97,40 +97,40 @@ class AppVersionConfigTest {
     }
 
     @Test
-    fun v135Client_detectsV136Increment_andResolvesGitHubReleaseApkUrl() {
-        val friendInstalledCode = 8L // Friend on v1.3.5
-        val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.6")
+    fun v136Client_detectsV137Increment_andResolvesGitHubReleaseApkUrl() {
+        val friendInstalledCode = 9L // Friend on v1.3.6
+        val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.7")
         assertEquals(
-            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.6/app-release.apk",
+            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.7/app-release.apk",
             releaseUrl
         )
 
         val targetReleaseNotes = com.example.btproject2.utils.InAppUpdateManager.CURRENT_RELEASE_NOTES
 
-        val remoteV136Config = AppVersionConfig(
-            versionCode = 9L,
-            versionName = "v1.3.6",
+        val remoteV137Config = AppVersionConfig(
+            versionCode = 10L,
+            versionName = "v1.3.7",
             apkDownloadUrl = releaseUrl,
             releaseNotes = targetReleaseNotes
         )
 
-        val isUpdateAvailable = remoteV136Config.versionCode > friendInstalledCode &&
-            remoteV136Config.apkDownloadUrl.startsWith("https://")
+        val isUpdateAvailable = remoteV137Config.versionCode > friendInstalledCode &&
+            remoteV137Config.apkDownloadUrl.startsWith("https://")
         assertTrue(isUpdateAvailable)
     }
 
     @Test
     fun postUpdateDetection_triggersWhenCurrentVersionExceedsLastSeenVersion() {
-        val lastSeenVersion = 8L // User was on v1.3.5 before updating
-        val currentInstalledCode = 9L // User just updated to v1.3.6
+        val lastSeenVersion = 9L // User was on v1.3.6 before updating
+        val currentInstalledCode = 10L // User just updated to v1.3.7
         val shouldShowWhatsNew = currentInstalledCode > lastSeenVersion
         assertTrue(shouldShowWhatsNew)
     }
 
     @Test
     fun postUpdateDetection_suppressedWhenAlreadySeen() {
-        val lastSeenVersion = 9L // User already saw v1.3.6 what's new modal
-        val currentInstalledCode = 9L // Still on v1.3.6
+        val lastSeenVersion = 10L // User already saw v1.3.7 what's new modal
+        val currentInstalledCode = 10L // Still on v1.3.7
         val shouldShowWhatsNew = currentInstalledCode > lastSeenVersion
         assertFalse(shouldShowWhatsNew)
     }
@@ -138,11 +138,9 @@ class AppVersionConfigTest {
     @Test
     fun currentReleaseNotes_containsAllCoreFeatureHighlights() {
         val notes = com.example.btproject2.utils.InAppUpdateManager.CURRENT_RELEASE_NOTES
+        assertTrue(notes.contains("Multi-Device Account Vault Cloud Sync"))
+        assertTrue(notes.contains("Smart Disposable Email Shield"))
+        assertTrue(notes.contains("Quick-Fill Domain Chips"))
         assertTrue(notes.contains("Free-Moving Node Pencil Mode"))
-        assertTrue(notes.contains("Strict Editor & Owner Tree Organization Permission Gate"))
-        assertTrue(notes.contains("Golden Leaf Role Upgrade Request System"))
-        assertTrue(notes.contains("Isolated Pending Requests Entry Tile"))
-        assertTrue(notes.contains("Dedicated Review Bottom Sheet Drawer"))
-        assertTrue(notes.contains("Navigation Island Crest Clearance Fix"))
     }
 }

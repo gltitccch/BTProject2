@@ -57,7 +57,7 @@ object InAppUpdateManager {
     const val KEY_LAST_SEEN_VERSION = "key_last_seen_version"
     private const val SUPPRESSION_DURATION_MS = 24 * 60 * 60 * 1000L // 24 hours
 
-    const val CURRENT_RELEASE_NOTES = "• Free-Moving Node Pencil Mode & Bendable Golden Connector Handles with 2-Step Guided Tour\n• Strict Editor & Owner Tree Organization Permission Gate (Exclusively Hidden for Guest Viewers)\n• Golden Leaf Role Upgrade Request System with Instant Firestore Ticket Persistence & Anti-Spam Guard\n• Isolated Pending Requests Entry Tile on Owner's Privacy Screen (Zero Interface Flooding)\n• Dedicated Review Bottom Sheet Drawer with Single-Tap and Batch Approvals\n• Navigation Island Crest Clearance Fix on Home and Bloodline Trace Screens"
+    const val CURRENT_RELEASE_NOTES = "• Multi-Device Account Vault Cloud Sync across all team devices in real-time\n• Smart Disposable Email Shield blocking temporary burner accounts (like @temp.ph)\n• 1-Tap Quick-Fill Domain Chips for verified providers (@gmail.com, @yahoo.com, etc.)\n• Streamlined Tree Privacy screen removing zero-knowledge clutter\n• Free-Moving Node Pencil Mode & Bendable Golden Connector Handles with 2-Step Guided Tour"
 
     /**
      * Builds the canonical zero-cost GitHub Releases direct APK download link for a given version tag.
@@ -94,15 +94,15 @@ object InAppUpdateManager {
 
                 val targetReleaseNotes = CURRENT_RELEASE_NOTES
 
-                // If remote code is < 9L OR remote record lacks a valid release HTTPS APK link,
+                // If remote code is < 10L OR remote record lacks a valid release HTTPS APK link,
                 // OR remote releaseNotes need updating to include the latest fixes,
-                // align Firestore to the active v1.3.6 (versionCode = 9) release pointing to GitHub Releases.
-                if (currentRemoteCode < 9L || (currentRemoteCode == 9L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
+                // align Firestore to the active v1.3.7 (versionCode = 10) release pointing to GitHub Releases.
+                if (currentRemoteCode < 10L || (currentRemoteCode == 10L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
                     val currentConfig = AppVersionConfig(
-                        versionCode = 9L,
-                        versionName = "v1.3.6",
+                        versionCode = 10L,
+                        versionName = "v1.3.7",
                         releaseNotes = targetReleaseNotes,
-                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.6"),
+                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.7"),
                         isMandatory = false,
                         publishedBy = "system@kintrace.ph"
                     )
