@@ -573,7 +573,7 @@ body { padding:4px 18px 14px; display:flex; flex-direction:column; }
 .fan-badge { font-size:10px; font-weight:800; color:$goldHex; border:1px solid $borderHex; background:$bgHex; padding:5px 9px; border-radius:999px; white-space:nowrap; }
 .viewport { width:100%; flex:1; min-height:0; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; border-radius:14px; touch-action:none; cursor:grab; }
 .viewport:active { cursor:grabbing; }
-canvas { width:348px; height:348px; transform-origin:center center; will-change:transform; }
+canvas { width:100%; height:100%; display:block; }
 
 /* UI 2: Slide-Up Compact Bottom Drawer with Generation Filter Chips & 2-Column Grid */
 .ui2-backdrop {
@@ -824,22 +824,40 @@ const isDark = $isNightMode;
 
 let allPersons = [];
 let selectableRoots = [];
-let currentMode = 'clan'; // 'clan' or personId for Ancestor Ahnentafel fan
+let familyBundles = [];
+let currentMode = 'clan'; // 'clan', 'bundle:<personId>', or '<personId>' for Ancestor Ahnentafel fan
 let hasAutoSelectedRoot = false;
-let activeGenFilter = 0;
+let activeGenFilter = 0; // 0 = All, -1 = Family Bundles, >0 = specific generation
 let selectedWedgeId = null;
 let hitWedges = [];
+let lastWorldCenterX = 0;
+let lastWorldCenterY = 0;
+let lastTotalScale = 1;
 
 let scale = 1;
 let panX = 0;
 let panY = 0;
 const MIN_SCALE = 0.6;
-const MAX_SCALE = 3.5;
+const MAX_SCALE = 8.0;
+
+function resizeViewportCanvas() {
+  const dpr = Math.min(3, Math.max(2, window.devicePixelRatio || 2));
+  const w = Math.max(300, viewport.clientWidth || 348);
+  const h = Math.max(300, viewport.clientHeight || 348);
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+  }
+}
+
+window.addEventListener('resize', function() {
+  resizeViewportCanvas();
+  renderCurrentChart();
+});
 
 function applyTransform(animate) {
-  canvas.style.transition = animate ? 'transform 0.14s ease-out' : 'none';
-  canvas.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + scale + ')';
   zoomPctEl.textContent = Math.round(scale * 100) + '%';
+  renderCurrentChart();
 }
 
 function clampScale(s) {
@@ -847,7 +865,8 @@ function clampScale(s) {
 }
 
 function stepZoom(delta) {
-  scale = clampScale(+(scale + delta).toFixed(2));
+  const factor = delta > 0 ? 1.28 : 0.78;
+  scale = clampScale(+(scale * factor).toFixed(2));
   applyTransform(true);
 }
 
@@ -882,10 +901,10 @@ viewport.addEventListener('touchstart', function(e) {
   } else if (e.touches.length === 1) {
     const now = Date.now();
     if (now - lastTapTime < 260) {
-      if (scale > 1.2) {
+      if (scale > 1.3) {
         resetTransform();
       } else {
-        scale = 1.75;
+        scale = allPersons.length >= 100 ? 2.8 : 1.85;
         applyTransform(true);
       }
       lastTapTime = 0;
@@ -944,19 +963,17 @@ window.addEventListener('mousemove', function(e) {
 window.addEventListener('mouseup', function() { mouseDown = false; });
 viewport.addEventListener('wheel', function(e) {
   e.preventDefault();
-  stepZoom(e.deltaY < 0 ? 0.15 : -0.15);
+  stepZoom(e.deltaY < 0 ? 0.25 : -0.25);
 }, { passive: false });
 
-// Educational tap handler on wedges
+// Educational tap handler on wedges (in true vector world coordinates)
 canvas.addEventListener('click', function(e) {
   if (dragMoved) return;
   const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-  const cx = canvas.width / 2;
-  const cy = canvas.height * 0.555;
-  const dx = x - cx;
-  const dy = y - cy;
+  const vx = e.clientX - rect.left;
+  const vy = e.clientY - rect.top;
+  const dx = (vx - lastWorldCenterX) / lastTotalScale;
+  const dy = (vy - lastWorldCenterY) / lastTotalScale;
   const r = Math.hypot(dx, dy);
   let ang = Math.atan2(dy, dx);
   if (ang > Math.PI * 0.45) ang -= 2 * Math.PI;
@@ -992,7 +1009,8 @@ function getArchivalPalette() {
         ['#223824', '#2F4D32', '#6CA870', '#ECF6ED'],
         ['#1B3A36', '#25524C', '#58B0A3', '#E8F7F5'],
         ['#1A3542', '#244B5E', '#5BA8CF', '#E8F4FA'],
-        ['#232E42', '#31405C', '#7C98CC', '#ECF0F9']
+        ['#232E42', '#31405C', '#7C98CC', '#ECF0F9'],
+        ['#263E28', '#355838', '#81C784', '#F1F8E9']
       ]
     };
   }
@@ -1002,7 +1020,8 @@ function getArchivalPalette() {
       ['#F2F8EA', '#D7ECC4', '#A5C48B', '#111A13'],
       ['#EBF7F2', '#BCE4D5', '#8BBDAE', '#101C18'],
       ['#EAF6FB', '#B9E3F4', '#89BCD2', '#0F1B22'],
-      ['#EDF2FA', '#C2D4EC', '#93A9C9', '#121A26']
+      ['#EDF2FA', '#C2D4EC', '#93A9C9', '#121A26'],
+      ['#F1F8E9', '#DCEDC8', '#9CCC65', '#1B2613']
     ]
   };
 }
@@ -1033,6 +1052,43 @@ function getShortName(p) {
   return f + (l ? ' ' + l[0] + '.' : '');
 }
 
+// Compute descendant sub-tree for any parent head (for "Family of [Name]" bundles)
+function getDescendantRingsForHead(headPerson, persons) {
+  const childrenMap = {};
+  persons.forEach(p => {
+    if (p.fatherId) {
+      if (!childrenMap[p.fatherId]) childrenMap[p.fatherId] = [];
+      childrenMap[p.fatherId].push(p);
+    }
+    if (p.motherId && p.motherId !== p.fatherId) {
+      if (!childrenMap[p.motherId]) childrenMap[p.motherId] = [];
+      childrenMap[p.motherId].push(p);
+    }
+  });
+
+  const rings = [];
+  const visited = {};
+  visited[headPerson.id] = true;
+  let currentWave = [headPerson];
+
+  for (let depth = 1; depth <= 5; depth++) {
+    const nextWave = [];
+    currentWave.forEach(parent => {
+      const kids = childrenMap[parent.id] || [];
+      kids.forEach(k => {
+        if (!visited[k.id]) {
+          visited[k.id] = true;
+          nextWave.push(k);
+        }
+      });
+    });
+    if (nextWave.length === 0) break;
+    rings.push(nextWave);
+    currentWave = nextWave;
+  }
+  return rings;
+}
+
 function populateModeDropdown(persons) {
   const byId = {};
   persons.forEach(p => { byId[p.id] = p; });
@@ -1040,7 +1096,25 @@ function populateModeDropdown(persons) {
   selectableRoots = persons.filter(p => (p.fatherId && byId[p.fatherId]) || (p.motherId && byId[p.motherId]));
   selectableRoots.sort((a, b) => (b.generation || 1) - (a.generation || 1));
 
-  if (currentMode !== 'clan' && !byId[currentMode]) {
+  // Build Family Bundles for parents who have at least 2 descendants
+  familyBundles = [];
+  persons.forEach(p => {
+    const descRings = getDescendantRingsForHead(p, persons);
+    const totalDesc = descRings.reduce((sum, r) => sum + r.length, 0);
+    if (totalDesc >= 2) {
+      familyBundles.push({
+        head: p,
+        rings: descRings,
+        totalMembers: totalDesc + 1
+      });
+    }
+  });
+  familyBundles.sort((a, b) => (a.head.generation || 1) - (b.head.generation || 1) || (b.totalMembers - a.totalMembers));
+
+  if (currentMode.indexOf('bundle:') === 0) {
+    const hid = currentMode.substring(7);
+    if (!byId[hid]) currentMode = 'clan';
+  } else if (currentMode !== 'clan' && !byId[currentMode]) {
     currentMode = 'clan';
   }
   updateTriggerLabel(byId);
@@ -1048,10 +1122,16 @@ function populateModeDropdown(persons) {
 }
 
 function updateTriggerLabel(byId) {
-  if (currentMode === 'clan' || !byId[currentMode]) {
+  if (currentMode === 'clan') {
     triggerTextEl.textContent = 'All Clan';
-  } else {
+  } else if (currentMode.indexOf('bundle:') === 0) {
+    const hid = currentMode.substring(7);
+    const p = byId[hid];
+    triggerTextEl.textContent = p ? ('Family of ' + (p.firstName || 'Branch')) : 'All Clan';
+  } else if (byId[currentMode]) {
     triggerTextEl.textContent = getShortName(byId[currentMode]);
+  } else {
+    triggerTextEl.textContent = 'All Clan';
   }
 }
 
@@ -1063,36 +1143,56 @@ function renderDrawerChipsAndGrid() {
   });
   gens.sort((a, b) => b - a);
 
-  let chipsHtml = '<span class="gen-chip ' + (activeGenFilter === 0 ? 'active' : '') + '" onclick="filterDrawerGen(0)">All (' + selectableRoots.length + ')</span>';
+  let chipsHtml = '';
+  if (familyBundles.length > 0) {
+    chipsHtml += '<span class="gen-chip ' + (activeGenFilter === -1 ? 'active' : '') + '" onclick="filterDrawerGen(-1)">🏠 Family Bundles (' + familyBundles.length + ')</span>';
+  }
+  chipsHtml += '<span class="gen-chip ' + (activeGenFilter === 0 ? 'active' : '') + '" onclick="filterDrawerGen(0)">All (' + selectableRoots.length + ')</span>';
   gens.forEach((g, idx) => {
     const suffix = idx === 0 ? ' (Youngest)' : '';
     chipsHtml += '<span class="gen-chip ' + (activeGenFilter === g ? 'active' : '') + '" onclick="filterDrawerGen(' + g + ')">Gen ' + g + suffix + '</span>';
   });
   ui2GenChips.innerHTML = chipsHtml;
 
-  const filtered = activeGenFilter === 0
-    ? selectableRoots
-    : selectableRoots.filter(p => (p.generation || 1) === activeGenFilter);
-
   let gridHtml = '<div class="member-pill-card ' + (currentMode === 'clan' ? 'active' : '') + '" onclick="selectRootMode(\'clan\')">' +
     '<div class="pop-avatar">🌐</div>' +
     '<div style="min-width:0;">' +
       '<div class="pop-name">All Clan</div>' +
-      '<div class="pop-sub">Full Overview</div>' +
+      '<div class="pop-sub">Full Overview (' + allPersons.length + ')</div>' +
     '</div>' +
   '</div>';
 
-  filtered.forEach(p => {
-    const isAct = currentMode === p.id;
-    const sub = 'Gen ' + (p.generation || 1) + (p.years ? ' · ' + p.years : '');
-    gridHtml += '<div class="member-pill-card ' + (isAct ? 'active' : '') + '" onclick="selectRootMode(\'' + p.id + '\')">' +
-      '<div class="pop-avatar">' + getInitials(p) + '</div>' +
-      '<div style="min-width:0;">' +
-        '<div class="pop-name">' + getShortName(p) + '</div>' +
-        '<div class="pop-sub">' + sub + '</div>' +
-      '</div>' +
-    '</div>';
-  });
+  if (activeGenFilter === -1) {
+    familyBundles.forEach(b => {
+      const p = b.head;
+      const modeKey = 'bundle:' + p.id;
+      const isAct = currentMode === modeKey;
+      const sub = b.totalMembers + ' Members · Gen ' + (p.generation || 1);
+      gridHtml += '<div class="member-pill-card ' + (isAct ? 'active' : '') + '" onclick="selectRootMode(\'' + modeKey + '\')">' +
+        '<div class="pop-avatar">🏠</div>' +
+        '<div style="min-width:0;">' +
+          '<div class="pop-name">Family of ' + (p.firstName || '') + '</div>' +
+          '<div class="pop-sub">' + sub + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+  } else {
+    const filtered = activeGenFilter === 0
+      ? selectableRoots
+      : selectableRoots.filter(p => (p.generation || 1) === activeGenFilter);
+
+    filtered.forEach(p => {
+      const isAct = currentMode === p.id;
+      const sub = 'Gen ' + (p.generation || 1) + (p.years ? ' · ' + p.years : '');
+      gridHtml += '<div class="member-pill-card ' + (isAct ? 'active' : '') + '" onclick="selectRootMode(\'' + p.id + '\')">' +
+        '<div class="pop-avatar">' + getInitials(p) + '</div>' +
+        '<div style="min-width:0;">' +
+          '<div class="pop-name">' + getShortName(p) + '</div>' +
+          '<div class="pop-sub">' + sub + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+  }
   ui2Grid.innerHTML = gridHtml;
 }
 
@@ -1105,6 +1205,21 @@ function selectRootMode(val) {
   closeRootDrawer();
   resetTransform();
   renderCurrentChart();
+}
+
+// Build Descendant Family Bundle structure ("Family of Camila")
+function buildFamilyBundleStructure(headPerson, persons) {
+  const rings = getDescendantRingsForHead(headPerson, persons);
+  const totalCount = rings.reduce((sum, r) => sum + r.length, 0) + 1;
+  return {
+    isAncestorMode: false,
+    isBundleMode: true,
+    centerTitle: 'Family of ' + (headPerson.firstName || 'Branch'),
+    centerSurname: (headPerson.lastName || '').toUpperCase(),
+    centerSub: '(' + totalCount + ' Members · ' + (rings.length + 1) + ' Gens)',
+    rings: rings.length > 0 ? rings : [[headPerson]],
+    ringGenNumbers: rings.map(r => (r[0] && r[0].generation) ? r[0].generation : 1)
+  };
 }
 
 // Build binary Ahnentafel ancestor rings for a chosen root person
@@ -1185,38 +1300,76 @@ function buildClanStructure(persons) {
 }
 
 function renderCurrentChart() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  hitWedges = [];
+  resizeViewportCanvas();
+  const dpr = Math.min(3, Math.max(2, window.devicePixelRatio || 2));
+  const W = canvas.width;
+  const H = canvas.height;
+  const vw = W / dpr;
+  const vh = H / dpr;
 
-  const cx = canvas.width / 2;
-  const cy = canvas.height * 0.555;
+  ctx.save();
+  ctx.clearRect(0, 0, W, H);
+  ctx.scale(dpr, dpr);
+  hitWedges = [];
 
   if (!allPersons || allPersons.length === 0) {
     ctx.fillStyle = '$textSecHex';
-    ctx.font = '18px sans-serif';
+    ctx.font = '15px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('No family members to display', cx, cy);
+    ctx.fillText('No family members to display', vw / 2, vh / 2);
+    ctx.restore();
     return;
   }
 
   const byId = {};
   allPersons.forEach(p => { byId[p.id] = p; });
 
-  const struct = (currentMode !== 'clan' && byId[currentMode])
-    ? buildAncestorStructure(byId[currentMode], byId)
-    : buildClanStructure(allPersons);
+  let struct;
+  if (currentMode.indexOf('bundle:') === 0) {
+    const hid = currentMode.substring(7);
+    struct = byId[hid] ? buildFamilyBundleStructure(byId[hid], allPersons) : buildClanStructure(allPersons);
+  } else if (currentMode !== 'clan' && byId[currentMode]) {
+    struct = buildAncestorStructure(byId[currentMode], byId);
+  } else {
+    struct = buildClanStructure(allPersons);
+  }
 
   const pal = getArchivalPalette();
 
-  // 1. Subtle background quadrant crosshair lines (like the reference image)
+  // 🌱 LIVING PLANT GROWTH ENGINE:
+  // Under 100 members: classic 840x840 world (maxRadius = 392)
+  // 100+ members: Fan Chart physically expands its logical radius & ring depth like a growing plant!
+  const totalDisplayed = struct.rings.reduce((acc, r) => acc + r.filter(Boolean).length, 0);
+  const maxRingCount = Math.max(1, ...struct.rings.map(r => r.length));
+  const isGrownPlant = (totalDisplayed >= 100 || maxRingCount >= 32);
+
+  const worldSize = isGrownPlant ? 1680 : 840;
+  const rCenter = isGrownPlant ? 145 : 92;
+  const maxRadius = isGrownPlant ? 780 : 392;
+  const ringGap = isGrownPlant ? 10 : 6;
+
+  const baseFitScale = Math.min(vw, vh) / (worldSize * 0.96);
+  const totalScale = baseFitScale * scale;
+  const worldCenterX = vw / 2 + panX;
+  const worldCenterY = vh * 0.555 + panY;
+
+  lastWorldCenterX = worldCenterX;
+  lastWorldCenterY = worldCenterY;
+  lastTotalScale = totalScale;
+
+  // Apply True Vector Transform so fonts & borders are 100% HD razor-sharp at every zoom level!
+  ctx.translate(worldCenterX, worldCenterY);
+  ctx.scale(totalScale, totalScale);
+
+  // 1. Subtle background quadrant crosshair lines
   ctx.save();
   ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(18,32,26,0.08)';
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1.5 / scale;
   ctx.beginPath();
-  ctx.moveTo(0, cy);
-  ctx.lineTo(canvas.width, cy);
-  ctx.moveTo(cx, 0);
-  ctx.lineTo(cx, canvas.height);
+  ctx.moveTo(-worldSize, 0);
+  ctx.lineTo(worldSize, 0);
+  ctx.moveTo(0, -worldSize);
+  ctx.lineTo(0, worldSize);
   ctx.stroke();
   ctx.restore();
 
@@ -1226,12 +1379,9 @@ function renderCurrentChart() {
   const totalSpan = endRad - startRad;
 
   const numRings = Math.max(1, struct.rings.length);
-  const rCenter = 92;
-  const maxRadius = 392;
-  const ringGap = 6;
   const ringThickness = (maxRadius - rCenter - numRings * ringGap) / numRings;
 
-  document.getElementById('genBadge').textContent = (struct.isAncestorMode ? (numRings + 1) : struct.rings.length) + ' Gens';
+  document.getElementById('genBadge').textContent = ((struct.isAncestorMode || struct.isBundleMode) ? (numRings + 1) : struct.rings.length) + ' Gens';
 
   // 3. Draw Each Ring's Separated Wedge Cards
   struct.rings.forEach(function(ringMembers, ri) {
@@ -1240,7 +1390,7 @@ function renderCurrentChart() {
     const count = Math.max(1, ringMembers.length);
     const wedgeSpan = totalSpan / count;
     const midR = (r1 + r2) / 2;
-    const angGap = count === 1 ? 0 : Math.min(wedgeSpan * 0.10, 5.0 / midR);
+    const angGap = count === 1 ? 0 : Math.min(wedgeSpan * 0.10, (isGrownPlant ? 3.2 : 5.0) / midR);
     const colors = pal.rings[ri % pal.rings.length];
 
     ringMembers.forEach(function(p, wi) {
@@ -1252,8 +1402,8 @@ function renderCurrentChart() {
         // Ghost slot for unknown ancestor in binary Ahnentafel mode
         ctx.save();
         ctx.beginPath();
-        ctx.arc(cx, cy, r2, a1, a2, false);
-        ctx.arc(cx, cy, r1, a2, a1, true);
+        ctx.arc(0, 0, r2, a1, a2, false);
+        ctx.arc(0, 0, r1, a2, a1, true);
         ctx.closePath();
         ctx.setLineDash([5, 5]);
         ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(18,32,26,0.14)';
@@ -1271,42 +1421,37 @@ function renderCurrentChart() {
 
       const isSelected = (selectedWedgeId === p.id);
 
-      // Separated wedge card with radial gradient + subtle shadow
+      // Separated wedge card with radial gradient + strict interior clip
       ctx.save();
-      ctx.shadowColor = isDark ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.12)';
-      ctx.shadowBlur = isSelected ? 10 : 6;
-      ctx.shadowOffsetY = 2;
-
-      const grad = ctx.createRadialGradient(cx, cy, r1, cx, cy, r2);
+      const grad = ctx.createRadialGradient(0, 0, r1, 0, 0, r2);
       grad.addColorStop(0, colors[0]);
       grad.addColorStop(1, colors[1]);
 
       ctx.beginPath();
-      ctx.arc(cx, cy, r2, a1, a2, false);
-      ctx.arc(cx, cy, r1, a2, a1, true);
+      ctx.arc(0, 0, r2, a1, a2, false);
+      ctx.arc(0, 0, r1, a2, a1, true);
       ctx.closePath();
 
       ctx.fillStyle = grad;
       ctx.fill();
 
-      ctx.shadowColor = 'transparent';
       ctx.strokeStyle = isSelected ? '$goldHex' : colors[2];
-      ctx.lineWidth = isSelected ? 3.2 : 1.7;
+      ctx.lineWidth = isSelected ? (3.0 / Math.sqrt(scale)) : Math.max(0.8, 1.6 / Math.sqrt(scale));
       ctx.stroke();
-      ctx.restore();
 
-      // Typography inside wedge:
-      // Wide arc -> Tangential; Narrower arc -> Upright Radial
+      // Strict Wedge Clipping so text NEVER overflows outside its box border
+      ctx.clip();
+
       const arcLen = midR * (a2 - a1);
-      const isTangential = arcLen > ringThickness * 1.18;
+      const isTangential = arcLen > ringThickness * 1.15;
 
       const firstName = (p.firstName || p.name || '').trim();
       const lastName = (p.lastName || '').trim();
+      const fullName = (firstName + ' ' + lastName).trim();
       const subLine = p.years || p.kinship || ('Gen ' + (p.generation || (ri + 1)));
 
-      ctx.save();
-      const tx = cx + midR * Math.cos(midA);
-      const ty = cy + midR * Math.sin(midA);
+      const tx = midR * Math.cos(midA);
+      const ty = midR * Math.sin(midA);
       ctx.translate(tx, ty);
       ctx.fillStyle = colors[3];
       ctx.textAlign = 'center';
@@ -1319,79 +1464,111 @@ function renderCurrentChart() {
         }
         ctx.rotate(rot);
 
-        const fontSize = ri === 0 ? 15 : (ri === 1 ? 13 : 11.5);
-        ctx.font = '700 ' + fontSize + 'px -apple-system, sans-serif';
-        ctx.fillText((firstName + ' ' + lastName).trim(), 0, -8);
+        const baseFont = isGrownPlant ? (ringThickness * 0.22) : (ri === 0 ? 15 : (ri === 1 ? 13 : 11.5));
+        const maxFontByArc = (arcLen * 0.88) / Math.max(6, fullName.length * 0.56);
+        const fontSize = Math.min(baseFont, maxFontByArc);
 
-        ctx.font = '600 ' + (fontSize - 1.5) + 'px -apple-system, sans-serif';
+        ctx.font = '700 ' + fontSize + 'px -apple-system, sans-serif';
+        ctx.fillText(fullName, 0, -fontSize * 0.55);
+
+        ctx.font = '600 ' + (fontSize * 0.86) + 'px -apple-system, sans-serif';
         ctx.globalAlpha = 0.88;
-        ctx.fillText(subLine, 0, 9);
+        ctx.fillText(subLine, 0, fontSize * 0.65);
       } else {
-        // Auto-upright radial orientation (left side vs right side)
+        // Upright Radial Spoke Orientation:
+        // For narrow radial strips (e.g., 100+ members in Gen 3/Gen 4), write ONE SINGLE CLEAN LINE
+        // along the full length of the strip instead of stacking 3 tiny lines across the narrow height!
         const isLeftSide = midA < -Math.PI / 2;
         const rot = isLeftSide ? (midA + Math.PI) : midA;
         ctx.rotate(rot);
 
-        const fontSize = count >= 12 ? 10.5 : (count >= 8 ? 11.5 : 12.5);
-        ctx.font = '600 ' + fontSize + 'px -apple-system, sans-serif';
-        ctx.fillText(firstName, 0, -11);
+        if (arcLen < ringThickness * 0.45) {
+          // 1-Line Spoke Nameplate: uses the full length of the strip ("Alba Bugarin (2016–)")
+          const oneLineText = fullName + (p.years ? ' ' + p.years : '');
+          const maxFontByHeight = arcLen * 0.56;
+          const maxFontByLength = (ringThickness * 0.88) / Math.max(6, oneLineText.length * 0.54);
+          const fontSize = Math.max(4.2, Math.min(maxFontByHeight, maxFontByLength));
 
-        ctx.font = '800 ' + fontSize + 'px -apple-system, sans-serif';
-        ctx.fillText(lastName.toUpperCase(), 0, 0);
+          ctx.font = '700 ' + fontSize + 'px -apple-system, sans-serif';
+          ctx.fillText(oneLineText, 0, 0);
+        } else if (isGrownPlant) {
+          // 2-Line Spoke Nameplate for medium-width radial strips in grown charts
+          const maxFontByHeight = arcLen * 0.34;
+          const maxFontByLength = (ringThickness * 0.86) / Math.max(6, fullName.length * 0.55);
+          const fontSize = Math.max(5.5, Math.min(maxFontByHeight, maxFontByLength));
 
-        ctx.font = '500 ' + (fontSize - 1) + 'px -apple-system, sans-serif';
-        ctx.globalAlpha = 0.86;
-        ctx.fillText(subLine, 0, 11);
+          ctx.font = '700 ' + fontSize + 'px -apple-system, sans-serif';
+          ctx.fillText(fullName, 0, -fontSize * 0.58);
+
+          ctx.font = '500 ' + (fontSize * 0.85) + 'px -apple-system, sans-serif';
+          ctx.globalAlpha = 0.88;
+          ctx.fillText(subLine, 0, fontSize * 0.62);
+        } else {
+          // Classic 3-line radial card for standard <100 member trees with wide radial wedges
+          const baseSize = count >= 12 ? 10.5 : (count >= 8 ? 11.5 : 12.5);
+          const maxLongestWord = Math.max(firstName.length, lastName.length, 5);
+          const maxFontByArc = (arcLen * 0.86) / (maxLongestWord * 0.58);
+          const fontSize = Math.max(7.5, Math.min(baseSize, maxFontByArc));
+
+          ctx.font = '600 ' + fontSize + 'px -apple-system, sans-serif';
+          ctx.fillText(firstName, 0, -fontSize * 1.02);
+
+          ctx.font = '800 ' + fontSize + 'px -apple-system, sans-serif';
+          ctx.fillText(lastName.toUpperCase(), 0, 0);
+
+          ctx.font = '500 ' + (fontSize * 0.88) + 'px -apple-system, sans-serif';
+          ctx.globalAlpha = 0.86;
+          ctx.fillText(subLine, 0, fontSize * 1.02);
+        }
       }
       ctx.restore();
     });
   });
 
-  // 4. Flat-Bottom Center Medallion (matches reference image)
+  // 4. Flat-Bottom Center Medallion
   ctx.save();
-  ctx.shadowColor = isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.14)';
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetY = 2;
-
-  const cGrad = ctx.createRadialGradient(cx, cy - 10, 8, cx, cy, rCenter);
+  const cGrad = ctx.createRadialGradient(0, -10, 8, 0, 0, rCenter);
   cGrad.addColorStop(0, pal.center[0]);
   cGrad.addColorStop(1, pal.center[1]);
 
   ctx.beginPath();
-  ctx.arc(cx, cy, rCenter, startRad, endRad, false);
+  ctx.arc(0, 0, rCenter, startRad, endRad, false);
   ctx.closePath();
 
   ctx.fillStyle = cGrad;
   ctx.fill();
-  ctx.shadowColor = 'transparent';
   ctx.strokeStyle = pal.center[2];
-  ctx.lineWidth = 2.2;
+  ctx.lineWidth = isGrownPlant ? 3.2 : 2.2;
   ctx.stroke();
 
   ctx.fillStyle = pal.center[3];
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  ctx.font = '800 15.5px -apple-system, sans-serif';
-  ctx.fillText(struct.centerTitle, cx, cy - 19);
-  ctx.font = '800 15px -apple-system, sans-serif';
-  ctx.fillText(struct.centerSurname, cx, cy - 1);
-  ctx.font = '600 12.5px -apple-system, sans-serif';
+  const cFont = isGrownPlant ? (rCenter * 0.165) : 15.5;
+  ctx.font = '800 ' + cFont + 'px -apple-system, sans-serif';
+  ctx.fillText(struct.centerTitle, 0, -rCenter * 0.21);
+  ctx.font = '800 ' + (cFont * 0.96) + 'px -apple-system, sans-serif';
+  ctx.fillText(struct.centerSurname, 0, -1);
+  ctx.font = '600 ' + (cFont * 0.80) + 'px -apple-system, sans-serif';
   ctx.globalAlpha = 0.88;
-  ctx.fillText(struct.centerSub, cx, cy + 17);
+  ctx.fillText(struct.centerSub, 0, rCenter * 0.19);
   ctx.restore();
 
   // 5. Educational Hemisphere Micro-Guides in the open horseshoe base
   ctx.save();
   ctx.fillStyle = '$textSecHex';
   ctx.globalAlpha = 0.78;
-  ctx.font = '700 11px -apple-system, sans-serif';
+  const guideFont = isGrownPlant ? 18 : 11;
+  ctx.font = '700 ' + guideFont + 'px -apple-system, sans-serif';
   ctx.textAlign = 'center';
   if (struct.isAncestorMode) {
-    ctx.fillText('← Father’s Line (Paternal)   ·   Mother’s Line (Maternal) →', cx, cy + 82);
+    ctx.fillText('← Father’s Line (Paternal)   ·   Mother’s Line (Maternal) →', 0, rCenter * 0.88);
   } else {
-    ctx.fillText('Inner Ring = Older Gen  ·  Outer Ring = Newer Gen', cx, cy + 82);
+    ctx.fillText('Inner Ring = Older Gen  ·  Outer Ring = Newer Gen', 0, rCenter * 0.88);
   }
+  ctx.restore();
+
   ctx.restore();
 
   // 6. Update Legend Row
