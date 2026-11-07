@@ -263,9 +263,9 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         // Reset Clan Quest HUD (Retired — permanently hidden from Profile sheet)
         btnResetQuest.visibility = View.GONE
 
-        // View Terms of Service & Clan Stewardship
+        // View Terms of Service & Clan Stewardship (Read-only mode since already registered)
         btnViewTerms?.setOnClickListener {
-            TermsOfServiceBottomSheet.newInstance().show(parentFragmentManager, TermsOfServiceBottomSheet.TAG)
+            TermsOfServiceBottomSheet.newInstance(alreadyAccepted = true).show(parentFragmentManager, TermsOfServiceBottomSheet.TAG)
         }
 
         // System Admin Citadel (FR-11) (Gated exclusively to Admin accounts)

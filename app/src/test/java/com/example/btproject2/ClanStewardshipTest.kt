@@ -3,13 +3,15 @@ package com.example.btproject2
 import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.Person
 import com.example.btproject2.models.UserProfile
+import com.example.btproject2.ui.dialogs.TermsOfServiceBottomSheet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Unit tests verifying the Clan Stewardship data model and account deletion logic rules.
+ * Unit tests verifying the Clan Stewardship data model, 16-clause Terms & Conditions structure,
+ * and account deletion logic rules.
  * Ensures genealogical integrity, living relative privacy redaction, and succession governance.
  */
 class ClanStewardshipTest {
@@ -128,5 +130,11 @@ class ClanStewardshipTest {
 
         val updatedCoOwners = tree.coOwnerIds.filter { it != nextOwner && it != currentUserId }
         assertEquals(listOf(coOwner2), updatedCoOwners)
+    }
+
+    @Test
+    fun testTermsOfServiceTotalClausesCount() {
+        // Verifies that the strengthened Termly + KinTrace agreement enforces all 16 sections
+        assertEquals(16, TermsOfServiceBottomSheet.TOTAL_CLAUSES)
     }
 }

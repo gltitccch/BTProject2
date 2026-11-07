@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T01:41:00.000Z" agent="KinTrace-Capstone-Generator" version="24.0.0" type="device">
+  <diagram id="KinTraceNotificationModuleFlowchart" name="Notification Module Flowchart">
+    <mxGraphModel dx="2400" dy="2200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2300" pageHeight="2050" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== DIAGRAM TITLE BANNER ==================== -->
+        <mxCell id="title_box" value="PROGRAM FLOWCHART: NOTIFICATION &amp; ALERTS MODULE&#10;(KinTrace: Real-Time Event Dispatch, Unread Badge Sync, Category Filtering, Deep-Link Routing &amp; Inline Request Approvals)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="2140" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== COLUMN HEADERS ==================== -->
+        <mxCell id="col1_hdr" value="PHASE 1: EVENT TRIGGER, CLOUD DISPATCH &amp; LIVE UNREAD BADGE SYNC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="80" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col2_hdr" value="PHASE 2: NOTIFICATION CENTER FEED, FILTERING &amp; CARD RENDERING" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="820" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col3_hdr" value="PHASE 3: DEEP-LINK NAVIGATION, INLINE APPROVALS &amp; BULK CLEANUP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 1: PHASE 1 - EVENT TRIGGER, CLOUD DISPATCH & UNREAD BADGE SYNC     -->
+        <!-- Center X = 410                                                            -->
+        <!-- ========================================================================= -->
+
+        <!-- Start Terminator -->
+        <mxCell id="c1_start" value="START&#10;(Clan or System Event Triggered)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="290" y="185" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Process 1: Classify Notification Event Type & Target Recipients -->
+        <mxCell id="c1_classify_event" value="Classify Notification Event &amp; Resolve Recipients:&#10;• Lineage Event (Member Added / Edited / Restored)&#10;• Clan Governance (Invite Join / Role / Merge Request)&#10;• Admin Citadel (Quota Expansion / System Broadcast)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="285" width="340" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Are Alerts Enabled for Recipient? -->
+        <mxCell id="c1_dec_pref" value="Are Notifications&#10;Enabled in Recipient&#10;Privacy Settings?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="280" y="405" width="260" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Muted Branch (Left of Decision 1) -->
+        <mxCell id="c1_mute_skip" value="Skip Push Alert &amp; Log&#10;Silent Audit Entry Only" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="55" y="435" width="185" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1_end_muted" value="END&#10;(Alert Suppressed)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="67" y="540" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Create NotificationRecord in Firestore -->
+        <mxCell id="c1_write_notif" value="Build NotificationRecord Payload&#10;(id, userId, treeId, type, title, message,&#10;targetId, isRead = false, createdAt)&#10;&amp; Save to Firestore notifications Collection" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="245" y="575" width="330" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Database Cylinder 1: notifications Collection -->
+        <mxCell id="c1_db_notif" value="Cloud Firestore&#10;(notifications&#10;Collection)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="615" y="575" width="135" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Process 3: Real-Time SnapshotListener Detects New Alert -->
+        <mxCell id="c1_sync_listener" value="CentralTreeSynchronizer SnapshotListener&#10;Detects Unread Document &amp; Recalculates&#10;Live Unread Counter (isRead == false)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="245" y="695" width="330" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Output 1: Render Unread Bell Badge & In-App Banner -->
+        <mxCell id="c1_render_badge" value="Update Dashboard Notification Bell Badge Count&#10;in HomeActivity &amp; Show In-App Alert Banner" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="235" y="805" width="350" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Connector A at Bottom of Column 1 -->
+        <mxCell id="c1_conn_to_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="385" y="915" width="50" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 2: PHASE 2 - NOTIFICATION CENTER FEED, FILTERING & RENDERING       -->
+        <!-- Center X = 1150                                                           -->
+        <!-- ========================================================================= -->
+
+        <!-- Connector A from Column 1 -->
+        <mxCell id="c2_conn_from_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1125" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Input 1: User Taps Notification Bell Icon -->
+        <mxCell id="c2_open_center" value="User Taps Notification Bell Icon on Dashboard&#10;to Launch NotificationsActivity" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="975" y="275" width="350" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Process 1: Query & Sort User Notifications -->
+        <mxCell id="c2_query_feed" value="Query Recipient Notifications from Cache / Firestore&#10;&amp; Sort Descending by Timestamp (createdAt DESC)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="985" y="380" width="330" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Is Notification Feed Empty? -->
+        <mxCell id="c2_dec_empty" value="Are Any Notification&#10;Records Found&#10;(&gt; 0 Items)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="485" width="260" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Empty State Box (Left of Decision 1) -->
+        <mxCell id="c2_empty_view" value="Display Empty State Illustration:&#10;&quot;You're All Caught Up!&#10;No Notifications Yet&quot;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="780" y="512" width="205" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c2_end_empty" value="END&#10;(Empty Feed Viewed)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="802" y="625" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Input 2: Select Category Filter Chip -->
+        <mxCell id="c2_filter_chip" value="Apply Selected Category Filter Tab&#10;(All / Lineage Updates / Join &amp; Role Requests /&#10;System &amp; Quota Broadcasts)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="985" y="655" width="330" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Output 1: Render NotificationAdapter List -->
+        <mxCell id="c2_render_list" value="Render NotificationAdapter Cards&#10;(Category Icon, Title, Message, Relative Time &quot;2m ago&quot;,&#10;Gold Unread Dot &amp; Quick-Action Buttons)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="965" y="765" width="370" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Connector B at Bottom of Column 2 -->
+        <mxCell id="c2_conn_to_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1125" y="885" width="50" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 3: PHASE 3 - DEEP-LINK ROUTING, INLINE APPROVALS & BULK CLEANUP    -->
+        <!-- Center X = 1890                                                           -->
+        <!-- ========================================================================= -->
+
+        <!-- Connector B from Column 2 -->
+        <mxCell id="c3_conn_from_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1865" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Input 1: Capture User Action in NotificationsActivity -->
+        <mxCell id="c3_input_action" value="Capture User Action on Notification Card or Toolbar&#10;(Tap Card, Approve/Decline Request, or Mark All Read)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1710" y="275" width="360" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: What Notification Action Was Selected? -->
+        <mxCell id="c3_dec_action" value="Which Notification&#10;Action Was&#10;Triggered?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1750" y="380" width="280" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 1 (Left): Tap Card -> Mark Read & Deep-Link -->
+        <mxCell id="c3_deep_link" value="Update isRead = true in Firestore&#10;&amp; Deep-Link to Target Screen&#10;(MemberDetailActivity, Tree View,&#10;or Clan Stewardship Sheet)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1535" y="550" width="215" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 2 (Center): Inline Join / Role / Merge Request Approval -->
+        <mxCell id="c3_inline_approve" value="Execute Owner/Admin Decision:&#10;Approve or Reject Join / Role&#10;Request in tree_members &amp; Send&#10;Confirmation Alert to Requester" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1782" y="550" width="215" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 3 (Right): Mark All as Read / Clear Dismissed -->
+        <mxCell id="c3_bulk_clear" value="Execute Firestore WriteBatch:&#10;Set isRead = true on All Unread&#10;Alerts or Delete Dismissed&#10;Notification Document" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="2030" y="550" width="215" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Commit State Update to Cloud Firestore -->
+        <mxCell id="c3_sync_cloud" value="Commit Updated Read/Approval Status to Cloud Firestore&#10;&amp; Refresh CentralTreeSynchronizer Unread Counter" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1720" y="695" width="340" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Database Cylinder 2: Firestore Update -->
+        <mxCell id="c3_db_update" value="Cloud Firestore&#10;(notifications &amp;&#10;tree_members)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="2100" y="687" width="140" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Output 2: Refresh Feed UI & Dashboard Badge -->
+        <mxCell id="c3_refresh_ui" value="Update Notification Feed UI State &amp;&#10;Synchronize Dashboard Unread Bell Badge" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1715" y="805" width="350" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- End Terminator (Column 3) -->
+        <mxCell id="c3_end" value="END&#10;(Notification Action Complete)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1765" y="915" width="250" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- EDGES & FLOW ARROWS                                                       -->
+        <!-- ========================================================================= -->
+
+        <!-- Column 1 Flow -->
+        <mxCell id="e_c1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_start" target="c1_classify_event">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_classify_event" target="c1_dec_pref">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_pref_no" value="No (Muted)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_pref" target="c1_mute_skip">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_mute_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_mute_skip" target="c1_end_muted">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_pref_yes" value="Yes (Enabled)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_pref" target="c1_write_notif">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;startArrow=block;startFill=1;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_write_notif" target="c1_db_notif">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_write_notif" target="c1_sync_listener">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_sync_listener" target="c1_render_badge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_render_badge" target="c1_conn_to_a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Column 2 Flow -->
+        <mxCell id="e_c2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_conn_from_a" target="c2_open_center">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_open_center" target="c2_query_feed">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_query_feed" target="c2_dec_empty">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_emp_no" value="No (0 Items)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_empty" target="c2_empty_view">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_emp_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_empty_view" target="c2_end_empty">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_emp_yes" value="Yes (Has Alerts)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_empty" target="c2_filter_chip">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_filter_chip" target="c2_render_list">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_render_list" target="c2_conn_to_b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Column 3 Flow -->
+        <mxCell id="e_c3_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_conn_from_b" target="c3_input_action">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_input_action" target="c3_dec_action">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3 Action Branches -->
+        <mxCell id="e_c3_act_tap" value="Tap Alert Card" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_action" target="c3_deep_link">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1642" y="445" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_act_app" value="Approve / Reject" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_action" target="c3_inline_approve">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_act_bulk" value="Mark All Read / Clear" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_action" target="c3_bulk_clear">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2137" y="445" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Converge 3 Action Branches into Sync Cloud -->
+        <mxCell id="e_c3_conv_tap" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_deep_link" target="c3_sync_cloud">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1642" y="727" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_conv_app" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_inline_approve" target="c3_sync_cloud">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_conv_bulk" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_bulk_clear" target="c3_sync_cloud">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2137" y="727" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_c3_db2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;startArrow=block;startFill=1;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_sync_cloud" target="c3_db_update">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_sync_cloud" target="c3_refresh_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_refresh_ui" target="c3_end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

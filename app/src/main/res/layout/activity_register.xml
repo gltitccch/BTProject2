@@ -348,7 +348,7 @@
                         android:id="@+id/tvTosHeaderSubtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Review all 10 policies to unlock registration."
+                        android:text="Review all 16 policies to unlock registration."
                         android:textSize="10.5sp"
                         android:textColor="@color/dark_subtext"
                         android:layout_marginTop="1dp" />
@@ -389,7 +389,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1. Privacy &amp; Data Usage"
+                        android:text="I. Eligibility &amp; PH Family Code (1–4)"
                         android:textSize="10.5sp"
                         android:textColor="@color/text_primary"
                         android:maxLines="1"
@@ -398,7 +398,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2. Clan Stewardship License"
+                        android:text="II. Clan Stewardship &amp; RA 10173 (5–8)"
                         android:textSize="10.5sp"
                         android:textColor="@color/text_primary"
                         android:maxLines="1"
@@ -408,7 +408,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="3. Community &amp; Family Code"
+                        android:text="III. Quotas, Conduct &amp; Exports (9–12)"
                         android:textSize="10.5sp"
                         android:textColor="@color/text_primary"
                         android:maxLines="1"
@@ -418,7 +418,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="4. Data Security &amp; RA 10173"
+                        android:text="IV. Erasure, Liability &amp; PH Law (13–16)"
                         android:textSize="10.5sp"
                         android:textColor="@color/text_primary"
                         android:maxLines="1"
@@ -469,7 +469,7 @@
                         android:id="@+id/tvTosHint"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="(0/10)"
+                        android:text="(0/16)"
                         android:textSize="9sp"
                         android:textColor="@color/dark_subtext"
                         android:gravity="center"

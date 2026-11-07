@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T01:25:00.000Z" agent="KinTrace-Capstone-Generator" version="24.0.0" type="device">
+  <diagram id="KinTraceDatabaseManagementFlowchart" name="Database Management Module Flowchart">
+    <mxGraphModel dx="2400" dy="2200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2300" pageHeight="2050" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== DIAGRAM TITLE BANNER ==================== -->
+        <mxCell id="title_box" value="PROGRAM FLOWCHART: DATABASE MANAGEMENT MODULE&#10;(KinTrace: Cloud Firestore Persistence, Real-Time Sync, Transactional Batch Engine &amp; Data Vault)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="2140" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== COLUMN HEADERS ==================== -->
+        <mxCell id="col1_hdr" value="PHASE 1: DATABASE INITIALIZATION, OFFLINE CACHE &amp; REAL-TIME SYNC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="80" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col2_hdr" value="PHASE 2: TRANSACTIONAL BATCH WRITES &amp; BIDIRECTIONAL INTEGRITY" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="820" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col3_hdr" value="PHASE 3: RECOVERY VAULT, CASCADING PURGE &amp; DATA PORTABILITY" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 1: PHASE 1 - DB INITIALIZATION, OFFLINE CACHE & REAL-TIME SYNC      -->
+        <!-- Center X = 410                                                            -->
+        <!-- ========================================================================= -->
+
+        <!-- Start Terminator -->
+        <mxCell id="c1_start" value="START&#10;(Database Service Requested)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="290" y="185" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Process 1: Initialize FirebaseConfig & Local Disk Persistence -->
+        <mxCell id="c1_init_db" value="Initialize FirebaseConfig &amp; FirestoreHelper&#10;(Enable Local Disk Persistence Cache &amp; Auth Token)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="250" y="285" width="320" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Is Device Online? -->
+        <mxCell id="c1_dec_online" value="Is Network Connection&#10;Available&#10;(NetworkMonitor)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="280" y="390" width="260" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Offline Branch (Left of Decision 1) -->
+        <mxCell id="c1_offline_cache" value="Read / Queue Writes in Local&#10;Encrypted Disk Cache&#10;(Pending Sync Queue)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="60" y="415" width="180" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Flush Offline Writes & Attach SnapshotListeners -->
+        <mxCell id="c1_attach_listeners" value="Flush Queued Offline Mutations &amp; Attach&#10;CentralTreeSynchronizer SnapshotListeners&#10;(trees, persons, tree_members, privacy_settings)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="245" y="560" width="330" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Database Cylinder 1: Cloud Firestore Collections -->
+        <mxCell id="c1_db_cloud" value="Cloud Firestore&#10;(9 Core Collections &amp;&#10;Real-Time Snapshots)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="615" y="555" width="145" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Process 3: Parse & Validate Document Schema -->
+        <mxCell id="c1_parse_schema" value="Deserialize Firestore Documents into Kotlin Models&#10;&amp; Populate In-Memory Reactive Cache (StateFlow)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="250" y="670" width="320" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 2: What Type of Database Operation is Requested? -->
+        <mxCell id="c1_dec_op_type" value="Select Database&#10;Operation Category?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="275" y="775" width="270" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Read / Query Branch (Left of Decision 2) -->
+        <mxCell id="c1_filter_privacy" value="Apply Role &amp; RA 10173 Privacy&#10;Masking Rules on Cached Models&#10;(hideLivingDetails Check)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="55" y="802" width="185" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1_emit_ui" value="Emit Filtered Dataset&#10;to Active UI Screens&#10;(Interactive Tree / Records)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="45" y="925" width="205" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1_end_read" value="END&#10;(Read Sync Complete)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="65" y="1030" width="165" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Vault / Purge / Export Branch (Right of Decision 2 -> Connector B) -->
+        <mxCell id="c1_conn_to_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="625" y="815" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Downward Branch: Write / Update / Merge Operation -> Security & Quota Gate -->
+        <mxCell id="c1_verify_auth" value="Verify Authenticated User UID,&#10;Clan Membership Role (OWNER / ADMIN / EDITOR)&#10;&amp; Tree Capacity Quota (50 / 200 Max)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="245" y="955" width="330" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 3: Is Write Authorized & Within Quota? -->
+        <mxCell id="c1_dec_write_allowed" value="Is Role Authorized&#10;AND Tree Within&#10;Member Quota?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="275" y="1065" width="270" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Reject Write Box (Right of Decision 3) -->
+        <mxCell id="c1_reject_write" value="Abort Database Write &amp;&#10;Return Permission / Quota&#10;Denial Exception to UI" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="580" y="1095" width="205" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Connector A at Bottom of Column 1 -->
+        <mxCell id="c1_conn_to_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="385" y="1245" width="50" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 2: PHASE 2 - TRANSACTIONAL BATCH WRITES & BIDIRECTIONAL INTEGRITY  -->
+        <!-- Center X = 1150                                                           -->
+        <!-- ========================================================================= -->
+
+        <!-- Connector A from Column 1 -->
+        <mxCell id="c2_conn_from_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1125" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Process 1: Open Firestore WriteBatch Transaction -->
+        <mxCell id="c2_open_batch" value="Instantiate Atomic Firestore WriteBatch&#10;&amp; Assign Unique Document IDs / Timestamps" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="990" y="275" width="320" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Does Mutation Modify Family Relationships? -->
+        <mxCell id="c2_dec_rel_links" value="Does Write Modify&#10;Parent, Spouse, or&#10;Child Links?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="380" width="270" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Compute Bidirectional Reciprocal Updates -->
+        <mxCell id="c2_reciprocal_links" value="Compute Reciprocal Pointer Updates in Batch:&#10;1. Sync fatherId / motherId &lt;-&gt; parent.childrenIds&#10;2. Sync spouseIds &lt;-&gt; partner.spouseIds&#10;3. Remove Stale Links from Replaced Relatives" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="550" width="340" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Process 3: Stage Primary Document & Counter Updates in Batch -->
+        <mxCell id="c2_stage_counters" value="Stage Primary Document Write &amp; Recalculate&#10;trees.memberCount / updatedAt Metadata in Batch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="985" y="675" width="330" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Process 4: Execute Atomic Batch Commit -->
+        <mxCell id="c2_commit_batch" value="Execute batch.commit() to Cloud Firestore&#10;&amp; Local Persistence Engine" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="990" y="780" width="320" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Database Cylinder 2: Firestore Atomic Commit -->
+        <mxCell id="c2_db_commit" value="Cloud Firestore&#10;(persons, trees,&#10;tree_members)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1355" y="770" width="140" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 2: Did Batch Commit Succeed? -->
+        <mxCell id="c2_dec_commit_ok" value="Did Atomic Batch&#10;Commit Succeed?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="880" width="260" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Rollback Box (Right of Decision 2) -->
+        <mxCell id="c2_rollback" value="Rollback Entire Batch&#10;(Zero Partial Writes) &amp;&#10;Display Sync Error Alert" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1325" y="905" width="205" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Process 5: Dispatch Notification & Trigger Snapshot Refresh -->
+        <mxCell id="c2_dispatch_notif" value="Write Activity Log to notifications Collection &amp;&#10;Trigger CentralTreeSynchronizer Live Broadcast" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="985" y="1045" width="330" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- End Terminator (Column 2) -->
+        <mxCell id="c2_end_write" value="END&#10;(Transaction Committed &amp; Synced)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1025" y="1155" width="250" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 3: PHASE 3 - RECOVERY VAULT, CASCADING PURGE & DATA PORTABILITY    -->
+        <!-- Center X = 1890                                                           -->
+        <!-- ========================================================================= -->
+
+        <!-- Connector B from Column 1 -->
+        <mxCell id="c3_conn_from_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1865" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Select Specialized Database Management Action -->
+        <mxCell id="c3_dec_vault_op" value="Select Archival,&#10;Purge, or Export&#10;Database Operation?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1755" y="275" width="270" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 1 (Down): Soft-Delete & Recovery Vault -->
+        <mxCell id="c3_soft_delete" value="Unlink Relative IDs from Active Persons &amp;&#10;Move Full JSON Snapshot to archived_members Vault" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1730" y="455" width="320" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c3_db_vault" value="Cloud Firestore&#10;(archived_members&#10;Recovery Vault)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1555" y="447" width="145" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 2: Vault Action (1-Tap Restore vs Permanent Delete) -->
+        <mxCell id="c3_dec_restore" value="Vault Action:&#10;1-Tap Restore or&#10;Permanent Purge?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="560" width="260" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c3_restore_doc" value="Restore Document to persons Collection&#10;&amp; Re-Link Original Parent/Spouse/Child IDs" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="720" width="250" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c3_perm_delete" value="Permanently Delete Document&#10;from archived_members Vault" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1950" y="720" width="220" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 2 (Right of Decision 1 -> Routed to Y=845): Cascading Clan / Account Purge (RA 10173) -->
+        <mxCell id="c3_cascade_purge" value="Execute Cascading Multi-Collection Purge&#10;(Delete Linked persons, tree_members, invite_codes,&#10;privacy_settings, archived_members &amp; trees)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1725" y="845" width="330" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 3 (Left of Decision 1 -> Routed to Y=965): Portable Database Export (CSV / PDF / PNG) -->
+        <mxCell id="c3_export_snapshot" value="Serialize Validated Clan Database Snapshot&#10;into Structured CSV Table / PDF Book / PNG File&#10;&amp; Write to Device Storage" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1720" y="965" width="340" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Process: Update Sync State & Refresh UI -->
+        <mxCell id="c3_refresh_sync" value="Synchronize Local Cache State &amp;&#10;Broadcast Updated Database Status to UI" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1730" y="1085" width="320" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- End Terminator (Column 3) -->
+        <mxCell id="c3_end" value="END&#10;(Database Maintenance Complete)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1765" y="1195" width="250" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- EDGES & FLOW ARROWS                                                       -->
+        <!-- ========================================================================= -->
+
+        <!-- Column 1 Main Vertical Flow -->
+        <mxCell id="e_c1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_start" target="c1_init_db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_init_db" target="c1_dec_online">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Online vs Offline -->
+        <mxCell id="e_c1_offline" value="No (Offline)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_online" target="c1_offline_cache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_offline_to_parse" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c1_offline_cache" target="c1_parse_schema">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="150" y="702" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c1_online" value="Yes (Online)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_online" target="c1_attach_listeners">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_db1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;startArrow=block;startFill=1;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_attach_listeners" target="c1_db_cloud">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_attach_listeners" target="c1_parse_schema">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_parse_schema" target="c1_dec_op_type">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 2: Operation Category -->
+        <mxCell id="e_c1_op_read" value="Read / Query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_op_type" target="c1_filter_privacy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_read_emit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_filter_privacy" target="c1_emit_ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_read_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_emit_ui" target="c1_end_read">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_c1_op_vault" value="Vault / Purge / Export" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_op_type" target="c1_conn_to_b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_c1_op_write" value="Create / Update / Merge" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_op_type" target="c1_verify_auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_verify_auth" target="c1_dec_write_allowed">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 3: Authorized & Within Quota? -->
+        <mxCell id="e_c1_write_no" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_write_allowed" target="c1_reject_write">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_write_yes" value="Yes (Authorized)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_write_allowed" target="c1_conn_to_a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Column 2 Flow -->
+        <mxCell id="e_c2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_conn_from_a" target="c2_open_batch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_open_batch" target="c2_dec_rel_links">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_rel_yes" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_rel_links" target="c2_reciprocal_links">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_rel_no" value="No (Profile / Settings Only)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_rel_links" target="c2_stage_counters">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="930" y="442" />
+              <mxPoint x="930" y="707" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_reciprocal_links" target="c2_stage_counters">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_stage_counters" target="c2_commit_batch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_db2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;startArrow=block;startFill=1;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_commit_batch" target="c2_db_commit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_commit_batch" target="c2_dec_commit_ok">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_commit_no" value="No (Error)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_commit_ok" target="c2_rollback">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_rollback_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c2_rollback" target="c2_end_write">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1427" y="1185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c2_commit_yes" value="Yes (Success)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_commit_ok" target="c2_dispatch_notif">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_dispatch_notif" target="c2_end_write">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Column 3 Flow -->
+        <mxCell id="e_c3_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_conn_from_b" target="c3_dec_vault_op">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Soft-Delete / Vault Branch -->
+        <mxCell id="e_c3_op_soft" value="Soft-Delete / Vault" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_vault_op" target="c3_soft_delete">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_db_v" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;startArrow=block;startFill=1;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_soft_delete" target="c3_db_vault">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_soft_delete" target="c3_dec_restore">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_res_yes" value="1-Tap Restore" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_restore" target="c3_restore_doc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1665" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_res_perm" value="Permanent Purge" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_restore" target="c3_perm_delete">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2060" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Cascading Purge Branch (Routed down right rail X=2200) -->
+        <mxCell id="e_c3_op_cascade" value="Cascade Erase (RA 10173)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_vault_op" target="c3_cascade_purge">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2200" y="340" />
+              <mxPoint x="2200" y="880" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Portable Export Branch (Routed down left rail X=1525) -->
+        <mxCell id="e_c3_op_export" value="Database Export (CSV/PDF)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_vault_op" target="c3_export_snapshot">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1525" y="340" />
+              <mxPoint x="1525" y="1000" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Converge Column 3 Outcomes into c3_refresh_sync -->
+        <mxCell id="e_c3_conv_res" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_restore_doc" target="c3_refresh_sync">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1665" y="1115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_conv_perm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_perm_delete" target="c3_refresh_sync">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2060" y="1115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_conv_cascade" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_cascade_purge" target="c3_refresh_sync">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2180" y="880" />
+              <mxPoint x="2180" y="1115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_conv_export" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_export_snapshot" target="c3_refresh_sync">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_end_edge" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_refresh_sync" target="c3_end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

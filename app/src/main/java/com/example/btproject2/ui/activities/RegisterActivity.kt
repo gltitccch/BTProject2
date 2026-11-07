@@ -72,7 +72,7 @@ class RegisterActivity : AppCompatActivity() {
                     // Update top header status
                     tvTosHeaderBadge?.text = "✓ Accepted"
                     tvTosHeaderBadge?.setTextColor(getColor(R.color.mint_text))
-                    tvTosHeaderSubtitle?.text = "All 10 stewardship policies reviewed & accepted."
+                    tvTosHeaderSubtitle?.text = "All 16 legal & stewardship policies reviewed & accepted."
                     tvTosHeaderSubtitle?.setTextColor(getColor(R.color.mint_text))
 
                     // Update right action icon to solid gold plate with dark check
@@ -84,7 +84,7 @@ class RegisterActivity : AppCompatActivity() {
                     // Update label and helper text
                     tvTermsAgreement.text = "Agreed"
                     tvTermsAgreement.setTextColor(getColor(R.color.text_primary))
-                    tvTosHint.text = "✓ Ready"
+                    tvTosHint.text = "✓ Ready (16/16)"
                     tvTosHint.setTextColor(getColor(R.color.mint_text))
 
                     btnCreate.isEnabled = true

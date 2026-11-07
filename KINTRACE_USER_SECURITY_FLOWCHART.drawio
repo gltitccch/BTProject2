@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T01:25:00.000Z" agent="KinTrace" version="24.0.0" type="device">
+  <diagram id="kintrace_security_flowchart" name="User Management &amp; Security Flowchart">
+    <mxGraphModel dx="1900" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1860" pageHeight="1180" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title_banner" value="SYSTEM FLOWCHART — USER MANAGEMENT, ROLE GOVERNANCE &amp; SECURITY MODULE" style="text;html=1;strokeColor=#000000;fillColor=#EAEAEA;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Arial;fontSize=15;fontStyle=1;fontColor=#000000;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="40" y="15" width="1780" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_1" value="PHASE 1: REGISTRATION, PASSWORD POLICY &amp; 16-CLAUSE COVENANT" style="text;html=1;strokeColor=#000000;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;strokeWidth=1.5;" parent="1" vertex="1">
+          <mxGeometry x="40" y="60" width="490" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_2" value="PHASE 2: AUTHENTICATION, EMAIL VERIFICATION &amp; ROLE LOADER" style="text;html=1;strokeColor=#000000;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;strokeWidth=1.5;" parent="1" vertex="1">
+          <mxGeometry x="550" y="60" width="520" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_3" value="PHASE 3: BOTANICAL RBAC, RA 10173 PRIVACY &amp; STEWARDSHIP" style="text;html=1;strokeColor=#000000;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;strokeWidth=1.5;" parent="1" vertex="1">
+          <mxGeometry x="1090" y="60" width="730" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="n_start" value="START" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAEAEA;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=13.5;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="225" y="105" width="170" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="d_has_acct" value="Has Existing
+Account?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="195" y="180" width="230" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="io_reg" value="Input Full Name, Email
+&amp; Password" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="175" y="310" width="270" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p_val_reg" value="Validate Full Name, Non-Burner Email
+&amp; 4-Factor Password Entropy
+(8+ Chars, Upper, Digit, Symbol)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="175" y="405" width="270" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="d_reg_ok" value="All Fields &amp;
+Password Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="195" y="510" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p_open_tos" value="Display 16-Clause Terms &amp;
+Clan Stewardship Bottom Sheet
+(Track Scroll Progress 0–100%)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="175" y="640" width="270" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="d_tos_ok" value="Scrolled to 100%
+&amp; Accepted?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="195" y="745" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p_create_usr" value="Create Firebase Auth User,
+Save UserProfile (tosAcceptedAt)
+&amp; Dispatch Verification Email" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="175" y="875" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_start_d1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="151" as="sourcePoint" />
+            <mxPoint x="310" y="180" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_d1_reg" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="268" as="sourcePoint" />
+            <mxPoint x="310" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_d1_reg" value="No (Register)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="324" y="277" width="96" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_reg_val" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="370" as="sourcePoint" />
+            <mxPoint x="310" y="405" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_val_dok" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="473" as="sourcePoint" />
+            <mxPoint x="310" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_dok_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="195" y="555" as="sourcePoint" />
+            <mxPoint x="175" y="340" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="85" y="555" />
+              <mxPoint x="85" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dok_no" value="No (Show Error)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="48" y="434" width="105" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dok_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="600" as="sourcePoint" />
+            <mxPoint x="310" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dok_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="317" y="607" width="42" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_tos_dt" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="708" as="sourcePoint" />
+            <mxPoint x="310" y="745" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_dt_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="195" y="790" as="sourcePoint" />
+            <mxPoint x="175" y="674" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="85" y="790" />
+              <mxPoint x="85" y="674" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dt_no" value="No (Locked)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="55" y="721" width="90" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dt_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="835" as="sourcePoint" />
+            <mxPoint x="310" y="875" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dt_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="317" y="843" width="42" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="io_login" value="Input Registered Email
+&amp; Password" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="630" y="194" width="260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p_auth" value="Authenticate Credentials via
+Firebase Auth (AuthHelper)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="630" y="290" width="260" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="d_auth_ok" value="Login Credentials
+Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="645" y="385" width="230" height="88" as="geometry" />
+        </mxCell>
+        <mxCell id="d_verified" value="Is Email Verified
+(or Admin)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="645" y="515" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p_verify_gate" value="Route to VerifyEmailActivity
+(60s Resend Cooldown Gate)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="910" y="526" width="170" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="d_sysadmin" value="Is System Admin
+(admin@kintrace.ph)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="640" y="650" width="240" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="p_citadel" value="Launch System Admin Citadel
+(Approve +150 Quotas, Restore
+Trash &amp; Audit Logs)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="910" y="662" width="170" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="d_has_tree" value="Has Active
+Family Tree?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="645" y="785" width="230" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="io_tree_setup" value="Create Tree OR Submit
+6-Char Invite Code" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="910" y="796" width="170" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="p_load_role" value="Load FamilyTree, PrivacySettings
+&amp; Resolve Botanical Role Tier
+(Owner / Editor / Viewer)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="625" y="920" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_d1_login" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="224" as="sourcePoint" />
+            <mxPoint x="630" y="224" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_d1_login" value="Yes (Login)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="480" y="195" width="90" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_create_ver" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="310" y="945" as="sourcePoint" />
+            <mxPoint x="645" y="560" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="310" y="1020" />
+              <mxPoint x="545" y="1020" />
+              <mxPoint x="545" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_create_ver" value="Verify New User" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="373" y="1009" width="115" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_login_auth" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="254" as="sourcePoint" />
+            <mxPoint x="760" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_auth_dok" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="352" as="sourcePoint" />
+            <mxPoint x="760" y="385" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_auth_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="645" y="429" as="sourcePoint" />
+            <mxPoint x="630" y="224" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="585" y="429" />
+              <mxPoint x="585" y="224" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_auth_no" value="No (Error)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="545" y="314" width="80" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_auth_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="473" as="sourcePoint" />
+            <mxPoint x="760" y="515" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_auth_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="767" y="481" width="42" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_ver_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="875" y="560" as="sourcePoint" />
+            <mxPoint x="910" y="560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_ver_no" value="No" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="874" y="531" width="36" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_ver_loop" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="526" as="sourcePoint" />
+            <mxPoint x="760" y="495" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="995" y="495" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_ver_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="605" as="sourcePoint" />
+            <mxPoint x="760" y="650" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_ver_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="767" y="614" width="42" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_adm_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="696" as="sourcePoint" />
+            <mxPoint x="910" y="696" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_adm_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="875" y="667" width="38" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_adm_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="742" as="sourcePoint" />
+            <mxPoint x="760" y="785" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_adm_no" value="No" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="769" y="751" width="38" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_tree_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="875" y="830" as="sourcePoint" />
+            <mxPoint x="910" y="830" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_tree_no" value="No" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="874" y="801" width="36" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_tree_setup_done" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="864" as="sourcePoint" />
+            <mxPoint x="895" y="955" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="995" y="955" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_tree_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="875" as="sourcePoint" />
+            <mxPoint x="760" y="920" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_tree_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="767" y="885" width="42" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="d_role" value="Evaluate Assigned
+Botanical Role Tier" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="1330" y="155" width="250" height="94" as="geometry" />
+        </mxCell>
+        <mxCell id="p_role_viewer" value="SPROUT VIEWER
+• Read-Only Tree &amp; Fan Chart
+• Enforce RA 10173 Redaction
+(Hide Birth/Notes/Deceased)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1098" y="300" width="215" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="io_golden_leaf" value="Optional: Send Golden Leaf
+Upgrade Request to Owner" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1098" y="415" width="215" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="p_role_editor" value="BRANCH EDITOR
+• Add &amp; Edit Family Members
+• Run Consanguinity &amp; Cycle
+Validation Checks" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1348" y="300" width="215" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="p_role_owner" value="CANOPY OWNER / CO-OWNER
+• Toggle RA 10173 Switches
+• Approve Join &amp; Role Requests
+• Issue Invite &amp; Merge Codes" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1598" y="300" width="215" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="d_del_acct" value="Request Account Deletion
+(Slide-to-Confirm)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="1330" y="535" width="250" height="94" as="geometry" />
+        </mxCell>
+        <mxCell id="d_shared_tree" value="Is Family Tree Shared
+(Members &gt; 1 or Co-Owners)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="1325" y="680" width="260" height="96" as="geometry" />
+        </mxCell>
+        <mxCell id="p_del_solo" value="Permanently Purge Solo
+Unshared Family Tree
+&amp; Member Nodes" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1110" y="815" width="220" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="p_steward" value="Invoke Clan Stewardship:
+• Promote Next Co-Owner
+• Keep Shared Ancestor Nodes
+• Redact Living Relatives" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1525" y="815" width="240" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="p_erase_auth" value="Erase Personal Firebase Auth Login,
+Email &amp; Local Session Cache" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1315" y="940" width="280" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="n_end" value="END" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAEAEA;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=13.5;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="1365" y="1045" width="180" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_col2_col3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="990" as="sourcePoint" />
+            <mxPoint x="1455" y="155" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="760" y="1065" />
+              <mxPoint x="1095" y="1065" />
+              <mxPoint x="1095" y="120" />
+              <mxPoint x="1455" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_col2_col3" value="Active Session" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="875" y="1054" width="110" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_r_viewer" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1330" y="202" as="sourcePoint" />
+            <mxPoint x="1205" y="300" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1205" y="202" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_r_viewer" value="Viewer" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1233" y="173" width="65" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_r_viewer_leaf" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1205" y="382" as="sourcePoint" />
+            <mxPoint x="1205" y="415" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_r_editor" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1455" y="249" as="sourcePoint" />
+            <mxPoint x="1455" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_r_editor" value="Editor" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1460" y="261" width="60" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_r_owner" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1580" y="202" as="sourcePoint" />
+            <mxPoint x="1705" y="300" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1705" y="202" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_r_owner" value="Owner" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1608" y="173" width="65" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_conv_v" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1205" y="473" as="sourcePoint" />
+            <mxPoint x="1455" y="535" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1205" y="505" />
+              <mxPoint x="1455" y="505" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_conv_e" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1455" y="382" as="sourcePoint" />
+            <mxPoint x="1455" y="535" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_conv_o" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1705" y="382" as="sourcePoint" />
+            <mxPoint x="1455" y="535" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1705" y="505" />
+              <mxPoint x="1455" y="505" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_del_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1330" y="582" as="sourcePoint" />
+            <mxPoint x="1365" y="1069" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1125" y="582" />
+              <mxPoint x="1125" y="1069" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_del_no" value="No (Keep Active)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1138" y="553" width="115" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_del_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1455" y="629" as="sourcePoint" />
+            <mxPoint x="1455" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_del_yes" value="Yes (Delete)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1461" y="641" width="92" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_sh_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1325" y="728" as="sourcePoint" />
+            <mxPoint x="1220" y="815" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1220" y="728" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_sh_no" value="No (Solo Tree)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1213" y="699" width="105" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_sh_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1585" y="728" as="sourcePoint" />
+            <mxPoint x="1645" y="815" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1645" y="728" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_sh_yes" value="Yes (Shared Clan)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1565" y="699" width="120" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_solo_erase" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1220" y="887" as="sourcePoint" />
+            <mxPoint x="1455" y="940" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1220" y="915" />
+              <mxPoint x="1455" y="915" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_stew_erase" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1645" y="897" as="sourcePoint" />
+            <mxPoint x="1455" y="940" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1645" y="915" />
+              <mxPoint x="1455" y="915" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_erase_end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1455" y="1002" as="sourcePoint" />
+            <mxPoint x="1455" y="1045" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_citadel_end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1080" y="696" as="sourcePoint" />
+            <mxPoint x="1365" y="1069" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1125" y="696" />
+              <mxPoint x="1125" y="1069" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

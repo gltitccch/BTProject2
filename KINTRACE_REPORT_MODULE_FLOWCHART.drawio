@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T01:35:00.000Z" agent="KinTrace-Capstone-Generator" version="24.0.0" type="device">
+  <diagram id="KinTraceReportModuleFlowchart" name="Report Module Flowchart">
+    <mxGraphModel dx="2400" dy="2200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2300" pageHeight="2050" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== DIAGRAM TITLE BANNER ==================== -->
+        <mxCell id="title_box" value="PROGRAM FLOWCHART: REPORT &amp; ANALYTICS MODULE&#10;(KinTrace: Clan Demographic Insights, Generation Metrics, RA 10173 Redaction &amp; Multi-Format PDF / PNG / CSV Export)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="2140" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== COLUMN HEADERS ==================== -->
+        <mxCell id="col1_hdr" value="PHASE 1: REPORT REQUEST, DATA LOAD &amp; RA 10173 PRIVACY REDACTION" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="80" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col2_hdr" value="PHASE 2: DEMOGRAPHIC ANALYTICS, GENERATION &amp; LINEAGE INSIGHTS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="820" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col3_hdr" value="PHASE 3: MULTI-FORMAT REPORT EXPORT (PDF / PNG / CSV) &amp; DISPATCH" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 1: PHASE 1 - REPORT REQUEST, DATA LOAD & PRIVACY REDACTION         -->
+        <!-- Center X = 410                                                            -->
+        <!-- ========================================================================= -->
+
+        <!-- Start Terminator -->
+        <mxCell id="c1_start" value="START&#10;(Open Insights or Export Report)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="290" y="185" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Process 1: Fetch Active Clan Dataset from CentralTreeSynchronizer -->
+        <mxCell id="c1_fetch_data" value="Load Active Clan Tree Metadata (trees),&#10;Member Directory (persons) &amp; Privacy Rules&#10;from CentralTreeSynchronizer" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="250" y="285" width="320" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Database Cylinder 1: Cloud Firestore -->
+        <mxCell id="c1_db_source" value="Cloud Firestore&#10;(trees, persons,&#10;privacy_settings)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="610" y="280" width="140" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Does Clan Have Any Members? -->
+        <mxCell id="c1_dec_has_members" value="Does Active Clan&#10;Contain Member&#10;Records (&gt; 0)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="280" y="395" width="260" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Empty State Box (Left of Decision 1) -->
+        <mxCell id="c1_empty_msg" value="Display Empty Report State:&#10;&quot;Add Family Members to&#10;Generate Clan Reports&quot;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="45" y="422" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1_end_empty" value="END&#10;(No Data to Report)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="65" y="535" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 2: Should Living Member Details Be Redacted (RA 10173)? -->
+        <mxCell id="c1_dec_privacy" value="Is hideLivingDetails&#10;Enabled (RA 10173 Privacy&#10;Masking Active)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="275" y="565" width="270" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Redact Living Fields Box (Right of Decision 2) -->
+        <mxCell id="c1_mask_living" value="Mask Living Members' Exact&#10;Birthdates, Notes &amp; Sensitive&#10;Fields in Report Dataset" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="580" y="592" width="195" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Sort & Index Members by Generation & Surname -->
+        <mxCell id="c1_sort_index" value="Index Sanitized Clan Dataset by&#10;Generation Level, Family Branch &amp; Chronology" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="250" y="735" width="320" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 3: Select Report Mode (Insights Dashboard vs Direct Export) -->
+        <mxCell id="c1_dec_mode" value="Select Report&#10;Module Workflow?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="275" y="845" width="270" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Connector B (Direct to Phase 3 Export) -->
+        <mxCell id="c1_conn_to_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="615" y="882" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connector A (Down to Phase 2 Analytics & Insights) -->
+        <mxCell id="c1_conn_to_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="385" y="1020" width="50" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 2: PHASE 2 - DEMOGRAPHIC ANALYTICS & LINEAGE INSIGHTS              -->
+        <!-- Center X = 1150                                                           -->
+        <!-- ========================================================================= -->
+
+        <!-- Connector A from Column 1 -->
+        <mxCell id="c2_conn_from_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1125" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Process 1: Compute Core Demographic Counters -->
+        <mxCell id="c2_calc_demo" value="Compute Core Clan Demographic Counters:&#10;• Total Members &amp; Quota Usage (N / 50 or 200)&#10;• Living vs. Deceased Ratio&#10;• Gender Breakdown (Male / Female / Other)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="275" width="340" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Compute Generation Depth & Lineage Distribution -->
+        <mxCell id="c2_calc_gen" value="Compute Lineage &amp; Generation Analytics:&#10;• Total Generation Depth (Root to Youngest)&#10;• Member Count per Generation Level&#10;• Top Clan Surnames &amp; Birthplace Distribution" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="395" width="340" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Process 3: Compute Marriage, Lifespan & Consanguinity Audit Summary -->
+        <mxCell id="c2_calc_audit" value="Compute Vital &amp; Legal Audit Metrics:&#10;• Total Marriages / Unions &amp; Avg. Children&#10;• Average Lifespan &amp; Age Bracket Distribution&#10;• EO 209 Consanguinity &amp; Record Completeness Score" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="515" width="340" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Output 1: Render Insights Dashboard Cards & Charts -->
+        <mxCell id="c2_render_insights" value="Render Interactive Insights Report Screen&#10;(Stat Cards, Gender/Vital Bars, Generation Breakdown&#10;&amp; Lineage Health Summary in InsightsActivity)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="965" y="640" width="370" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: User Action on Insights Report -->
+        <mxCell id="c2_dec_export" value="Does User Tap&#10;&quot;Export Report&quot; from&#10;Insights Screen?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="760" width="270" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Connector B (If User Chooses to Export) -->
+        <mxCell id="c2_conn_to_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1355" y="797" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- End Terminator (Column 2 - Finish Viewing Insights) -->
+        <mxCell id="c2_end_insights" value="END&#10;(Insights Report Viewed)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="935" width="240" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 3: PHASE 3 - MULTI-FORMAT REPORT EXPORT (PDF / PNG / CSV)          -->
+        <!-- Center X = 1890                                                           -->
+        <!-- ========================================================================= -->
+
+        <!-- Connector B from Columns 1 & 2 -->
+        <mxCell id="c3_conn_from_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1865" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Input 1: Select Export Format & Scope in ExportTreeActivity -->
+        <mxCell id="c3_input_format" value="Configure Report Scope, Privacy Toggle &amp;&#10;Select Target Format (PDF / PNG / CSV)&#10;in ExportTreeActivity" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1715" y="275" width="350" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Which Report Format Was Selected? -->
+        <mxCell id="c3_dec_format" value="Which Export&#10;Report Format Was&#10;Selected?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1750" y="385" width="280" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 1 (Left): PDF Heritage Book -->
+        <mxCell id="c3_gen_pdf" value="Generate PDF Document&#10;(Android PdfDocument Canvas:&#10;Clan Header, Summary Stats,&#10;Lineage Chart &amp; Directory)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1535" y="555" width="215" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 2 (Center): High-Resolution PNG Poster -->
+        <mxCell id="c3_gen_png" value="Generate High-Res PNG Chart&#10;(Off-Screen Bitmap Render of&#10;Family Tree / Pedigree Nodes,&#10;Connectors &amp; Color Legend)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1782" y="555" width="215" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 3 (Right): CSV Spreadsheet Table -->
+        <mxCell id="c3_gen_csv" value="Generate UTF-8 CSV File&#10;(Format Member IDs, Names,&#10;Sanitized Dates, Generation&#10;&amp; Parent/Spouse Links)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="2030" y="555" width="215" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Write File to Device Storage / MediaStore -->
+        <mxCell id="c3_write_file" value="Write Generated Report File to Device Storage&#10;&amp; Generate Secure FileProvider URI" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1725" y="695" width="330" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 2: Did File Write Succeed? -->
+        <mxCell id="c3_dec_write_ok" value="Was Report File&#10;Saved Successfully?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="800" width="260" height="115" as="geometry" />
+        </mxCell>
+
+        <!-- Storage Error Alert (Right of Decision 2) -->
+        <mxCell id="c3_err_storage" value="Display Storage / IO Error&#10;Toast &amp; Retry Prompt" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="2055" y="825" width="195" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Output 2: Preview & Launch Share Sheet -->
+        <mxCell id="c3_share_output" value="Display Export Confirmation Toast &amp;&#10;Launch Report Viewer / Android Share Sheet" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1715" y="960" width="350" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- End Terminator (Column 3) -->
+        <mxCell id="c3_end" value="END&#10;(Report Generated &amp; Exported)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1765" y="1070" width="250" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- EDGES & FLOW ARROWS                                                       -->
+        <!-- ========================================================================= -->
+
+        <!-- Column 1 Flow -->
+        <mxCell id="e_c1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_start" target="c1_fetch_data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;startArrow=block;startFill=1;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_fetch_data" target="c1_db_source">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_fetch_data" target="c1_dec_has_members">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_empty_no" value="No (Empty)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_has_members" target="c1_empty_msg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_empty_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_empty_msg" target="c1_end_empty">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_empty_yes" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_has_members" target="c1_dec_privacy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_priv_yes" value="Yes (Redact)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_privacy" target="c1_mask_living">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_priv_merge" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c1_mask_living" target="c1_sort_index">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="677" y="767" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c1_priv_no" value="No (Full Authorized View)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_privacy" target="c1_sort_index">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_sort_index" target="c1_dec_mode">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_mode_exp" value="Direct File Export" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_mode" target="c1_conn_to_b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_mode_ins" value="Analytics &amp; Insights Report" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_mode" target="c1_conn_to_a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Column 2 Flow -->
+        <mxCell id="e_c2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_conn_from_a" target="c2_calc_demo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_calc_demo" target="c2_calc_gen">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_calc_gen" target="c2_calc_audit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_calc_audit" target="c2_render_insights">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_render_insights" target="c2_dec_export">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_exp_yes" value="Yes (Export)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_export" target="c2_conn_to_b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_exp_no" value="No (Done)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_export" target="c2_end_insights">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Column 3 Flow -->
+        <mxCell id="e_c3_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_conn_from_b" target="c3_input_format">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_input_format" target="c3_dec_format">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Format Branches -->
+        <mxCell id="e_c3_fmt_pdf" value="PDF Book" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_format" target="c3_gen_pdf">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1642" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_fmt_png" value="PNG Image" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_format" target="c3_gen_png">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_fmt_csv" value="CSV Table" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_format" target="c3_gen_csv">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2137" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Converge Formats into Write File -->
+        <mxCell id="e_c3_conv_pdf" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_gen_pdf" target="c3_write_file">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1642" y="727" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_conv_png" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_gen_png" target="c3_write_file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_conv_csv" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_gen_csv" target="c3_write_file">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2137" y="727" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_c3_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_write_file" target="c3_dec_write_ok">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_write_no" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_write_ok" target="c3_err_storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_err_loop" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_err_storage" target="c3_input_format">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2265" y="857" />
+              <mxPoint x="2265" y="310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c3_write_yes" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_write_ok" target="c3_share_output">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_share_output" target="c3_end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

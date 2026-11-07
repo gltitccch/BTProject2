@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T01:10:00.000Z" agent="KinTrace" version="24.0.0" type="device">
+  <diagram id="kintrace_context_dfd0" name="KinTrace Context Diagram">
+    <mxGraphModel dx="1650" dy="1050" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1040" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- CENTER PROCESS 0 -->
+        <mxCell id="proc_0" value="0&#xa;&#xa;KinTrace: Mobile-Based&#xa;Genealogical Bloodline&#xa;Tracing System" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=16;fontStyle=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="660" y="340" width="280" height="280" as="geometry" />
+        </mxCell>
+
+        <!-- 4 CORNER EXTERNAL ENTITIES -->
+        <mxCell id="ent_member" value="User / Family Clan&#xa;Member" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=16;fontStyle=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="60" y="60" width="240" height="165" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ent_owner" value="Tree Owner /&#xa;Clan Administrator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=16;fontStyle=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="1300" y="60" width="240" height="165" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ent_sysadmin" value="System Administrator&#xa;(Admin Citadel)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=16;fontStyle=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="60" y="800" width="240" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ent_cloud" value="Google Firebase Auth &amp;&#xa;Cloud Sync Service" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=16;fontStyle=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="1300" y="800" width="240" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_tl_in_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="75" as="sourcePoint" />
+            <mxPoint x="770" y="342" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="770" y="75" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_tl_in_1" value="Registration &amp; Login" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="370" y="53" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_tl_in_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="116" as="sourcePoint" />
+            <mxPoint x="740" y="348" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="740" y="116" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_tl_in_2" value="Clan Invite Code" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="370" y="94" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_tl_in_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="157" as="sourcePoint" />
+            <mxPoint x="710" y="356" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="710" y="157" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_tl_in_3" value="Member &amp; Union Data" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="370" y="135" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_tl_in_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="198" as="sourcePoint" />
+            <mxPoint x="680" y="368" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="680" y="198" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_tl_in_4" value="Ancestor Search Query" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="370" y="176" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_ml_out_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="666" y="385" as="sourcePoint" />
+            <mxPoint x="250" y="225" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="250" y="385" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_ml_out_1" value="Interactive Family Tree" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="355" y="363" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_ml_out_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="661" y="426" as="sourcePoint" />
+            <mxPoint x="200" y="225" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="200" y="426" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_ml_out_2" value="Kinship &amp; Legal Alerts" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="355" y="404" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_ml_out_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="660" y="467" as="sourcePoint" />
+            <mxPoint x="150" y="225" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="150" y="467" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_ml_out_3" value="Lineage Search Results" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="355" y="445" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_ml_out_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="663" y="508" as="sourcePoint" />
+            <mxPoint x="100" y="225" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="100" y="508" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_ml_out_4" value="Exported PDF / PNG Chart" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="355" y="486" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_tr_in_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1300" y="75" as="sourcePoint" />
+            <mxPoint x="830" y="342" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="830" y="75" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_tr_in_1" value="Tree &amp; Privacy Settings" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1020" y="53" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_tr_in_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1300" y="116" as="sourcePoint" />
+            <mxPoint x="860" y="348" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="860" y="116" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_tr_in_2" value="Join &amp; Role Approvals" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1020" y="94" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_tr_in_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1300" y="157" as="sourcePoint" />
+            <mxPoint x="890" y="356" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="890" y="157" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_tr_in_3" value="Branch Merge Request" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1020" y="135" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_tr_in_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1300" y="198" as="sourcePoint" />
+            <mxPoint x="920" y="368" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="920" y="198" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_tr_in_4" value="Quota Upgrade Request" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1020" y="176" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_mr_out_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="934" y="385" as="sourcePoint" />
+            <mxPoint x="1350" y="225" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1350" y="385" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_mr_out_1" value="Invite &amp; Merge Codes" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1035" y="363" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_mr_out_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="939" y="426" as="sourcePoint" />
+            <mxPoint x="1400" y="225" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1400" y="426" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_mr_out_2" value="Pending Request Alerts" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1035" y="404" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_mr_out_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="940" y="467" as="sourcePoint" />
+            <mxPoint x="1450" y="225" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1450" y="467" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_mr_out_3" value="Merge &amp; Cycle Audit" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1035" y="445" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_mr_out_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="937" y="508" as="sourcePoint" />
+            <mxPoint x="1500" y="225" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1500" y="508" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_mr_out_4" value="Clan Analytics Summary" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1035" y="486" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_bl_out_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="672" y="560" as="sourcePoint" />
+            <mxPoint x="110" y="800" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="110" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_bl_out_1" value="Global Telemetry Logs" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="355" y="538" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_bl_out_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="688" y="601" as="sourcePoint" />
+            <mxPoint x="175" y="800" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="175" y="601" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_bl_out_2" value="Quota Request Queue" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="355" y="579" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_bl_out_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="712" y="642" as="sourcePoint" />
+            <mxPoint x="240" y="800" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="240" y="642" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_bl_out_3" value="Soft-Deleted Trash Vault" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="355" y="620" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_bl_in_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="830" as="sourcePoint" />
+            <mxPoint x="725" y="610" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="725" y="830" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_bl_in_1" value="Quota Approvals (+150)" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="395" y="808" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_bl_in_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="872" as="sourcePoint" />
+            <mxPoint x="755" y="617" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="755" y="872" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_bl_in_2" value="Record Restore Command" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="395" y="850" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_bl_in_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="914" as="sourcePoint" />
+            <mxPoint x="785" y="620" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="785" y="914" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_bl_in_3" value="System Broadcast &amp; OTA" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="395" y="892" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_br_out_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="928" y="560" as="sourcePoint" />
+            <mxPoint x="1490" y="800" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1490" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_br_out_1" value="Auth &amp; Email Dispatch" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1035" y="538" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_br_out_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="912" y="601" as="sourcePoint" />
+            <mxPoint x="1425" y="800" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1425" y="601" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_br_out_2" value="Tree &amp; Member Sync Data" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1035" y="579" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_br_out_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="888" y="642" as="sourcePoint" />
+            <mxPoint x="1360" y="800" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1360" y="642" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_br_out_3" value="Stewardship Redaction Data" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1035" y="620" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_br_in_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1300" y="830" as="sourcePoint" />
+            <mxPoint x="875" y="610" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="875" y="830" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_br_in_1" value="Verified Session Token" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="995" y="808" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_br_in_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1300" y="872" as="sourcePoint" />
+            <mxPoint x="845" y="617" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="845" y="872" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_br_in_2" value="Real-Time Tree Snapshot" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="995" y="850" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="arr_br_in_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1300" y="914" as="sourcePoint" />
+            <mxPoint x="815" y="620" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="815" y="914" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_br_in_3" value="Cloud Sync Status &amp; Alerts" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=0;fontFamily=Arial;fontSize=13.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="995" y="892" width="210" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -202,6 +202,12 @@ class PrivacyControlsActivity : AppCompatActivity() {
         btnSavePrivacy.setOnClickListener {
             savePrivacySettings()
         }
+
+        val btnPrivacyViewTermsCovenant = findViewById<View?>(R.id.btnPrivacyViewTermsCovenant)
+        btnPrivacyViewTermsCovenant?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.TermsOfServiceBottomSheet.newInstance(alreadyAccepted = true)
+                .show(supportFragmentManager, com.example.btproject2.ui.dialogs.TermsOfServiceBottomSheet.TAG)
+        }
     }
 
     override fun onResume() {

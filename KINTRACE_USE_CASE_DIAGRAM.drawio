@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T00:50:00.000Z" agent="KinTrace" version="24.0.0" type="device">
+  <diagram id="kintrace_use_case_diag" name="KinTrace Use Case Diagram">
+    <mxGraphModel dx="1650" dy="1150" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1320" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- SYSTEM BOUNDARY BOX -->
+        <mxCell id="sys_boundary" value="KinTrace: Mobile-Based Genealogical Bloodline Tracing and Heritage Management System" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fillColor=#FAFAFA;strokeColor=#111111;fontColor=#111111;strokeWidth=2;fontFamily=Times New Roman;fontSize=15;fontStyle=1;align=center;collapsible=0;" parent="1" vertex="1">
+          <mxGeometry x="260" y="40" width="1040" height="1220" as="geometry" />
+        </mxCell>
+
+        <!-- LEFT ACTORS (PRIMARY HUMAN ACTORS) -->
+        <mxCell id="actor_member" value="Family Clan Member&#xa;(Viewer / Contributor)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=2;fontFamily=Times New Roman;fontSize=13;fontStyle=1;labelBackgroundColor=#FFFFFF;" parent="1" vertex="1">
+          <mxGeometry x="70" y="300" width="60" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="actor_admin" value="Clan Administrator&#xa;(Tree Owner / Co-Owner)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=2;fontFamily=Times New Roman;fontSize=13;fontStyle=1;labelBackgroundColor=#FFFFFF;" parent="1" vertex="1">
+          <mxGeometry x="70" y="880" width="60" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Generalization Arrow: Clan Admin inherits all Family Clan Member use cases -->
+        <mxCell id="edge_actor_gen" value="inherits" style="endArrow=block;endFill=0;endSize=14;html=1;strokeColor=#111111;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=2;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="actor_admin" target="actor_member" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- RIGHT ACTORS (SECONDARY EXTERNAL SYSTEMS) -->
+        <mxCell id="ext_firebase" value="&lt;&lt;External System&gt;&gt;&#xa;Google Cloud Firebase&#xa;(Auth &amp; Firestore DB)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F0F0F0;strokeColor=#111111;fontColor=#111111;strokeWidth=2;fontFamily=Times New Roman;fontSize=12;fontStyle=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="1390" y="340" width="190" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ext_android" value="&lt;&lt;External System&gt;&gt;&#xa;Android OS Engine&#xa;(2D Canvas &amp; PDF/Image IO)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F0F0F0;strokeColor=#111111;fontColor=#111111;strokeWidth=2;fontFamily=Times New Roman;fontSize=12;fontStyle=1;align=center;" parent="1" vertex="1">
+          <mxGeometry x="1390" y="820" width="190" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 1 (LEFT INSIDE BOUNDARY): MEMBER & ADMIN PRIMARY USE CASES         -->
+        <!-- ========================================================================= -->
+
+        <!-- Member Use Cases -->
+        <mxCell id="uc1" value="Register Account &amp;&#xa;Accept 16-Clause Terms" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="100" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc2" value="Sign In &amp; Verify&#xa;Account Credentials" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="185" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc4" value="Join Family Tree via&#xa;6-Char Clan Invite Code" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="270" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc5" value="Explore Interactive Family&#xa;Tree, Pedigree &amp; Fan Chart" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="355" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc10" value="Search, Filter &amp; View&#xa;Member Profile Records" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="440" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc9" value="Study Kinship Degrees&#xa;&amp; Family Code (KinAcademy)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="525" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc12" value="Add / Edit Family Member&#xa;&amp; Link Relatives" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="610" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Clan Admin Specific Use Cases (Lower Left Column) -->
+        <mxCell id="uc3" value="Create Family Tree &amp;&#xa;Generate Invite Code" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="725" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc22" value="Manage Privacy Controls,&#xa;Join Requests &amp; Member Roles" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="810" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc14" value="Delete Member Record&#xa;(Soft-Delete to Trash)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="895" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc17" value="Merge Family Branches&#xa;(4 Bridge Modes)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="980" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc20" value="Audit Tree Integrity &amp;&#xa;Manage System Admin Citadel" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="1065" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc26" value="Delete Account under&#xa;Clan Stewardship Safeguard" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="310" y="1150" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 2 (CENTER): EXTENDED & INCLUDED CORE SYSTEM PROCESSES             -->
+        <!-- ========================================================================= -->
+
+        <mxCell id="uc8" value="Trace Bloodline Path &amp;&#xa;Common Ancestor (MRCA)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="660" y="295" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc23" value="Export Tree as PDF,&#xa;PNG Chart, or CSV Table" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="660" y="395" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc16" value="Calculate Generational Rings&#xa;&amp; Filipino/English Kinship" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F4F4F4;strokeColor=#222222;fontColor=#111111;strokeWidth=1.5;dashed=1;dashPattern=3 3;fontFamily=Times New Roman;fontSize=11.5;fontStyle=2;" parent="1" vertex="1">
+          <mxGeometry x="660" y="510" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc15" value="Validate Consanguinity &amp;&#xa;PH Family Code Marriage Rules" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F4F4F4;strokeColor=#222222;fontColor=#111111;strokeWidth=1.5;dashed=1;dashPattern=3 3;fontFamily=Times New Roman;fontSize=11.5;fontStyle=2;" parent="1" vertex="1">
+          <mxGeometry x="660" y="610" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc21" value="Restore Deleted Member&#xa;(Ops &amp; Recovery Console)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111111;fontColor=#111111;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=12;" parent="1" vertex="1">
+          <mxGeometry x="660" y="895" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc18" value="Run Pre-Flight Merge&#xa;Simulation &amp; Cycle Checks" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F4F4F4;strokeColor=#222222;fontColor=#111111;strokeWidth=1.5;dashed=1;dashPattern=3 3;fontFamily=Times New Roman;fontSize=11.5;fontStyle=2;" parent="1" vertex="1">
+          <mxGeometry x="660" y="980" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc27" value="Redact Living Relatives&#xa;(RA 10173 Privacy Shield)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F4F4F4;strokeColor=#222222;fontColor=#111111;strokeWidth=1.5;dashed=1;dashPattern=3 3;fontFamily=Times New Roman;fontSize=11.5;fontStyle=2;" parent="1" vertex="1">
+          <mxGeometry x="660" y="1150" width="200" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 3 (RIGHT INSIDE BOUNDARY): CLOUD SYNC & OS RENDERING USE CASES     -->
+        <!-- ========================================================================= -->
+
+        <mxCell id="uc24" value="Synchronize Cloud Firestore&#xa;Records in Real Time" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F4F4F4;strokeColor=#222222;fontColor=#111111;strokeWidth=1.5;dashed=1;dashPattern=3 3;fontFamily=Times New Roman;fontSize=11.5;fontStyle=2;" parent="1" vertex="1">
+          <mxGeometry x="1020" y="350" width="210" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc25" value="Cache Tree Data Locally &amp;&#xa;Render 60fps 2D Canvas" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F4F4F4;strokeColor=#222222;fontColor=#111111;strokeWidth=1.5;dashed=1;dashPattern=3 3;fontFamily=Times New Roman;fontSize=11.5;fontStyle=2;" parent="1" vertex="1">
+          <mxGeometry x="1020" y="830" width="210" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- ASSOCIATIONS: FAMILY CLAN MEMBER -> USE CASES                             -->
+        <!-- ========================================================================= -->
+        <mxCell id="e_m1" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_member" target="uc1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_m2" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_member" target="uc2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_m4" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_member" target="uc4" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_m5" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_member" target="uc5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_m10" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_member" target="uc10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_m9" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_member" target="uc9" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_m12" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_member" target="uc12" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- ASSOCIATIONS: CLAN ADMINISTRATOR -> ADMIN USE CASES                       -->
+        <!-- ========================================================================= -->
+        <mxCell id="e_a3" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_admin" target="uc3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a22" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_admin" target="uc22" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a14" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_admin" target="uc14" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a17" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_admin" target="uc17" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a20" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_admin" target="uc20" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a26" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="actor_admin" target="uc26" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- <<INCLUDE>> AND <<EXTEND>> RELATIONSHIPS                                  -->
+        <!-- ========================================================================= -->
+        <mxCell id="r_ext_trace" value="&lt;&lt;extend&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc8" target="uc5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_ext_export" value="&lt;&lt;extend&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc23" target="uc5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inc_kin" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc10" target="uc16" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inc_val" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc12" target="uc15" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inc_kin2" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc12" target="uc16" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_ext_restore" value="&lt;&lt;extend&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc21" target="uc14" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inc_merge" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc17" target="uc18" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inc_redact" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc26" target="uc27" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Cloud Sync & Canvas Includes -->
+        <mxCell id="r_inc_sync1" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc12" target="uc24" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inc_sync2" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc18" target="uc24" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inc_canvas1" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc5" target="uc25" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r_inc_canvas2" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endSize=10;dashed=1;dashPattern=4 4;html=1;strokeColor=#222222;fontColor=#111111;labelBackgroundColor=#FFFFFF;strokeWidth=1.5;fontFamily=Times New Roman;fontSize=11;fontStyle=2;" parent="1" source="uc23" target="uc25" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- ASSOCIATIONS TO EXTERNAL SYSTEMS (RIGHT SIDE)                             -->
+        <!-- ========================================================================= -->
+        <mxCell id="e_ext_fb1" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="uc24" target="ext_firebase" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ext_fb2" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="uc2" target="ext_firebase" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ext_and1" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="uc25" target="ext_android" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ext_and2" value="" style="endArrow=none;html=1;strokeColor=#111111;strokeWidth=1.5;" parent="1" source="uc23" target="ext_android" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

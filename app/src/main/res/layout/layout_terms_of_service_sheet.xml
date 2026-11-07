@@ -14,7 +14,7 @@
         android:layout_width="40dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="14dp"
         android:background="@drawable/badge_pill_dark" />
 
     <!-- Header Row -->
@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="12dp">
+        android:layout_marginBottom="10dp">
 
         <LinearLayout
             android:layout_width="44dp"
@@ -49,8 +49,8 @@
                 android:id="@+id/tvTermsTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Terms &amp; Stewardship"
-                android:textSize="18sp"
+                android:text="Terms &amp; Clan Stewardship"
+                android:textSize="17.5sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary" />
 
@@ -58,8 +58,8 @@
                 android:id="@+id/tvTermsSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Academic &amp; Clan Data Agreement"
-                android:textSize="12sp"
+                android:text="16-Clause Legal &amp; Heritage Data Agreement"
+                android:textSize="11.5sp"
                 android:textColor="@color/dark_subtext"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
@@ -88,26 +88,109 @@
         android:progress="0"
         android:progressTint="@color/gold_accent"
         android:progressBackgroundTint="@color/card_border"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="6dp" />
 
     <TextView
         android:id="@+id/tvScrollBadge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="⬇ Please scroll through all 10 sections to accept (0%)"
+        android:text="⬇ Please scroll through all 16 sections to accept (0%)"
         android:textSize="11sp"
         android:textStyle="bold"
         android:textColor="@color/gold_accent"
         android:gravity="center"
-        android:paddingTop="4dp"
-        android:paddingBottom="6dp"
-        android:layout_marginBottom="10dp" />
+        android:paddingTop="2dp"
+        android:paddingBottom="4dp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Direction 1: Quick-Jump Part Chips -->
+    <HorizontalScrollView
+        android:id="@+id/hsvTermsPartChips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginBottom="10dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/chipTermsPart1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="I. Core &amp; Services (1–4)"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/pill_btn_emerald"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/chipTermsPart2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="II. Stewardship &amp; Privacy (5–8)"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/pill_btn_emerald"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/chipTermsPart3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="III. Conduct &amp; Quotas (9–12)"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/pill_btn_emerald"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginEnd="6dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/chipTermsPart4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="IV. Liability &amp; PH Law (13–16)"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/pill_btn_emerald"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- Scrollable Document View -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nsvTermsScroll"
         android:layout_width="match_parent"
-        android:layout_height="340dp"
+        android:layout_height="350dp"
         android:background="@drawable/bg_quick_assist_card"
         android:padding="16dp"
         android:fillViewport="true">
@@ -121,17 +204,35 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="KINTRACE TERMS OF SERVICE &amp; CLAN DATA STEWARDSHIP AGREEMENT\nEffective Date: October 2026\n\nPlease read this agreement carefully. By completing registration, you confirm that you have read, understood, and agreed to all 10 sections set forth below."
-                android:textSize="12sp"
+                android:text="KINTRACE TERMS AND CONDITIONS &amp; CLAN DATA STEWARDSHIP AGREEMENT\nLast Updated: November 2026 • Governed by Philippine Law\n\nPlease read this agreement carefully. These Legal Terms constitute a legally binding covenant between you and the KinTrace Research &amp; Development Team concerning your access to and use of the KinTrace mobile application and cloud genealogy services."
+                android:textSize="11.5sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="3dp"
-                android:layout_marginBottom="16dp" />
+                android:background="@drawable/card_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="14dp" />
+
+            <!-- PART I HEADER -->
+            <TextView
+                android:id="@+id/tvTermsPart1Header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PART I: AGREEMENT, SERVICES &amp; ACCOUNT ELIGIBILITY"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginBottom="12dp" />
 
             <!-- Clause 1 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="1. ELIGIBILITY &amp; AGE REQUIREMENT (18+)"
+                android:text="1. AGREEMENT TO LEGAL TERMS"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -139,7 +240,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="You must be at least eighteen (18) years of age to register an account and establish a family tree on KinTrace. By creating an account, you represent and warrant that you are 18 years of age or older, possess the legal capacity to enter into this agreement, and that all registration details provided are authentic and accurate."
+                android:text="These Terms and Conditions ('Legal Terms') constitute a legally binding agreement made between you, whether personally or on behalf of your family clan ('you'), and the KinTrace Research &amp; Development Team ('KinTrace', 'we', 'us', or 'our'), concerning your access to and use of the KinTrace mobile application and cloud genealogy platform (collectively, the 'Services'). By completing the scroll-to-bottom verification and tapping 'I Have Read &amp; Agree to the Terms', you acknowledge that you have read, understood, and agreed to be bound by all sixteen (16) sections of these Legal Terms. Your acceptance timestamp is securely recorded in your User Profile as proof of prior informed consent under Republic Act No. 10173. If you do not agree with all of these Legal Terms, you are expressly prohibited from registering an account or using the Services."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
@@ -149,7 +250,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="2. ACADEMIC &amp; EDUCATIONAL RESEARCH NATURE"
+                android:text="2. OUR SERVICES &amp; ACADEMIC SIMULATION NATURE"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -157,7 +258,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="KinTrace is a mobile-based educational and genealogical research platform developed to facilitate family history preservation, lineage tracing, and the academic study of biological consanguinity degrees under the Family Code of the Philippines (Executive Order No. 209) and Philippine Civil Code (Republic Act No. 386).\n\nYou expressly acknowledge that KinTrace is an educational simulation tool. It is NOT an official government civil registrar, Philippine Statistics Authority (PSA) repository, or judicial body. Its calculations and relationship validations are for research and informational purposes only and do not substitute for formal legal advice."
+                android:text="KinTrace is a mobile-based genealogical record management and relationship validation platform designed to facilitate family history preservation, lineage visualization (Interactive Family Tree, Ancestor Pedigree View, and Fan Chart), and the educational study of biological consanguinity degrees under the Family Code of the Philippines (Executive Order No. 209) and the Civil Code of the Philippines (Republic Act No. 386).\n\nIMPORTANT EDUCATIONAL DISCLAIMER: KinTrace is an academic research and heritage organization tool. It is NOT an official government civil registry, Philippine Statistics Authority (PSA) archive, or judicial authority. Any relationship degree calculations, marriage eligibility flags (Articles 35, 37, and 38), or bloodline charts generated by the app are for informational and educational reference only and do not constitute formal legal advice or certified civil status documents."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
@@ -167,7 +268,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="3. CLAN STEWARDSHIP &amp; SHARED TREE PRESERVATION"
+                android:text="3. USER ELIGIBILITY (18+) &amp; REPRESENTATIONS"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -175,7 +276,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Family trees in KinTrace are collaborative, living heritage records. When you contribute genealogical information (ancestral names, vital dates, parent-child links, or spouse relationships) to a family tree, you grant participating clan members an irrevocable stewardship license to view, edit, and preserve such records.\n\nDELETION SAFEGUARD: If you subsequently delete or deactivate your personal user login account, your personal credentials (email, password, sessions) will be permanently destroyed. However, the factual historical nodes, ancestral relationships, and lineage links you contributed to a shared clan tree WILL REMAIN PRESERVED under the stewardship of surviving clan members to prevent tree fragmentation or the loss of shared family history."
+                android:text="To register an account and establish or join a family tree on KinTrace, you must be at least eighteen (18) years of age. By creating an account, you represent and warrant that: (a) you are 18 years of age or older and possess the legal capacity to enter into these Legal Terms under Philippine law; (b) all registration information you submit (including your Full Name and Email Address) is true, accurate, current, and complete; (c) you will complete mandatory Email Verification to activate your account; (d) you will not create an account using false identities, automated scripts, or another living person's identity without authorization; and (e) your use of the Services will not violate any applicable law or regulation."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
@@ -185,7 +286,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="4. LIVING RELATIVES' PRIVACY (RA 10173 COMPLIANCE)"
+                android:text="4. ACCOUNT SECURITY &amp; CLAN ACCESS CODES"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -193,17 +294,33 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="In full compliance with the Philippine Data Privacy Act of 2012 (Republic Act No. 10173), you warrant that before entering personal information of living relatives, you have obtained their familial authorization. Any living individual possesses the absolute right to have their identity redacted to 'Private Living Relative', keeping personal notes confidential while preserving biological parentage links."
+                android:text="You are responsible for maintaining the strict confidentiality of your login credentials and password. Furthermore, when a Family Tree Owner generates a 6-character Clan Invite Code to invite relatives, that code is intended solely for authorized family members. Entering an Invite Code submits a Pending Join Request, which remains gated until explicitly approved by the Tree Owner. The Tree Owner reserves the right to approve or reject join requests, assign or modify member roles (Canopy Owner, Branch Editor, or Sprout Viewer), or revoke a member's access to the family tree at any time to protect family privacy."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="18dp" />
+
+            <!-- PART II HEADER -->
+            <TextView
+                android:id="@+id/tvTermsPart2Header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PART II: INTELLECTUAL PROPERTY, CLAN STEWARDSHIP &amp; PRIVACY"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginBottom="12dp" />
 
             <!-- Clause 5 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="5. TREE OWNERSHIP &amp; STEWARDSHIP SUCCESSION"
+                android:text="5. INTELLECTUAL PROPERTY &amp; FAMILY HERITAGE OWNERSHIP"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -211,7 +328,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="A clan tree may have an Owner, Co-Owners, Editors, and Viewers. If a sole Tree Owner deletes their account or becomes permanently inactive, ownership does not terminate the tree if active collaborators exist; ownership automatically succeeds to active Co-Owners or the next senior Editor to guarantee continuity."
+                android:text="We respect the distinction between software technology and personal family heritage:\n\n• Platform Intellectual Property: We own or license all intellectual property rights in the KinTrace mobile application, including its source code, custom Canvas rendering engines, relationship validation algorithms, databases, botanical role badges, dark emerald and gold user interface designs, and logos.\n\n• Your Family Heritage Content: You and your participating clan members retain full ownership of the factual genealogical data, ancestral names, vital dates, and biographical notes you input into your family trees, subject only to the Clan Stewardship License granted in Section 6 so the app can display and synchronize your tree for authorized relatives."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
@@ -221,7 +338,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="6. TRUTHFUL CONTRIBUTION &amp; CODE OF CONDUCT"
+                android:text="6. CLAN STEWARDSHIP LICENSE &amp; SHARED TREE PRESERVATION"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -229,7 +346,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Users agree to submit genealogical information in good faith. You agree not to input intentionally fictitious, defamatory, obscene, or malicious information, nor attempt to circumvent biological constraints, 18+ marriage rules, or Ahnentafel cycle checks."
+                android:text="Family trees in KinTrace are collaborative, living heritage records built by multiple relatives. When you contribute genealogical nodes, parent-child links, or marriage unions to a shared family tree, you grant participating members of that tree a perpetual, non-exclusive, royalty-free Clan Stewardship License to view, maintain, and preserve those lineage structures within KinTrace.\n\nDELETION SAFEGUARD (SOLO VS. SHARED TREES): If you delete your personal user account: (1) Any unshared Solo Tree where you are the sole member (memberCount &lt;= 1 and no Co-Owners) will be permanently deleted in its entirety. (2) However, for any Shared Clan Tree with active relatives or Co-Owners, your personal login credentials (email, password, and session tokens) will be permanently erased, while the structural ancestral nodes and family links you contributed will remain preserved under 'Former Clan Contributor' stewardship so your relatives' family tree is never broken or fragmented."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
@@ -239,7 +356,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="7. BRANCH MERGING &amp; SYNTHESIS GOVERNANCE"
+                android:text="7. LIVING RELATIVES' PRIVACY &amp; RA 10173 COMPLIANCE"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -247,7 +364,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Generating and sharing a Clan Merge Code authorizes designated clan leaders to synthesize matching family branches. Merged trees are managed jointly under the Multi-Owner Clan model."
+                android:text="In strict compliance with the Philippine Data Privacy Act of 2012 (Republic Act No. 10173), we implement multi-layered safeguards for living individuals:\n\n• Familial Consent: Before encoding personal data (full name, birth date, or notes) of any living relative into a family tree, you warrant that you have obtained their informed familial consent or legal authority as a parent or guardian for minors.\n• Granular Visibility Controls: Tree Owners may enable privacy redaction toggles at any time in Privacy &amp; Access Controls to hide birth dates, hide biographical notes, or hide deceased status from non-owner viewers.\n• Automatic Living Relative Redaction: If a contributor deletes their account, any living relative records they encoded in a shared tree are automatically redacted to 'Private Living Relative' with their biography masked, preserving only the structural parent-child connectors."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
@@ -257,7 +374,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="8. EXPORT RESTRICTIONS &amp; PERSONAL USE ONLY"
+                android:text="8. MULTI-OWNER GOVERNANCE, ROLES &amp; SUCCESSION"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -265,17 +382,33 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="All reports, charts, and exports generated by KinTrace (PDF, PNG, CSV) are provided strictly for personal, familial, and non-commercial educational study. Harvesting, scraping, or reselling personal data of living clan members is strictly prohibited."
+                android:text="KinTrace enforces a three-tier botanical role governance model: (a) Canopy Owner / Co-Owner: Full administrative control over tree visibility, member approvals, role assignments, branch merging, and privacy switches. (b) Branch Editor: Authorized to add, edit, and link family members and relationships, subject to biological and legal validation checks. (c) Sprout Viewer: Read-only access to explore the interactive tree, fan chart, and unredacted family records, with the ability to send a 'Golden Leaf' request for Editor privileges. If a Founding Tree Owner deletes their account or leaves a shared tree, ownership does not collapse; it automatically succeeds to the first designated Co-Owner or senior active Editor to guarantee uninterrupted clan governance."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="18dp" />
+
+            <!-- PART III HEADER -->
+            <TextView
+                android:id="@+id/tvTermsPart3Header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PART III: MERGING, CAPACITY QUOTAS, CONDUCT &amp; EXPORTS"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginBottom="12dp" />
 
             <!-- Clause 9 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="9. ACCOUNT DEACTIVATION &amp; DELETION PROCEDURE"
+                android:text="9. BRANCH MERGING &amp; DUPLICATE SYNTHESIS GOVERNANCE"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -283,7 +416,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="You may request account deletion at any time in Account Profile settings. Upon execution, all private login credentials, tokens, and user profile data are permanently purged from KinTrace secure cloud servers, while collaborative family trees transition to Clan Stewardship."
+                android:text="When authorized Tree Owners generate and exchange a Clan Merge Code or execute duplicate person synthesis, the participating family branches are unified into a collaborative structure. By initiating or confirming a branch merge, you acknowledge that authorized members of the merged clan will gain visibility into the combined lineage according to their assigned roles, and that merged ancestral nodes are governed jointly under the Multi-Owner Clan model."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
@@ -293,7 +426,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="10. DISCLAIMER OF WARRANTIES &amp; GOVERNING LAW"
+                android:text="10. FREEMIUM CLAN CAPACITY &amp; TIER QUOTAS"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/gold_accent"
@@ -301,7 +434,131 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="KinTrace is provided on an 'AS IS' and 'AS AVAILABLE' basis without warranties of any kind. Under no circumstances shall the developers or academic researchers be liable for data entry inaccuracies, family disputes, or service interruptions. This Agreement is governed by the laws of the Republic of the Philippines."
+                android:text="To ensure sustainable cloud database performance and fair academic resource allocation across all users, each newly created family tree is provisioned under the Free Tier with a default capacity of fifty (50) recorded family members. When a growing clan approaches this limit, the Tree Owner may submit a zero-cost 'Extended Clan Tier Expansion Request' (+150 member capacity per expansion, up to 200+ members) directly from their Clan Member Profile to the System Admin Citadel. All tier expansions on KinTrace are provided free of commercial charge for educational and heritage preservation purposes."
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Clause 11 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="11. PROHIBITED ACTIVITIES &amp; CODE OF CONDUCT"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="4dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="You may not access or use the Services for any purpose other than that for which we make the Services available. As a user of KinTrace, you agree NOT to: (a) knowingly input fabricated, defamatory, libelous, obscene, or malicious records designed to harass, embarrass, or impugn the reputation of any living or deceased person; (b) attempt to bypass, disable, or tamper with KinTrace's biological cycle prevention, 18+ marriage age validators, or degree-of-consanguinity checks; (c) systematically scrape, harvest, or extract personal data of clan members for commercial marketing, political profiling, or unauthorized databases; (d) share Clan Invite Codes publicly on open forums to invite unauthorized strangers into private family trees; or (e) attempt to probe, decipher, or interfere with our Cloud Firestore security rules or authentication servers."
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Clause 12 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="12. EXPORT RESTRICTIONS (PDF, PNG &amp; CSV REPORTS)"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="4dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="KinTrace provides built-in tools to export your family tree diagrams, pedigree reports, and member directories in PDF, PNG, and CSV formats. All exported files are licensed to you strictly for personal, familial (such as family reunions or private clan archives), and non-commercial academic use. You are strictly prohibited from selling, sublicensing, or publicly publishing exported files that contain unredacted personal information of living relatives without their express written consent."
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginBottom="18dp" />
+
+            <!-- PART IV HEADER -->
+            <TextView
+                android:id="@+id/tvTermsPart4Header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PART IV: TERMINATION, MODIFICATIONS, LIABILITY &amp; PH LAW"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Clause 13 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="13. ACCOUNT DEACTIVATION, TERMINATION &amp; RIGHT TO ERASURE"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="4dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="These Legal Terms remain in full force and effect while you use the Services. (a) User-Initiated Deletion: You may exercise your right to erasure at any time by navigating to Clan Member Profile &gt; Delete My Account and completing the Slide-to-Confirm safety verification in the Clan Danger Zone. Upon confirmation, your personal authentication account, email, and private profile are permanently purged, and Clan Stewardship rules (Section 6 and Section 7) take immediate effect. (b) Administrative Termination: We reserve the right, in our sole discretion and without notice or liability, to suspend or terminate your account if you breach any Prohibited Activities in Section 11 or applicable Philippine law."
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Clause 14 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="14. SERVICE MODIFICATIONS, INTERRUPTIONS &amp; OFFLINE SYNC"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="4dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="We reserve the right to change, modify, or update the features of KinTrace (including deploying Over-The-Air [OTA] version updates or system maintenance broadcasts) at any time to improve performance and security. While KinTrace utilizes real-time Cloud Firestore synchronization and local caching to keep family trees updated across devices, we cannot guarantee that the Services will be uninterrupted or error-free during internet outages or cloud maintenance windows. You agree that we have no liability whatsoever for any inconvenience caused by temporary downtime or un-synced offline edits."
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Clause 15 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="15. DISCLAIMER OF WARRANTIES, LIMITATIONS OF LIABILITY &amp; INDEMNIFICATION"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="4dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="THE SERVICES ARE PROVIDED ON AN 'AS-IS' AND 'AS-AVAILABLE' BASIS. TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, REGARDING THE HISTORICAL OR BIOLOGICAL ACCURACY OF USER-CONTRIBUTED GENEALOGICAL RECORDS. Under no circumstances shall the KinTrace developers, student researchers, faculty advisers, or academic institution be liable to you or any third party for any direct, indirect, or consequential damages arising from: (a) inaccuracies, spelling errors, or omissions in family records entered by users; (b) intra-family disagreements, inheritance claims, or lineage disputes; or (c) unauthorized disclosure resulting from a user sharing their password or Clan Invite Code. You agree to defend, indemnify, and hold us harmless from any claim or demand made by any third party due to or arising out of your contributions or breach of these Legal Terms."
+                android:textSize="12sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Clause 16 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="16. GOVERNING LAW, DISPUTE RESOLUTION &amp; CONTACT INFORMATION"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="4dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="These Legal Terms and your use of the KinTrace application are governed by and construed in accordance with the laws of the Republic of the Philippines, including the Data Privacy Act of 2012 (RA 10173), the Cybercrime Prevention Act of 2012 (RA 10175), and the Family Code of the Philippines (EO 209). Any disagreement regarding specific family tree entries should first be addressed amicably through the Tree Owner or Co-Owners using KinTrace's built-in privacy and redaction tools. For technical support, data privacy requests, or questions regarding these Legal Terms, please contact the KinTrace Capstone Research &amp; Administration Team via the in-app Quick Assist Help Center or at support@kintrace.ph."
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:lineSpacingExtra="3dp"
@@ -312,7 +569,7 @@
                 android:id="@+id/tvEndIndicator"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="✓ End of Terms &amp; Clan Data Stewardship Agreement.\nYou are now ready to accept."
+                android:text="✓ End of All 16 Sections of the KinTrace Terms &amp; Clan Stewardship Agreement.\nYou have reviewed the complete legal covenant."
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/mint_text"
@@ -330,13 +587,13 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
-        android:text="🔒 Scroll To The Bottom To Accept"
+        android:text="🔒 Scroll To The Bottom To Accept (0/16)"
         android:textSize="13.5sp"
         android:textStyle="bold"
         android:textColor="@color/white"
         android:background="@drawable/btn_disabled_bg"
         android:clickable="false"
         android:focusable="false"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="14dp" />
 
 </LinearLayout>

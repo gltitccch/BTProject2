@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T01:38:00.000Z" agent="KinTrace-Capstone-Generator" version="24.0.0" type="device">
+  <diagram id="KinTraceTreeVisualizationFlowchart" name="Tree Visualization Module Flowchart">
+    <mxGraphModel dx="2400" dy="2200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2300" pageHeight="2050" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== DIAGRAM TITLE BANNER ==================== -->
+        <mxCell id="title_box" value="PROGRAM FLOWCHART: TREE VISUALIZATION MODULE&#10;(KinTrace: Interactive Family Tree Canvas, Ancestor Pedigree Chart, Concentric Fan Chart &amp; Multi-Touch Gesture Engine)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="80" y="30" width="2140" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== COLUMN HEADERS ==================== -->
+        <mxCell id="col1_hdr" value="PHASE 1: CANVAS INITIALIZATION, GRAPH SYNC &amp; ANCHOR ROOT SELECTION" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="80" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col2_hdr" value="PHASE 2: MULTI-VIEW LAYOUT ENGINE (TREE / PEDIGREE / FAN) &amp; CANVAS DRAW" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="820" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col3_hdr" value="PHASE 3: TOUCH GESTURES, BLOODLINE HIGHLIGHT &amp; NODE QUICK-ACTIONS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="115" width="660" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 1: PHASE 1 - INITIALIZATION, GRAPH SYNC & ANCHOR ROOT SELECTION    -->
+        <!-- Center X = 410                                                            -->
+        <!-- ========================================================================= -->
+
+        <!-- Start Terminator -->
+        <mxCell id="c1_start" value="START&#10;(Open Interactive Tree Visualization)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="290" y="185" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Process 1: Initialize Custom Canvas & Gesture Detectors -->
+        <mxCell id="c1_init_canvas" value="Initialize FamilyTreeView Custom Canvas,&#10;Paint Objects, ScaleGestureDetector &amp; Pan Matrix" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="250" y="285" width="320" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Subscribe to CentralTreeSynchronizer -->
+        <mxCell id="c1_sync_graph" value="Subscribe to CentralTreeSynchronizer Live Stream&#10;(Load Active Clan trees, persons &amp; privacy_settings)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="250" y="390" width="320" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Database Cylinder: Cloud Firestore -->
+        <mxCell id="c1_db_tree" value="Cloud Firestore&#10;(persons &amp; trees&#10;Live Snapshot)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="610" y="382" width="140" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Is Clan Member List Empty? -->
+        <mxCell id="c1_dec_empty" value="Is Clan Member&#10;Graph Empty&#10;(persons.isEmpty())?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="280" y="495" width="260" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Empty Tree Prompt (Left of Decision 1) -->
+        <mxCell id="c1_empty_prompt" value="Render Empty Tree Canvas CTA:&#10;&quot;Tap + to Add First Root&#10;Ancestor to Clan Tree&quot;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="45" y="522" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c1_end_empty" value="END&#10;(Awaiting First Member)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="65" y="635" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Process 3: Apply RA 10173 Privacy Redaction & Resolve Root Anchor -->
+        <mxCell id="c1_resolve_root" value="Apply RA 10173 Privacy Masking (hideLivingDetails)&#10;&amp; Resolve Focus Anchor Member&#10;(Selected Person or Oldest Clan Root Ancestor)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="245" y="665" width="330" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Process 4: Validate Graph Links & Prevent Cycles -->
+        <mxCell id="c1_sanitize_cycles" value="Build Parent-Child &amp; Spouse Adjacency Maps&#10;with Visited-Node Loop Protection (TreeTraversalEngine)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="245" y="775" width="330" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Connector A at Bottom of Column 1 -->
+        <mxCell id="c1_conn_to_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="385" y="885" width="50" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 2: PHASE 2 - MULTI-VIEW LAYOUT ENGINE & CUSTOM CANVAS RENDERING    -->
+        <!-- Center X = 1150                                                           -->
+        <!-- ========================================================================= -->
+
+        <!-- Connector A from Column 1 -->
+        <mxCell id="c2_conn_from_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1125" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: Which Visualization Mode is Active? -->
+        <mxCell id="c2_dec_view_mode" value="Which Tree&#10;Visualization Mode&#10;is Selected?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="275" width="280" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 1 (Left): Interactive Hierarchical Tree Layout -->
+        <mxCell id="c2_layout_tree" value="Compute Hierarchical Tree Layout:&#10;• Group Nodes by Generation Row&#10;• Pair Spouses Side-by-Side&#10;• Calculate Subtree Widths &amp; (X,Y)&#10;• Route Orthogonal Marriage/Child Lines" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="780" y="450" width="225" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 2 (Center): Ancestor Pedigree Chart Layout -->
+        <mxCell id="c2_layout_pedigree" value="Compute Pedigree Chart Layout:&#10;• Assign Ancestor Index Numbers&#10;  (1=Root, 2=Father, 3=Mother)&#10;• Position Ancestor Boxes in&#10;  Multi-Generation Pedigree Grid" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="1037" y="450" width="225" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 3 (Right): Concentric Heritage Fan Chart Layout -->
+        <mxCell id="c2_layout_fan" value="Compute Concentric Fan Layout:&#10;• Place Anchor Member at Center&#10;• Map Each Ancestor Generation to&#10;  Concentric Radial Arc Sectors&#10;  (Radius, StartAngle, SweepAngle)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;align=left;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="1295" y="450" width="225" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2: Apply Camera Zoom/Pan Transform & Screen Bounds Check -->
+        <mxCell id="c2_apply_camera" value="Apply Camera Matrix (scaleFactor, panX, panY)&#10;&amp; Filter Visible Viewport Nodes for Smooth 60 FPS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="985" y="595" width="330" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Process 3: Draw Relationship Connectors & Highlighted Bloodline Path -->
+        <mxCell id="c2_draw_lines" value="Draw Parent-Child &amp; Spouse Connector Lines&#10;(Highlight Active Gold Bloodline Path if Tracing)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="985" y="700" width="330" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Output 1: Render Member Node Cards, Badges & Tree Legend -->
+        <mxCell id="c2_draw_nodes" value="Render Member Node Cards on Canvas&#10;(Avatar Photo, Full Name, Birth-Death Years, Gender/Vital&#10;Color Border, Kinship Badge &amp; Tree Legend Overlay)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="965" y="805" width="370" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Connector B at Bottom of Column 2 -->
+        <mxCell id="c2_conn_to_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1125" y="925" width="50" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- COLUMN 3: PHASE 3 - TOUCH GESTURES, BLOODLINE TRACE & NODE ACTIONS        -->
+        <!-- Center X = 1890                                                           -->
+        <!-- ========================================================================= -->
+
+        <!-- Connector B from Column 2 -->
+        <mxCell id="c3_conn_from_b" value="B" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1865" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Input 1: Await User Touch Gesture or Toolbar Action -->
+        <mxCell id="c3_input_gesture" value="Capture User Canvas Touch Event or Toolbar Input&#10;(Pinch-Zoom, Pan-Drag, Search, Mode Switch, or Node Tap)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1705" y="275" width="370" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 1: What Interaction Occurred? -->
+        <mxCell id="c3_dec_interaction" value="What Canvas&#10;Interaction Was&#10;Triggered?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1750" y="380" width="280" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Interaction 1 (Left): Pinch-Zoom / Pan-Drag / Re-Center / Switch Mode -->
+        <mxCell id="c3_zoom_pan" value="Update Camera Zoom (0.3x–3.0x),&#10;Pan Offset, or View Mode&#10;&amp; Request Canvas Redraw" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1535" y="407" width="185" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c3_conn_redraw_a" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=14;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1605" y="520" width="45" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Interaction 2 (Right): Search Relative / Trace Bloodline Path -->
+        <mxCell id="c3_search_trace" value="Locate Target Member Node,&#10;Compute Relationship Path &amp;&#10;Animate Camera Focus to Node" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="2060" y="407" width="195" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Interaction 3 (Down): Tap Member Node on Canvas -->
+        <mxCell id="c3_hit_test" value="Perform Coordinate Hit-Test (x, y) to Identify&#10;Tapped Member Node &amp; Calculate Kinship to User" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1725" y="555" width="330" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Output 2: Display Node Quick-Action Sheet / Card -->
+        <mxCell id="c3_show_sheet" value="Display Member Quick-Action Card&#10;(Name, Kinship Badge, Civil Degree, View Profile,&#10;Set as Root Anchor, or Add Relative)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1710" y="660" width="360" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Decision 2: Which Node Action Did User Select? -->
+        <mxCell id="c3_dec_node_act" value="Which Node Quick-Action&#10;Was Selected?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1750" y="770" width="280" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Sub-branch Left: Set as New Focus Root -> Connector A -->
+        <mxCell id="c3_set_focus" value="Set Tapped Member as New&#10;Focus Root &amp; Re-Layout Tree" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1535" y="800" width="185" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Sub-branch Down: Open Profile or Add Relative Screen -->
+        <mxCell id="c3_launch_detail" value="Navigate to MemberDetailActivity (View/Edit)&#10;or AddMemberActivity (Pre-Linked Parent/Spouse/Child)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1720" y="940" width="340" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- End Terminator (Column 3) -->
+        <mxCell id="c3_end" value="END&#10;(Tree Visualization Session Complete)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="1765" y="1050" width="250" height="60" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- EDGES & FLOW ARROWS                                                       -->
+        <!-- ========================================================================= -->
+
+        <!-- Column 1 Flow -->
+        <mxCell id="e_c1_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_start" target="c1_init_canvas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_init_canvas" target="c1_sync_graph">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;startArrow=block;startFill=1;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_sync_graph" target="c1_db_tree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_sync_graph" target="c1_dec_empty">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_emp_yes" value="Yes (Empty)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_empty" target="c1_empty_prompt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_emp_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_empty_prompt" target="c1_end_empty">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_emp_no" value="No (Has Members)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c1_dec_empty" target="c1_resolve_root">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_resolve_root" target="c1_sanitize_cycles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c1_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c1_sanitize_cycles" target="c1_conn_to_a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Column 2 Flow -->
+        <mxCell id="e_c2_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_conn_from_a" target="c2_dec_view_mode">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3 Layout Mode Branches -->
+        <mxCell id="e_c2_mode_tree" value="Interactive Tree" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_view_mode" target="c2_layout_tree">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="892" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c2_mode_ped" value="Pedigree Chart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_view_mode" target="c2_layout_pedigree">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_mode_fan" value="Fan Chart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c2_dec_view_mode" target="c2_layout_fan">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1407" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Converge 3 Layout Modes into Apply Camera Matrix -->
+        <mxCell id="e_c2_conv_tree" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c2_layout_tree" target="c2_apply_camera">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="892" y="627" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_c2_conv_ped" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_layout_pedigree" target="c2_apply_camera">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_conv_fan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c2_layout_fan" target="c2_apply_camera">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1407" y="627" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_c2_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_apply_camera" target="c2_draw_lines">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_draw_lines" target="c2_draw_nodes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c2_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c2_draw_nodes" target="c2_conn_to_b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- Column 3 Flow -->
+        <mxCell id="e_c3_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_conn_from_b" target="c3_input_gesture">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_input_gesture" target="c3_dec_interaction">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Zoom / Pan / Switch Mode Branch -->
+        <mxCell id="e_c3_int_zoom" value="Zoom / Pan / Mode" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_interaction" target="c3_zoom_pan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_zoom_to_a" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_zoom_pan" target="c3_conn_redraw_a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Search / Trace Branch -->
+        <mxCell id="e_c3_int_search" value="Search / Trace Path" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_interaction" target="c3_search_trace">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_search_to_hit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_search_trace" target="c3_show_sheet">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2157" y="695" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Tap Member Node Branch -->
+        <mxCell id="e_c3_int_tap" value="Tap Member Node" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_interaction" target="c3_hit_test">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_hit_test" target="c3_show_sheet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_show_sheet" target="c3_dec_node_act">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Node Quick-Action Branches -->
+        <mxCell id="e_c3_act_focus" value="Set as Root Anchor" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_node_act" target="c3_set_focus">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_focus_to_a" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="c3_set_focus" target="c3_conn_redraw_a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_act_detail" value="View Profile / Add Relative" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c3_dec_node_act" target="c3_launch_detail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_c3_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c3_launch_detail" target="c3_end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

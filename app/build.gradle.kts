@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.btproject2"
         minSdk = 24
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.3.9"
+        versionCode = 13
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

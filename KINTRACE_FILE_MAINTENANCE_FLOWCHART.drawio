@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T01:30:00.000Z" agent="KinTrace" version="24.0.0" type="device">
+  <diagram id="kintrace_file_maintenance_flowchart" name="File Maintenance Module Flowchart">
+    <mxGraphModel dx="1900" dy="1220" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1880" pageHeight="1200" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title_banner" value="SYSTEM FLOWCHART — FILE MAINTENANCE, VALIDATION PIPELINE &amp; ARCHIVE RECOVERY MODULE" style="text;html=1;strokeColor=#000000;fillColor=#EAEAEA;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Arial;fontSize=15;fontStyle=1;fontColor=#000000;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="40" y="15" width="1800" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_1" value="PHASE 1: RECORD DIRECTORY, ROLE PERMISSION &amp; QUOTA GATE" style="text;html=1;strokeColor=#000000;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;strokeWidth=1.5;" parent="1" vertex="1">
+          <mxGeometry x="40" y="60" width="520" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_2" value="PHASE 2: ADD / EDIT MEMBER &amp; LEGAL/BIOLOGICAL VALIDATION" style="text;html=1;strokeColor=#000000;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;strokeWidth=1.5;" parent="1" vertex="1">
+          <mxGeometry x="580" y="60" width="560" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_3" value="PHASE 3: SOFT-DELETE VAULT, 1-TAP RECOVERY, MERGE &amp; EXPORT" style="text;html=1;strokeColor=#000000;fillColor=#F5F5F5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;strokeWidth=1.5;" parent="1" vertex="1">
+          <mxGeometry x="1160" y="60" width="680" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="n_start" value="START
+(Open File Maintenance)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAEAEA;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=13;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="125" y="105" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p_load_records" value="Load Active FamilyTree &amp; Person
+Master Records + Apply RA 10173
+Privacy Redaction Rules" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="85" y="185" width="280" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="io_search_filter" value="Search by Name/Place OR Filter by
+Generation Ring &amp; Living Status
+(FamilyRecordsActivity)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="85" y="285" width="280" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="io_select_op" value="Select Maintenance Operation:
+Add, Edit, Delete, Restore,
+Merge, or Export File" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="85" y="385" width="280" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="d_has_perm" value="Has Write Permission
+(Owner or Editor)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="108" y="485" width="235" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="io_role_flash" value="Show Botanical Role Flash:
+&#x27;Send Golden Leaf Request&#x27;" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="375" y="500" width="180" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="d_quota_cap" value="Adding New Member &amp;
+At Quota Cap (50/200)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="105" y="625" width="240" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="io_quota_req" value="Prompt Owner: Request Free
++150 Tier Expansion" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="375" y="640" width="180" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="d_op_type" value="Is Operation Add or
+Edit Member Record?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="105" y="765" width="240" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_s_load" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="155" as="sourcePoint" />
+            <mxPoint x="225" y="185" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_load_srch" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="253" as="sourcePoint" />
+            <mxPoint x="225" y="285" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_srch_sel" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="351" as="sourcePoint" />
+            <mxPoint x="225" y="385" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_sel_dperm" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="451" as="sourcePoint" />
+            <mxPoint x="225" y="485" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_dperm_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="343" y="531" as="sourcePoint" />
+            <mxPoint x="375" y="531" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dperm_no" value="No (Viewer)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="316" y="497" width="85" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dperm_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="577" as="sourcePoint" />
+            <mxPoint x="225" y="625" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dperm_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="232" y="588" width="38" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dcap_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="345" y="671" as="sourcePoint" />
+            <mxPoint x="375" y="671" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dcap_yes" value="Yes (Capped)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="312" y="637" width="92" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dcap_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="717" as="sourcePoint" />
+            <mxPoint x="225" y="765" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dcap_no" value="No (Available)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="228" y="728" width="98" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="io_member_form" value="Input / Edit Vital Details (Name, Gender,
+Birth/Death Dates, Notes, Photo) &amp;
+Select Parent / Spouse Links" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=18;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="670" y="130" width="290" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="p_bio_val" value="Run FamilyLinkValidator:
+• Check Birth &lt; Death Chronology
+• Check Parent-Child Age Gap
+• Prevent Ancestor Graph Cycles" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="670" y="240" width="290" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="d_bio_ok" value="Biological &amp; Timeline
+Validation Passed?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="695" y="355" width="240" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="d_has_spouse" value="Is a Spouse / Marriage
+Union Linked?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="695" y="490" width="240" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="p_marriage_val" value="Run MarriageValidationEngine:
+• Check 18+ Legal Marriage Age
+• Check PH Family Code (EO 209
+Articles 35, 37, 38) Consanguinity" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="670" y="620" width="290" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="d_marriage_ok" value="Marriage Union Valid
+(No Legal Conflict)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="695" y="735" width="240" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="p_preserve_spouse" value="Preserve Prior Spouse IDs in
+formerSpouseIds (withLinkedSpouse)
+&amp; Compute Kinship Ring Badge" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="670" y="865" width="290" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="p_save_person" value="Save Validated Person Document
+to Cloud Firestore (persons) &amp;
+Broadcast Real-Time Sync Event" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="670" y="975" width="290" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dop_add_edit" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="857" as="sourcePoint" />
+            <mxPoint x="670" y="166" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="225" y="930" />
+              <mxPoint x="585" y="930" />
+              <mxPoint x="585" y="166" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dop_add_edit" value="Yes (Add / Edit)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="358" y="919" width="115" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_form_bioval" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="815" y="202" as="sourcePoint" />
+            <mxPoint x="815" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_bioval_dbio" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="815" y="316" as="sourcePoint" />
+            <mxPoint x="815" y="355" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_dbio_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="695" y="401" as="sourcePoint" />
+            <mxPoint x="670" y="166" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="625" y="401" />
+              <mxPoint x="625" y="166" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dbio_no" value="No (Fix Date/Cycle)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="563" y="274" width="125" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dbio_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="815" y="447" as="sourcePoint" />
+            <mxPoint x="815" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dbio_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="822" y="455" width="38" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dsp_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="935" y="536" as="sourcePoint" />
+            <mxPoint x="960" y="900" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1015" y="536" />
+              <mxPoint x="1015" y="900" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dsp_no" value="No (Single)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="971" y="699" width="88" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dsp_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="815" y="582" as="sourcePoint" />
+            <mxPoint x="815" y="620" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dsp_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="822" y="588" width="38" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_mval_dmok" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="815" y="696" as="sourcePoint" />
+            <mxPoint x="815" y="735" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_dmok_no" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="695" y="781" as="sourcePoint" />
+            <mxPoint x="670" y="166" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="625" y="781" />
+              <mxPoint x="625" y="166" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dmok_no" value="No (EO 209 Block)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="565" y="579" width="120" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dmok_yes" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="815" y="827" as="sourcePoint" />
+            <mxPoint x="815" y="865" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dmok_yes" value="Yes" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="822" y="833" width="38" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_pres_save" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="815" y="935" as="sourcePoint" />
+            <mxPoint x="815" y="975" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d_maint_router" value="Evaluate Selected
+Maintenance Utility" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="1220" y="130" width="240" height="92" as="geometry" />
+        </mxCell>
+        <mxCell id="u_soft_del" value="1. SOFT-DELETE TO TRASH VAULT
+• Snapshot Person &amp; Original Links
+  into ArchivedMemberRecord
+• Unlink Pointers &amp; Remove Active Node" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1515" y="240" width="280" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="u_restore" value="2. 1-TAP RECORD RECOVERY (Citadel)
+• Read ArchivedMemberRecord
+• Re-Insert Person to Live Tree &amp;
+  Reconnect Parent / Spouse IDs" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1515" y="360" width="280" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="u_merge" value="3. BRANCH MERGE &amp; ROLLBACK
+• Run Pre-Flight Collision Check
+• Save MergeRollbackSnapshot &amp;
+  Synthesize Partner Clan Nodes" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1515" y="480" width="280" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="u_export" value="4. MASTER FILE BACKUP EXPORT
+• Render High-Res PDF Pedigree,
+  PNG Poster, or CSV Spreadsheet
+  (ExportTreeActivity)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1515" y="600" width="280" height="76" as="geometry" />
+        </mxCell>
+        <mxCell id="p_sync_audit" value="Write ActivityRecord / AdminAuditLog
+&amp; Notify CentralTreeSynchronizer
+to Refresh All Connected Screens" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=0;" parent="1" vertex="1">
+          <mxGeometry x="1345" y="770" width="310" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_end" value="END
+(Maintenance Complete)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#EAEAEA;strokeColor=#000000;fontColor=#000000;strokeWidth=2.5;fontFamily=Arial;fontSize=13;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="1390" y="900" width="220" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_dop_other" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="857" as="sourcePoint" />
+            <mxPoint x="1220" y="176" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="225" y="1080" />
+              <mxPoint x="1165" y="1080" />
+              <mxPoint x="1165" y="176" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_dop_other" value="No (Delete / Restore / Merge / Export)" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="573" y="1069" width="235" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_rt_u_soft_del" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1340" y="222" as="sourcePoint" />
+            <mxPoint x="1515" y="278" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1340" y="278" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_out_u_soft_del" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1795" y="278" as="sourcePoint" />
+            <mxPoint x="1655" y="805" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1835" y="278" />
+              <mxPoint x="1835" y="805" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_rt_u_restore" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1340" y="222" as="sourcePoint" />
+            <mxPoint x="1515" y="398" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1340" y="398" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_out_u_restore" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1795" y="398" as="sourcePoint" />
+            <mxPoint x="1655" y="805" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1835" y="398" />
+              <mxPoint x="1835" y="805" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_rt_u_merge" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1340" y="222" as="sourcePoint" />
+            <mxPoint x="1515" y="518" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1340" y="518" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_out_u_merge" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1795" y="518" as="sourcePoint" />
+            <mxPoint x="1655" y="805" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1835" y="518" />
+              <mxPoint x="1835" y="805" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_rt_u_export" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1340" y="222" as="sourcePoint" />
+            <mxPoint x="1515" y="638" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1340" y="638" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_out_u_export" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1795" y="638" as="sourcePoint" />
+            <mxPoint x="1655" y="805" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1835" y="638" />
+              <mxPoint x="1835" y="805" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_save_audit" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="960" y="1010" as="sourcePoint" />
+            <mxPoint x="1345" y="805" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1260" y="1010" />
+              <mxPoint x="1260" y="805" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fll_save_audit" value="Sync &amp; Log" style="text;html=1;strokeColor=#000000;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=nowrap;rounded=1;fontFamily=Arial;fontSize=11.5;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="1068" y="999" width="85" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="fl_audit_end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1500" y="840" as="sourcePoint" />
+            <mxPoint x="1500" y="900" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_flash_end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="555" y="531" as="sourcePoint" />
+            <mxPoint x="1500" y="952" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="555" y="1125" />
+              <mxPoint x="1500" y="1125" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fl_quota_end" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;" parent="1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="555" y="671" as="sourcePoint" />
+            <mxPoint x="555" y="1125" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

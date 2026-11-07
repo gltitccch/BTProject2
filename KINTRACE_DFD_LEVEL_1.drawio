@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-11-08T01:58:00.000Z" agent="KinTrace-Capstone-Generator" version="24.0.0" type="device">
+  <diagram id="KinTraceDFDLevel1" name="Data Flow Diagram - Level 1 (Print-Ready)">
+    <mxGraphModel dx="1300" dy="1500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1420" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== COMPACT PRINT-READY TITLE ==================== -->
+        <mxCell id="title_box" value="DATA FLOW DIAGRAM — LEVEL 1 (KinTrace System)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=20;fontFamily=Times New Roman;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="25" width="1120" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== COLUMN HEADERS ==================== -->
+        <mxCell id="hdr_left" value="EXTERNAL ENTITIES" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="40" y="95" width="230" height="38" as="geometry" />
+        </mxCell>
+
+        <mxCell id="hdr_center" value="CORE SYSTEM PROCESSES (1.0 – 5.0)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="455" y="95" width="300" height="38" as="geometry" />
+        </mxCell>
+
+        <mxCell id="hdr_right" value="DATA STORES (D1 – D5)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EAEAEA;strokeColor=#000000;strokeWidth=2;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="920" y="95" width="240" height="38" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================================= -->
+        <!-- LEFT COLUMN: 3 EXTERNAL ENTITIES (X = 40, W = 230, Font = 17pt Bold)      -->
+        <!-- ========================================================================= -->
+
+        <!-- Entity 1: User / Family Clan Member (Aligned with Process 1.0 & 3.0) -->
+        <mxCell id="ent_user" value="User / Family&#10;Clan Member" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3;fontColor=#000000;fontStyle=1;fontSize=17;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="40" y="170" width="230" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Entity 2: Tree Owner / Clan Administrator (Aligned with Process 2.0 & 4.0) -->
+        <mxCell id="ent_owner" value="Tree Owner /&#10;Clan Administrator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3;fontColor=#000000;fontStyle=1;fontSize=17;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="40" y="670" width="230" height="125" as="geometry" />
+        </mxCell>
+
+        <!-- Entity 3: System Administrator (Aligned with Process 5.0) -->
+        <mxCell id="ent_admin" value="System Administrator&#10;(Admin Citadel)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3;fontColor=#000000;fontStyle=1;fontSize=17;fontFamily=Times New Roman;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1170" width="230" height="125" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- CENTER COLUMN: 5 CORE PROCESSES (X = 455, W = 300, Font = 16pt Bold)      -->
+        <!-- ========================================================================= -->
+
+        <!-- Process 1.0: User Auth, Stewardship & Privacy -->
+        <mxCell id="proc_1" value="1.0" style="swimlane;whiteSpace=wrap;html=1;startSize=34;collapsible=0;rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="455" y="165" width="300" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_1_lbl" value="User Authentication,&#10;Stewardship &amp; Privacy&#10;Management" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;" vertex="1" parent="proc_1">
+          <mxGeometry x="0" y="34" width="300" height="101" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2.0: Clan Governance, Member Records & Branch Merge -->
+        <mxCell id="proc_2" value="2.0" style="swimlane;whiteSpace=wrap;html=1;startSize=34;collapsible=0;rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="455" y="415" width="300" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_2_lbl" value="Clan Governance,&#10;Member File Maintenance&#10;&amp; Branch Merging" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;" vertex="1" parent="proc_2">
+          <mxGeometry x="0" y="34" width="300" height="101" as="geometry" />
+        </mxCell>
+
+        <!-- Process 3.0: Bloodline Tracing, Civil Degree & Marriage Validation -->
+        <mxCell id="proc_3" value="3.0" style="swimlane;whiteSpace=wrap;html=1;startSize=34;collapsible=0;rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="455" y="665" width="300" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_3_lbl" value="Bloodline Tracing,&#10;Civil Degree Math (RA 386)&#10;&amp; Marriage Audit (EO 209)" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;" vertex="1" parent="proc_3">
+          <mxGeometry x="0" y="34" width="300" height="101" as="geometry" />
+        </mxCell>
+
+        <!-- Process 4.0: Interactive Tree, Pedigree & Fan Chart Visualization -->
+        <mxCell id="proc_4" value="4.0" style="swimlane;whiteSpace=wrap;html=1;startSize=34;collapsible=0;rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="455" y="915" width="300" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_4_lbl" value="Interactive Family Tree,&#10;Ancestor Pedigree &amp;&#10;Fan Chart Visualization" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;" vertex="1" parent="proc_4">
+          <mxGeometry x="0" y="34" width="300" height="101" as="geometry" />
+        </mxCell>
+
+        <!-- Process 5.0: Clan Analytics, Report Export & Real-Time Alerts -->
+        <mxCell id="proc_5" value="5.0" style="swimlane;whiteSpace=wrap;html=1;startSize=34;collapsible=0;rounded=1;arcSize=12;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="455" y="1165" width="300" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_5_lbl" value="Clan Insights, Multi-Format&#10;Export (PDF/PNG/CSV)&#10;&amp; Notification Alerts" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;" vertex="1" parent="proc_5">
+          <mxGeometry x="0" y="34" width="300" height="101" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- RIGHT COLUMN: 5 DATA STORES D1–D5 (X = 920, W = 240, Font = 15pt Bold)    -->
+        <!-- ========================================================================= -->
+
+        <!-- Data Store D1: Users & Privacy -->
+        <mxCell id="ds_d1" value="D1" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=45;collapsible=0;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="920" y="180" width="240" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="ds_d1_lbl" value="users &amp;&#10;privacy_settings" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=16;fontFamily=Times New Roman;" vertex="1" parent="ds_d1">
+          <mxGeometry x="45" y="0" width="195" height="105" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D2: Clans, Quotas & Invite Codes -->
+        <mxCell id="ds_d2" value="D2" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=45;collapsible=0;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="920" y="430" width="240" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="ds_d2_lbl" value="trees, tree_members&#10;&amp; invite_codes" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="ds_d2">
+          <mxGeometry x="45" y="0" width="195" height="105" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D3: Family Member Profiles -->
+        <mxCell id="ds_d3" value="D3" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=45;collapsible=0;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="920" y="680" width="240" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="ds_d3_lbl" value="persons&#10;(Member Profiles &amp; Links)" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="ds_d3">
+          <mxGeometry x="45" y="0" width="195" height="105" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D4: Soft-Delete Recovery Vault -->
+        <mxCell id="ds_d4" value="D4" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=45;collapsible=0;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="920" y="930" width="240" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="ds_d4_lbl" value="archived_members&#10;(Recovery Vault)" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="ds_d4">
+          <mxGeometry x="45" y="0" width="195" height="105" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D5: Notifications & Broadcast Logs -->
+        <mxCell id="ds_d5" value="D5" style="swimlane;horizontal=0;whiteSpace=wrap;html=1;startSize=45;collapsible=0;fillColor=#F5F5F5;strokeColor=#000000;strokeWidth=2.5;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;swimlaneFillColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1180" width="240" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="ds_d5_lbl" value="notifications&#10;(Alerts &amp; Audit Logs)" style="text;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontColor=#000000;fontStyle=1;fontSize=15;fontFamily=Times New Roman;" vertex="1" parent="ds_d5">
+          <mxGeometry x="45" y="0" width="195" height="105" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- LEFT FLOWS (LARGE 13pt BOLD TEXT, ZERO OVERLAP)                           -->
+        <!-- ========================================================================= -->
+
+        <!-- 1. User <-> Process 1.0 -->
+        <mxCell id="e_l1_in" value="Login &amp; Privacy Rules" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="270" y="205" as="sourcePoint" />
+            <mxPoint x="455" y="205" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_l1_out" value="Verified Session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="15" relative="1" as="geometry">
+            <mxPoint x="455" y="260" as="sourcePoint" />
+            <mxPoint x="270" y="260" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. Owner <-> Process 2.0 -->
+        <mxCell id="e_l2_in" value="Member Data &amp; Merge Code" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="155" y="670" as="sourcePoint" />
+            <mxPoint x="455" y="455" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="155" y="455" />
+            </Array>
+            <mxPoint x="40" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_l2_out" value="Clan &amp; Quota Status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="15" relative="1" as="geometry">
+            <mxPoint x="455" y="515" as="sourcePoint" />
+            <mxPoint x="210" y="670" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="210" y="515" />
+            </Array>
+            <mxPoint x="-20" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. User / Owner <-> Process 3.0 -->
+        <mxCell id="e_l3_in" value="Relative Pair Query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="270" y="705" as="sourcePoint" />
+            <mxPoint x="455" y="705" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_l3_out" value="Kinship &amp; EO 209 Alert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="15" relative="1" as="geometry">
+            <mxPoint x="455" y="760" as="sourcePoint" />
+            <mxPoint x="270" y="760" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 4. User <-> Process 4.0 -->
+        <mxCell id="e_l4_in" value="Zoom/Pan &amp; View Mode" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="95" y="295" as="sourcePoint" />
+            <mxPoint x="455" y="955" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="95" y="955" />
+            </Array>
+            <mxPoint x="80" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_l4_out" value="Tree, Pedigree &amp; Fan Chart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="15" relative="1" as="geometry">
+            <mxPoint x="455" y="1015" as="sourcePoint" />
+            <mxPoint x="60" y="295" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="60" y="1015" />
+            </Array>
+            <mxPoint x="-95" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 5. Admin / Users <-> Process 5.0 -->
+        <mxCell id="e_l5_in" value="Quota Approvals &amp; Export Cmd" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="270" y="1205" as="sourcePoint" />
+            <mxPoint x="455" y="1205" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_l5_out" value="PDF/PNG/CSV &amp; Alerts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="15" relative="1" as="geometry">
+            <mxPoint x="455" y="1260" as="sourcePoint" />
+            <mxPoint x="270" y="1260" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+
+        <!-- ========================================================================= -->
+        <!-- RIGHT FLOWS (PROCESSES 1.0–5.0 <-> DATA STORES D1–D5, 13pt BOLD)          -->
+        <!-- ========================================================================= -->
+
+        <!-- Process 1.0 <-> D1 -->
+        <mxCell id="e_r1" value="Auth &amp; Privacy Flags" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;startArrow=block;startFill=1;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="755" y="232" as="sourcePoint" />
+            <mxPoint x="920" y="232" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Process 2.0 <-> D2 -->
+        <mxCell id="e_r2a" value="Clan Roles &amp; Quotas" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;startArrow=block;startFill=1;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="755" y="465" as="sourcePoint" />
+            <mxPoint x="920" y="465" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Process 2.0 <-> D3 -->
+        <mxCell id="e_r2b" value="Save Member Links" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;startArrow=block;startFill=1;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-12" relative="1" as="geometry">
+            <mxPoint x="755" y="520" as="sourcePoint" />
+            <mxPoint x="920" y="705" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="890" y="520" />
+              <mxPoint x="890" y="705" />
+            </Array>
+            <mxPoint x="-20" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Process 3.0 <-> D3 -->
+        <mxCell id="e_r3" value="Read Lineage Graph" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;startArrow=block;startFill=1;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="15" relative="1" as="geometry">
+            <mxPoint x="755" y="745" as="sourcePoint" />
+            <mxPoint x="920" y="745" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Process 4.0 <-> D4 (and D3 Sync) -->
+        <mxCell id="e_r4" value="Tree &amp; Vault Snapshots" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;startArrow=block;startFill=1;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="755" y="982" as="sourcePoint" />
+            <mxPoint x="920" y="982" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Process 5.0 <-> D5 -->
+        <mxCell id="e_r5" value="Store / Sync Alerts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=2;startArrow=block;startFill=1;endArrow=block;endFill=1;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Times New Roman;labelBackgroundColor=#FFFFFF;labelBorderColor=#000000;" edge="1" parent="1">
+          <mxGeometry y="-15" relative="1" as="geometry">
+            <mxPoint x="755" y="1232" as="sourcePoint" />
+            <mxPoint x="920" y="1232" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
