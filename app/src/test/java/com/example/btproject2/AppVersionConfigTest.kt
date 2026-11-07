@@ -143,6 +143,29 @@ class AppVersionConfigTest {
     }
 
     @Test
+    fun v138Client_detectsV139Increment_andResolvesGitHubReleaseApkUrl() {
+        val friendInstalledCode = 11L // Friend on v1.3.8
+        val releaseUrl = com.example.btproject2.utils.InAppUpdateManager.buildGitHubReleaseApkUrl("v1.3.9")
+        assertEquals(
+            "https://github.com/gltitccch/BTProject2/releases/download/v1.3.9/app-release.apk",
+            releaseUrl
+        )
+
+        val targetReleaseNotes = com.example.btproject2.utils.InAppUpdateManager.CURRENT_RELEASE_NOTES
+
+        val remoteV139Config = AppVersionConfig(
+            versionCode = 12L,
+            versionName = "v1.3.9",
+            apkDownloadUrl = releaseUrl,
+            releaseNotes = targetReleaseNotes
+        )
+
+        val isUpdateAvailable = remoteV139Config.versionCode > friendInstalledCode &&
+            remoteV139Config.apkDownloadUrl.startsWith("https://")
+        assertTrue(isUpdateAvailable)
+    }
+
+    @Test
     fun postUpdateDetection_triggersWhenCurrentVersionExceedsLastSeenVersion() {
         val lastSeenVersion = 9L // User was on v1.3.6 before updating
         val currentInstalledCode = 10L // User just updated to v1.3.7

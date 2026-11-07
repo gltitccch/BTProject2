@@ -57,7 +57,7 @@ object InAppUpdateManager {
     const val KEY_LAST_SEEN_VERSION = "key_last_seen_version"
     private const val SUPPRESSION_DURATION_MS = 24 * 60 * 60 * 1000L // 24 hours
 
-    const val CURRENT_RELEASE_NOTES = "• 200-Member Adaptive Fan Chart: 'Grows Like a Plant' geometry auto-expanding from 392px to 780px radius\n• Razor-Sharp 1-Line & 2-Line Spoke Nameplates with strict wedge clipping to prevent text squishing\n• True Vector 800% HiDPI Canvas Zoom & Pan with Retina device pixel scaling\n• Quick 'Family of [Name]' Household Bundles in Center Fan Chart drawer\n• Two-Way 'Doorbell' Member Restoration Workflow with Clan Steward recovery approval\n• Multi-Device Account Vault Cloud Sync across all team devices in real-time\n• Smart Disposable Email Shield blocking temporary burner accounts (like @temp.ph)\n• 1-Tap Quick-Fill Domain Chips for verified providers (@gmail.com, @yahoo.com, etc.)\n• Streamlined Tree Privacy screen removing zero-knowledge clutter\n• Free-Moving Node Pencil Mode & Bendable Golden Connector Handles with 2-Step Guided Tour"
+    const val CURRENT_RELEASE_NOTES = "• Historical Birth-Year Lifespan Check for Spouses & Co-Parents: Prevents cross-century namesake errors (>80yr gap) and non-overlapping marriages\n• Quick Filter & Sort Bar in Family Records: Instant filtering (All, Living, Deceased, Missing Parents) plus sorting by A–Z, Oldest, and Youngest\n• 1-Tap 'Trace Bloodline With…' Profile Shortcut: Pre-selects relative, opens Person B spotlight search, and auto-runs trace on selection\n• Clickable Missing-Parents Action Tip & Drill-Downs: Interactive tip card in Family Insights jumps directly to missing-parent records\n• Full vs. Half-Double First Cousins: Verified consanguinity classification and unified branches/relationships counters\n• Post-Export Action Dialogs: Dedicated Open File, Share, and Done options for PDF, PNG, GEDCOM, and CSV exports\n• 200-Member Adaptive Fan Chart & HiDPI Canvas Zoom\n• Two-Way 'Doorbell' Member Restoration & Multi-Device Account Vault Cloud Sync\n• Smart Disposable Email Shield blocking temporary burner accounts\n• 1-Tap Quick-Fill Domain Chips for verified providers\n• Free-Moving Node Pencil Mode & Bendable Golden Connector Handles with 2-Step Guided Tour"
 
     /**
      * Builds the canonical zero-cost GitHub Releases direct APK download link for a given version tag.
@@ -96,15 +96,15 @@ object InAppUpdateManager {
 
                         val targetReleaseNotes = CURRENT_RELEASE_NOTES
 
-                        // If remote code is < 11L OR remote record lacks a valid release HTTPS APK link,
+                        // If remote code is < 12L OR remote record lacks a valid release HTTPS APK link,
                         // OR remote releaseNotes need updating to include the latest fixes,
-                        // align Firestore to the active v1.3.8 (versionCode = 11) release pointing to GitHub Releases.
-                        if (currentRemoteCode < 11L || (currentRemoteCode == 11L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
+                        // align Firestore to the active v1.3.9 (versionCode = 12) release pointing to GitHub Releases.
+                        if (currentRemoteCode < 12L || (currentRemoteCode == 12L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
                             val currentConfig = AppVersionConfig(
-                                versionCode = 11L,
-                                versionName = "v1.3.8",
+                                versionCode = 12L,
+                                versionName = "v1.3.9",
                                 releaseNotes = targetReleaseNotes,
-                                apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.8"),
+                                apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.9"),
                                 isMandatory = false,
                                 publishedBy = "system@kintrace.ph"
                             )
