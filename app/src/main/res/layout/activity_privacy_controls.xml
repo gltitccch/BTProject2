@@ -184,6 +184,162 @@
                 android:nestedScrollingEnabled="false"
                 android:layout_marginBottom="16dp" />
 
+            <!-- UNIFIED PENDING ACCESS & ROLE REQUESTS HUB IN PRIVACY & ACCESS -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPendingJoinRequestsTile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="visible"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="@color/gold_accent"
+                app:cardBackgroundColor="@color/forest_card">
+
+                <LinearLayout
+                    android:id="@+id/btnOpenPendingJoinRequestsSheet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:text="🔑"
+                        android:textSize="18sp"
+                        android:background="@drawable/badge_pill_dark"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvPendingJoinRequestsTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pending Access &amp; Role Requests"
+                            android:textSize="14.5sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvPendingJoinRequestsSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0 Join Requests • 0 Role Upgrades — tap to review"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvPendingJoinCountBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 Pending"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/btn_gold_text"
+                        android:background="@drawable/badge_pill_gold"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="›"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- OUTGOING PENDING JOIN REQUEST TILE (For Users Who Own One Tree & Requested to Join Another Tree) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardOutgoingPendingJoinTile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="@color/gold_accent"
+                app:cardBackgroundColor="@color/forest_card">
+
+                <LinearLayout
+                    android:id="@+id/btnOpenOutgoingPendingJoin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="14dp"
+                    android:background="?attr/selectableItemBackground">
+
+                    <com.example.btproject2.views.PendingSandHourglassView
+                        android:id="@+id/viewOutgoingMiniHourglass"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvOutgoingPendingTreeTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Your Join Request: Family Tree"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvOutgoingPendingTreeSubtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Waiting for tree owner acceptance • Tap to view or cancel"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="● Pending"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/btn_gold_text"
+                        android:background="@drawable/badge_pill_gold"
+                        android:paddingHorizontal="9dp"
+                        android:paddingVertical="4dp"
+                        android:layout_marginEnd="6dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="›"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/gold_accent" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- ISOLATED PENDING REQUESTS ENTRY TILE (Zero Flooding) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPendingRequestsTile"
@@ -208,8 +364,8 @@
                     android:background="?attr/selectableItemBackground">
 
                     <TextView
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:gravity="center"
                         android:text="🍃"
                         android:textSize="18sp"
@@ -227,17 +383,17 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Pending Role Requests"
-                            android:textSize="14sp"
+                            android:textSize="14.5sp"
                             android:textStyle="bold"
-                            android:textColor="#F4F7F4" />
+                            android:textColor="@color/text_primary" />
 
                         <TextView
                             android:id="@+id/tvPendingRequestsSubtitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Tap to review and grant Editor keys"
-                            android:textSize="11.5sp"
-                            android:textColor="#A0B2A6"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
                             android:layout_marginTop="2dp" />
                     </LinearLayout>
 
@@ -248,7 +404,7 @@
                         android:text="1 Pending"
                         android:textSize="11.5sp"
                         android:textStyle="bold"
-                        android:textColor="#060D09"
+                        android:textColor="@color/btn_gold_text"
                         android:background="@drawable/badge_pill_gold"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
@@ -260,7 +416,7 @@
                         android:text="›"
                         android:textSize="22sp"
                         android:textStyle="bold"
-                        android:textColor="#D4AF37" />
+                        android:textColor="@color/gold_accent" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -367,14 +523,14 @@
             </LinearLayout>
 
             <!-- Save Button -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnSavePrivacy"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="Save Privacy Settings"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="@color/white"
+                android:textColor="@color/btn_gold_text"
                 android:background="@drawable/btn_primary_bg"
                 android:textAllCaps="false"
                 android:layout_marginBottom="20dp" />
@@ -573,5 +729,76 @@
             android:textAllCaps="false" />
 
     </LinearLayout>
+
+    <!-- STATE 3: APPLICANT PENDING JOIN STATUS SPACE IN PRIVACY & ACCESS -->
+    <FrameLayout
+        android:id="@+id/layoutApplicantPendingJoin"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="32dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:background="@drawable/card_bg"
+            android:padding="24dp">
+
+            <com.example.btproject2.views.PendingSandHourglassView
+                android:id="@+id/viewPrivacyPendingHourglass"
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:id="@+id/tvPrivacyPendingTreeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pending Tree Approval"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:id="@+id/tvPrivacyPendingMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your invite code join request is waiting for acceptance from the tree owner."
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"
+                android:lineSpacingExtra="2dp"
+                android:layout_marginBottom="18dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnPrivacyPendingBackHome"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:text="Back to Home"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/btn_gold_text"
+                android:background="@drawable/btn_primary_bg"
+                android:textAllCaps="false"
+                android:layout_marginBottom="10dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnPrivacyWithdrawJoinRequest"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="Withdraw Join Request"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#EF4444"
+                android:background="@drawable/badge_pill_dark"
+                android:textAllCaps="false" />
+        </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>

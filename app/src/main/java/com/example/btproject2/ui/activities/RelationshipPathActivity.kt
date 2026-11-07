@@ -100,10 +100,15 @@ class RelationshipPathActivity : AppCompatActivity() {
             } else {
                 "${result.degreeOfConsanguinity}$ordSuffix CIVIL DEGREE · ${result.relationshipCategory.uppercase()} LINE$subtypeSuffix"
             }
-            tvRelationshipHeading.text = if (result.bloodlineSubtype.isNotBlank() && result.relationshipCategory == "Collateral") {
-                "${result.relationshipType} (${result.bloodlineSubtype})"
-            } else {
-                result.relationshipType
+            tvRelationshipHeading.text = when {
+                result.bloodlineSubtype.isBlank() || result.relationshipCategory != "Collateral" ->
+                    result.relationshipType
+                result.bloodlineSubtype.startsWith(result.relationshipType, ignoreCase = true) ->
+                    result.bloodlineSubtype
+                result.relationshipType.contains(result.bloodlineSubtype, ignoreCase = true) ->
+                    result.relationshipType
+                else ->
+                    "${result.relationshipType} (${result.bloodlineSubtype})"
             }
 
             val ancestorName = result.commonAncestorDisplayName.takeIf { it.isNotBlank() }
@@ -355,6 +360,19 @@ class RelationshipPathActivity : AppCompatActivity() {
                 setBackgroundResource(R.drawable.path_node_ancestor_bg)
             } else {
                 setBackgroundResource(R.drawable.bg_forest_card)
+            }
+
+            if (person.id.isNotBlank()) {
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    val intent = Intent(this@RelationshipPathActivity, MemberDetailActivity::class.java).apply {
+                        putExtra("personId", person.id)
+                        putExtra("TREE_ID", treeId)
+                        putExtra("treeId", treeId)
+                    }
+                    startActivity(intent)
+                }
             }
         }
 

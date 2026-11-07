@@ -51,6 +51,9 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_login)
 
+        findViewById<com.example.btproject2.ui.views.LoginBotanicalBackdropView>(R.id.loginBotanicalBackdrop)?.refreshThemePalette()
+        findViewById<com.example.btproject2.ui.views.KinTraceWrappedHeaderView>(R.id.kinTraceWrappedHeader)?.refreshThemePalette()
+
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnTogglePassword = findViewById<ImageView>(R.id.btnTogglePassword)

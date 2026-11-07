@@ -449,7 +449,7 @@
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp" />
 
-            <!-- Reset Quest Checklist -->
+            <!-- Reset Quest Checklist (Retired) -->
             <LinearLayout
                 android:id="@+id/btnResetQuest"
                 android:layout_width="match_parent"
@@ -457,8 +457,9 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:padding="12dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:clickable="false"
+                android:focusable="false"
+                android:visibility="gone">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -509,7 +510,8 @@
                 android:layout_height="1dp"
                 android:background="@color/forest_card_border"
                 android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp" />
+                android:layout_marginEnd="12dp"
+                android:visibility="gone" />
 
             <!-- View Terms of Service & Clan Stewardship -->
             <LinearLayout
@@ -717,7 +719,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Delete Clan Account"
+                    android:text="Delete My Account"
                     android:textSize="12.5sp"
                     android:textStyle="bold"
                     android:textColor="@color/danger" />
@@ -725,7 +727,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Erase credentials &amp; invoke Clan Stewardship"
+                    android:text="Remove personal login (shared family tree nodes stay safe)"
                     android:textSize="10.5sp"
                     android:textColor="@color/dark_subtext"
                     android:layout_marginTop="1dp" />

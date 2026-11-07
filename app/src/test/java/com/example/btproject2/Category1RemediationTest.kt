@@ -200,19 +200,44 @@ class Category1RemediationTest {
 
         val tree = listOf(thomas, sarah, dorothy, grace, patricia, chloe, unmarriedArthur)
 
-        // 1. When Thomas Malone is selected as Father, Mother candidates must ONLY contain his linked wife Sarah Jenkins
+        // 1. When Thomas Malone is selected as Father, his linked wife Sarah Jenkins must be prioritized FIRST,
+        // while still keeping other valid unrelated women selectable for blended/half-sibling families
         val mothersForThomas = FamilyLinkValidator.getEligibleMothers(newChild, thomas, tree)
-        assertEquals("Only Thomas Malone's linked wife (Sarah Jenkins) should be returned", 1, mothersForThomas.size)
-        assertEquals("sarah_1", mothersForThomas.first().id)
+        assertEquals("Sarah Jenkins must be sorted first at the top of the Mother dropdown", "sarah_1", mothersForThomas.first().id)
+        assertTrue("Other valid non-incestuous female candidates must remain selectable for half-siblings/blended families", mothersForThomas.size == 5)
 
-        // 2. Symmetrically, when Sarah Jenkins is selected as Mother, Father candidates must ONLY contain Thomas Malone
+        // 2. Symmetrically, when Sarah Jenkins is selected as Mother, her linked husband Thomas Malone is prioritized FIRST
         val fathersForSarah = FamilyLinkValidator.getEligibleFathers(newChild, sarah, tree)
-        assertEquals("Only Sarah Jenkins's linked husband (Thomas Malone) should be returned", 1, fathersForSarah.size)
-        assertEquals("thomas_1", fathersForSarah.first().id)
+        assertEquals("Thomas Malone must be sorted first at the top of the Father dropdown", "thomas_1", fathersForSarah.first().id)
+        assertTrue("Other valid non-incestuous male candidates must remain selectable", fathersForSarah.size == 2)
 
         // 3. When an unmarried father (Arthur) is selected, all eligible females are returned
         val mothersForArthur = FamilyLinkValidator.getEligibleMothers(newChild, unmarriedArthur, tree)
         assertEquals(5, mothersForArthur.size)
+    }
+
+    @Test
+    fun testAdoptiveParentChildValidationAllowsAdultAndSiblingLegalAdoption() {
+        val adoptiveFather = Person(
+            id = "father_adopt_1",
+            firstName = "Carlos",
+            lastName = "Reyes",
+            gender = "Male",
+            birthDate = "1985-03-10"
+        )
+        // Young adoptive parent or close age gap that would fail strict biological 12-year rule
+        val adoptedChild = Person(
+            id = "child_adopt_1",
+            firstName = "Miguel",
+            lastName = "Reyes",
+            gender = "Male",
+            birthDate = "1995-07-20",
+            fatherId = "father_adopt_1",
+            fatherRelationshipType = "Adoptive"
+        )
+        val tree = listOf(adoptiveFather, adoptedChild)
+        val result = FamilyLinkValidator.validateParentChild(adoptiveFather, adoptedChild, "Father", allPersons = tree)
+        assertTrue("Legal adoption with 10-year age difference should be permitted when relationshipType is Adoptive: ${result.errors}", result.isValid)
     }
 }
 

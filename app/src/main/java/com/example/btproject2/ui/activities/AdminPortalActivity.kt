@@ -108,7 +108,13 @@ class AdminPortalActivity : AppCompatActivity() {
     private lateinit var tvGhostTreeList: TextView
 
     // Quota & Passes
+    private lateinit var tabQuotaPending: TextView
+    private lateinit var tabQuotaHistory: TextView
+    private lateinit var etSearchQuota: EditText
+    private lateinit var tvQuotaFlashBanner: TextView
+    private lateinit var scrollQuotaQueueVault: androidx.core.widget.NestedScrollView
     private lateinit var layoutQuotaQueueList: LinearLayout
+    private lateinit var layoutQuotaHistoryList: LinearLayout
     private lateinit var tvEmptyQuotaQueue: TextView
     private lateinit var btnRefreshQuotaQueue: TextView
     private lateinit var btnApproveMalone: Button
@@ -122,7 +128,14 @@ class AdminPortalActivity : AppCompatActivity() {
 
     // Ops Desk Dynamic Containers
     private lateinit var cardDeletedRecovery: View
+    private lateinit var tvRecoveryCountBadge: TextView
+    private lateinit var tabRecoveryPending: TextView
+    private lateinit var tabRecoveryHistory: TextView
+    private lateinit var etSearchRecovery: EditText
+    private lateinit var tvRecoveryFlashBanner: TextView
+    private lateinit var scrollDeletedRecoveryVault: androidx.core.widget.NestedScrollView
     private lateinit var layoutDeletedMembersList: LinearLayout
+    private lateinit var layoutRestoredHistoryList: LinearLayout
     private lateinit var tvNoDeletedMembers: TextView
     private lateinit var cardMergeCollision: View
     private lateinit var layoutCollisionDocketsList: LinearLayout
@@ -146,6 +159,15 @@ class AdminPortalActivity : AppCompatActivity() {
     private var selectedScope = SystemAnnouncement.SCOPE_ALL
     private var selectedRetractHours = 2
     private val auditLogs = mutableListOf<AdminAuditLog>()
+    private var isShowingRecoveryHistory = false
+    private val cachedPendingRecoveryList = mutableListOf<ArchivedMemberRecord>()
+    private val cachedRestoredHistoryList = mutableListOf<ArchivedMemberRecord>()
+    private var currentRecoverySearchQuery = ""
+    private var currentHighlightMemberId: String? = null
+    private var isShowingQuotaHistory = false
+    private val cachedPendingQuotaList = mutableListOf<FirestoreHelper.TreeQuotaStatus>()
+    private val cachedApprovedQuotaHistoryList = mutableListOf<FirestoreHelper.TreeQuotaStatus>()
+    private var currentQuotaSearchQuery = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -278,7 +300,13 @@ class AdminPortalActivity : AppCompatActivity() {
         tvGhostTreeList = findViewById(R.id.tvGhostTreeList)
 
         // Quota
+        tabQuotaPending = findViewById(R.id.tabQuotaPending)
+        tabQuotaHistory = findViewById(R.id.tabQuotaHistory)
+        etSearchQuota = findViewById(R.id.etSearchQuota)
+        tvQuotaFlashBanner = findViewById(R.id.tvQuotaFlashBanner)
+        scrollQuotaQueueVault = findViewById(R.id.scrollQuotaQueueVault)
         layoutQuotaQueueList = findViewById(R.id.layoutQuotaQueueList)
+        layoutQuotaHistoryList = findViewById(R.id.layoutQuotaHistoryList)
         tvEmptyQuotaQueue = findViewById(R.id.tvEmptyQuotaQueue)
         btnRefreshQuotaQueue = findViewById(R.id.btnRefreshQuotaQueue)
         btnApproveMalone = findViewById(R.id.btnApproveMalone)
@@ -292,7 +320,14 @@ class AdminPortalActivity : AppCompatActivity() {
 
         // Ops Desk
         cardDeletedRecovery = findViewById(R.id.cardDeletedRecovery)
+        tvRecoveryCountBadge = findViewById(R.id.tvRecoveryCountBadge)
+        tabRecoveryPending = findViewById(R.id.tabRecoveryPending)
+        tabRecoveryHistory = findViewById(R.id.tabRecoveryHistory)
+        etSearchRecovery = findViewById(R.id.etSearchRecovery)
+        tvRecoveryFlashBanner = findViewById(R.id.tvRecoveryFlashBanner)
+        scrollDeletedRecoveryVault = findViewById(R.id.scrollDeletedRecoveryVault)
         layoutDeletedMembersList = findViewById(R.id.layoutDeletedMembersList)
+        layoutRestoredHistoryList = findViewById(R.id.layoutRestoredHistoryList)
         tvNoDeletedMembers = findViewById(R.id.tvNoDeletedMembers)
         cardMergeCollision = findViewById(R.id.cardMergeCollision)
         layoutCollisionDocketsList = findViewById(R.id.layoutCollisionDocketsList)
@@ -565,8 +600,42 @@ class AdminPortalActivity : AppCompatActivity() {
         }
     }
 
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
     private fun setupQuotaAndPasses() {
+        scrollQuotaQueueVault.setOnTouchListener { v, _ ->
+            v.parent.requestDisallowInterceptTouchEvent(true)
+            false
+        }
+
+        tabQuotaPending.setOnClickListener {
+            isShowingQuotaHistory = false
+            tvQuotaFlashBanner.visibility = View.GONE
+            renderQuotaQueueVault()
+        }
+
+        tabQuotaHistory.setOnClickListener {
+            isShowingQuotaHistory = true
+            tvQuotaFlashBanner.visibility = View.GONE
+            renderQuotaQueueVault()
+        }
+
+        tvQuotaFlashBanner.setOnClickListener {
+            isShowingQuotaHistory = true
+            tvQuotaFlashBanner.visibility = View.GONE
+            renderQuotaQueueVault()
+        }
+
+        etSearchQuota.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                currentQuotaSearchQuery = s?.toString()?.trim()?.lowercase().orEmpty()
+                renderQuotaQueueVault()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
         btnRefreshQuotaQueue.setOnClickListener {
+            tvQuotaFlashBanner.visibility = View.GONE
             loadDynamicQuotaQueue()
         }
         loadDynamicQuotaQueue()
@@ -676,107 +745,48 @@ class AdminPortalActivity : AppCompatActivity() {
     }
 
     private fun loadDynamicQuotaQueue() {
+        scrollQuotaQueueVault.visibility = View.GONE
         tvEmptyQuotaQueue.visibility = View.VISIBLE
         tvEmptyQuotaQueue.text = "🔄 Scanning Firestore for clans at or near their member cap..."
         tvEmptyQuotaQueue.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
         layoutQuotaQueueList.removeAllViews()
+        layoutQuotaHistoryList.removeAllViews()
 
         firestoreHelper.fetchQuotaQueueTrees(
             includeAllForInspection = false,
             onSuccess = { statuses ->
                 runOnUiThread {
-                layoutQuotaQueueList.removeAllViews()
-                if (statuses.isEmpty()) {
-                    tvEmptyQuotaQueue.visibility = View.VISIBLE
-                    tvEmptyQuotaQueue.text = "✅ All active clans are currently within their member quota limits. Any clan reaching ≥90% capacity or requesting a tier upgrade will appear here automatically."
-                    tvEmptyQuotaQueue.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-                    return@runOnUiThread
-                }
-
-                tvEmptyQuotaQueue.visibility = View.GONE
-                val inflater = android.view.LayoutInflater.from(this)
-
-                for (status in statuses) {
-                    val cardView = inflater.inflate(R.layout.item_quota_queue_card, layoutQuotaQueueList, false)
-                    val tvTreeName = cardView.findViewById<TextView>(R.id.tvQuotaTreeName)
-                    val tvBadge = cardView.findViewById<TextView>(R.id.tvQuotaStatusBadge)
-                    val tvMeta = cardView.findViewById<TextView>(R.id.tvQuotaOwnerMeta)
-                    val btnApprove = cardView.findViewById<Button>(R.id.btnApproveQuotaExpansion)
-                    val tvActionStatus = cardView.findViewById<TextView>(R.id.tvQuotaActionStatus)
-
-                    val tree = status.tree
-                    val nextCap = status.nextQuota
-                    val delta = (nextCap - status.quota).coerceAtLeast(150)
-
-                    tvTreeName.text = tree.name.ifBlank { "Unnamed Clan" }
-                    tvBadge.text = status.badgeLabel
-                    tvMeta.text = status.metaSummary
-
-                    if (status.isCapped || tree.quotaExpansionRequested) {
-                        tvBadge.setTextColor(ContextCompat.getColor(this, R.color.warning))
-                        btnApprove.text = "⚡ Approve Clan Expansion (+$delta Cap → $nextCap)"
-                        btnApprove.backgroundTintList = android.content.res.ColorStateList.valueOf(
-                            ContextCompat.getColor(this, R.color.primary)
-                        )
-                        btnApprove.setTextColor(ContextCompat.getColor(this, R.color.white))
-                        tvActionStatus.text = if (tree.quotaExpansionRequested) {
-                            "🔔 Explicit expansion request submitted by owner (${status.liveMemberCount}/${status.quota})."
-                        } else {
-                            "Pending admin review (${status.liveMemberCount}/${status.quota} hard cap reached)."
-                        }
-                    } else {
-                        tvBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-                        btnApprove.text = "⚡ Approve Proactive Expansion (→ $nextCap Cap)"
-                        btnApprove.backgroundTintList = android.content.res.ColorStateList.valueOf(
-                            ContextCompat.getColor(this, R.color.forest_card)
-                        )
-                        btnApprove.setTextColor(ContextCompat.getColor(this, R.color.primary))
-                        tvActionStatus.text = "Proactive upgrade available (${status.liveMemberCount}/${status.quota})."
+                    val approvedHistory = statuses.filter { status ->
+                        !status.isCapped &&
+                            !status.tree.quotaExpansionRequested &&
+                            (status.isExpandedTier || status.tree.quotaApprovedAt > 0L)
+                    }.sortedByDescending { status ->
+                        if (status.tree.quotaApprovedAt > 0L) status.tree.quotaApprovedAt else status.tree.createdAt
                     }
 
-                    btnApprove.setOnClickListener {
-                        btnApprove.isEnabled = false
-                        tvActionStatus.text = "⏳ Persisting $nextCap-member quota to Firestore..."
-                        firestoreHelper.expandTreeMemberQuota(
-                            treeId = tree.id,
-                            treeName = tree.name,
-                            newQuota = nextCap,
-                            onSuccess = {
-                                runOnUiThread {
-                                    tvBadge.text = "✅ ${status.liveMemberCount}/$nextCap Active"
-                                    tvBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-                                    tvActionStatus.text = "✅ Expansion Approved: Cap elevated from ${status.quota} to $nextCap members in Firestore."
-                                    tvActionStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-                                    btnApprove.text = "✓ Quota Expanded ($nextCap Cap)"
-                                    recordAudit(
-                                        "CLAN_CAP_EXPANDED",
-                                        tree.id,
-                                        "${tree.name} (${status.ownerEmail.ifBlank { tree.ownerId }}) quota elevated from ${status.quota} to $nextCap members"
-                                    )
-                                    KinTraceAlert.security(
-                                        this,
-                                        "Expansion Approved",
-                                        "${tree.name} expansion persisted ($nextCap member cap)!",
-                                        "APPROVED"
-                                    )
-                                }
-                            },
-                            onFailure = { err ->
-                                runOnUiThread {
-                                    btnApprove.isEnabled = true
-                                    tvActionStatus.text = "⚠️ Failed to update quota: ${err.message}"
-                                    tvActionStatus.setTextColor(ContextCompat.getColor(this, R.color.warning))
-                                }
-                            }
-                        )
-                    }
+                    val pendingRequests = statuses.filter { status ->
+                        status.isCapped ||
+                            status.tree.quotaExpansionRequested ||
+                            status.isNearCap ||
+                            (!status.isExpandedTier && status.tree.quotaApprovedAt == 0L)
+                    }.sortedWith(
+                        compareByDescending<FirestoreHelper.TreeQuotaStatus> { it.isCapped }
+                            .thenByDescending { it.tree.quotaExpansionRequested }
+                            .thenByDescending { it.isNearCap }
+                            .thenByDescending { it.liveMemberCount }
+                    )
 
-                    layoutQuotaQueueList.addView(cardView)
+                    cachedPendingQuotaList.clear()
+                    cachedPendingQuotaList.addAll(pendingRequests)
+                    cachedApprovedQuotaHistoryList.clear()
+                    cachedApprovedQuotaHistoryList.addAll(approvedHistory)
+
+                    renderQuotaQueueVault()
                 }
-            }
             },
             onFailure = { err ->
                 runOnUiThread {
+                    scrollQuotaQueueVault.visibility = View.GONE
                     tvEmptyQuotaQueue.visibility = View.VISIBLE
                     tvEmptyQuotaQueue.text = "⚠️ Failed to load quota queue: ${err.message}"
                     tvEmptyQuotaQueue.setTextColor(ContextCompat.getColor(this, R.color.warning))
@@ -785,9 +795,265 @@ class AdminPortalActivity : AppCompatActivity() {
         )
     }
 
+    private fun renderQuotaQueueVault() {
+        val activeBg = ContextCompat.getDrawable(this, R.drawable.bg_admin_tab_active)
+        val activeColor = ContextCompat.getColor(this, R.color.white)
+        val inactiveColor = ContextCompat.getColor(this, R.color.text_secondary)
+
+        tabQuotaPending.text = "⚡ Pending Queue (${cachedPendingQuotaList.size})"
+        tabQuotaHistory.text = "📜 Approved History (${cachedApprovedQuotaHistoryList.size})"
+
+        if (!isShowingQuotaHistory) {
+            tabQuotaPending.background = activeBg
+            tabQuotaPending.setTextColor(activeColor)
+            tabQuotaHistory.setBackgroundResource(android.R.color.transparent)
+            tabQuotaHistory.setTextColor(inactiveColor)
+        } else {
+            tabQuotaHistory.background = activeBg
+            tabQuotaHistory.setTextColor(activeColor)
+            tabQuotaPending.setBackgroundResource(android.R.color.transparent)
+            tabQuotaPending.setTextColor(inactiveColor)
+        }
+
+        val q = currentQuotaSearchQuery
+        val filteredPending = if (q.isBlank()) {
+            cachedPendingQuotaList.toList()
+        } else {
+            cachedPendingQuotaList.filter { s ->
+                s.tree.name.lowercase().contains(q) ||
+                    s.ownerEmail.lowercase().contains(q) ||
+                    s.tree.ownerName.lowercase().contains(q) ||
+                    s.tree.id.lowercase().contains(q)
+            }
+        }
+
+        val filteredHistory = if (q.isBlank()) {
+            cachedApprovedQuotaHistoryList.toList()
+        } else {
+            cachedApprovedQuotaHistoryList.filter { s ->
+                s.tree.name.lowercase().contains(q) ||
+                    s.ownerEmail.lowercase().contains(q) ||
+                    s.tree.ownerName.lowercase().contains(q) ||
+                    s.tree.quotaApprovedBy.lowercase().contains(q) ||
+                    s.tree.id.lowercase().contains(q)
+            }
+        }
+
+        layoutQuotaQueueList.removeAllViews()
+        layoutQuotaHistoryList.removeAllViews()
+
+        val activeListSize = if (!isShowingQuotaHistory) filteredPending.size else filteredHistory.size
+
+        if (activeListSize == 0) {
+            scrollQuotaQueueVault.visibility = View.GONE
+            tvEmptyQuotaQueue.visibility = View.VISIBLE
+            tvEmptyQuotaQueue.text = if (!isShowingQuotaHistory) {
+                if (q.isNotBlank()) "🔍 No pending clan requests match \"$q\"."
+                else "✅ All active clans are currently within their member quota limits. Any clan reaching ≥85% capacity or requesting a tier upgrade will appear here automatically."
+            } else {
+                if (q.isNotBlank()) "🔍 No approved clan history matches \"$q\"."
+                else "📜 No approved clan expansions yet. Approved upgrades will appear here with date & time."
+            }
+            tvEmptyQuotaQueue.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+            return
+        }
+
+        tvEmptyQuotaQueue.visibility = View.GONE
+        scrollQuotaQueueVault.visibility = View.VISIBLE
+
+        // Direction 3 Fixed-Height Cap: lock to 260dp when 3+ items so Reunion Pass section is never pushed away
+        val lp = scrollQuotaQueueVault.layoutParams
+        lp.height = if (activeListSize >= 3) {
+            (260 * resources.displayMetrics.density).toInt()
+        } else {
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        }
+        scrollQuotaQueueVault.layoutParams = lp
+
+        val inflater = android.view.LayoutInflater.from(this)
+
+        if (!isShowingQuotaHistory) {
+            layoutQuotaQueueList.visibility = View.VISIBLE
+            layoutQuotaHistoryList.visibility = View.GONE
+
+            for (status in filteredPending) {
+                val cardView = inflater.inflate(R.layout.item_quota_queue_card, layoutQuotaQueueList, false)
+                val tvTreeName = cardView.findViewById<TextView>(R.id.tvQuotaTreeName)
+                val tvBadge = cardView.findViewById<TextView>(R.id.tvQuotaStatusBadge)
+                val tvApprovedTime = cardView.findViewById<TextView>(R.id.tvQuotaApprovedTimestamp)
+                val tvMeta = cardView.findViewById<TextView>(R.id.tvQuotaOwnerMeta)
+                val btnApprove = cardView.findViewById<Button>(R.id.btnApproveQuotaExpansion)
+                val tvActionStatus = cardView.findViewById<TextView>(R.id.tvQuotaActionStatus)
+
+                val tree = status.tree
+                val nextCap = status.nextQuota
+                val delta = (nextCap - status.quota).coerceAtLeast(150)
+
+                tvTreeName.text = tree.name.ifBlank { "Unnamed Clan" }
+                tvBadge.text = status.badgeLabel
+                tvApprovedTime?.visibility = View.GONE
+                tvMeta.text = status.metaSummary
+                btnApprove.visibility = View.VISIBLE
+
+                if (status.isCapped || tree.quotaExpansionRequested) {
+                    tvBadge.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                    btnApprove.text = "⚡ +$delta (→$nextCap)"
+                    btnApprove.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                        ContextCompat.getColor(this, R.color.primary)
+                    )
+                    btnApprove.setTextColor(ContextCompat.getColor(this, R.color.white))
+                    tvActionStatus.text = if (tree.quotaExpansionRequested) {
+                        "🔔 Explicit expansion request (${status.liveMemberCount}/${status.quota})."
+                    } else {
+                        "Pending admin review (${status.liveMemberCount}/${status.quota} hard cap reached)."
+                    }
+                } else {
+                    tvBadge.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                    btnApprove.text = "⚡ →$nextCap Cap"
+                    btnApprove.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                        ContextCompat.getColor(this, R.color.primary)
+                    )
+                    btnApprove.setTextColor(ContextCompat.getColor(this, R.color.white))
+                    tvActionStatus.text = "Proactive upgrade (${status.liveMemberCount}/${status.quota})."
+                }
+
+                btnApprove.setOnClickListener {
+                    btnApprove.isEnabled = false
+                    btnApprove.text = "⏳..."
+                    val oldQuota = status.quota
+                    firestoreHelper.expandTreeMemberQuota(
+                        treeId = tree.id,
+                        treeName = tree.name,
+                        newQuota = nextCap,
+                        previousQuota = oldQuota,
+                        onSuccess = {
+                            runOnUiThread {
+                                val nowMs = System.currentTimeMillis()
+                                val adminName = authHelper.getCurrentUser()?.displayName?.takeIf { it.isNotBlank() }
+                                    ?: authHelper.getCurrentUser()?.email
+                                    ?: "Admin"
+
+                                // 1. Automatically remove from Pending Queue immediately
+                                cachedPendingQuotaList.removeAll { it.tree.id == tree.id }
+
+                                // 2. Move to top of Approved History Archive with exact Date & Time
+                                val updatedTree = tree.copy(
+                                    memberQuota = nextCap,
+                                    previousMemberQuota = oldQuota,
+                                    quotaExpansionRequested = false,
+                                    quotaApprovedAt = nowMs,
+                                    quotaApprovedBy = adminName
+                                )
+                                val approvedStatus = status.copy(tree = updatedTree)
+                                cachedApprovedQuotaHistoryList.removeAll { it.tree.id == tree.id }
+                                cachedApprovedQuotaHistoryList.add(0, approvedStatus)
+
+                                val dateFmt = SimpleDateFormat("MMM dd, yyyy • h:mm a", Locale.getDefault())
+                                val stampStr = dateFmt.format(Date(nowMs))
+                                tvQuotaFlashBanner.visibility = View.VISIBLE
+                                tvQuotaFlashBanner.text = "✅ ${tree.name} expanded ($oldQuota → $nextCap Cap) & archived ($stampStr) • View ›"
+
+                                renderQuotaQueueVault()
+                                recordAudit(
+                                    "CLAN_CAP_EXPANDED",
+                                    tree.id,
+                                    "${tree.name} (${status.ownerEmail.ifBlank { tree.ownerId }}) quota elevated from $oldQuota to $nextCap members"
+                                )
+                                KinTraceAlert.security(
+                                    this,
+                                    "Expansion Approved",
+                                    "${tree.name} expanded to $nextCap Cap & logged in Approved History!",
+                                    "APPROVED"
+                                )
+                            }
+                        },
+                        onFailure = { err ->
+                            runOnUiThread {
+                                btnApprove.isEnabled = true
+                                btnApprove.text = "⚡ +$delta (→$nextCap)"
+                                tvActionStatus.text = "⚠️ Failed to update quota: ${err.message}"
+                                tvActionStatus.setTextColor(ContextCompat.getColor(this, R.color.warning))
+                            }
+                        }
+                    )
+                }
+
+                layoutQuotaQueueList.addView(cardView)
+            }
+        } else {
+            layoutQuotaQueueList.visibility = View.GONE
+            layoutQuotaHistoryList.visibility = View.VISIBLE
+            val dateTimeFmt = SimpleDateFormat("MMM dd, yyyy • h:mm a", Locale.getDefault())
+
+            for (status in filteredHistory) {
+                val cardView = inflater.inflate(R.layout.item_quota_queue_card, layoutQuotaHistoryList, false)
+                val tvTreeName = cardView.findViewById<TextView>(R.id.tvQuotaTreeName)
+                val tvBadge = cardView.findViewById<TextView>(R.id.tvQuotaStatusBadge)
+                val tvApprovedTime = cardView.findViewById<TextView>(R.id.tvQuotaApprovedTimestamp)
+                val tvMeta = cardView.findViewById<TextView>(R.id.tvQuotaOwnerMeta)
+                val btnApprove = cardView.findViewById<Button>(R.id.btnApproveQuotaExpansion)
+                val tvActionStatus = cardView.findViewById<TextView>(R.id.tvQuotaActionStatus)
+
+                val tree = status.tree
+                tvTreeName.text = tree.name.ifBlank { "Unnamed Clan" }
+                tvBadge.text = "✅ ${status.liveMemberCount}/${status.quota} Active"
+                tvBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+
+                val effectiveApprovedAt = if (tree.quotaApprovedAt > 0L) tree.quotaApprovedAt else tree.createdAt
+                val formattedDateTime = dateTimeFmt.format(Date(effectiveApprovedAt))
+                val prevCap = if (tree.previousMemberQuota in 1 until status.quota) tree.previousMemberQuota else 50
+                tvApprovedTime?.visibility = View.VISIBLE
+                tvApprovedTime?.text = "🕒 Approved: $formattedDateTime ($prevCap → ${status.quota} Cap)"
+
+                val approvedByWho = tree.quotaApprovedBy.ifBlank { "System Admin" }
+                val ownerWho = status.ownerEmail.ifBlank { tree.ownerName.ifBlank { "Clan Owner" } }
+                tvMeta.text = "Owner: $ownerWho • Approved by $approvedByWho"
+
+                tvActionStatus.visibility = View.GONE
+                btnApprove.visibility = View.GONE
+
+                layoutQuotaHistoryList.addView(cardView)
+            }
+        }
+    }
+
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
     private fun setupOpsDesk() {
         val highlightMemberId = intent?.getStringExtra("HIGHLIGHT_MEMBER_ID")
         val highlightCollisionId = intent?.getStringExtra("HIGHLIGHT_COLLISION_ID")
+
+        // Allow smooth finger scrolling inside the fixed-height Direction 3 Recovery Vault
+        scrollDeletedRecoveryVault.setOnTouchListener { v, _ ->
+            v.parent.requestDisallowInterceptTouchEvent(true)
+            false
+        }
+
+        tabRecoveryPending.setOnClickListener {
+            isShowingRecoveryHistory = false
+            tvRecoveryFlashBanner.visibility = View.GONE
+            renderRecoveryConsoleVault()
+        }
+
+        tabRecoveryHistory.setOnClickListener {
+            isShowingRecoveryHistory = true
+            tvRecoveryFlashBanner.visibility = View.GONE
+            renderRecoveryConsoleVault()
+        }
+
+        tvRecoveryFlashBanner.setOnClickListener {
+            isShowingRecoveryHistory = true
+            tvRecoveryFlashBanner.visibility = View.GONE
+            renderRecoveryConsoleVault()
+        }
+
+        etSearchRecovery.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                currentRecoverySearchQuery = s?.toString()?.trim()?.lowercase().orEmpty()
+                renderRecoveryConsoleVault()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
 
         loadArchivedDeletedMembers(highlightMemberId)
         loadMergeCollisions(highlightCollisionId)
@@ -931,115 +1197,299 @@ class AdminPortalActivity : AppCompatActivity() {
     }
 
     private fun loadArchivedDeletedMembers(highlightMemberId: String? = null) {
-        layoutDeletedMembersList.removeAllViews()
+        currentHighlightMemberId = highlightMemberId
         firestoreHelper.getArchivedDeletedMembers(
-            onSuccess = { list ->
-                runOnUiThread {
-                    if (list.isEmpty()) {
-                        tvNoDeletedMembers.visibility = View.VISIBLE
-                        tvNoDeletedMembers.text = "🛡️ No archived deleted members. All lineages intact."
-                        tvNoDeletedMembers.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-                        layoutDeletedMembersList.visibility = View.GONE
-                    } else {
-                        tvNoDeletedMembers.visibility = View.GONE
-                        layoutDeletedMembersList.visibility = View.VISIBLE
-
-                        for (rec in list) {
-                            val itemView = layoutInflater.inflate(R.layout.item_deleted_member_recovery, layoutDeletedMembersList, false)
-                            val tvName = itemView.findViewById<TextView>(R.id.tvDeletedMemberName)
-                            val tvTree = itemView.findViewById<TextView>(R.id.tvDeletedMemberTree)
-                            val tvTimeAgo = itemView.findViewById<TextView>(R.id.tvDeletedTimeAgo)
-                            val tvDetails = itemView.findViewById<TextView>(R.id.tvDeletedMemberDetails)
-                            val btnRestore = itemView.findViewById<Button>(R.id.btnRestoreMemberItem)
-                            val tvStatus = itemView.findViewById<TextView>(R.id.tvDeletedMemberStatus)
-                            val tvBadge = itemView.findViewById<TextView>(R.id.tvRestorationRequestBadge)
-                            val rootCard = itemView.findViewById<View>(R.id.cardDeletedMemberRoot)
-
-                            val fullName = "${rec.person.firstName} ${rec.person.lastName}".trim().ifBlank { "Family Member" }
-                            val role = if (rec.person.lineageRole.isNotBlank()) rec.person.lineageRole else if (rec.person.gender.equals("Female", true)) "Daughter" else "Son"
-                            tvName.text = "$fullName ($role)"
-                            tvTree.text = "🌳 ${rec.treeName.ifBlank { "Family Tree" }}"
-
-                            val diffMs = System.currentTimeMillis() - rec.deletedAt
-                            val diffMins = diffMs / 60000
-                            val diffHours = diffMins / 60
-                            val timeStr = when {
-                                diffMins < 1 -> "Just now"
-                                diffMins < 60 -> "${diffMins}m ago"
-                                diffHours < 24 -> "${diffHours}h ago"
-                                else -> "${diffHours / 24}d ago"
-                            }
-                            tvTimeAgo.text = timeStr
-                            tvDetails.text = "ID: ${rec.id} • Deleted by ${rec.deletedByName.ifBlank { rec.deletedBy }}"
-
-                            if (rec.restorationRequested) {
-                                tvBadge.visibility = View.VISIBLE
-                                val requester = rec.requestedByName.ifBlank { rec.requestedBy.ifBlank { "Family Member" } }
-                                tvBadge.text = "⚡ Restoration Requested by $requester"
-                                tvStatus.text = "📩 Family requested restoration of this lineage branch."
-                                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
-                            } else {
-                                tvBadge.visibility = View.GONE
-                                tvStatus.text = "Member record is currently archived."
-                                tvStatus.setTextColor(ContextCompat.getColor(this, R.color.danger))
-                            }
-
-                            // Pulse highlight if navigated from Recent Activities
-                            if (rec.id.equals(highlightMemberId, ignoreCase = true) ||
-                                (highlightMemberId != null && rec.person.firstName.contains(highlightMemberId, ignoreCase = true))) {
-                                rootCard.setBackgroundResource(R.drawable.bg_card_highlight_gold)
-                                rootCard.postDelayed({
-                                    rootCard.setBackgroundResource(R.drawable.bg_admin_code_box)
-                                }, 3500)
-                            }
-
-                            btnRestore.setOnClickListener {
-                                btnRestore.isEnabled = false
-                                tvStatus.text = "⏳ Restoring member to tree..."
-                                firestoreHelper.restoreArchivedMember(
-                                    recordId = rec.id,
-                                    onSuccess = { restoredPerson ->
-                                        runOnUiThread {
-                                            tvStatus.text = "✅ Restored! ${restoredPerson.firstName} re-linked to ${rec.treeName}."
-                                            tvStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-                                            btnRestore.visibility = View.GONE
-                                            recordAudit("NODE_RESTORED", restoredPerson.id, "Restored ${restoredPerson.firstName} ${restoredPerson.lastName} to ${rec.treeName} via Ops Desk")
-                                            loadLiveTelemetry()
-                                            KinTraceAlert.restore(this, "Member Restored", "${restoredPerson.firstName} restored to ${rec.treeName} successfully!")
-
-                                            // Check if all items in the UI are now restored
-                                            val remainingUnrestored = (0 until layoutDeletedMembersList.childCount)
-                                                .map { layoutDeletedMembersList.getChildAt(it) }
-                                                .count { it.findViewById<Button>(R.id.btnRestoreMemberItem)?.visibility == View.VISIBLE }
-                                            if (remainingUnrestored == 0) {
-                                                tvNoDeletedMembers.visibility = View.VISIBLE
-                                                tvNoDeletedMembers.text = "🛡️ No archived deleted members. All lineages intact."
-                                                tvNoDeletedMembers.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
-                                            }
-                                        }
-                                    },
-                                    onFailure = { err ->
-                                        runOnUiThread {
-                                            tvStatus.text = "⚠️ Restore failed: ${err.message}"
-                                            btnRestore.isEnabled = true
-                                        }
-                                    }
-                                )
-                            }
-
-                            layoutDeletedMembersList.addView(itemView)
+            onSuccess = { pendingList ->
+                firestoreHelper.getRestoredMembersHistory(
+                    onSuccess = { historyList ->
+                        runOnUiThread {
+                            cachedPendingRecoveryList.clear()
+                            cachedPendingRecoveryList.addAll(pendingList)
+                            cachedRestoredHistoryList.clear()
+                            cachedRestoredHistoryList.addAll(historyList)
+                            renderRecoveryConsoleVault()
+                        }
+                    },
+                    onFailure = {
+                        runOnUiThread {
+                            cachedPendingRecoveryList.clear()
+                            cachedPendingRecoveryList.addAll(pendingList)
+                            renderRecoveryConsoleVault()
                         }
                     }
-                }
+                )
             },
             onFailure = {
                 runOnUiThread {
+                    scrollDeletedRecoveryVault.visibility = View.GONE
                     tvNoDeletedMembers.visibility = View.VISIBLE
                     tvNoDeletedMembers.text = "⚠️ Unable to load archived members: ${it.message}"
                     tvNoDeletedMembers.setTextColor(ContextCompat.getColor(this, R.color.warning))
                 }
             }
         )
+    }
+
+    private fun renderRecoveryConsoleVault() {
+        val activeBg = ContextCompat.getDrawable(this, R.drawable.bg_admin_tab_active)
+        val activeColor = ContextCompat.getColor(this, R.color.white)
+        val inactiveColor = ContextCompat.getColor(this, R.color.text_secondary)
+
+        tabRecoveryPending.text = "🩹 Pending Recovery (${cachedPendingRecoveryList.size})"
+        tabRecoveryHistory.text = "📜 Restored History (${cachedRestoredHistoryList.size})"
+
+        if (!isShowingRecoveryHistory) {
+            tabRecoveryPending.background = activeBg
+            tabRecoveryPending.setTextColor(activeColor)
+            tabRecoveryHistory.setBackgroundResource(android.R.color.transparent)
+            tabRecoveryHistory.setTextColor(inactiveColor)
+
+            tvRecoveryCountBadge.text = "${cachedPendingRecoveryList.size} Pending"
+            tvRecoveryCountBadge.setTextColor(
+                ContextCompat.getColor(
+                    this,
+                    if (cachedPendingRecoveryList.isEmpty()) R.color.mint_text else R.color.danger
+                )
+            )
+        } else {
+            tabRecoveryHistory.background = activeBg
+            tabRecoveryHistory.setTextColor(activeColor)
+            tabRecoveryPending.setBackgroundResource(android.R.color.transparent)
+            tabRecoveryPending.setTextColor(inactiveColor)
+
+            tvRecoveryCountBadge.text = "${cachedRestoredHistoryList.size} Restored"
+            tvRecoveryCountBadge.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+        }
+
+        val q = currentRecoverySearchQuery
+        val filteredPending = if (q.isBlank()) {
+            cachedPendingRecoveryList.toList()
+        } else {
+            cachedPendingRecoveryList.filter { rec ->
+                val fullName = "${rec.person.firstName} ${rec.person.lastName}".lowercase()
+                fullName.contains(q) ||
+                    rec.treeName.lowercase().contains(q) ||
+                    rec.id.lowercase().contains(q) ||
+                    rec.deletedByName.lowercase().contains(q)
+            }
+        }
+
+        val filteredHistory = if (q.isBlank()) {
+            cachedRestoredHistoryList.toList()
+        } else {
+            cachedRestoredHistoryList.filter { rec ->
+                val fullName = "${rec.person.firstName} ${rec.person.lastName}".lowercase()
+                fullName.contains(q) ||
+                    rec.treeName.lowercase().contains(q) ||
+                    rec.id.lowercase().contains(q) ||
+                    rec.restoredBy.lowercase().contains(q) ||
+                    rec.deletedByName.lowercase().contains(q)
+            }
+        }
+
+        layoutDeletedMembersList.removeAllViews()
+        layoutRestoredHistoryList.removeAllViews()
+
+        val activeListSize = if (!isShowingRecoveryHistory) filteredPending.size else filteredHistory.size
+
+        if (activeListSize == 0) {
+            scrollDeletedRecoveryVault.visibility = View.GONE
+            tvNoDeletedMembers.visibility = View.VISIBLE
+            tvNoDeletedMembers.text = if (!isShowingRecoveryHistory) {
+                if (q.isNotBlank()) "🔍 No pending archived members match \"$q\"."
+                else "🛡️ No archived deleted members. All lineages intact."
+            } else {
+                if (q.isNotBlank()) "🔍 No restored member history matches \"$q\"."
+                else "📜 No previously restored members yet. Restored records will appear here with date & time."
+            }
+            tvNoDeletedMembers.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+            return
+        }
+
+        tvNoDeletedMembers.visibility = View.GONE
+        scrollDeletedRecoveryVault.visibility = View.VISIBLE
+
+        // Direction 3 Fixed-Height Cap: lock to 260dp when 3+ items so it never stretches the screen!
+        val lp = scrollDeletedRecoveryVault.layoutParams
+        lp.height = if (activeListSize >= 3) {
+            (260 * resources.displayMetrics.density).toInt()
+        } else {
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        }
+        scrollDeletedRecoveryVault.layoutParams = lp
+
+        if (!isShowingRecoveryHistory) {
+            layoutDeletedMembersList.visibility = View.VISIBLE
+            layoutRestoredHistoryList.visibility = View.GONE
+
+            for (rec in filteredPending) {
+                val itemView = layoutInflater.inflate(R.layout.item_deleted_member_recovery, layoutDeletedMembersList, false)
+                val tvName = itemView.findViewById<TextView>(R.id.tvDeletedMemberName)
+                val tvTree = itemView.findViewById<TextView>(R.id.tvDeletedMemberTree)
+                val tvTimeAgo = itemView.findViewById<TextView>(R.id.tvDeletedTimeAgo)
+                val tvRestoredTimestamp = itemView.findViewById<TextView>(R.id.tvRestoredTimestamp)
+                val tvDetails = itemView.findViewById<TextView>(R.id.tvDeletedMemberDetails)
+                val btnRestore = itemView.findViewById<Button>(R.id.btnRestoreMemberItem)
+                val btnPurge = itemView.findViewById<TextView>(R.id.btnPurgeMemberItem)
+                val tvRestoredBadgePill = itemView.findViewById<TextView>(R.id.tvRestoredBadgePill)
+                val tvStatus = itemView.findViewById<TextView>(R.id.tvDeletedMemberStatus)
+                val tvBadge = itemView.findViewById<TextView>(R.id.tvRestorationRequestBadge)
+                val rootCard = itemView.findViewById<View>(R.id.cardDeletedMemberRoot)
+
+                val fullName = "${rec.person.firstName} ${rec.person.lastName}".trim().ifBlank { "Family Member" }
+                val role = if (rec.person.lineageRole.isNotBlank()) rec.person.lineageRole else if (rec.person.gender.equals("Female", true)) "Daughter" else "Son"
+                tvName.text = "$fullName ($role)"
+                tvTree.text = "🌳 ${rec.treeName.ifBlank { "Family Tree" }}"
+                tvRestoredTimestamp?.visibility = View.GONE
+                tvRestoredBadgePill?.visibility = View.GONE
+                btnRestore.visibility = View.VISIBLE
+                btnPurge?.visibility = View.VISIBLE
+
+                val diffMs = System.currentTimeMillis() - rec.deletedAt
+                val diffMins = diffMs / 60000
+                val diffHours = diffMins / 60
+                val timeStr = when {
+                    diffMins < 1 -> "Just now"
+                    diffMins < 60 -> "${diffMins}m ago"
+                    diffHours < 24 -> "${diffHours}h ago"
+                    else -> "${diffHours / 24}d ago"
+                }
+                tvTimeAgo.text = timeStr
+                val shortId = if (rec.id.length > 10) "${rec.id.take(10)}…" else rec.id
+                tvDetails.text = "ID: $shortId • Deleted by ${rec.deletedByName.ifBlank { rec.deletedBy }}"
+
+                if (rec.restorationRequested) {
+                    tvBadge.visibility = View.VISIBLE
+                    val requester = rec.requestedByName.ifBlank { rec.requestedBy.ifBlank { "Family Member" } }
+                    tvBadge.text = "⚡ Requested by $requester"
+                } else {
+                    tvBadge.visibility = View.GONE
+                }
+                tvStatus.visibility = View.GONE
+
+                val highlightId = currentHighlightMemberId
+                if (rec.id.equals(highlightId, ignoreCase = true) ||
+                    (highlightId != null && rec.person.firstName.contains(highlightId, ignoreCase = true))
+                ) {
+                    rootCard.setBackgroundResource(R.drawable.bg_card_highlight_gold)
+                    rootCard.postDelayed({
+                        rootCard.setBackgroundResource(R.drawable.bg_admin_code_box)
+                    }, 3500)
+                }
+
+                btnRestore.setOnClickListener {
+                    btnRestore.isEnabled = false
+                    btnRestore.text = "⏳..."
+                    firestoreHelper.restoreArchivedMember(
+                        recordId = rec.id,
+                        onSuccess = { restoredPerson ->
+                            runOnUiThread {
+                                val nowMs = System.currentTimeMillis()
+                                val adminName = authHelper.getCurrentUser()?.displayName?.takeIf { it.isNotBlank() }
+                                    ?: authHelper.getCurrentUser()?.email
+                                    ?: "Admin"
+
+                                // 1. Automatically remove from Pending Recovery list immediately
+                                cachedPendingRecoveryList.removeAll { it.id == rec.id }
+
+                                // 2. Add to top of Restored History Archive with exact Date & Time
+                                val restoredRecord = rec.copy(
+                                    isRestored = true,
+                                    restoredAt = nowMs,
+                                    restoredBy = adminName,
+                                    restorationRequested = false
+                                )
+                                cachedRestoredHistoryList.removeAll { it.id == rec.id }
+                                cachedRestoredHistoryList.add(0, restoredRecord)
+
+                                val dateFmt = SimpleDateFormat("MMM dd, yyyy • h:mm a", Locale.getDefault())
+                                val stampStr = dateFmt.format(Date(nowMs))
+                                tvRecoveryFlashBanner.visibility = View.VISIBLE
+                                tvRecoveryFlashBanner.text = "✅ $fullName restored & archived to History ($stampStr) • View ›"
+
+                                renderRecoveryConsoleVault()
+                                recordAudit("NODE_RESTORED", restoredPerson.id, "Restored ${restoredPerson.firstName} ${restoredPerson.lastName} to ${rec.treeName} via Ops Desk")
+                                loadLiveTelemetry()
+                                KinTraceAlert.restore(this, "Member Restored", "${restoredPerson.firstName} restored to ${rec.treeName} & logged in History!")
+                            }
+                        },
+                        onFailure = { err ->
+                            runOnUiThread {
+                                btnRestore.isEnabled = true
+                                btnRestore.text = "🩹 Restore"
+                                tvStatus.visibility = View.VISIBLE
+                                tvStatus.text = "⚠️ Restore failed: ${err.message}"
+                            }
+                        }
+                    )
+                }
+
+                btnPurge?.setOnClickListener {
+                    btnPurge.isEnabled = false
+                    firestoreHelper.purgeArchivedMember(
+                        recordId = rec.id,
+                        onSuccess = {
+                            runOnUiThread {
+                                cachedPendingRecoveryList.removeAll { it.id == rec.id }
+                                tvRecoveryFlashBanner.visibility = View.VISIBLE
+                                tvRecoveryFlashBanner.text = "🗑️ $fullName permanently purged from archive."
+                                renderRecoveryConsoleVault()
+                                recordAudit("ARCHIVED_NODE_PURGED", rec.id, "Permanently purged archived record $fullName from ${rec.treeName}")
+                            }
+                        },
+                        onFailure = { err ->
+                            runOnUiThread {
+                                btnPurge.isEnabled = true
+                                Toast.makeText(this, "Purge failed: ${err.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+                }
+
+                layoutDeletedMembersList.addView(itemView)
+            }
+        } else {
+            layoutDeletedMembersList.visibility = View.GONE
+            layoutRestoredHistoryList.visibility = View.VISIBLE
+            val dateTimeFmt = SimpleDateFormat("MMM dd, yyyy • h:mm a", Locale.getDefault())
+
+            for (rec in filteredHistory) {
+                val itemView = layoutInflater.inflate(R.layout.item_deleted_member_recovery, layoutRestoredHistoryList, false)
+                val tvName = itemView.findViewById<TextView>(R.id.tvDeletedMemberName)
+                val tvTree = itemView.findViewById<TextView>(R.id.tvDeletedMemberTree)
+                val tvTimeAgo = itemView.findViewById<TextView>(R.id.tvDeletedTimeAgo)
+                val tvRestoredTimestamp = itemView.findViewById<TextView>(R.id.tvRestoredTimestamp)
+                val tvDetails = itemView.findViewById<TextView>(R.id.tvDeletedMemberDetails)
+                val btnRestore = itemView.findViewById<Button>(R.id.btnRestoreMemberItem)
+                val btnPurge = itemView.findViewById<TextView>(R.id.btnPurgeMemberItem)
+                val tvRestoredBadgePill = itemView.findViewById<TextView>(R.id.tvRestoredBadgePill)
+                val tvStatus = itemView.findViewById<TextView>(R.id.tvDeletedMemberStatus)
+                val tvBadge = itemView.findViewById<TextView>(R.id.tvRestorationRequestBadge)
+
+                val fullName = "${rec.person.firstName} ${rec.person.lastName}".trim().ifBlank { "Family Member" }
+                val role = if (rec.person.lineageRole.isNotBlank()) rec.person.lineageRole else if (rec.person.gender.equals("Female", true)) "Daughter" else "Son"
+                tvName.text = "$fullName ($role)"
+                tvTree.text = "🌳 Re-linked to ${rec.treeName.ifBlank { "Family Tree" }}"
+                tvTimeAgo.visibility = View.GONE
+
+                val effectiveRestoredAt = if (rec.restoredAt > 0L) rec.restoredAt else rec.deletedAt
+                val formattedDateTime = dateTimeFmt.format(Date(effectiveRestoredAt))
+                tvRestoredTimestamp?.visibility = View.VISIBLE
+                tvRestoredTimestamp?.text = "🕒 Restored: $formattedDateTime"
+
+                val restoredByWho = rec.restoredBy.ifBlank { "System Admin" }
+                val deletedByWho = rec.deletedByName.ifBlank { rec.deletedBy.ifBlank { "User" } }
+                tvDetails.text = "Restored by $restoredByWho • Originally deleted by $deletedByWho"
+
+                btnRestore.visibility = View.GONE
+                btnPurge?.visibility = View.GONE
+                tvBadge.visibility = View.GONE
+                tvStatus.visibility = View.GONE
+                tvRestoredBadgePill?.visibility = View.VISIBLE
+
+                layoutRestoredHistoryList.addView(itemView)
+            }
+        }
     }
 
     private fun loadMergeCollisions(highlightCollisionId: String? = null) {

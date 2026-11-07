@@ -42,19 +42,22 @@ object AddChildBiologicalParentDialogHelper {
         UNKNOWN,
         CURRENT_SPOUSE,
         FORMER_SPOUSE,
-        ANOTHER_PERSON
+        ANOTHER_PERSON,
+        ADOPTIVE_WITH_SPOUSE,
+        ADOPTIVE_SINGLE
     }
 
     data class BiologicalParentSelectionResult(
         val choice: CoParentChoice,
         val primaryParent: Person,
         val otherParent: Person? = null,
-        val isNewPersonCreated: Boolean = false
+        val isNewPersonCreated: Boolean = false,
+        val isAdoptive: Boolean = false
     )
 
     /**
-     * Prompts the user to identify the other biological parent if [parent] has a spouse, former/late spouse, or partner.
-     * If [parent] has no spouse, invokes [onResult] directly with [CoParentChoice.UNKNOWN].
+     * Prompts the user to identify the other biological or adoptive parent if [parent] has a spouse, former/late spouse, or partner.
+     * If [parent] has no spouse, prompts whether the child is Biological or Adoptive.
      */
     fun showIdentifyOtherParentDialog(
         context: Context,
@@ -68,32 +71,72 @@ object AddChildBiologicalParentDialogHelper {
             allMembers.find { FamilyLinkValidator.isSameId(it.id, sId) }
         } ?: linkedSpouses.firstOrNull()
 
-        // If member has no recorded spouse or former spouse, other parent is unknown/not recorded by default
+        val parentName = "${parent.firstName} ${parent.lastName}".trim()
+
+        // If member has no recorded spouse or former spouse, allow choosing Biological, Adoptive, or Another Person
         if (currentSpouse == null && linkedSpouses.isEmpty()) {
-            onResult(
-                BiologicalParentSelectionResult(
-                    choice = CoParentChoice.UNKNOWN,
-                    primaryParent = parent,
-                    otherParent = null
-                )
+            val singleLabels = arrayOf(
+                "1. Biological child of $parentName\n   (Other parent unknown or not recorded)",
+                "2. Adoptive child of $parentName\n   (Legal adoption — draws dashed adoption line)",
+                "3. Select or create the other parent\n   (Connect $parentName + another person)"
             )
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
+                .setTitle("Add Child to $parentName")
+                .setMessage("How is this child related to $parentName?")
+                .setItems(singleLabels) { _, which ->
+                    when (which) {
+                        0 -> onResult(
+                            BiologicalParentSelectionResult(
+                                choice = CoParentChoice.UNKNOWN,
+                                primaryParent = parent,
+                                otherParent = null,
+                                isAdoptive = false
+                            )
+                        )
+                        1 -> onResult(
+                            BiologicalParentSelectionResult(
+                                choice = CoParentChoice.ADOPTIVE_SINGLE,
+                                primaryParent = parent,
+                                otherParent = null,
+                                isAdoptive = true
+                            )
+                        )
+                        2 -> showSelectOrCreateOtherParentDialog(
+                            context = context,
+                            parent = parent,
+                            spouse = null,
+                            allMembers = allMembers,
+                            onResult = onResult,
+                            onCancel = onCancel
+                        )
+                    }
+                }
+                .setNegativeButton("Cancel") { _, _ -> onCancel?.invoke() }
+                .show()
             return
         }
 
-        val parentName = "${parent.firstName} ${parent.lastName}".trim()
         val formerSpouses = linkedSpouses.filter { !FamilyLinkValidator.isSameId(it.id, currentSpouse?.id) }
+        val primarySpouseName = currentSpouse?.let { "${it.firstName} ${it.lastName}".trim() } ?: "Spouse"
+        val stepRoleWord = if (currentSpouse?.gender.equals("female", ignoreCase = true)) "Step-Mother" else "Step-Father"
 
         val choiceLabels = mutableListOf<String>()
         val choiceActions = mutableListOf<() -> Unit>()
 
-        // Choice 1: Unknown or not recorded
-        choiceLabels.add("1. Unknown or not recorded\n   (Connect only $parentName as biological parent)")
+        // Choice 1: Only primaryParent (Spouse is Step-Parent / Other parent unknown)
+        val stepNote = if (currentSpouse != null) {
+            "Connect only $parentName — $primarySpouseName is recognized as $stepRoleWord"
+        } else {
+            "Connect only $parentName as biological parent"
+        }
+        choiceLabels.add("1. Only $parentName (Step-Parent / Single Parent)\n   ($stepNote)")
         choiceActions.add {
             onResult(
                 BiologicalParentSelectionResult(
                     choice = CoParentChoice.UNKNOWN,
                     primaryParent = parent,
-                    otherParent = null
+                    otherParent = null,
+                    isAdoptive = false
                 )
             )
         }
@@ -114,14 +157,29 @@ object AddChildBiologicalParentDialogHelper {
                     BiologicalParentSelectionResult(
                         choice = CoParentChoice.CURRENT_SPOUSE,
                         primaryParent = parent,
-                        otherParent = currentSpouse
+                        otherParent = currentSpouse,
+                        isAdoptive = false
+                    )
+                )
+            }
+            nextOptionNumber++
+
+            // Choice 3: Legal Adoption with Current Spouse
+            choiceLabels.add("$nextOptionNumber. Legal Adoption with $spouseName\n   (Connect as Adoptive child — draws dashed adoption line)")
+            choiceActions.add {
+                onResult(
+                    BiologicalParentSelectionResult(
+                        choice = CoParentChoice.ADOPTIVE_WITH_SPOUSE,
+                        primaryParent = parent,
+                        otherParent = currentSpouse,
+                        isAdoptive = true
                     )
                 )
             }
             nextOptionNumber++
         }
 
-        // Choice 2b+: Any Former / Late Spouses from prior marriage(s)
+        // Choice 3b+: Any Former / Late Spouses from prior marriage(s)
         formerSpouses.forEach { formerSpouse ->
             val fName = "${formerSpouse.firstName} ${formerSpouse.lastName}".trim()
             val fTag = if (!formerSpouse.isLiving || formerSpouse.deathDate.isNotBlank()) "Late spouse (Prior marriage)" else "Former spouse (Prior marriage)"
@@ -131,7 +189,8 @@ object AddChildBiologicalParentDialogHelper {
                     BiologicalParentSelectionResult(
                         choice = CoParentChoice.FORMER_SPOUSE,
                         primaryParent = parent,
-                        otherParent = formerSpouse
+                        otherParent = formerSpouse,
+                        isAdoptive = false
                     )
                 )
             }
@@ -139,7 +198,7 @@ object AddChildBiologicalParentDialogHelper {
         }
 
         // Final Choice: Another person
-        val fallbackSpouseForExclusion = currentSpouse ?: linkedSpouses.first()
+        val fallbackSpouseForExclusion = currentSpouse ?: linkedSpouses.firstOrNull()
         choiceLabels.add("$nextOptionNumber. Another person\n   (Select existing person or create new person)")
         choiceActions.add {
             showSelectOrCreateOtherParentDialog(
@@ -155,8 +214,8 @@ object AddChildBiologicalParentDialogHelper {
         val spouseSummary = linkedSpouses.joinToString(", ") { "${it.firstName} ${it.lastName}".trim() }
 
         com.example.btproject2.utils.KinTraceModalDialog.Builder(context)
-            .setTitle("Identify Other Biological Parent")
-            .setMessage("$parentName is linked with spouse(s): $spouseSummary.\n\nWho is the other biological parent of this child?")
+            .setTitle("Identify Child's Parents")
+            .setMessage("$parentName is linked with spouse(s): $spouseSummary.\n\nHow should this child be connected in the family tree?")
             .setItems(choiceLabels.toTypedArray()) { _, which ->
                 choiceActions.getOrNull(which)?.invoke()
             }
@@ -165,12 +224,12 @@ object AddChildBiologicalParentDialogHelper {
     }
 
     /**
-     * Sub-dialog for Choice 3: Allows selecting an existing person or creating a new person.
+     * Sub-dialog for Choice: Allows selecting an existing person or creating a new person.
      */
     private fun showSelectOrCreateOtherParentDialog(
         context: Context,
         parent: Person,
-        spouse: Person,
+        spouse: Person?,
         allMembers: List<Person>,
         onResult: (BiologicalParentSelectionResult) -> Unit,
         onCancel: (() -> Unit)?
@@ -182,7 +241,7 @@ object AddChildBiologicalParentDialogHelper {
         // Must not be the primary parent, must not be current spouse, must not violate incestuous co-parenting (Arts. 37/38)
         val candidates = allMembers.filter { candidate ->
             !FamilyLinkValidator.isSameId(candidate.id, parent.id) &&
-            !FamilyLinkValidator.isSameId(candidate.id, spouse.id) &&
+            (spouse == null || !FamilyLinkValidator.isSameId(candidate.id, spouse.id)) &&
             (if (isParentMale) candidate.gender.equals("female", ignoreCase = true) else candidate.gender.equals("male", ignoreCase = true)) &&
             FamilyLinkValidator.validateCoParents(
                 if (isParentMale) parent else candidate,
@@ -324,9 +383,13 @@ object AddChildBiologicalParentDialogHelper {
         treeId: String,
         launcher: ActivityResultLauncher<Intent>? = null
     ) {
+        val isAdoptiveFlag = result.isAdoptive ||
+            result.choice == CoParentChoice.ADOPTIVE_WITH_SPOUSE ||
+            result.choice == CoParentChoice.ADOPTIVE_SINGLE
         val intent = Intent(context, AddMemberActivity::class.java).apply {
             putExtra("presetParentId", result.primaryParent.id)
             putExtra("coParentChoice", result.choice.name)
+            putExtra("presetIsAdoptive", isAdoptiveFlag)
             result.otherParent?.id?.let { putExtra("presetOtherParentId", it) }
             putExtra("TREE_ID", treeId)
             putExtra("treeId", treeId)

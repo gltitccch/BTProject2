@@ -60,7 +60,7 @@
             android:text="🍃 Editor"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="#D4AF37"
+            android:textColor="@color/gold_accent"
             android:background="@drawable/badge_pill_dark"
             android:paddingHorizontal="8dp"
             android:paddingVertical="4dp" />
@@ -70,7 +70,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#1E4530"
+        android:background="@color/card_border"
         android:layout_marginVertical="10dp" />
 
     <!-- Action Buttons Row -->
@@ -100,8 +100,8 @@
             android:text="Approve as Editor ✓"
             android:textSize="12sp"
             android:textStyle="bold"
-            android:textColor="#060D09"
-            android:background="@drawable/bg_botanical_gold_gradient_btn"
+            android:textColor="@color/btn_gold_text"
+            android:background="@drawable/btn_primary_bg"
             android:paddingHorizontal="16dp"
             android:textAllCaps="false" />
     </LinearLayout>

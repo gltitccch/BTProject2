@@ -40,6 +40,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
         setContentView(R.layout.activity_forgot_password)
 
         val btnBack = findViewById<TextView>(R.id.btnBack)
+        val btnReturnToSignIn = findViewById<TextView?>(R.id.btnReturnToSignIn)
         etEmail = findViewById(R.id.etEmail)
         btnSendReset = findViewById(R.id.btnSendReset)
         cardSuccess = findViewById(R.id.cardSuccess)
@@ -49,6 +50,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
         tvResendCooldown = findViewById(R.id.tvResendCooldown)
 
         btnBack.setOnClickListener { finish() }
+        btnReturnToSignIn?.setOnClickListener { finish() }
 
         btnSendReset.setOnClickListener {
             attemptPasswordReset()
@@ -106,7 +108,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
             email,
             onSuccess = {
                 btnSendReset.isEnabled = true
-                btnSendReset.text = "Send reset link"
+                btnSendReset.text = "Send Reset Link ➔"
                 cardSuccess.visibility = View.VISIBLE
                 tvSuccessMessage.text = "A password recovery link has been dispatched to $email."
 
@@ -120,7 +122,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
             },
             onFailure = { error ->
                 btnSendReset.isEnabled = true
-                btnSendReset.text = "Send reset link"
+                btnSendReset.text = "Send Reset Link ➔"
                 com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                     .setTitle("Error")
                     .setMessage(error.message ?: "Failed to send reset email. Please verify your address.")

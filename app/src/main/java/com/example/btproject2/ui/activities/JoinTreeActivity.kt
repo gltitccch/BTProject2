@@ -38,6 +38,16 @@ class JoinTreeActivity : AppCompatActivity() {
     private lateinit var btnRequestAccess: Button
     private lateinit var tvPendingTreeMessage: TextView
     private lateinit var btnPendingBackToHome: Button
+    private var viewPendingHourglass: com.example.btproject2.views.PendingSandHourglassView? = null
+    private var tvPendingHeaderTitle: TextView? = null
+    private var tvPendingStatusLabel: TextView? = null
+    private var tvPendingStatusSub: TextView? = null
+    private var btnCancelPendingJoinRequest: TextView? = null
+
+    private var activePendingMemberId: String = ""
+    private var activePendingTreeId: String = ""
+    private var activePendingTreeName: String = "Family Tree"
+    private var membershipListener: com.google.firebase.firestore.ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +60,11 @@ class JoinTreeActivity : AppCompatActivity() {
         btnRequestAccess = findViewById(R.id.btnRequestAccess)
         tvPendingTreeMessage = findViewById(R.id.tvPendingTreeMessage)
         btnPendingBackToHome = findViewById(R.id.btnPendingBackToHome)
+        viewPendingHourglass = findViewById(R.id.viewPendingHourglass)
+        tvPendingHeaderTitle = findViewById(R.id.tvPendingHeaderTitle)
+        tvPendingStatusLabel = findViewById(R.id.tvPendingStatusLabel)
+        tvPendingStatusSub = findViewById(R.id.tvPendingStatusSub)
+        btnCancelPendingJoinRequest = findViewById(R.id.btnCancelPendingJoinRequest)
 
         etInviteCode.filters = arrayOf(android.text.InputFilter.AllCaps())
 
@@ -72,9 +87,15 @@ class JoinTreeActivity : AppCompatActivity() {
         }
         btnPendingBackToHome.setOnClickListener { finish() }
 
+        btnCancelPendingJoinRequest?.setOnClickListener {
+            promptCancelPendingJoinRequest()
+        }
+
         btnRequestAccess.setOnClickListener {
             handleJoinRequest()
         }
+
+        checkAndListenToPendingJoinRequest()
 
         com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
             this,
@@ -85,6 +106,7 @@ class JoinTreeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         btnInviteCodeBeacon?.let { startBeaconPulse(it) }
+        checkAndListenToPendingJoinRequest()
 
         com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
             this,
@@ -100,6 +122,100 @@ class JoinTreeActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopBeaconPulse()
+        membershipListener?.remove()
+        membershipListener = null
+    }
+
+    private fun checkAndListenToPendingJoinRequest() {
+        val userId = authHelper.getCurrentUserId().orEmpty()
+        if (userId.isBlank()) return
+
+        membershipListener?.remove()
+        membershipListener = firestoreHelper.listenToUserMemberships(userId) { memberships ->
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                val pending = memberships.firstOrNull {
+                    it.status.equals("Pending", ignoreCase = true) ||
+                        it.status.equals("Pending_Join", ignoreCase = true) ||
+                        it.role.equals("Pending_Join", ignoreCase = true)
+                }
+                if (pending != null) {
+                    activePendingMemberId = pending.id
+                    activePendingTreeId = pending.treeId
+                    showPendingStateForTree(pending.treeId)
+                } else if (activePendingTreeId.isNotBlank()) {
+                    // Check if the previously pending tree was just approved!
+                    val newlyApproved = memberships.firstOrNull {
+                        it.treeId == activePendingTreeId && it.status.equals("Approved", ignoreCase = true)
+                    }
+                    if (newlyApproved != null) {
+                        viewPendingHourglass?.setApprovedMode(true)
+                        tvPendingHeaderTitle?.text = "Request Accepted!"
+                        tvPendingTreeMessage.text = "The tree owner approved your request to join \"$activePendingTreeName\"!"
+                        tvPendingStatusLabel?.text = "✓  Approved (${newlyApproved.role})"
+                        tvPendingStatusLabel?.setTextColor(android.graphics.Color.parseColor("#4ADE80"))
+                        tvPendingStatusSub?.text = "Your family tree is now unlocked."
+                        btnCancelPendingJoinRequest?.visibility = View.GONE
+                        btnPendingBackToHome.text = "Open Family Tree →"
+                        TreePreferences.setActiveTree(this, newlyApproved.treeId, activePendingTreeName, userId)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showPendingStateForTree(treeId: String) {
+        viewPendingHourglass?.setApprovedMode(false)
+        tvPendingHeaderTitle?.text = "Request sent"
+        tvPendingStatusLabel?.text = "⏳  Pending approval"
+        tvPendingStatusSub?.text = "You'll be notified once the owner approves your request."
+        btnCancelPendingJoinRequest?.visibility = View.VISIBLE
+        layoutJoinForm.visibility = View.GONE
+        layoutPendingApproval.visibility = View.VISIBLE
+
+        if (treeId.isNotBlank()) {
+            firestoreHelper.getTree(treeId,
+                onSuccess = { tree ->
+                    val name = tree?.name?.takeIf { it.isNotBlank() } ?: "the family tree"
+                    activePendingTreeName = name
+                    runOnUiThread {
+                        tvPendingTreeMessage.text = "Your request to join \"$name\" is waiting for approval from the tree owner."
+                    }
+                },
+                onFailure = {}
+            )
+        }
+    }
+
+    private fun promptCancelPendingJoinRequest() {
+        val memberId = activePendingMemberId
+        if (memberId.isBlank()) {
+            layoutPendingApproval.visibility = View.GONE
+            layoutJoinForm.visibility = View.VISIBLE
+            return
+        }
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+            .setTitle("Withdraw Join Request")
+            .setMessage("Cancel your pending request to join \"$activePendingTreeName\"?")
+            .setPositiveButton("Withdraw") { _, _ ->
+                firestoreHelper.deleteTreeMember(memberId,
+                    onSuccess = {
+                        activePendingMemberId = ""
+                        activePendingTreeId = ""
+                        runOnUiThread {
+                            layoutPendingApproval.visibility = View.GONE
+                            layoutJoinForm.visibility = View.VISIBLE
+                            resetButton()
+                            KinTraceAlert.show(this, "Join request withdrawn")
+                        }
+                    },
+                    onFailure = { err ->
+                        KinTraceAlert.show(this, "Could not withdraw request: ${err.message}")
+                    }
+                )
+            }
+            .setNegativeButton("Keep Waiting", null)
+            .show()
     }
 
     private fun startBeaconPulse(view: View) {
@@ -219,72 +335,20 @@ class JoinTreeActivity : AppCompatActivity() {
                         // Requirement 8: Check whether the new user is already a member of that family tree
                         firestoreHelper.getUserMembership(userId, targetTreeId,
                             onSuccess = { existing ->
-                                if (existing != null && existing.status.equals("Approved", ignoreCase = true)) {
+                                if (existing != null && (existing.status.equals("Approved", ignoreCase = true) || existing.status.equals("Role_Upgrade_Pending", ignoreCase = true))) {
                                     resetButton()
                                     com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
                                         .setTitle("Already a Member")
                                         .setMessage("You are already a member of this family tree (\"$treeName\").")
                                         .setPositiveButton("OK") { _, _ -> finish() }
                                         .show()
-                                } else if (existing != null && existing.status.equals("Pending", ignoreCase = true)) {
+                                } else if (existing != null && (existing.status.equals("Pending", ignoreCase = true) || existing.role.equals("Pending_Join", ignoreCase = true))) {
                                     resetButton()
-                                    layoutJoinForm.visibility = View.GONE
-                                    layoutPendingApproval.visibility = View.VISIBLE
-                                    tvPendingTreeMessage.text = "Your request to join \"$treeName\" is already pending approval from the tree owner."
+                                    activePendingMemberId = existing.id
+                                    activePendingTreeId = targetTreeId
+                                    activePendingTreeName = treeName
+                                    showPendingStateForTree(targetTreeId)
                                 } else {
-                                    firestoreHelper.getPrivacySettings(targetTreeId,
-                                        onSuccess = { privacySettings ->
-                                            val isPrivateTree = (tree?.isPrivate == true) || privacySettings.isPrivateTree
-                                            if (isPrivateTree) {
-                                                submitPendingJoinRequest(
-                                                    treeId = targetTreeId,
-                                                    treeName = treeName,
-                                                    ownerId = ownerId,
-                                                    userId = userId,
-                                                    code = code,
-                                                    record = record,
-                                                    existingMemberId = existing?.id
-                                                )
-                                            } else {
-                                                joinTreeImmediately(
-                                                    treeId = targetTreeId,
-                                                    treeName = treeName,
-                                                    ownerId = ownerId,
-                                                    userId = userId,
-                                                    code = code,
-                                                    record = record,
-                                                    existingMemberId = existing?.id
-                                                )
-                                            }
-                                        },
-                                        onFailure = {
-                                            if (tree?.isPrivate == true) {
-                                                submitPendingJoinRequest(
-                                                    treeId = targetTreeId,
-                                                    treeName = treeName,
-                                                    ownerId = ownerId,
-                                                    userId = userId,
-                                                    code = code,
-                                                    record = record,
-                                                    existingMemberId = existing?.id
-                                                )
-                                            } else {
-                                                joinTreeImmediately(
-                                                    treeId = targetTreeId,
-                                                    treeName = treeName,
-                                                    ownerId = ownerId,
-                                                    userId = userId,
-                                                    code = code,
-                                                    record = record,
-                                                    existingMemberId = existing?.id
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-                            },
-                            onFailure = {
-                                if (tree?.isPrivate == true) {
                                     submitPendingJoinRequest(
                                         treeId = targetTreeId,
                                         treeName = treeName,
@@ -292,19 +356,20 @@ class JoinTreeActivity : AppCompatActivity() {
                                         userId = userId,
                                         code = code,
                                         record = record,
-                                        existingMemberId = null
-                                    )
-                                } else {
-                                    joinTreeImmediately(
-                                        treeId = targetTreeId,
-                                        treeName = treeName,
-                                        ownerId = ownerId,
-                                        userId = userId,
-                                        code = code,
-                                        record = record,
-                                        existingMemberId = null
+                                        existingMemberId = existing?.id
                                     )
                                 }
+                            },
+                            onFailure = {
+                                submitPendingJoinRequest(
+                                    treeId = targetTreeId,
+                                    treeName = treeName,
+                                    ownerId = ownerId,
+                                    userId = userId,
+                                    code = code,
+                                    record = record,
+                                    existingMemberId = null
+                                )
                             }
                         )
                     },
@@ -349,14 +414,15 @@ class JoinTreeActivity : AppCompatActivity() {
             ?: user?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() }
             ?: "Family Member"
         val userEmail = user?.email.orEmpty()
+        val deterministicId = existingMemberId?.takeIf { it.isNotBlank() } ?: "${treeId}_${userId}"
 
         val pendingMember = TreeMember(
-            id = existingMemberId.orEmpty(),
+            id = deterministicId,
             treeId = treeId,
             userId = userId,
             userName = userName,
             userEmail = userEmail,
-            role = "Viewer",
+            role = "Pending_Join",
             status = "Pending"
         )
 
@@ -364,19 +430,28 @@ class JoinTreeActivity : AppCompatActivity() {
             firestoreHelper.incrementInviteCodeUsage(code, record.usageCount, record.usageLimit)
 
             if (ownerId.isNotEmpty()) {
+                val emailSuffix = if (userEmail.isNotBlank()) " ($userEmail)" else ""
                 val ownerNotif = NotificationRecord(
                     treeId = treeId,
                     userId = ownerId,
-                    title = "Join Request Pending Approval",
-                    message = "$userName requested to join private tree '$treeName' using invite code $code.",
-                    type = NotificationHelper.CATEGORY_ACCESS,
+                    title = "🔑 Join Request Pending Approval",
+                    message = "$userName$emailSuffix requested to join '$treeName' using invite code $code. Tap to review in Privacy & Access.",
+                    type = "join_request",
                     targetId = treeId
                 )
                 firestoreHelper.addNotification(ownerNotif)
             }
 
             runOnUiThread {
+                activePendingMemberId = deterministicId
+                activePendingTreeId = treeId
+                activePendingTreeName = treeName
                 resetButton()
+                viewPendingHourglass?.setApprovedMode(false)
+                tvPendingHeaderTitle?.text = "Request sent"
+                tvPendingStatusLabel?.text = "⏳  Pending approval"
+                tvPendingStatusSub?.text = "You'll be notified once the owner approves your request."
+                btnCancelPendingJoinRequest?.visibility = View.VISIBLE
                 layoutJoinForm.visibility = View.GONE
                 layoutPendingApproval.visibility = View.VISIBLE
                 tvPendingTreeMessage.text = "Your request to join \"$treeName\" has been sent to the tree owner for approval."
@@ -393,7 +468,7 @@ class JoinTreeActivity : AppCompatActivity() {
                 }
             )
         } else {
-            firestoreHelper.updateTreeMemberRole(existingMemberId, "Viewer", "Pending",
+            firestoreHelper.updateTreeMemberRole(existingMemberId, "Pending_Join", "Pending",
                 onSuccess = onRequestSubmitted,
                 onFailure = { err ->
                     resetButton()

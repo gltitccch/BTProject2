@@ -52,7 +52,16 @@ class PendingRequestAdapter(
             tvAvatar.text = initial
             tvName.text = member.userName.ifBlank { member.userEmail.substringBefore("@") }
             tvEmail.text = member.userEmail
-            tvRequestedRoleTag?.text = "🍃 Wants: Editor Access"
+
+            val isJoinRequest = member.role.equals("Pending_Join", ignoreCase = true) ||
+                member.status.equals("Pending", ignoreCase = true)
+            if (isJoinRequest) {
+                tvRequestedRoleTag?.text = "🔑 Join Tree Request"
+                btnApprove.text = "Accept to Tree ✓"
+            } else {
+                tvRequestedRoleTag?.text = "🍃 Wants: Editor Access"
+                btnApprove.text = "Approve as Editor ✓"
+            }
 
             btnApprove.setOnClickListener { onApprove(member) }
             btnReject.setOnClickListener { onReject(member) }

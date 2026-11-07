@@ -24,11 +24,23 @@ class RelationshipExplainer {
         }
 
         return when (label) {
-            "Parent / Child" ->
-                "$nameA and $nameB are in a direct parent-child relationship (1st Civil Degree, Lineal)."
+            "Parent / Child" -> {
+                val (parent, child) = if (distanceA == 0) personA to personB else personB to personA
+                val pName = "${parent.firstName} ${parent.lastName}".trim()
+                val cName = "${child.firstName} ${child.lastName}".trim()
+                val pRole = if (parent.gender.equals("Male", ignoreCase = true)) "father" else if (parent.gender.equals("Female", ignoreCase = true)) "mother" else "parent"
+                val cRole = if (child.gender.equals("Male", ignoreCase = true)) "son" else if (child.gender.equals("Female", ignoreCase = true)) "daughter" else "child"
+                "$nameA and $nameB are in a direct parent-child relationship (1st Civil Degree, Lineal): $pName is the $pRole and $cName is the $cRole."
+            }
 
-            "Grandparent / Grandchild" ->
-                "$nameA and $nameB are grandparent and grandchild, separated by two generational steps in a direct bloodline (2nd Civil Degree, Lineal)."
+            "Grandparent / Grandchild" -> {
+                val (gp, gc) = if (distanceA == 0) personA to personB else personB to personA
+                val gpName = "${gp.firstName} ${gp.lastName}".trim()
+                val gcName = "${gc.firstName} ${gc.lastName}".trim()
+                val gpRole = if (gp.gender.equals("Male", ignoreCase = true)) "grandfather" else if (gp.gender.equals("Female", ignoreCase = true)) "grandmother" else "grandparent"
+                val gcRole = if (gc.gender.equals("Male", ignoreCase = true)) "grandson" else if (gc.gender.equals("Female", ignoreCase = true)) "granddaughter" else "grandchild"
+                "$nameA and $nameB are grandparent and grandchild, separated by two generational steps in a direct bloodline (2nd Civil Degree, Lineal): $gpName is the $gpRole and $gcName is the $gcRole."
+            }
 
             "Great-Grandparent / Great-Grandchild" ->
                 "$nameA and $nameB are great-grandparent and great-grandchild, separated by three generations in a direct bloodline (3rd Civil Degree, Lineal)."
@@ -43,12 +55,31 @@ class RelationshipExplainer {
                     "$nameA and $nameB are half-siblings because they share biological parent $ancestorName, separated by 2 civil degrees."
                 }
 
-            "Uncle/Aunt and Niece/Nephew" ->
-                if (isDualAncestors) {
-                    "$nameA and $nameB are full uncle/aunt and niece/nephew (3rd Civil Degree). One is the full sibling of the other's parent through common ancestors $ancestorName."
+            "Uncle/Aunt and Niece/Nephew" -> {
+                val aIsElderGen = distanceA < distanceB
+                val elderGen = if (aIsElderGen) personA else personB
+                val youngerGen = if (aIsElderGen) personB else personA
+                val elderName = "${elderGen.firstName} ${elderGen.lastName}".trim()
+                val youngerName = "${youngerGen.firstName} ${youngerGen.lastName}".trim()
+                val elderRole = if (elderGen.gender.equals("Male", ignoreCase = true)) "uncle" else if (elderGen.gender.equals("Female", ignoreCase = true)) "aunt" else "uncle/aunt"
+                val youngerRole = if (youngerGen.gender.equals("Male", ignoreCase = true)) "nephew" else if (youngerGen.gender.equals("Female", ignoreCase = true)) "niece" else "niece/nephew"
+
+                val baseText = if (isDualAncestors) {
+                    "$nameA and $nameB are full uncle/aunt and niece/nephew (3rd Civil Degree): $elderName is the full $elderRole and $youngerName is the $youngerRole through common ancestors $ancestorName."
                 } else {
-                    "$nameA and $nameB are uncle/aunt and niece/nephew (3rd Civil Degree). One is the sibling of the other's parent through common ancestor $ancestorName."
+                    "$nameA and $nameB are uncle/aunt and niece/nephew (3rd Civil Degree): $elderName is the $elderRole and $youngerName is the $youngerRole through common ancestor $ancestorName."
                 }
+
+                val elderBirthYr = FamilyLinkValidator.extractYear(elderGen.birthDate)
+                val youngerBirthYr = FamilyLinkValidator.extractYear(youngerGen.birthDate)
+                val ageNote = if (elderBirthYr != null && youngerBirthYr != null && elderBirthYr > youngerBirthYr) {
+                    val diff = elderBirthYr - youngerBirthYr
+                    " Generational vs. Age Note: Although $youngerName (born $youngerBirthYr) is $diff year(s) older than $elderName (born $elderBirthYr), $elderName is 1 generation closer to $ancestorName (a child of $ancestorName), whereas $youngerName is a grandchild of $ancestorName (2 steps down). In genealogy, generational steps from the shared ancestor — not chronological age — determine the $elderRole and $youngerRole titles."
+                } else {
+                    ""
+                }
+                baseText + ageNote
+            }
 
             "First Cousins" ->
                 if (isDualAncestors) {
@@ -57,8 +88,22 @@ class RelationshipExplainer {
                     "$nameA and $nameB are half-first cousins (4th Civil Degree, Collateral). They share common grandparent $ancestorName, with each being 2 generational steps away."
                 }
 
-            "Great-Uncle/Aunt and Grandniece/Grandnephew" ->
-                "$nameA and $nameB are great-uncle/aunt and grandniece/nephew (4th Civil Degree, Collateral) through common ancestor(s) $ancestorName."
+            "Double First Cousins" ->
+                "$nameA and $nameB are double first cousins (4th Civil Degree, Collateral). Both of their paternal and maternal parent lines are full siblings, meaning they share grandparents on both sides of the family ($ancestorName), with each being 2 generational steps away."
+
+            "Half-Double First Cousins" ->
+                "$nameA and $nameB are half-double first cousins (4th Civil Degree, Collateral). They are first cousins through both sides of their family ($ancestorName), where at least one pair of connecting parents are half-siblings rather than full siblings (2 generational steps each)."
+
+            "Great-Uncle/Aunt and Grandniece/Grandnephew" -> {
+                val aIsElderGen = distanceA < distanceB
+                val elderGen = if (aIsElderGen) personA else personB
+                val youngerGen = if (aIsElderGen) personB else personA
+                val elderName = "${elderGen.firstName} ${elderGen.lastName}".trim()
+                val youngerName = "${youngerGen.firstName} ${youngerGen.lastName}".trim()
+                val elderRole = if (elderGen.gender.equals("Male", ignoreCase = true)) "great-uncle" else if (elderGen.gender.equals("Female", ignoreCase = true)) "great-aunt" else "great-uncle/aunt"
+                val youngerRole = if (youngerGen.gender.equals("Male", ignoreCase = true)) "grandnephew" else if (youngerGen.gender.equals("Female", ignoreCase = true)) "grandniece" else "grandniece/nephew"
+                "$nameA and $nameB are great-uncle/aunt and grandniece/nephew (4th Civil Degree, Collateral): $elderName is the $elderRole and $youngerName is the $youngerRole through common ancestor(s) $ancestorName."
+            }
 
             "First Cousin Once Removed" ->
                 "$nameA and $nameB are first cousins once removed (5th Civil Degree). They share common ancestor(s) $ancestorName at different generational levels ($distanceA and $distanceB steps)."

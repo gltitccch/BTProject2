@@ -24,11 +24,14 @@ class NotificationsActivity : AppCompatActivity() {
     private var allNotifications = listOf<NotificationRecord>()
     private var selectedCategory = NotificationHelper.CATEGORY_ALL
     private var announcementListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var userNotificationsListener: com.google.firebase.firestore.ListenerRegistration? = null
 
     override fun onDestroy() {
         super.onDestroy()
         announcementListener?.remove()
         announcementListener = null
+        userNotificationsListener?.remove()
+        userNotificationsListener = null
     }
 
     private lateinit var adapter: NotificationAdapter
@@ -162,6 +165,18 @@ class NotificationsActivity : AppCompatActivity() {
                         checkInactivityReminders(currentUserId)
                     }
                 }
+                userNotificationsListener?.remove()
+                userNotificationsListener = firestoreHelper.listenToUserNotifications(currentUserId) { liveUserNotifs ->
+                    runOnUiThread {
+                        if (isFinishing || isDestroyed) return@runOnUiThread
+                        val advisoryItems = allNotifications.filter { it.id.startsWith("SYS_ANN_") }
+                        val merged = (advisoryItems + liveUserNotifs + allNotifications.filter { !it.id.startsWith("SYS_ANN_") })
+                            .distinctBy { it.id }
+                            .sortedByDescending { it.timestamp }
+                        allNotifications = merged
+                        applyFilter()
+                    }
+                }
             },
             onFailure = {
                 layoutEmpty.visibility = View.VISIBLE
@@ -177,7 +192,7 @@ class NotificationsActivity : AppCompatActivity() {
     private fun checkInactivityReminders(currentUserId: String) {
         firestoreHelper.getTree(treeId,
             onSuccess = { tree ->
-                val isOwner = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                val isOwner = tree == null || tree.isOwnedBy(currentUserId)
                 if (isOwner) {
                     firestoreHelper.getTreeMembers(treeId,
                         onSuccess = { members ->
@@ -248,6 +263,23 @@ class NotificationsActivity : AppCompatActivity() {
             applyFilter()
         }
 
+        // Automatic Redirect to Privacy & Access when clicking a Join Request or Role Upgrade notification
+        val isJoinRequestNotif = item.type.equals("join_request", ignoreCase = true) ||
+            item.title.contains("Join Request Pending Approval", ignoreCase = true) ||
+            item.title.contains("New Join Request", ignoreCase = true)
+        val isRoleUpgradeNotif = item.type.equals("role_upgrade_request", ignoreCase = true)
+
+        if (isJoinRequestNotif || isRoleUpgradeNotif) {
+            val targetTreeId = item.treeId.ifBlank { item.targetId }.ifBlank { treeId }
+            val intent = android.content.Intent(this, PrivacyControlsActivity::class.java).apply {
+                if (targetTreeId.isNotBlank()) putExtra("TREE_ID", targetTreeId)
+                putExtra("OPEN_JOIN_REQUESTS", true)
+                putExtra("OPEN_ROLE_TAB", isRoleUpgradeNotif)
+            }
+            startActivity(intent)
+            return
+        }
+
         val builder = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle(com.example.btproject2.utils.NotificationHelper.sanitizeNotificationTitle(item.title))
             .setMessage(item.message)
@@ -281,6 +313,9 @@ class NotificationsActivity : AppCompatActivity() {
                 )
             }
             builder.setNegativeButton("Close", null)
+        } else if (item.type.equals("CLAN_MERGE_COMPLETED", ignoreCase = true)) {
+            builder.setPositiveButton("Got It") { d, _ -> d.dismiss() }
+            builder.setNegativeButton("← Back", null)
         } else {
             builder.setPositiveButton("Got It") { d, _ -> d.dismiss() }
         }

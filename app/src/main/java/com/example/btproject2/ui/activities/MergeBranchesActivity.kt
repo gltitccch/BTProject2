@@ -297,6 +297,17 @@ class MergeBranchesActivity : AppCompatActivity() {
                     context = this,
                     onSuccess = {
                         runOnUiThread {
+                            if (snapshot.snapshotType == MergeRollbackSnapshot.TYPE_CLAN_SYNTHESIS &&
+                                com.example.btproject2.utils.TreePreferences.getActiveTreeId(this) == snapshot.synthesizedMasterTreeId
+                            ) {
+                                val fallbackTree = allPersonalTrees.firstOrNull()
+                                val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                                if (fallbackTree != null) {
+                                    com.example.btproject2.utils.TreePreferences.setActiveTree(this, fallbackTree.id, fallbackTree.name, currentUserId)
+                                } else {
+                                    com.example.btproject2.utils.TreePreferences.clear(this)
+                                }
+                            }
                             btnExecuteMergeRollback?.isEnabled = true
                             btnExecuteMergeRollback?.text = "⏪ Undo Last Merge & Restore State"
                             cardRollbackSnapshot?.visibility = View.GONE
@@ -324,7 +335,7 @@ class MergeBranchesActivity : AppCompatActivity() {
         if (activeTreeId.isNotEmpty()) {
             firestoreHelper.getTree(activeTreeId,
                 onSuccess = { tree ->
-                    val isOwner = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                    val isOwner = tree == null || tree.isOwnedBy(currentUserId)
                     if (isOwner) {
                         tvMergeRoleBadge.text = "★ Owner"
                         isViewerOnly = false
@@ -609,12 +620,12 @@ class MergeBranchesActivity : AppCompatActivity() {
         }
 
         val currentUserId = authHelper.getCurrentUserId() ?: ""
-        val canDeleteClan = !isViewerOnly && (tree.ownerId.isEmpty() || tree.ownerId == currentUserId)
+        val canDeleteClan = !isViewerOnly && tree.isOwnedBy(currentUserId)
         btnDelete.visibility = if (canDeleteClan) View.VISIBLE else View.GONE
 
         btnDelete.setOnClickListener {
             if (!canDeleteClan) {
-                KinTraceAlert.warning(this, "Permission Restricted", "Only the Clan Tree owner can delete a Master Clan Tree.")
+                KinTraceAlert.warning(this, "Permission Restricted", "Only a Clan Tree owner can delete a Master Clan Tree.")
                 return@setOnClickListener
             }
             com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
@@ -626,6 +637,14 @@ class MergeBranchesActivity : AppCompatActivity() {
                         treeId = tree.id,
                         context = this,
                         onSuccess = {
+                            if (com.example.btproject2.utils.TreePreferences.getActiveTreeId(this) == tree.id) {
+                                val fallbackTree = allPersonalTrees.firstOrNull()
+                                if (fallbackTree != null) {
+                                    com.example.btproject2.utils.TreePreferences.setActiveTree(this, fallbackTree.id, fallbackTree.name, currentUserId)
+                                } else {
+                                    com.example.btproject2.utils.TreePreferences.clear(this)
+                                }
+                            }
                             progressBarMerge.visibility = View.GONE
                             KinTraceAlert.show(this, "Master Clan Tree deleted.")
                             clanRefreshHandler.removeCallbacks(clanRefreshRunnable)
@@ -715,7 +734,9 @@ class MergeBranchesActivity : AppCompatActivity() {
         fun formatCandidateLabel(p: Person): String {
             val isMarried = p.maritalStatus.equals("Married", ignoreCase = true) || !p.spouseId.isNullOrEmpty()
             val badge = if (isMarried) " [Married]" else ""
-            return "${p.firstName} ${p.lastName}$badge"
+            val birthYear = Regex("(18|19|20)\\d{2}").find(p.birthDate)?.value
+            val yearTag = if (birthYear != null) " (b. $birthYear)" else ""
+            return "${p.firstName} ${p.lastName}$yearTag$badge"
         }
 
         fun updateDefaultMasterTreeName() {
@@ -800,8 +821,13 @@ class MergeBranchesActivity : AppCompatActivity() {
                 tvAnchor1Label.text = "Member from ${selectedTree.name}"
                 firestoreHelper.getPersonsByTree(selectedTree.id,
                     onSuccess = { list ->
-                        personsTree1 = list
-                        val names = list.map { formatCandidateLabel(it) }
+                        val dedupPlan = FirestoreHelper.planTreeDeduplication(list)
+                        if (dedupPlan.hasDuplicates) {
+                            firestoreHelper.deduplicateTreeMembers(selectedTree.id)
+                        }
+                        val sortedClean = dedupPlan.cleanedMembers.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+                        personsTree1 = sortedClean
+                        val names = sortedClean.map { formatCandidateLabel(it) }
                         spinnerAnchorPerson1.setDarkAdapter(this, if (names.isEmpty()) listOf("No members recorded") else names)
                         updateSummaryAndValidation()
                     },
@@ -821,8 +847,13 @@ class MergeBranchesActivity : AppCompatActivity() {
                     tvAnchor2Label.text = "Member from ${selectedTree.name}"
                     firestoreHelper.getPersonsByTree(selectedTree.id,
                         onSuccess = { list ->
-                            personsTree2 = list
-                            val names = list.map { formatCandidateLabel(it) }
+                            val dedupPlan = FirestoreHelper.planTreeDeduplication(list)
+                            if (dedupPlan.hasDuplicates) {
+                                firestoreHelper.deduplicateTreeMembers(selectedTree.id)
+                            }
+                            val sortedClean = dedupPlan.cleanedMembers.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+                            personsTree2 = sortedClean
+                            val names = sortedClean.map { formatCandidateLabel(it) }
                             spinnerAnchorPerson2.setDarkAdapter(this, if (names.isEmpty()) listOf("No members recorded") else names)
                             updateSummaryAndValidation()
                         },
@@ -836,8 +867,13 @@ class MergeBranchesActivity : AppCompatActivity() {
                 tvAnchor2Label.text = "Member from ${externalTreeLoaded!!.name}"
                 firestoreHelper.getPersonsByTree(externalTreeLoaded!!.id,
                     onSuccess = { list ->
-                        personsTree2 = list
-                        val names = list.map { formatCandidateLabel(it) }
+                        val dedupPlan = FirestoreHelper.planTreeDeduplication(list)
+                        if (dedupPlan.hasDuplicates) {
+                            firestoreHelper.deduplicateTreeMembers(externalTreeLoaded!!.id)
+                        }
+                        val sortedClean = dedupPlan.cleanedMembers.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+                        personsTree2 = sortedClean
+                        val names = sortedClean.map { formatCandidateLabel(it) }
                         spinnerAnchorPerson2.setDarkAdapter(this, if (names.isEmpty()) listOf("No members recorded") else names)
                         updateSummaryAndValidation()
                     },
@@ -1040,7 +1076,12 @@ class MergeBranchesActivity : AppCompatActivity() {
                         }
 
                         verifiedExternalTree = tree
-                        tvInviteCodeResult.text = "✓ Clan Tree: ${tree.name} (${tree.memberCount} members)"
+                        val tierCapLabel = if (tree.effectiveQuota > FamilyTree.DEFAULT_FREEMIUM_QUOTA) {
+                            " • ${tree.effectiveQuota} Tier Cap"
+                        } else {
+                            ""
+                        }
+                        tvInviteCodeResult.text = "✓ Clan Tree: ${tree.name} (${tree.memberCount} Unique Members$tierCapLabel)"
                         tvInviteCodeResult.setTextColor(androidx.core.content.ContextCompat.getColor(this@MergeBranchesActivity, R.color.status_mint_text))
                         updateDefaultMasterTreeName()
 
@@ -1231,12 +1272,18 @@ class MergeBranchesActivity : AppCompatActivity() {
                     val coOwners = listOfNotNull(owner1Id, owner2Id).filter { it.isNotBlank() }.distinct()
 
                     // 4. Create Master Tree C record
+                    val combinedQuota = maxOf(
+                        (tree1?.effectiveQuota ?: 50) + (tree2?.effectiveQuota ?: 50),
+                        clonedList.size + 50,
+                        250
+                    )
                     val masterTree = FamilyTree(
                         id = masterTreeId,
                         name = masterTreeName,
                         ownerId = currentUserId,
                         ownerName = currentUserName,
                         memberCount = clonedList.size,
+                        memberQuota = combinedQuota,
                         createdAt = System.currentTimeMillis(),
                         treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
                         bridgeDescription = bridgeDesc,
@@ -1292,8 +1339,13 @@ class MergeBranchesActivity : AppCompatActivity() {
                             loadClanTrees()
 
                             com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                                .setTitle("Master Clan Tree Created!")
-                                .setMessage("'${createdTree.name}' has been created with ${createdTree.memberCount} members in your Merged Clan Space.\n\n🛡️ Pre-Merge Snapshot Active: Your original family trees remain untouched, and you can undo this synthesis in 1 tap from the Merge screen.\n\nWould you like to explore the Clan Canvas now?")
+                                .setTitle("🏛️ Master Clan Tree Created!")
+                                .setMessage(
+                                    "'${createdTree.name}' has been created with ${createdTree.memberCount} members in your Merged Clan Space.\n\n" +
+                                    "💡 Optional Tree Switcher: Your current active family tree has NOT been changed. Whenever you want, you can also open this Merged Clan Tree from the 'Select Family Tree' switcher on your Home Dashboard!\n\n" +
+                                    "🔔 Notification Saved: A merge confirmation has been added to your Notifications Center.\n\n" +
+                                    "🛡️ Pre-Merge Snapshot Active: Your original family trees remain 100% untouched."
+                                )
                                 .setPositiveButton("👁️ View Clan Canvas") { _, _ ->
                                     val intent = Intent(this, InteractiveTreeActivity::class.java).apply {
                                         putExtra("TREE_ID", createdTree.id)
@@ -1302,7 +1354,7 @@ class MergeBranchesActivity : AppCompatActivity() {
                                     }
                                     startActivity(intent)
                                 }
-                                .setNegativeButton("Done", null)
+                                .setNegativeButton("← Back", null)
                                 .show()
                         },
                         onFailure = { err ->

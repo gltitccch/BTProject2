@@ -14,8 +14,11 @@ data class FamilyTree(
     @get:PropertyName("isPrivate") @set:PropertyName("isPrivate") var isPrivate: Boolean = false,
     val memberCount: Int = 1,
     val memberQuota: Int = DEFAULT_FREEMIUM_QUOTA,
+    val previousMemberQuota: Int = DEFAULT_FREEMIUM_QUOTA,
     @get:PropertyName("quotaExpansionRequested") @set:PropertyName("quotaExpansionRequested") var quotaExpansionRequested: Boolean = false,
     val quotaRequestedAt: Long = 0L,
+    val quotaApprovedAt: Long = 0L,
+    val quotaApprovedBy: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val treeType: String = TREE_TYPE_PERSONAL,
     val bridgeDescription: String = "",
@@ -44,6 +47,21 @@ data class FamilyTree(
             effectiveQuota < 500 -> 500
             else -> effectiveQuota + increment
         }
+    }
+
+    @com.google.firebase.firestore.Exclude
+    fun isOwnedBy(userId: String): Boolean {
+        return ownerId.isEmpty() || (userId.isNotBlank() && (ownerId == userId || coOwnerIds.contains(userId)))
+    }
+
+    @com.google.firebase.firestore.Exclude
+    fun isMergedClan(): Boolean {
+        return treeType.equals(TREE_TYPE_MERGED_CLAN, ignoreCase = true)
+    }
+
+    @com.google.firebase.firestore.Exclude
+    fun switcherDisplayLabel(): String {
+        return if (isMergedClan()) "🏛️ $name (Merged Clan)" else name
     }
 
     companion object {

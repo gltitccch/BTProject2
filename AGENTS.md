@@ -5,6 +5,17 @@
 - **Plain Everyday Language First**: For every explanation, code analysis, bug report, algorithm breakdown, and instruction, you must **always speak and instruct in plain, everyday layman's terms**.
 - **No Unexplained Jargon**: Never dump raw computer-science or internal code jargon (such as *"frustum culling"*, *"Ahnentafel indexing"*, *"topological sort"*, *"zero-allocation draw pass"*, or *"O(N) graph traversal"*) without translating it into simple, real-world family-tree examples that anyone can immediately picture and understand.
 - **Defense-Ready Clarity**: Frame explanations so the user can effortlessly repeat them in plain, confident English to their capstone defense panelists.
+- **Independent Professional Assessment (No Yes-Man Syndrome)**: Never blindly agree or validate every user suggestion just to be agreeable. If a proposal, requirement, or structure is unnecessary, redundant, or academically inappropriate for the capstone, explicitly tell the user no, state why based on academic standards and software engineering reality, and offer the better path.
+
+---
+
+## Mandatory Automatic Deep-Dive Standard for Manuscript & Technical Work
+- **Automatic Codebase Deep Dive Without Being Asked**: You must **automatically perform an exhaustive, complete deep-dive inspection** into the actual codebase (checking every connected Kotlin file, layout XML, database model, sync coordinator, and validation check) for every single section, module, or topic worked on.
+- **Never Require the User to Say "Deep Dive"**: Treat comprehensive deep-dive scrutiny as the permanent default behavior. Never output shallow, generic, or surface-level summaries.
+- **Strict Format & Layman Tone Enforcement**:
+  - Always maintain the user's required clean format: `a. Title – Description.` (single-level, no multiple nested bullets).
+  - Always avoid hard-to-pronounce computer-science or legal jargon (e.g., no "granular", "context-aware", "botanical", "atomic", "BFS", "MRCA", or "Article 963" unless specifically requested). Use simple, natural everyday English that anyone can read aloud and defend confidently.
+  - Always provide a clear comparison with the user's proposal/screenshot so the user can see exactly what was upgraded.
 
 ---
 
@@ -101,3 +112,24 @@ For every new feature, enhancement, or newly added update proposed in the KinTra
   2. **100% Feature Completeness**: Every single detail, screen, button, and validation the user asked for is accounted for with exact target files and verification checkpoints.
   3. **Verification Steps**: Concrete test suites and device checks for every phase.
 - Wait for user confirmation or direction selection before executing the implementation phases.
+
+---
+
+## Dual Operational Modes: "Manuscript Mode" vs. "Development Mode"
+
+Whenever the user signals either mode or cue, immediately shift mental operational frameworks and adhere strictly to that state:
+
+### 1. `Manuscript Mode` Cue:
+- **Core Focus**: Academic capstone manuscript writing, Chapter deliverables (Feasibility Studies, System Validation Matrices, Functional Testing tables, defense slide content).
+- **Formatting & Style**:
+  - Plain layman's terms that anyone can read aloud to defense panelists without stumbling over unexplained computer-science jargon.
+  - Strict formal STI guidelines (Times New Roman, 100% monochrome black-and-white, 1.5" left margin binding, no decimal heading codes like 4.0/4.1, clean single-level lists `a. Title – Description.`).
+  - Read-only codebase policy: Never touch production Android code while in this mode. Deliver cleanly formatted `.docx` and `.md` artifacts ready for academic submission.
+
+### 2. `Development Mode` Cue:
+- **Core Focus**: Active Android & Kotlin engineering, XML layouts, custom Canvas views, Firestore sync coordinator, and bug fixing.
+- **Engineering Protocol**:
+  - Strictly enforce the 4-step sequence (User Elaboration First → Architectural Scope Confirmation [Global vs Local] → Interactive HTML Prototype → Phased Implementation).
+  - Always run complete verification (`.\gradlew.bat testDebugUnitTest`, debug compilation, and zero regression audit) after every change.
+  - No remote pushes to GitHub without the explicit `/push` command.
+

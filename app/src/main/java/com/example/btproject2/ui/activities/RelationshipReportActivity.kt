@@ -196,10 +196,15 @@ class RelationshipReportActivity : AppCompatActivity() {
         } else {
             tvDegreePill.text = result.relationshipCategory
         }
-        tvRelTitle.text = if (result.bloodlineSubtype.isNotBlank() && result.relationshipCategory == "Collateral") {
-            "${result.relationshipType} (${result.bloodlineSubtype})"
-        } else {
-            result.relationshipType
+        tvRelTitle.text = when {
+            result.bloodlineSubtype.isBlank() || result.relationshipCategory != "Collateral" ->
+                result.relationshipType
+            result.bloodlineSubtype.startsWith(result.relationshipType, ignoreCase = true) ->
+                result.bloodlineSubtype
+            result.relationshipType.contains(result.bloodlineSubtype, ignoreCase = true) ->
+                result.relationshipType
+            else ->
+                "${result.relationshipType} (${result.bloodlineSubtype})"
         }
         val isAffinity = result.relationshipCategory.contains("Affinity", ignoreCase = true) ||
             result.relationshipCategory.contains("Spousal", ignoreCase = true)

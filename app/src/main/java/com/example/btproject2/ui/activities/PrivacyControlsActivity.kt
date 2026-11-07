@@ -48,10 +48,31 @@ class PrivacyControlsActivity : AppCompatActivity() {
     private lateinit var authorizedAdapter: AuthorizedMemberAdapter
     private lateinit var pendingAdapter: PendingRequestAdapter
 
+    private var cardPendingJoinRequestsTile: View? = null
+    private var tvPendingJoinCountBadge: TextView? = null
+    private var tvPendingJoinRequestsSubtitle: TextView? = null
+    private var btnOpenPendingJoinRequestsSheet: View? = null
+    private var currentPendingJoinMembers: List<TreeMember> = emptyList()
+
+    private var cardOutgoingPendingJoinTile: View? = null
+    private var tvOutgoingPendingTreeTitle: TextView? = null
+    private var tvOutgoingPendingTreeSubtitle: TextView? = null
+    private var viewOutgoingMiniHourglass: com.example.btproject2.views.PendingSandHourglassView? = null
+
     private var cardPendingRequestsTile: View? = null
     private var tvPendingCountBadge: TextView? = null
     private var btnOpenPendingRequestsSheet: View? = null
     private var currentPendingMembers: List<TreeMember> = emptyList()
+
+    private var layoutApplicantPendingJoin: View? = null
+    private var viewPrivacyPendingHourglass: com.example.btproject2.views.PendingSandHourglassView? = null
+    private var tvPrivacyPendingTreeTitle: TextView? = null
+    private var tvPrivacyPendingMessage: TextView? = null
+    private var btnPrivacyWithdrawJoinRequest: Button? = null
+    private var btnPrivacyPendingBackHome: Button? = null
+
+    private var treeMembersListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var hasAutoOpenedJoinSheet: Boolean = false
 
     private var currentTree: FamilyTree? = null
     private var currentSettings = PrivacySettings(treeId = treeId)
@@ -80,6 +101,23 @@ class PrivacyControlsActivity : AppCompatActivity() {
         layoutPendingRequests = findViewById(R.id.layoutPendingRequests)
         rvPendingRequests = findViewById(R.id.rvPendingRequests)
 
+        cardPendingJoinRequestsTile = findViewById(R.id.cardPendingJoinRequestsTile)
+        tvPendingJoinCountBadge = findViewById(R.id.tvPendingJoinCountBadge)
+        tvPendingJoinRequestsSubtitle = findViewById(R.id.tvPendingJoinRequestsSubtitle)
+        btnOpenPendingJoinRequestsSheet = findViewById(R.id.btnOpenPendingJoinRequestsSheet)
+
+        btnOpenPendingJoinRequestsSheet?.setOnClickListener {
+            showPendingJoinRequestsBottomSheet()
+        }
+        cardPendingJoinRequestsTile?.setOnClickListener {
+            showPendingJoinRequestsBottomSheet()
+        }
+
+        cardOutgoingPendingJoinTile = findViewById(R.id.cardOutgoingPendingJoinTile)
+        tvOutgoingPendingTreeTitle = findViewById(R.id.tvOutgoingPendingTreeTitle)
+        tvOutgoingPendingTreeSubtitle = findViewById(R.id.tvOutgoingPendingTreeSubtitle)
+        viewOutgoingMiniHourglass = findViewById(R.id.viewOutgoingMiniHourglass)
+
         cardPendingRequestsTile = findViewById(R.id.cardPendingRequestsTile)
         tvPendingCountBadge = findViewById(R.id.tvPendingCountBadge)
         btnOpenPendingRequestsSheet = findViewById(R.id.btnOpenPendingRequestsSheet)
@@ -90,6 +128,15 @@ class PrivacyControlsActivity : AppCompatActivity() {
         cardPendingRequestsTile?.setOnClickListener {
             showPendingRequestsBottomSheet()
         }
+
+        layoutApplicantPendingJoin = findViewById(R.id.layoutApplicantPendingJoin)
+        viewPrivacyPendingHourglass = findViewById(R.id.viewPrivacyPendingHourglass)
+        tvPrivacyPendingTreeTitle = findViewById(R.id.tvPrivacyPendingTreeTitle)
+        tvPrivacyPendingMessage = findViewById(R.id.tvPrivacyPendingMessage)
+        btnPrivacyWithdrawJoinRequest = findViewById(R.id.btnPrivacyWithdrawJoinRequest)
+        btnPrivacyPendingBackHome = findViewById(R.id.btnPrivacyPendingBackHome)
+
+        btnPrivacyPendingBackHome?.setOnClickListener { finish() }
 
         btnBack.setOnClickListener { finish() }
 
@@ -159,6 +206,7 @@ class PrivacyControlsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        checkOutgoingPendingJoinForOwner()
         com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialIfNotSeen(
             this,
             com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.PRIVACY_CONTROLS,
@@ -166,10 +214,27 @@ class PrivacyControlsActivity : AppCompatActivity() {
         )
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        treeMembersListener?.remove()
+        treeMembersListener = null
+    }
+
     private fun setupRecyclerViews() {
-        authorizedAdapter = AuthorizedMemberAdapter(isOwner = true) { member ->
-            showMemberRoleDialog(member)
-        }
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        authorizedAdapter = AuthorizedMemberAdapter(
+            isOwner = true,
+            currentUserId = currentUserId,
+            onSetRole = { member, newRole ->
+                updateMemberRole(member, newRole)
+            },
+            onRemoveMember = { member ->
+                removeMember(member)
+            },
+            onRoleClick = { member ->
+                showMemberRoleDialog(member)
+            }
+        )
         rvAuthorizedMembers.layoutManager = LinearLayoutManager(this)
         rvAuthorizedMembers.adapter = authorizedAdapter
 
@@ -200,15 +265,12 @@ class PrivacyControlsActivity : AppCompatActivity() {
                             com.example.btproject2.utils.TreePreferences.setActiveTree(this, resolved.id, resolved.name)
                             loadTreeData(resolved, currentUserId)
                         } else {
-                            currentTree = null
-                            layoutOwnerView.visibility = View.VISIBLE
-                            layoutOwnerGate.visibility = View.GONE
+                            // Check if this user has an active Pending Join Request waiting for acceptance
+                            checkApplicantPendingJoinStatus(currentUserId)
                         }
                     },
                     onFailure = {
-                        currentTree = null
-                        layoutOwnerView.visibility = View.VISIBLE
-                        layoutOwnerGate.visibility = View.GONE
+                        checkApplicantPendingJoinStatus(currentUserId)
                     }
                 )
             } else {
@@ -336,10 +398,118 @@ class PrivacyControlsActivity : AppCompatActivity() {
         )
     }
 
+    private fun checkApplicantPendingJoinStatus(currentUserId: String) {
+        firestoreHelper.getUserPendingJoinRequests(
+            userId = currentUserId,
+            onSuccess = { pendingList ->
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    val pending = pendingList.firstOrNull()
+                    if (pending != null) {
+                        layoutOwnerView.visibility = View.GONE
+                        layoutOwnerGate.visibility = View.GONE
+                        layoutApplicantPendingJoin?.visibility = View.VISIBLE
+                        viewPrivacyPendingHourglass?.setApprovedMode(false)
+                        tvPrivacyPendingTreeTitle?.text = "Pending Tree Approval"
+                        tvPrivacyPendingMessage?.text = "Your request to join this family tree is waiting for acceptance from the tree owner."
+
+                        if (pending.treeId.isNotBlank()) {
+                            firestoreHelper.getTree(pending.treeId,
+                                onSuccess = { tree ->
+                                    val tName = tree?.name?.takeIf { it.isNotBlank() } ?: "Family Tree"
+                                    runOnUiThread {
+                                        tvPrivacyPendingTreeTitle?.text = "⏳ $tName"
+                                        tvPrivacyPendingMessage?.text = "Your invite code request to join \"$tName\" is waiting for acceptance from the tree owner."
+                                    }
+                                },
+                                onFailure = {}
+                            )
+                        }
+
+                        btnPrivacyWithdrawJoinRequest?.setOnClickListener {
+                            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                                .setTitle("Withdraw Join Request")
+                                .setMessage("Cancel your pending join request?")
+                                .setPositiveButton("Withdraw") { _, _ ->
+                                    firestoreHelper.deleteTreeMember(pending.id,
+                                        onSuccess = {
+                                            KinTraceAlert.show(this, "Join request withdrawn")
+                                            finish()
+                                        },
+                                        onFailure = {
+                                            KinTraceAlert.show(this, "Could not withdraw request")
+                                        }
+                                    )
+                                }
+                                .setNegativeButton("Keep Waiting", null)
+                                .show()
+                        }
+                    } else {
+                        currentTree = null
+                        layoutApplicantPendingJoin?.visibility = View.GONE
+                        layoutOwnerView.visibility = View.VISIBLE
+                        layoutOwnerGate.visibility = View.GONE
+                    }
+                }
+            },
+            onFailure = {
+                currentTree = null
+                layoutOwnerView.visibility = View.VISIBLE
+                layoutOwnerGate.visibility = View.GONE
+            }
+        )
+    }
+
     private fun loadOwnerData(tree: FamilyTree) {
+        layoutApplicantPendingJoin?.visibility = View.GONE
         switchPrivateTree.isChecked = tree.isPrivate
         loadPrivacySettings()
         loadMembers()
+        checkOutgoingPendingJoinForOwner()
+    }
+
+    private fun checkOutgoingPendingJoinForOwner() {
+        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+        if (currentUserId.isBlank()) {
+            cardOutgoingPendingJoinTile?.visibility = View.GONE
+            return
+        }
+        firestoreHelper.getUserPendingJoinRequests(
+            userId = currentUserId,
+            onSuccess = { pendingList ->
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    val outgoing = pendingList.firstOrNull { it.treeId.isNotBlank() && it.treeId != treeId }
+                    if (outgoing != null) {
+                        cardOutgoingPendingJoinTile?.visibility = View.VISIBLE
+                        viewOutgoingMiniHourglass?.setApprovedMode(false)
+                        tvOutgoingPendingTreeTitle?.text = "Pending Acceptance"
+                        tvOutgoingPendingTreeSubtitle?.text = "Waiting for tree owner approval • Tap to view or cancel"
+                        firestoreHelper.getTree(outgoing.treeId,
+                            onSuccess = { targetTree ->
+                                val tName = targetTree?.name?.takeIf { it.isNotBlank() } ?: "Family Tree"
+                                val oName = targetTree?.ownerName?.takeIf { it.isNotBlank() } ?: "Tree Owner"
+                                runOnUiThread {
+                                    tvOutgoingPendingTreeTitle?.text = "🌳 $tName — Pending Acceptance"
+                                    tvOutgoingPendingTreeSubtitle?.text = "Waiting for $oName to approve • Tap to view or cancel"
+                                }
+                            },
+                            onFailure = {}
+                        )
+                        val openPendingClick = View.OnClickListener {
+                            startActivity(android.content.Intent(this, JoinTreeActivity::class.java))
+                        }
+                        cardOutgoingPendingJoinTile?.setOnClickListener(openPendingClick)
+                        findViewById<View?>(R.id.btnOpenOutgoingPendingJoin)?.setOnClickListener(openPendingClick)
+                    } else {
+                        cardOutgoingPendingJoinTile?.visibility = View.GONE
+                    }
+                }
+            },
+            onFailure = {
+                runOnUiThread { cardOutgoingPendingJoinTile?.visibility = View.GONE }
+            }
+        )
     }
 
     private fun loadPrivacySettings() {
@@ -356,44 +526,95 @@ class PrivacyControlsActivity : AppCompatActivity() {
     }
 
     private fun loadMembers() {
+        treeMembersListener?.remove()
+        treeMembersListener = firestoreHelper.listenToTreeMembers(treeId) { members ->
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                bindTreeMembersList(members)
+            }
+        }
         firestoreHelper.getTreeMembers(treeId,
             onSuccess = { members ->
-                if (members.isEmpty()) {
-                    // Seed initial owner member in Firestore if none exist
-                    val currentUserId = authHelper.getCurrentUserId() ?: ""
-                    val owner = TreeMember(
-                        id = "${treeId}_${currentUserId}".trim('_').ifBlank { "owner_default" },
-                        treeId = treeId,
-                        userId = currentUserId,
-                        userName = authHelper.getCurrentUser()?.displayName ?: "Tree Owner",
-                        userEmail = authHelper.getCurrentUser()?.email ?: "",
-                        role = "Owner",
-                        status = "Approved"
-                    )
-                    if (treeId.isNotBlank() && currentUserId.isNotBlank()) {
-                        firestoreHelper.addTreeMember(owner, onSuccess = {}, onFailure = {})
-                    }
-                    authorizedAdapter.submitList(listOf(owner))
-                } else {
-                    val approved = members.filter { it.status.equals("Approved", ignoreCase = true) }
-                    val pending = members.filter { it.status.equals("Pending", ignoreCase = true) }
-                    currentPendingMembers = pending
-
-                    authorizedAdapter.submitList(approved)
-
-                    if (pending.isNotEmpty()) {
-                        cardPendingRequestsTile?.visibility = View.VISIBLE
-                        tvPendingCountBadge?.text = "${pending.size} Pending"
-                        layoutPendingRequests.visibility = View.GONE
-                        pendingAdapter.submitList(pending)
-                    } else {
-                        cardPendingRequestsTile?.visibility = View.GONE
-                        layoutPendingRequests.visibility = View.GONE
-                    }
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    bindTreeMembersList(members)
                 }
             },
             onFailure = {}
         )
+    }
+
+    private fun updateUnifiedPendingTileSummary() {
+        val joinCount = currentPendingJoinMembers.size
+        val roleCount = currentPendingMembers.size
+        val total = joinCount + roleCount
+        cardPendingJoinRequestsTile?.visibility = View.VISIBLE
+        cardPendingRequestsTile?.visibility = View.GONE
+        layoutPendingRequests.visibility = View.GONE
+
+        tvPendingJoinCountBadge?.text = "$total Pending"
+        tvPendingJoinRequestsSubtitle?.text = when {
+            joinCount > 0 && roleCount > 0 ->
+                "$joinCount Join Request${if (joinCount > 1) "s" else ""} • $roleCount Role Upgrade${if (roleCount > 1) "s" else ""} — tap to review"
+            joinCount > 0 ->
+                "$joinCount Join Request${if (joinCount > 1) "s" else ""} • 0 Role Upgrades — tap to review"
+            roleCount > 0 ->
+                "0 Join Requests • $roleCount Role Upgrade${if (roleCount > 1) "s" else ""} — tap to review"
+            else ->
+                "0 Join Requests • 0 Role Upgrades — tap to review"
+        }
+    }
+
+    private fun bindTreeMembersList(members: List<TreeMember>) {
+        if (members.isEmpty()) {
+            // Seed initial owner member in Firestore if none exist
+            val currentUserId = authHelper.getCurrentUserId() ?: ""
+            val owner = TreeMember(
+                id = "${treeId}_${currentUserId}".trim('_').ifBlank { "owner_default" },
+                treeId = treeId,
+                userId = currentUserId,
+                userName = authHelper.getCurrentUser()?.displayName ?: "Tree Owner",
+                userEmail = authHelper.getCurrentUser()?.email ?: "",
+                role = "Owner",
+                status = "Approved"
+            )
+            if (treeId.isNotBlank() && currentUserId.isNotBlank()) {
+                firestoreHelper.addTreeMember(owner, onSuccess = {}, onFailure = {})
+            }
+            authorizedAdapter.submitList(listOf(owner))
+            currentPendingJoinMembers = emptyList()
+            currentPendingMembers = emptyList()
+            updateUnifiedPendingTileSummary()
+            return
+        }
+
+        val pendingJoin = members.filter {
+            it.status.equals("Pending", ignoreCase = true) ||
+                it.status.equals("Pending_Join", ignoreCase = true) ||
+                it.role.equals("Pending_Join", ignoreCase = true)
+        }
+        val pendingRoleUpgrade = members.filter {
+            it.status.equals("Role_Upgrade_Pending", ignoreCase = true)
+        }
+        val approved = members.filter {
+            it.status.equals("Approved", ignoreCase = true) ||
+                it.status.equals("Role_Upgrade_Pending", ignoreCase = true)
+        }
+
+        currentPendingJoinMembers = pendingJoin
+        currentPendingMembers = pendingRoleUpgrade
+
+        authorizedAdapter.submitList(approved)
+        pendingAdapter.submitList(pendingRoleUpgrade)
+        updateUnifiedPendingTileSummary()
+
+        // Auto-open Unified Pending Requests Sheet if launched from a Join Request or Role Upgrade Notification click
+        val shouldAutoOpenJoin = intent.getBooleanExtra("OPEN_JOIN_REQUESTS", false)
+        val shouldOpenRoleTab = intent.getBooleanExtra("OPEN_ROLE_TAB", false)
+        if (shouldAutoOpenJoin && !hasAutoOpenedJoinSheet) {
+            hasAutoOpenedJoinSheet = true
+            showUnifiedPendingRequestsHubSheet(initialTabIsRoleUpgrade = shouldOpenRoleTab)
+        }
     }
 
     private fun showInviteDialog() {
@@ -507,11 +728,15 @@ class PrivacyControlsActivity : AppCompatActivity() {
     }
 
     private fun removeMember(member: TreeMember) {
+        val displayName = member.userName.ifBlank { member.userEmail.ifBlank { "this member" } }
+        val roleLabel = member.role.ifBlank { "Member" }
         com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-            .setTitle("Remove Member")
-            .setMessage("Are you sure you want to remove ${member.userName} from this tree?")
-            .setPositiveButton("Remove") { _, _ ->
-                firestoreHelper.deleteTreeMember(member.id,
+            .setTitle("Remove $displayName?")
+            .setMessage("Are you sure you want to remove $displayName ($roleLabel) from this family tree?\n\n• Their access to this tree will be immediately revoked.\n• If they currently have this tree open, they will be switched out automatically.")
+            .setPositiveButton("Remove from Tree") { _, _ ->
+                firestoreHelper.revokeTreeMemberAccess(
+                    member = member,
+                    treeId = treeId,
                     onSuccess = {
                         // 8.c Access revocation alert
                         if (member.userId.isNotEmpty()) {
@@ -528,11 +753,16 @@ class PrivacyControlsActivity : AppCompatActivity() {
                             firestoreHelper.addNotification(notif)
                         }
 
-                        KinTraceAlert.show(this, "${member.userName} removed")
+                        com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeLayoutChanged(
+                            treeId = treeId,
+                            sourceScreen = "PrivacyControlsActivity"
+                        )
+
+                        KinTraceAlert.show(this, "🚫 $displayName removed from tree")
                         loadMembers()
                     },
                     onFailure = {
-                        KinTraceAlert.show(this, "Failed to remove member")
+                        KinTraceAlert.show(this, "Failed to remove member: ${it.message}")
                     }
                 )
             }
@@ -540,87 +770,281 @@ class PrivacyControlsActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showPendingJoinRequestsBottomSheet() {
+        showUnifiedPendingRequestsHubSheet(initialTabIsRoleUpgrade = false)
+    }
+
     private fun showPendingRequestsBottomSheet() {
+        showUnifiedPendingRequestsHubSheet(initialTabIsRoleUpgrade = true)
+    }
+
+    private fun showUnifiedPendingRequestsHubSheet(initialTabIsRoleUpgrade: Boolean = false) {
         val sheetDialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
         val sheetView = layoutInflater.inflate(R.layout.layout_pending_requests_sheet, null)
         sheetDialog.setContentView(sheetView)
 
-        val tvSheetCountBadge = sheetView.findViewById<TextView>(R.id.tvSheetCountBadge)
-        val btnSheetClose = sheetView.findViewById<View>(R.id.btnSheetClose)
-        val btnApproveAllRequests = sheetView.findViewById<Button>(R.id.btnApproveAllRequests)
-        val rvSheetPendingRequests = sheetView.findViewById<RecyclerView>(R.id.rvSheetPendingRequests)
-        val layoutSheetEmptyState = sheetView.findViewById<View>(R.id.layoutSheetEmptyState)
+        val tvSheetHeaderIcon = sheetView.findViewById<TextView?>(R.id.tvSheetHeaderIcon)
+        val tvSheetTitle = sheetView.findViewById<TextView?>(R.id.tvSheetTitle)
+        val tvSheetSubtitle = sheetView.findViewById<TextView?>(R.id.tvSheetSubtitle)
+        val tvSheetCountBadge = sheetView.findViewById<TextView?>(R.id.tvSheetCountBadge)
+        val btnSheetClose = sheetView.findViewById<View?>(R.id.btnSheetClose)
+        val btnTabJoinRequests = sheetView.findViewById<TextView?>(R.id.btnTabJoinRequests)
+        val btnTabRoleUpgrades = sheetView.findViewById<TextView?>(R.id.btnTabRoleUpgrades)
+        val btnApproveAllRequests = sheetView.findViewById<Button?>(R.id.btnApproveAllRequests)
+        val rvSheetPendingRequests = sheetView.findViewById<RecyclerView?>(R.id.rvSheetPendingRequests)
+        val layoutSheetEmptyState = sheetView.findViewById<View?>(R.id.layoutSheetEmptyState)
+        val tvSheetEmptyTitle = sheetView.findViewById<TextView?>(R.id.tvSheetEmptyTitle)
+        val tvSheetEmptySub = sheetView.findViewById<TextView?>(R.id.tvSheetEmptySub)
 
         btnSheetClose?.setOnClickListener { sheetDialog.dismiss() }
 
-        val sheetPendingList = currentPendingMembers.toMutableList()
+        val joinList = currentPendingJoinMembers.toMutableList()
+        val roleList = currentPendingMembers.toMutableList()
+
+        // Default to whichever tab was requested or whichever tab has active items
+        var isRoleTabActive = if (initialTabIsRoleUpgrade) {
+            true
+        } else if (joinList.isEmpty() && roleList.isNotEmpty()) {
+            true
+        } else {
+            false
+        }
+
         lateinit var sheetAdapter: PendingRequestAdapter
 
         fun updateSheetUi() {
-            if (sheetPendingList.isEmpty()) {
-                layoutSheetEmptyState?.visibility = View.VISIBLE
-                rvSheetPendingRequests?.visibility = View.GONE
-                btnApproveAllRequests?.visibility = View.GONE
-                tvSheetCountBadge?.text = "0 Pending"
-                cardPendingRequestsTile?.visibility = View.GONE
+            val totalCount = joinList.size + roleList.size
+            tvSheetCountBadge?.text = "$totalCount Pending"
+            btnTabJoinRequests?.text = "🔑 Join Requests (${joinList.size})"
+            btnTabRoleUpgrades?.text = "🍃 Role Upgrades (${roleList.size})"
+
+            val activeTabTextColor = androidx.core.content.ContextCompat.getColor(this, R.color.btn_gold_text)
+            val inactiveTabTextColor = androidx.core.content.ContextCompat.getColor(this, R.color.text_secondary)
+
+            if (!isRoleTabActive) {
+                // TAB 1: JOIN REQUESTS
+                tvSheetHeaderIcon?.text = "🔑"
+                tvSheetTitle?.text = "Pending Access & Role Requests"
+                tvSheetSubtitle?.text = "Review family members who entered your tree's invite code and are waiting for your acceptance."
+                btnTabJoinRequests?.setBackgroundResource(R.drawable.badge_pill_gold)
+                btnTabJoinRequests?.setTextColor(activeTabTextColor)
+                btnTabRoleUpgrades?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                btnTabRoleUpgrades?.setTextColor(inactiveTabTextColor)
+
+                sheetAdapter.submitList(joinList.toList())
+                if (joinList.isEmpty()) {
+                    layoutSheetEmptyState?.visibility = View.VISIBLE
+                    rvSheetPendingRequests?.visibility = View.GONE
+                    btnApproveAllRequests?.visibility = View.GONE
+                    tvSheetEmptyTitle?.text = "No Pending Join Requests"
+                    tvSheetEmptySub?.text = "Anyone entering your 6-character invite code will appear here for approval."
+                } else {
+                    layoutSheetEmptyState?.visibility = View.GONE
+                    rvSheetPendingRequests?.visibility = View.VISIBLE
+                    btnApproveAllRequests?.visibility = View.VISIBLE
+                    btnApproveAllRequests?.isEnabled = true
+                    btnApproveAllRequests?.text = "✓ Accept All to Tree (${joinList.size})"
+                }
             } else {
-                layoutSheetEmptyState?.visibility = View.GONE
-                rvSheetPendingRequests?.visibility = View.VISIBLE
-                btnApproveAllRequests?.visibility = View.VISIBLE
-                btnApproveAllRequests?.isEnabled = true
-                btnApproveAllRequests?.text = "⚡ Approve All as Editors (${sheetPendingList.size})"
-                tvSheetCountBadge?.text = "${sheetPendingList.size} Pending"
-                cardPendingRequestsTile?.visibility = View.VISIBLE
-                tvPendingCountBadge?.text = "${sheetPendingList.size} Pending"
+                // TAB 2: ROLE UPGRADES
+                tvSheetHeaderIcon?.text = "🍃"
+                tvSheetTitle?.text = "Pending Access & Role Requests"
+                tvSheetSubtitle?.text = "Review existing Viewers asking for Editor access to add and edit family tree members."
+                btnTabRoleUpgrades?.setBackgroundResource(R.drawable.badge_pill_gold)
+                btnTabRoleUpgrades?.setTextColor(activeTabTextColor)
+                btnTabJoinRequests?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                btnTabJoinRequests?.setTextColor(inactiveTabTextColor)
+
+                sheetAdapter.submitList(roleList.toList())
+                if (roleList.isEmpty()) {
+                    layoutSheetEmptyState?.visibility = View.VISIBLE
+                    rvSheetPendingRequests?.visibility = View.GONE
+                    btnApproveAllRequests?.visibility = View.GONE
+                    tvSheetEmptyTitle?.text = "No Pending Role Upgrades"
+                    tvSheetEmptySub?.text = "Viewers who send a Golden Leaf Editor request will appear here."
+                } else {
+                    layoutSheetEmptyState?.visibility = View.GONE
+                    rvSheetPendingRequests?.visibility = View.VISIBLE
+                    btnApproveAllRequests?.visibility = View.VISIBLE
+                    btnApproveAllRequests?.isEnabled = true
+                    btnApproveAllRequests?.text = "⚡ Approve All as Editors (${roleList.size})"
+                }
             }
+
+            currentPendingJoinMembers = joinList.toList()
+            currentPendingMembers = roleList.toList()
+            updateUnifiedPendingTileSummary()
         }
 
         sheetAdapter = PendingRequestAdapter(
             onApprove = { member ->
-                singleApproveMember(member) {
-                    sheetPendingList.removeAll { it.id == member.id }
-                    currentPendingMembers = sheetPendingList.toList()
-                    sheetAdapter.submitList(sheetPendingList.toList())
-                    updateSheetUi()
+                val isJoin = member.role.equals("Pending_Join", ignoreCase = true) ||
+                    member.status.equals("Pending", ignoreCase = true)
+                if (isJoin) {
+                    approveJoinMember(member) {
+                        joinList.removeAll { it.id == member.id }
+                        updateSheetUi()
+                    }
+                } else {
+                    singleApproveMember(member) {
+                        roleList.removeAll { it.id == member.id }
+                        updateSheetUi()
+                    }
                 }
             },
             onReject = { member ->
-                rejectMember(member) {
-                    sheetPendingList.removeAll { it.id == member.id }
-                    currentPendingMembers = sheetPendingList.toList()
-                    sheetAdapter.submitList(sheetPendingList.toList())
-                    updateSheetUi()
+                val isJoin = member.role.equals("Pending_Join", ignoreCase = true) ||
+                    member.status.equals("Pending", ignoreCase = true)
+                if (isJoin) {
+                    rejectJoinMember(member) {
+                        joinList.removeAll { it.id == member.id }
+                        updateSheetUi()
+                    }
+                } else {
+                    rejectMember(member) {
+                        roleList.removeAll { it.id == member.id }
+                        updateSheetUi()
+                    }
                 }
             }
         )
 
         rvSheetPendingRequests?.layoutManager = LinearLayoutManager(this)
         rvSheetPendingRequests?.adapter = sheetAdapter
-        sheetAdapter.submitList(sheetPendingList.toList())
-        updateSheetUi()
+
+        btnTabJoinRequests?.setOnClickListener {
+            if (isRoleTabActive) {
+                isRoleTabActive = false
+                updateSheetUi()
+            }
+        }
+
+        btnTabRoleUpgrades?.setOnClickListener {
+            if (!isRoleTabActive) {
+                isRoleTabActive = true
+                updateSheetUi()
+            }
+        }
 
         btnApproveAllRequests?.setOnClickListener {
-            if (sheetPendingList.isEmpty()) return@setOnClickListener
-            btnApproveAllRequests.isEnabled = false
-            btnApproveAllRequests.text = "⚡ Granting Editor Access to All..."
-            val toApprove = sheetPendingList.toList()
-            var completedCount = 0
-
-            toApprove.forEach { member ->
-                singleApproveMember(member) {
-                    completedCount++
-                    if (completedCount >= toApprove.size) {
-                        sheetPendingList.clear()
-                        currentPendingMembers = emptyList()
-                        sheetAdapter.submitList(emptyList())
-                        updateSheetUi()
-                        Toast.makeText(this, "⚡ All ${toApprove.size} requests approved as Editors!", Toast.LENGTH_SHORT).show()
+            if (!isRoleTabActive) {
+                if (joinList.isEmpty()) return@setOnClickListener
+                btnApproveAllRequests.isEnabled = false
+                btnApproveAllRequests.text = "✓ Accepting All..."
+                val toApprove = joinList.toList()
+                var completedCount = 0
+                toApprove.forEach { member ->
+                    approveJoinMember(member) {
+                        completedCount++
+                        if (completedCount >= toApprove.size) {
+                            joinList.clear()
+                            updateSheetUi()
+                            Toast.makeText(this, "✓ All ${toApprove.size} join requests accepted!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            } else {
+                if (roleList.isEmpty()) return@setOnClickListener
+                btnApproveAllRequests.isEnabled = false
+                btnApproveAllRequests.text = "⚡ Granting Editor Access to All..."
+                val toApprove = roleList.toList()
+                var completedCount = 0
+                toApprove.forEach { member ->
+                    singleApproveMember(member) {
+                        completedCount++
+                        if (completedCount >= toApprove.size) {
+                            roleList.clear()
+                            updateSheetUi()
+                            Toast.makeText(this, "⚡ All ${toApprove.size} requests approved as Editors!", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
         }
 
+        updateSheetUi()
         sheetDialog.show()
+    }
+
+    private fun approveJoinMember(member: TreeMember, onDone: (() -> Unit)? = null) {
+        val assignedRole = "Viewer"
+        firestoreHelper.updateTreeMemberRole(
+            memberId = member.id,
+            role = assignedRole,
+            status = "Approved",
+            onSuccess = {
+                val treeName = currentTree?.name ?: "Family Tree"
+                if (member.userId.isNotEmpty()) {
+                    firestoreHelper.getUserProfile(member.userId,
+                        onSuccess = { existingProfile ->
+                            if (existingProfile != null && existingProfile.currentTreeId.isBlank()) {
+                                firestoreHelper.saveUserProfile(
+                                    existingProfile.copy(currentTreeId = treeId),
+                                    onSuccess = {},
+                                    onFailure = {}
+                                )
+                            }
+                        },
+                        onFailure = {}
+                    )
+
+                    val notif = NotificationHelper.createAccessDecisionNotification(
+                        treeId = treeId,
+                        applicantUserId = member.userId,
+                        treeName = treeName,
+                        approved = true,
+                        assignedRole = assignedRole
+                    )
+                    firestoreHelper.addNotification(notif)
+                }
+
+                com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeLayoutChanged(
+                    treeId = treeId,
+                    sourceScreen = "PrivacyControlsActivity"
+                )
+
+                Toast.makeText(this, "✓ ${member.userName} accepted to $treeName!", Toast.LENGTH_SHORT).show()
+                loadMembers()
+                onDone?.invoke()
+            },
+            onFailure = {
+                Toast.makeText(this, "Approval failed: ${it.message}", Toast.LENGTH_SHORT).show()
+                onDone?.invoke()
+            }
+        )
+    }
+
+    private fun rejectJoinMember(member: TreeMember, onDone: (() -> Unit)? = null) {
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+            .setTitle("Decline Join Request")
+            .setMessage("Decline ${member.userName}'s request to join this family tree?")
+            .setPositiveButton("Decline") { _, _ ->
+                firestoreHelper.deleteTreeMember(
+                    memberId = member.id,
+                    onSuccess = {
+                        if (member.userId.isNotEmpty()) {
+                            val treeName = currentTree?.name ?: "Family Tree"
+                            val notif = NotificationHelper.createAccessDecisionNotification(
+                                treeId = treeId,
+                                applicantUserId = member.userId,
+                                treeName = treeName,
+                                approved = false,
+                                assignedRole = "Viewer"
+                            )
+                            firestoreHelper.addNotification(notif)
+                        }
+                        Toast.makeText(this, "Join request from ${member.userName} declined.", Toast.LENGTH_SHORT).show()
+                        loadMembers()
+                        onDone?.invoke()
+                    },
+                    onFailure = {
+                        Toast.makeText(this, "Decline failed", Toast.LENGTH_SHORT).show()
+                        onDone?.invoke()
+                    }
+                )
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun singleApproveMember(member: TreeMember, onDone: (() -> Unit)? = null) {

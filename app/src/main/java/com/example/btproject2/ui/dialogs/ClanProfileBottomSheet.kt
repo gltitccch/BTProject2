@@ -260,36 +260,8 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
             WelcomeStoryDialogFragment.newInstance().show(parentFragmentManager, WelcomeStoryDialogFragment.TAG)
         }
 
-        // Reset Clan Quest HUD
-        btnResetQuest.setOnClickListener {
-            val context = requireContext()
-            OnboardingPreferences.setQuestDismissed(context, false)
-            OnboardingPreferences.setQuestCollapsed(context, false)
-            com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.values().forEach { key ->
-                OnboardingPreferences.setTutorialSeen(context, key.key, false)
-            }
-            val hostAct = activity
-            if (hostAct != null) {
-                hostAct.window.decorView.postDelayed({
-                    com.example.btproject2.utils.KinTraceSpotlightManager.showTutorialForced(
-                        hostAct,
-                        com.example.btproject2.utils.KinTraceSpotlightManager.TutorialFeatureKey.HOME_STAGE2_DASHBOARD
-                    )
-                }, 260L)
-            }
-            
-            val currentUserId = authHelper.getCurrentUserId().orEmpty()
-            if (currentUserId.isNotEmpty()) {
-                firestoreHelper.saveOnboardingState(
-                    currentUserId,
-                    OnboardingPreferences.getOnboardingState(context)
-                )
-            }
-            
-            onQuestResetRequested?.invoke()
-            KinTraceAlert.show(context, "Clan Quest checklist restored to dashboard!")
-            dismiss()
-        }
+        // Reset Clan Quest HUD (Retired — permanently hidden from Profile sheet)
+        btnResetQuest.visibility = View.GONE
 
         // View Terms of Service & Clan Stewardship
         btnViewTerms?.setOnClickListener {

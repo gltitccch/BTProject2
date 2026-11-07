@@ -85,34 +85,44 @@ object InAppUpdateManager {
      * or legacy records pointing to app-debug.apk).
      */
     fun syncCurrentReleaseToFirestore(onComplete: () -> Unit = {}) {
-        firestoreHelper.fetchLatestAppVersion(
-            onSuccess = { config ->
-                val currentRemoteCode = config?.versionCode ?: 0L
-                val rawUrl = config?.apkDownloadUrl?.trim().orEmpty()
-                val hasValidRemoteApk = rawUrl.startsWith("https://", ignoreCase = true) &&
-                    !rawUrl.contains("app-debug.apk", ignoreCase = true)
+        downloadExecutor.execute {
+            try {
+                firestoreHelper.fetchLatestAppVersion(
+                    onSuccess = { config ->
+                        val currentRemoteCode = config?.versionCode ?: 0L
+                        val rawUrl = config?.apkDownloadUrl?.trim().orEmpty()
+                        val hasValidRemoteApk = rawUrl.startsWith("https://", ignoreCase = true) &&
+                            !rawUrl.contains("app-debug.apk", ignoreCase = true)
 
-                val targetReleaseNotes = CURRENT_RELEASE_NOTES
+                        val targetReleaseNotes = CURRENT_RELEASE_NOTES
 
-                // If remote code is < 11L OR remote record lacks a valid release HTTPS APK link,
-                // OR remote releaseNotes need updating to include the latest fixes,
-                // align Firestore to the active v1.3.8 (versionCode = 11) release pointing to GitHub Releases.
-                if (currentRemoteCode < 11L || (currentRemoteCode == 11L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
-                    val currentConfig = AppVersionConfig(
-                        versionCode = 11L,
-                        versionName = "v1.3.8",
-                        releaseNotes = targetReleaseNotes,
-                        apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.8"),
-                        isMandatory = false,
-                        publishedBy = "system@kintrace.ph"
-                    )
-                    firestoreHelper.publishAppVersion(currentConfig, onSuccess = onComplete, onFailure = { onComplete() })
-                } else {
-                    onComplete()
-                }
-            },
-            onFailure = { onComplete() }
-        )
+                        // If remote code is < 11L OR remote record lacks a valid release HTTPS APK link,
+                        // OR remote releaseNotes need updating to include the latest fixes,
+                        // align Firestore to the active v1.3.8 (versionCode = 11) release pointing to GitHub Releases.
+                        if (currentRemoteCode < 11L || (currentRemoteCode == 11L && (!hasValidRemoteApk || config?.releaseNotes != targetReleaseNotes))) {
+                            val currentConfig = AppVersionConfig(
+                                versionCode = 11L,
+                                versionName = "v1.3.8",
+                                releaseNotes = targetReleaseNotes,
+                                apkDownloadUrl = buildGitHubReleaseApkUrl("v1.3.8"),
+                                isMandatory = false,
+                                publishedBy = "system@kintrace.ph"
+                            )
+                            firestoreHelper.publishAppVersion(
+                                currentConfig,
+                                onSuccess = { mainHandler.post { onComplete() } },
+                                onFailure = { mainHandler.post { onComplete() } }
+                            )
+                        } else {
+                            mainHandler.post { onComplete() }
+                        }
+                    },
+                    onFailure = { mainHandler.post { onComplete() } }
+                )
+            } catch (_: Exception) {
+                mainHandler.post { onComplete() }
+            }
+        }
     }
 
     /**
@@ -171,61 +181,69 @@ object InAppUpdateManager {
     ) {
         if (activity.isFinishing || activity.isDestroyed) return
 
-        val currentVersionCode = getInstalledVersionCode(activity)
-        cleanupStaleCacheApks(activity, currentVersionCode)
+        downloadExecutor.execute {
+            try {
+                if (activity.isFinishing || activity.isDestroyed) return@execute
 
-        firestoreHelper.fetchLatestAppVersion(
-            onSuccess = { config ->
-                if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
+                val currentVersionCode = getInstalledVersionCode(activity)
+                cleanupStaleCacheApks(activity, currentVersionCode)
 
-                val remoteVersionCode = config?.versionCode ?: currentVersionCode
-                val downloadUrl = config?.apkDownloadUrl?.trim().orEmpty()
-                val hasValidUrl = downloadUrl.startsWith("https://", ignoreCase = true)
+                firestoreHelper.fetchLatestAppVersion(
+                    onSuccess = { config ->
+                        if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
 
-                android.util.Log.d(
-                    "InAppUpdateManager",
-                    "Checking OTA update: local=$currentVersionCode, remote=$remoteVersionCode, hasValidUrl=$hasValidUrl"
-                )
+                        val remoteVersionCode = config?.versionCode ?: currentVersionCode
+                        val downloadUrl = config?.apkDownloadUrl?.trim().orEmpty()
+                        val hasValidUrl = downloadUrl.startsWith("https://", ignoreCase = true)
 
-                // Check 24-hour dismissal suppression
-                val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val lastDismissedCode = prefs.getLong(KEY_DISMISSED_VERSION, -1L)
-                val lastDismissedTime = prefs.getLong(KEY_DISMISSED_TIMESTAMP, 0L)
-                val isSuppressed = !forcePromptForDemo && !(config?.isMandatory ?: false) &&
-                    (remoteVersionCode == lastDismissedCode) &&
-                    (System.currentTimeMillis() - lastDismissedTime < SUPPRESSION_DURATION_MS)
+                        android.util.Log.d(
+                            "InAppUpdateManager",
+                            "Checking OTA update: local=$currentVersionCode, remote=$remoteVersionCode, hasValidUrl=$hasValidUrl"
+                        )
 
-                if (isSuppressed) {
-                    android.util.Log.d("InAppUpdateManager", "OTA prompt suppressed (24h cooldown active for code $remoteVersionCode)")
-                    activity.runOnUiThread { onNoUpdate() }
-                    return@fetchLatestAppVersion
-                }
+                        // Check 24-hour dismissal suppression
+                        val prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                        val lastDismissedCode = prefs.getLong(KEY_DISMISSED_VERSION, -1L)
+                        val lastDismissedTime = prefs.getLong(KEY_DISMISSED_TIMESTAMP, 0L)
+                        val isSuppressed = !forcePromptForDemo && !(config?.isMandatory ?: false) &&
+                            (remoteVersionCode == lastDismissedCode) &&
+                            (System.currentTimeMillis() - lastDismissedTime < SUPPRESSION_DURATION_MS)
 
-                // Only trigger update flow when remoteVersionCode > currentVersionCode AND a valid HTTPS APK URL exists
-                if (remoteVersionCode > currentVersionCode && hasValidUrl && config != null) {
-                    val targetApkFile = File(getUpdatesCacheDir(activity), "KinTrace_v${config.versionCode}.apk")
-                    if (targetApkFile.exists() && targetApkFile.length() > 10_000L) {
-                        // APK is already downloaded and verified in cacheDir -> show Direction 1 Floating Pill immediately
-                        activity.runOnUiThread {
-                            showUpdateReadyPill(activity, config, targetApkFile)
+                        if (isSuppressed) {
+                            android.util.Log.d("InAppUpdateManager", "OTA prompt suppressed (24h cooldown active for code $remoteVersionCode)")
+                            activity.runOnUiThread { onNoUpdate() }
+                            return@fetchLatestAppVersion
                         }
-                    } else {
-                        // Quietly download the real APK in the background; show pill only when ready
-                        downloadApkSilentlyInBackground(activity, config, targetApkFile)
+
+                        // Only trigger update flow when remoteVersionCode > currentVersionCode AND a valid HTTPS APK URL exists
+                        if (remoteVersionCode > currentVersionCode && hasValidUrl && config != null) {
+                            val targetApkFile = File(getUpdatesCacheDir(activity), "KinTrace_v${config.versionCode}.apk")
+                            if (targetApkFile.exists() && targetApkFile.length() > 10_000L) {
+                                // APK is already downloaded and verified in cacheDir -> show Direction 1 Floating Pill immediately
+                                activity.runOnUiThread {
+                                    showUpdateReadyPill(activity, config, targetApkFile)
+                                }
+                            } else {
+                                // Quietly download the real APK in the background; show pill only when ready
+                                downloadApkSilentlyInBackground(activity, config, targetApkFile)
+                            }
+                        } else {
+                            // Clean baseline: local version is up to date (or no valid remote APK URL)
+                            if (remoteVersionCode <= currentVersionCode) {
+                                clearDismissalCache(activity)
+                            }
+                            activity.runOnUiThread { onNoUpdate() }
+                        }
+                    },
+                    onFailure = { err ->
+                        android.util.Log.w("InAppUpdateManager", "fetchLatestAppVersion failed: ${err.message}")
+                        activity.runOnUiThread { onNoUpdate() }
                     }
-                } else {
-                    // Clean baseline: local version is up to date (or no valid remote APK URL)
-                    if (remoteVersionCode <= currentVersionCode) {
-                        clearDismissalCache(activity)
-                    }
-                    activity.runOnUiThread { onNoUpdate() }
-                }
-            },
-            onFailure = { err ->
-                android.util.Log.w("InAppUpdateManager", "fetchLatestAppVersion failed: ${err.message}")
+                )
+            } catch (_: Exception) {
                 activity.runOnUiThread { onNoUpdate() }
             }
-        )
+        }
     }
 
     /**
@@ -543,18 +561,28 @@ object InAppUpdateManager {
 
         if (currentVersionCode > lastSeenVersion) {
             prefs.edit().putLong(KEY_LAST_SEEN_VERSION, currentVersionCode).apply()
-            firestoreHelper.fetchLatestAppVersion(
-                onSuccess = { config ->
-                    if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
-                    val vName = config?.versionName ?: "v1.3.4"
-                    val notes = if (!config?.releaseNotes.isNullOrBlank()) config!!.releaseNotes else CURRENT_RELEASE_NOTES
-                    showWhatsNewDialog(activity, vName, notes, onDismiss)
-                },
-                onFailure = {
-                    if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
-                    showWhatsNewDialog(activity, "v1.3.4", CURRENT_RELEASE_NOTES, onDismiss)
+            downloadExecutor.execute {
+                try {
+                    firestoreHelper.fetchLatestAppVersion(
+                        onSuccess = { config ->
+                            if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
+                            val vName = config?.versionName ?: "v1.3.4"
+                            val notes = if (!config?.releaseNotes.isNullOrBlank()) config!!.releaseNotes else CURRENT_RELEASE_NOTES
+                            activity.runOnUiThread {
+                                showWhatsNewDialog(activity, vName, notes, onDismiss)
+                            }
+                        },
+                        onFailure = {
+                            if (activity.isFinishing || activity.isDestroyed) return@fetchLatestAppVersion
+                            activity.runOnUiThread {
+                                showWhatsNewDialog(activity, "v1.3.4", CURRENT_RELEASE_NOTES, onDismiss)
+                            }
+                        }
+                    )
+                } catch (_: Exception) {
+                    activity.runOnUiThread { onDismiss() }
                 }
-            )
+            }
         } else {
             onDismiss()
         }

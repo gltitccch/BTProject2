@@ -106,27 +106,43 @@ class InsightsActivity : AppCompatActivity() {
         val deceasedCount = persons.count { !it.isLiving }
 
         // Biological relationships count: parent links + spouse links
-        val totalRelationships = persons.count { !it.fatherId.isNullOrEmpty() } +
-                persons.count { !it.motherId.isNullOrEmpty() } +
-                persons.count { !it.spouseId.isNullOrEmpty() }
+        val totalRelationships = computeUniqueRelationshipsCount(persons)
 
         // BFS Generation assignment
         val genMap = calculateGenerationMap(persons)
         val maxGen = if (total == 0) 0 else (genMap.values.maxOrNull() ?: 1)
 
+        val branchBreakdown = computeClanBranchBreakdown(persons)
+        val branchCount = computeClanBranchCount(persons)
+
         // 1. Tree Overview Grid (Figure 6)
-        findViewById<TextView>(R.id.tvTotalMembers)?.text = total.toString()
-        findViewById<TextView>(R.id.tvLivingMembers)?.text = livingCount.toString()
-        findViewById<TextView>(R.id.tvDeceasedMembers)?.text = deceasedCount.toString()
+        val tvTotalView = findViewById<TextView>(R.id.tvTotalMembers)
+        val tvLivingView = findViewById<TextView>(R.id.tvLivingMembers)
+        val tvDeceasedView = findViewById<TextView>(R.id.tvDeceasedMembers)
+        tvTotalView?.text = total.toString()
+        tvLivingView?.text = livingCount.toString()
+        tvDeceasedView?.text = deceasedCount.toString()
         findViewById<TextView>(R.id.tvMaxGen)?.text = maxGen.toString()
         findViewById<TextView>(R.id.tvRelationshipsCount)?.text = totalRelationships.toString()
 
-        // Fetch branch count
-        val currentUserId = com.example.btproject2.firebase.AuthHelper().getCurrentUserId() ?: ""
-        firestoreHelper.getBranchCount(currentUserId,
-            onSuccess = { count -> findViewById<TextView>(R.id.tvBranchesCount)?.text = count.toString() },
-            onFailure = { findViewById<TextView>(R.id.tvBranchesCount)?.text = "1" }
-        )
+        fun openRecordsWithFilter(filterMode: String) {
+            val intent = android.content.Intent(this, FamilyRecordsActivity::class.java).apply {
+                putExtra("TREE_ID", treeId)
+                putExtra("treeId", treeId)
+                putExtra("INITIAL_FILTER", filterMode)
+            }
+            startActivity(intent)
+        }
+
+        (tvTotalView?.parent as? android.view.View)?.setOnClickListener { openRecordsWithFilter("ALL") }
+        (tvLivingView?.parent as? android.view.View)?.setOnClickListener { openRecordsWithFilter("LIVING") }
+        (tvDeceasedView?.parent as? android.view.View)?.setOnClickListener { openRecordsWithFilter("DECEASED") }
+
+        val tvBranchesCountView = findViewById<TextView>(R.id.tvBranchesCount)
+        tvBranchesCountView?.text = branchCount.toString()
+        (tvBranchesCountView?.parent as? android.view.View)?.setOnClickListener {
+            showClanBranchesBreakdownDialog(branchBreakdown)
+        }
 
         // Fetch tree name for subtitle
         firestoreHelper.getTree(treeId,
@@ -179,7 +195,8 @@ class InsightsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvHealthLabel)?.text = qualityLabel
 
         val withBirthDates = persons.count { it.birthDate.isNotBlank() }
-        val withParents = persons.count { !it.motherId.isNullOrEmpty() || !it.fatherId.isNullOrEmpty() }
+        val noParentCount = FamilyRecordsActivity.countMissingParents(persons)
+        val withParents = (total - noParentCount).coerceAtLeast(0)
         val withBio = persons.count { it.biography.isNotBlank() }
         val layoutDeductions = findViewById<LinearLayout>(R.id.layoutHealthDeductions)
         if (layoutDeductions != null) {
@@ -192,17 +209,94 @@ class InsightsActivity : AppCompatActivity() {
             layoutDeductions.addView(summaryRow)
         }
 
-        // Dynamic tip
-        val noParentCount = total - withParents
-        findViewById<TextView>(R.id.tvTip)?.text = if (noParentCount > 0) {
-            "💡 $noParentCount member${if (noParentCount > 1) "s" else ""} don't have parents set. Setting parent links improves bloodline tracing accuracy."
-        } else {
-            "💡 Great job! All members have parents assigned, giving your family tree optimal bloodline accuracy."
+        // Dynamic clickable Missing-Parents Tip
+        val tvTip = findViewById<TextView>(R.id.tvTip)
+        val cardDataQuality = findViewById<android.view.View>(R.id.cardDataQualityScorecard)
+        if (tvTip != null) {
+            if (noParentCount > 0) {
+                tvTip.text = "💡 $noParentCount member${if (noParentCount > 1) "s" else ""} don't have parents set. Setting parent links improves bloodline tracing accuracy.  Tap to view & fix →"
+                tvTip.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.gold_accent))
+                tvTip.setBackgroundResource(R.drawable.note_bg)
+                val openMissingParents = android.view.View.OnClickListener {
+                    openRecordsWithFilter("MISSING_PARENTS")
+                }
+                tvTip.isClickable = true
+                tvTip.isFocusable = true
+                tvTip.setOnClickListener(openMissingParents)
+                cardDataQuality?.setOnClickListener(openMissingParents)
+            } else {
+                tvTip.text = "💡 Great job! All members have parents assigned, giving your family tree optimal bloodline accuracy."
+                tvTip.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+                tvTip.setBackgroundResource(R.drawable.note_bg)
+                tvTip.setOnClickListener(null)
+                tvTip.isClickable = false
+                cardDataQuality?.setOnClickListener(null)
+                cardDataQuality?.isClickable = false
+            }
         }
     }
 
     private fun calculateGenerationMap(persons: List<Person>): Map<String, Int> {
         return com.example.btproject2.engine.GenerationHierarchyEngine.computeGenerations1Based(persons)
+    }
+
+    private fun showClanBranchesBreakdownDialog(breakdown: List<Pair<String, Int>>) {
+        if (breakdown.isEmpty()) return
+        val lines = breakdown.mapIndexed { idx, (surname, count) ->
+            "${idx + 1}. $surname — $count member${if (count == 1) "" else "s"}"
+        }.joinToString("\n")
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+            .setTitle("🌿 Family Branches (${breakdown.size})")
+            .setMessage("Distinct family surname lineages represented in this tree:\n\n$lines")
+            .setPositiveButton("Got It") { d, _ -> d.dismiss() }
+            .show()
+    }
+
+    companion object {
+        fun computeClanBranchBreakdown(persons: List<Person>): List<Pair<String, Int>> {
+            if (persons.isEmpty()) return emptyList()
+            val grouped = persons
+                .mapNotNull { p ->
+                    p.lastName.trim().takeIf { it.isNotEmpty() }
+                }
+                .groupBy { it.lowercase(java.util.Locale.ROOT) }
+                .map { (_, list) ->
+                    val displaySurname = list.first().trim()
+                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.ROOT) else it.toString() }
+                    displaySurname to list.size
+                }
+                .sortedWith(compareByDescending<Pair<String, Int>> { it.second }.thenBy { it.first })
+
+            return if (grouped.isNotEmpty()) {
+                grouped
+            } else {
+                listOf("Primary Lineage" to persons.size)
+            }
+        }
+
+        fun computeClanBranchCount(persons: List<Person>): Int {
+            if (persons.isEmpty()) return 0
+            return computeClanBranchBreakdown(persons).size.coerceAtLeast(1)
+        }
+
+        fun computeUniqueRelationshipsCount(persons: List<Person>): Int {
+            if (persons.isEmpty()) return 0
+            val parentLinks = persons.count { !it.fatherId.isNullOrBlank() } +
+                persons.count { !it.motherId.isNullOrBlank() }
+            val uniqueSpousePairs = mutableSetOf<Pair<String, String>>()
+            for (p in persons) {
+                val pid = p.id.trim()
+                if (pid.isEmpty()) continue
+                for (sid in p.allSpouseIds()) {
+                    val cleanSid = sid.trim()
+                    if (cleanSid.isNotEmpty() && cleanSid != pid) {
+                        val pair = if (pid < cleanSid) pid to cleanSid else cleanSid to pid
+                        uniqueSpousePairs.add(pair)
+                    }
+                }
+            }
+            return parentLinks + uniqueSpousePairs.size
+        }
     }
 }
 
@@ -214,11 +308,12 @@ private class ProfileCompletenessChecker {
 
     fun checkAll(persons: List<Person>): Int {
         if (persons.isEmpty()) return 0
-        val avg = persons.map { checkOne(it) }.average()
+        val validIds = persons.mapNotNull { it.id.trim().takeIf(String::isNotEmpty)?.lowercase() }.toSet()
+        val avg = persons.map { checkOne(it, validIds) }.average()
         return avg.toInt()
     }
 
-    private fun checkOne(person: Person): Int {
+    private fun checkOne(person: Person, validIds: Set<String>): Int {
         var score = 0
         val total = 6
 
@@ -226,7 +321,7 @@ private class ProfileCompletenessChecker {
         if (person.lastName.isNotBlank()) score++
         if (person.gender.isNotBlank()) score++
         if (person.birthDate.isNotBlank()) score++
-        if (!person.fatherId.isNullOrEmpty() || !person.motherId.isNullOrEmpty()) score++
+        if (!FamilyRecordsActivity.isMissingParents(person, validIds)) score++
         if (person.biography.isNotBlank()) score++
 
         return ((score.toDouble() / total.toDouble()) * 100.0).toInt()

@@ -192,7 +192,7 @@ class ExportTreeActivity : AppCompatActivity() {
         Thread {
             try {
                 val bmp = treeView.exportToBitmap(personsSnapshot, treeNameSnapshot)
-                saveFile(fileName, "image/png") { out ->
+                val savedUri = saveFile(fileName, "image/png") { out ->
                     bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
                 }
                 if (!bmp.isRecycled) {
@@ -201,7 +201,9 @@ class ExportTreeActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (isFinishing || isDestroyed) return@runOnUiThread
                     setExporting(false)
-                    toast("✅ Visual Tree saved to Downloads: $fileName")
+                    if (savedUri != null) {
+                        showPostExportActionModal("PNG Visual Snapshot", fileName, "image/png", savedUri)
+                    }
                 }
             } catch (e: Exception) {
                 runOnUiThread {
@@ -233,8 +235,8 @@ class ExportTreeActivity : AppCompatActivity() {
                 val totalMembers = personsSnapshot.size
                 val livingCount = personsSnapshot.count { it.isLiving }
                     val deceasedCount = totalMembers - livingCount
-                    val parentLinks = persons.count { !it.fatherId.isNullOrBlank() || !it.motherId.isNullOrBlank() }
-                    val marriageCount = persons.count { !it.spouseId.isNullOrBlank() } / 2
+                    val parentLinks = personsSnapshot.count { !it.fatherId.isNullOrBlank() || !it.motherId.isNullOrBlank() }
+                    val marriageCount = computeUniqueMarriageUnionsCount(personsSnapshot)
                     val dateStr = java.text.SimpleDateFormat("MMMM d, yyyy", java.util.Locale.getDefault()).format(java.util.Date())
 
                     val personMap = persons.associateBy { it.id }
@@ -481,7 +483,7 @@ class ExportTreeActivity : AppCompatActivity() {
                     }
 
                     val fileName = getSafeTreeFileName("Report.pdf")
-                    saveFile(fileName, "application/pdf") { out ->
+                    val savedUri = saveFile(fileName, "application/pdf") { out ->
                         pdfDoc.writeTo(out)
                         pdfDoc.close()
                     }
@@ -489,7 +491,9 @@ class ExportTreeActivity : AppCompatActivity() {
                     runOnUiThread {
                         if (isFinishing || isDestroyed) return@runOnUiThread
                         setExporting(false)
-                        toast("✅ Comprehensive PDF Report saved: $fileName")
+                        if (savedUri != null) {
+                            showPostExportActionModal("PDF Heritage Report", fileName, "application/pdf", savedUri)
+                        }
                     }
                 } catch (e: Exception) {
                     runOnUiThread {
@@ -503,8 +507,31 @@ class ExportTreeActivity : AppCompatActivity() {
 
     private fun exportGedcom() {
         if (persons.isEmpty()) { toast("No members to export"); return }
-        val gedcom = buildGedcomContent(persons)
-        saveTextFile("FamilyTree.ged", gedcom)
+        if (isExporting) return
+        setExporting(true, "Exporting GEDCOM 5.5.1 lineage...")
+
+        val personsSnapshot = persons.toList()
+        val fileName = getSafeTreeFileName("Lineage.ged")
+
+        Thread {
+            try {
+                val gedcom = buildGedcomContent(personsSnapshot)
+                val savedUri = saveTextFile(fileName, gedcom, "text/plain")
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    setExporting(false)
+                    if (savedUri != null) {
+                        showPostExportActionModal("GEDCOM 5.5.1 Archive", fileName, "text/plain", savedUri)
+                    }
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    setExporting(false)
+                    toast("GEDCOM export failed: ${e.message}")
+                }
+            }
+        }.start()
     }
 
     private fun exportCsv() {
@@ -586,13 +613,16 @@ class ExportTreeActivity : AppCompatActivity() {
                 }
 
                 val fileName = getSafeTreeFileName("Directory.csv")
-                saveFile(fileName, "text/csv") { out ->
+                val savedUri = saveFile(fileName, "text/csv") { out ->
                     out.write(sb.toString().toByteArray(Charsets.UTF_8))
                 }
 
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
                     setExporting(false)
-                    toast("✅ CSV Spreadsheet saved: $fileName")
+                    if (savedUri != null) {
+                        showPostExportActionModal("CSV Spreadsheet Directory", fileName, "text/csv", savedUri)
+                    }
                 }
             } catch (e: Exception) {
                 runOnUiThread {
@@ -612,9 +642,9 @@ class ExportTreeActivity : AppCompatActivity() {
 
     // ── File saving helpers ──────────────────────────────────────────
 
-    private fun saveFile(fileName: String, mimeType: String, write: (OutputStream) -> Unit) {
+    private fun saveFile(fileName: String, mimeType: String, write: (OutputStream) -> Unit): android.net.Uri? {
         try {
-            var saved = false
+            var savedUri: android.net.Uri? = null
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val values = ContentValues().apply {
                     put(MediaStore.Downloads.DISPLAY_NAME, fileName)
@@ -624,27 +654,89 @@ class ExportTreeActivity : AppCompatActivity() {
                 val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                 if (uri != null) {
                     contentResolver.openOutputStream(uri)?.use { write(it) }
-                    saved = true
+                    savedUri = uri
                 }
             }
-            if (!saved) {
+            if (savedUri == null) {
                 @Suppress("DEPRECATION")
                 val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).apply { mkdirs() }
                 val file = java.io.File(dir, fileName)
                 java.io.FileOutputStream(file).use { write(it) }
+                // Also mirror to cache/reports so FileProvider can safely share/open on API < 29
+                val cacheDir = java.io.File(cacheDir, "reports").apply { mkdirs() }
+                val cacheFile = java.io.File(cacheDir, fileName)
+                file.copyTo(cacheFile, overwrite = true)
+                savedUri = androidx.core.content.FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    cacheFile
+                )
             }
             android.util.Log.i("ExportTreeActivity", "Successfully saved: $fileName ($mimeType)")
+            return savedUri
         } catch (e: Exception) {
             android.util.Log.e("ExportTreeActivity", "Failed to save $fileName", e)
             runOnUiThread {
                 toast("Export failed: ${e.message}")
             }
+            return null
         }
     }
 
-    private fun saveTextFile(fileName: String, content: String, mimeType: String = "text/plain") {
-        saveFile(fileName, mimeType) { out ->
+    private fun saveTextFile(fileName: String, content: String, mimeType: String = "text/plain"): android.net.Uri? {
+        return saveFile(fileName, mimeType) { out ->
             out.write(content.toByteArray(Charsets.UTF_8))
+        }
+    }
+
+    private fun showPostExportActionModal(
+        formatLabel: String,
+        fileName: String,
+        mimeType: String,
+        fileUri: android.net.Uri
+    ) {
+        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+            .setIconCrest("✅")
+            .setKicker("EXPORT COMPLETE")
+            .setTitle("$formatLabel Saved")
+            .setMessage("Your family tree archive has been saved to your device's Downloads folder:\n\n📄 $fileName\n\nWould you like to open or share this file now?")
+            .setPositiveButton("Open File") { d, _ ->
+                d.dismiss()
+                openExportedFile(fileUri, mimeType, fileName)
+            }
+            .setNeutralButton("Share") { d, _ ->
+                d.dismiss()
+                shareExportedFile(fileUri, mimeType, fileName)
+            }
+            .setNegativeButton("Done") { d, _ ->
+                d.dismiss()
+            }
+            .show()
+    }
+
+    private fun openExportedFile(uri: android.net.Uri, mimeType: String, fileName: String) {
+        try {
+            val viewIntent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, mimeType)
+                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(android.content.Intent.createChooser(viewIntent, "Open $fileName"))
+        } catch (e: Exception) {
+            shareExportedFile(uri, mimeType, fileName)
+        }
+    }
+
+    private fun shareExportedFile(uri: android.net.Uri, mimeType: String, fileName: String) {
+        try {
+            val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = mimeType
+                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "KinTrace Export: $fileName")
+                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(android.content.Intent.createChooser(shareIntent, "Share $fileName via"))
+        } catch (e: Exception) {
+            toast("Could not launch file viewer: ${e.message}")
         }
     }
 
@@ -800,6 +892,23 @@ class ExportTreeActivity : AppCompatActivity() {
 
             sb.appendLine("0 TRLR")
             return sb.toString()
+        }
+
+        fun computeUniqueMarriageUnionsCount(persons: List<Person>): Int {
+            if (persons.isEmpty()) return 0
+            val uniqueSpousePairs = mutableSetOf<Pair<String, String>>()
+            for (p in persons) {
+                val pid = p.id.trim()
+                if (pid.isEmpty()) continue
+                for (sid in p.allSpouseIds()) {
+                    val cleanSid = sid.trim()
+                    if (cleanSid.isNotEmpty() && cleanSid != pid) {
+                        val pair = if (pid < cleanSid) pid to cleanSid else cleanSid to pid
+                        uniqueSpousePairs.add(pair)
+                    }
+                }
+            }
+            return uniqueSpousePairs.size
         }
     }
 }

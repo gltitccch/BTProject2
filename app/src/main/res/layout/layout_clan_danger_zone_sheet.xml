@@ -48,7 +48,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="DANGER ZONE • PERMANENT"
+                android:text="PERSONAL ACCOUNT • PERMANENT"
                 android:textSize="9.5sp"
                 android:textStyle="bold"
                 android:textColor="@color/danger"
@@ -62,7 +62,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Delete Clan Account"
+                android:text="Delete My Account"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary" />
@@ -73,7 +73,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Account removal is permanent and irreversible. KinTrace automatically invokes Clan Stewardship to safeguard collaborative genealogy for your relatives:"
+        android:text="Deleting your account only removes your personal login and profile. Everything you inputted into a shared family tree (members, names, dates, and relationships) will NOT be deleted:"
         android:textSize="11.5sp"
         android:textColor="@color/dark_subtext"
         android:lineSpacingExtra="2dp"
@@ -100,7 +100,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="❌ What's Erased"
+                android:text="❌ What Is Deleted"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:textColor="@color/danger"
@@ -109,7 +109,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• Login credentials\n• User profile record\n• Unshared solo trees"
+                android:text="• Your email &amp; login\n• Your user profile\n• Unshared solo trees"
                 android:textSize="10.5sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="3dp" />
@@ -128,7 +128,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🏛️ Preserved for Clan"
+                android:text="🌳 Kept in Family Tree"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:textColor="@color/mint_text"
@@ -137,14 +137,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• Shared family trees\n• Living relatives masked\n• Former Contributor tag"
+                android:text="• All nodes you added\n• Names, dates &amp; links\n• Shared clan history"
                 android:textSize="10.5sp"
                 android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="3dp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- RA 10173 Privacy Compliance Micro-Chip -->
+    <!-- Terms & Conditions Section 3 Guarantee Micro-Chip -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -153,21 +153,21 @@
         android:background="@drawable/badge_pill_dark"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:layout_marginBottom="16dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🛡️"
+            android:text="📜"
             android:textSize="12sp"
             android:layout_marginEnd="6dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Living relatives protected under RA 10173 (Data Privacy Act)."
+            android:text="Terms &amp; Conditions (Sec. 3): All family tree nodes you contributed stay intact under 'Former Clan Contributor'."
             android:textSize="10sp"
             android:textColor="@color/dark_subtext" />
     </LinearLayout>

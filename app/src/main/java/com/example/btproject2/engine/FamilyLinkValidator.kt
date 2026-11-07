@@ -439,11 +439,15 @@ object FamilyLinkValidator {
     /**
      * Validates whether [father] and [mother] can biologically and legally be co-parents of any child.
      * Prevents incestuous co-parenting under Articles 37 & 38 of the Family Code of the Philippines.
+     *
+     * @param skipDeepTraces When true (used during fast dropdown candidate filtering), skips the
+     *                       multi-generation BloodlineTracer while keeping direct incest/lineal checks active.
      */
     fun validateCoParents(
         father: Person?,
         mother: Person?,
-        allPersons: List<Person>
+        allPersons: List<Person>,
+        skipDeepTraces: Boolean = false
     ): ValidationResult {
         val issues = mutableListOf<LinkIssue>()
         if (father == null || mother == null) return ValidationResult(issues)
@@ -597,7 +601,7 @@ object FamilyLinkValidator {
         }
 
         // 7. General Consanguinity Check via BloodlineTracer
-        if (father.id.isNotBlank() && mother.id.isNotBlank()) {
+        if (!skipDeepTraces && father.id.isNotBlank() && mother.id.isNotBlank()) {
             try {
                 val map = allPersons.associateBy { it.id.trim() }.toMutableMap()
                 map[father.id.trim()] = father
@@ -635,6 +639,64 @@ object FamilyLinkValidator {
                     )
                 }
             } catch (_: Exception) {
+            }
+        }
+
+        // 8. Historical Lifespan Overlap & 80-Year Birth-Gap Guard for Co-Parents
+        val fatherBirthYr = extractYear(father.birthDate)
+        val motherBirthYr = extractYear(mother.birthDate)
+        val fatherDeathYr = if (!father.isLiving && father.deathDate.isNotBlank()) extractYear(father.deathDate) else null
+        val motherDeathYr = if (!mother.isLiving && mother.deathDate.isNotBlank()) extractYear(mother.deathDate) else null
+
+        if (fatherDeathYr != null && motherBirthYr != null && fatherDeathYr - motherBirthYr < 12) {
+            val detail = if (fatherDeathYr < motherBirthYr) {
+                "${father.firstName} ${father.lastName} passed away in $fatherDeathYr, which is ${motherBirthYr - fatherDeathYr} year(s) before ${mother.firstName} ${mother.lastName} was born in $motherBirthYr."
+            } else {
+                "${mother.firstName} ${mother.lastName} (born $motherBirthYr) was only ${fatherDeathYr - motherBirthYr} year(s) old when ${father.firstName} ${father.lastName} passed away in $fatherDeathYr."
+            }
+            issues.add(
+                LinkIssue(
+                    type = IssueType.FATAL_ERROR,
+                    title = "Chronological Lifespan Conflict (Co-Parents)",
+                    message = "Cannot register ${father.firstName} and ${mother.firstName} as biological co-parents: $detail",
+                    legalArticle = "Biological & Chronological Lifespan Feasibility",
+                    field = "parents"
+                )
+            )
+            return ValidationResult(issues)
+        }
+
+        if (motherDeathYr != null && fatherBirthYr != null && motherDeathYr - fatherBirthYr < 12) {
+            val detail = if (motherDeathYr < fatherBirthYr) {
+                "${mother.firstName} ${mother.lastName} passed away in $motherDeathYr, which is ${fatherBirthYr - motherDeathYr} year(s) before ${father.firstName} ${father.lastName} was born in $fatherBirthYr."
+            } else {
+                "${father.firstName} ${father.lastName} (born $fatherBirthYr) was only ${motherDeathYr - fatherBirthYr} year(s) old when ${mother.firstName} ${mother.lastName} passed away in $motherDeathYr."
+            }
+            issues.add(
+                LinkIssue(
+                    type = IssueType.FATAL_ERROR,
+                    title = "Chronological Lifespan Conflict (Co-Parents)",
+                    message = "Cannot register ${father.firstName} and ${mother.firstName} as biological co-parents: $detail",
+                    legalArticle = "Biological & Chronological Lifespan Feasibility",
+                    field = "parents"
+                )
+            )
+            return ValidationResult(issues)
+        }
+
+        if (fatherBirthYr != null && motherBirthYr != null) {
+            val birthYearGap = kotlin.math.abs(fatherBirthYr - motherBirthYr)
+            if (birthYearGap > MarriageValidationEngine.MAX_SPOUSE_BIRTH_YEAR_GAP) {
+                issues.add(
+                    LinkIssue(
+                        type = IssueType.FATAL_ERROR,
+                        title = "Historical Birth-Year Conflict (Co-Parents)",
+                        message = "Cannot register ${father.firstName} ${father.lastName} (born $fatherBirthYr) and ${mother.firstName} ${mother.lastName} (born $motherBirthYr) as co-parents: their birth years are $birthYearGap years apart (exceeding the ${MarriageValidationEngine.MAX_SPOUSE_BIRTH_YEAR_GAP}-year human generation span).",
+                        legalArticle = "Genealogical Lifespan Feasibility (Maximum 80-Year Birth Span)",
+                        field = "parents"
+                    )
+                )
+                return ValidationResult(issues)
             }
         }
 
@@ -788,10 +850,16 @@ object FamilyLinkValidator {
         validationMap[pId] = parent.copy(id = pId)
         validationMap[cId] = child.copy(id = cId)
 
+        val effectiveRelType = if (isFatherRole) {
+            child.fatherRelationshipType.ifBlank { "Biological" }
+        } else {
+            child.motherRelationshipType.ifBlank { "Biological" }
+        }
+
         val mveParentChildResult = marriageValidationEngine.validateParentChildConnection(
             parentId = pId,
             childId = cId,
-            relationshipType = "Biological",
+            relationshipType = effectiveRelType,
             personMap = validationMap
         )
         if (!mveParentChildResult.isAllowed) {
@@ -845,8 +913,9 @@ object FamilyLinkValidator {
             )
         }
 
-        // 5c. Collateral / Uncle-Aunt Parent Prohibition Check (Article 38(1))
-        // An uncle or aunt cannot be registered as the direct biological parent of their niece or nephew.
+        // 5c. Collateral / Uncle-Aunt / Nephew-Niece / Cousin Parent Prohibition Check (Article 38(1))
+        // A collateral blood relative (uncle/aunt, nephew/niece, or first cousin within the 4th civil degree)
+        // cannot be registered as the direct biological parent of their close collateral relative.
         val isFatherBrotherOfParent = existingFather != null && isSiblingOf(parent, existingFather, allPersons)
         val isMotherSisterOfParent = existingMother != null && isSiblingOf(parent, existingMother, allPersons)
 
@@ -862,17 +931,62 @@ object FamilyLinkValidator {
             )
         }
 
-        var isCollateralUncleAuntViaTrace = false
+        // Check if child is actually the sibling of parent's father or mother (i.e. child is the Aunt/Uncle and parent is the Nephew/Niece!)
+        val parentFatherObj = findPersonInList(parent.fatherId, allPersons)
+        val parentMotherObj = findPersonInList(parent.motherId, allPersons)
+        val isChildSiblingOfParentsParent = (parentFatherObj != null && isSiblingOf(child, parentFatherObj, allPersons)) ||
+            (parentMotherObj != null && isSiblingOf(child, parentMotherObj, allPersons))
+
+        var traceResultForCollateral: com.example.btproject2.models.TraceResult? = null
         if (!isAlreadyChildOfProposedParent && parent.id.isNotBlank() && child.id.isNotBlank()) {
             try {
                 val trace = bloodlineTracer.trace(pId, cId, validationMap)
-                if (trace.isRelated && (trace.relationshipType.contains("Uncle", ignoreCase = true) || trace.relationshipType.contains("Aunt", ignoreCase = true))) {
-                    isCollateralUncleAuntViaTrace = true
+                if (trace.isRelated) {
+                    traceResultForCollateral = trace
                 }
             } catch (_: Exception) {}
         }
 
-        if (isFatherBrotherOfParent || isMotherSisterOfParent || isUncleThroughAnySibling || isCollateralUncleAuntViaTrace) {
+        val isCollateralUncleAuntViaTrace = traceResultForCollateral != null &&
+            (traceResultForCollateral.relationshipType.contains("Uncle", ignoreCase = true) ||
+                traceResultForCollateral.relationshipType.contains("Aunt", ignoreCase = true)) &&
+            traceResultForCollateral.distanceA <= traceResultForCollateral.distanceB
+
+        val isReverseNephewNieceParentage = isChildSiblingOfParentsParent || (
+            traceResultForCollateral != null &&
+                (traceResultForCollateral.relationshipType.contains("Uncle", ignoreCase = true) ||
+                    traceResultForCollateral.relationshipType.contains("Aunt", ignoreCase = true)) &&
+                traceResultForCollateral.distanceA > traceResultForCollateral.distanceB
+            )
+
+        val isCollateralCousinParentage = traceResultForCollateral != null &&
+            traceResultForCollateral.relationshipCategory.equals("Collateral", ignoreCase = true) &&
+            traceResultForCollateral.degreeOfConsanguinity in 2..4 &&
+            !isCollateralUncleAuntViaTrace && !isReverseNephewNieceParentage &&
+            !isSiblingOf(parent, child, allPersons)
+
+        if (isReverseNephewNieceParentage) {
+            val parentRoleWord = if (parent.gender.equals("Female", ignoreCase = true)) "niece" else "nephew"
+            val childRoleWord = if (child.gender.equals("Female", ignoreCase = true)) "aunt" else "uncle"
+            val sharedParentObj = when {
+                parentFatherObj != null && isSiblingOf(child, parentFatherObj, allPersons) -> parentFatherObj
+                parentMotherObj != null && isSiblingOf(child, parentMotherObj, allPersons) -> parentMotherObj
+                else -> null
+            }
+            val siblingContext = sharedParentObj?.let { " (sibling of ${parent.firstName}'s parent ${it.firstName} ${it.lastName})".trimEnd() } ?: ""
+
+            issues.add(
+                LinkIssue(
+                    type = IssueType.FATAL_ERROR,
+                    title = "Prohibited Parent Link (Nephew/Niece to Aunt/Uncle)",
+                    message = "It’s not possible to add $childDisplayName as a child of $parentDisplayName.\n\n" +
+                            "$parentDisplayName is the biological $parentRoleWord of $childDisplayName, meaning $childDisplayName is already ${parent.firstName}'s biological $childRoleWord$siblingContext.\n\n" +
+                            "Even when a nephew or niece is older in years than a young aunt or uncle, generational steps in the family tree cannot be reversed. Under Philippine Family Law (Article 38), a $parentRoleWord cannot be registered as the parent of their own $childRoleWord.",
+                    legalArticle = "Article 38 (1), Family Code of the Philippines",
+                    field = role
+                )
+            )
+        } else if (isFatherBrotherOfParent || isMotherSisterOfParent || isUncleThroughAnySibling || isCollateralUncleAuntViaTrace) {
             val siblingPerson = when {
                 isFatherBrotherOfParent -> existingFather
                 isMotherSisterOfParent -> existingMother
@@ -893,11 +1007,26 @@ object FamilyLinkValidator {
                     field = role
                 )
             )
+        } else if (isCollateralCousinParentage && effectiveRelType.equals("Biological", ignoreCase = true)) {
+            val relLabel = traceResultForCollateral?.relationshipType ?: "Collateral Relative"
+            issues.add(
+                LinkIssue(
+                    type = IssueType.FATAL_ERROR,
+                    title = "Prohibited Parent Link ($relLabel)",
+                    message = "It’s not possible to add $childDisplayName as a biological child of $parentDisplayName.\n\n" +
+                            "$parentDisplayName and $childDisplayName are already connected as $relLabel (${traceResultForCollateral?.degreeOfConsanguinity ?: 4}th Civil Degree).\n\n" +
+                            "Under universal genealogical rules and Article 38(1) of the Family Code of the Philippines, close collateral blood relatives within the 4th civil degree cannot be linked as direct biological parent and child.",
+                    legalArticle = "Article 38 (1), Family Code of the Philippines",
+                    field = role
+                )
+            )
         }
 
-        // 6. Age gap checks
+        // 6. Direct & Multi-Generation Age Gap Checks
         val parentYear = extractYear(parent.birthDate)
         val childYear = extractYear(child.birthDate)
+        val isAdoptiveLink = (isFatherRole && child.fatherRelationshipType.equals("Adoptive", ignoreCase = true)) ||
+                (!isFatherRole && child.motherRelationshipType.equals("Adoptive", ignoreCase = true))
 
         if (parentYear != null && childYear != null) {
             val gap = childYear - parentYear
@@ -923,9 +1052,7 @@ object FamilyLinkValidator {
                     )
                 )
             } else if (gap < 12) {
-                val isAdoptive = (isFatherRole && child.fatherRelationshipType.equals("Adoptive", ignoreCase = true)) ||
-                        (!isFatherRole && child.motherRelationshipType.equals("Adoptive", ignoreCase = true))
-                if (!isAdoptive) {
+                if (!isAdoptiveLink) {
                     issues.add(
                         LinkIssue(
                             type = IssueType.FATAL_ERROR,
@@ -956,6 +1083,19 @@ object FamilyLinkValidator {
                 )
             }
         }
+
+        // 6b. Multi-Generation Ancestor-Descendant Age Feasibility Guard
+        // Even if a middle parent has no birth date recorded yet, any biological ancestor N steps above
+        // a biological descendant must be at least (12 * N) years older (e.g. Grandparent >= 24 yrs, Great-Grandparent >= 36 yrs).
+        issues.addAll(
+            validateMultiGenerationAgeFeasibility(
+                parent = parent,
+                child = child,
+                role = role,
+                isAdoptiveLink = isAdoptiveLink,
+                allPersons = allPersons
+            )
+        )
 
         // 7. Death date feasibility (Philippine Family Code Smart Hybrid Rule)
         val deathChrono = validateParentDeathChronology(parent, child, role)
@@ -1049,17 +1189,17 @@ object FamilyLinkValidator {
             return ValidationResult(issues)
         }
 
-        // Soft warning for large age gap if marriage is otherwise valid
-        val ageA = marriageValidationEngine.calculateAge(personA)
-        val ageB = marriageValidationEngine.calculateAge(spouse)
-        if (ageA != null && ageB != null) {
-            val gap = Math.abs(ageA - ageB)
+        // Soft warning for large birth-year gap (41..80 years) if marriage is otherwise valid
+        val birthYearA = extractYear(personA.birthDate)
+        val birthYearB = extractYear(spouse.birthDate)
+        if (birthYearA != null && birthYearB != null) {
+            val gap = kotlin.math.abs(birthYearA - birthYearB)
             if (gap > 40) {
                 issues.add(
                     LinkIssue(
                         type = IssueType.WARNING,
                         title = "Large Age Gap Between Spouses",
-                        message = "Large age gap of $gap years between spouses ${personA.firstName} and ${spouse.firstName}.",
+                        message = "Large birth-year gap of $gap years between spouses ${personA.firstName} (born $birthYearA) and ${spouse.firstName} (born $birthYearB).",
                         field = "spouseId"
                     )
                 )
@@ -1144,7 +1284,221 @@ object FamilyLinkValidator {
         // 7. Lineage role age validation (18+ requirement for Patriarch / Matriarch)
         issues.addAll(validateLineageRole(person).issues)
 
-        return ValidationResult(issues)
+        // 8. Multi-generation ancestor/descendant age guard when editing a person's birth date
+        // Ensures that even if a middle parent has no birth date recorded, editing a grandparent's or grandchild's
+        // birth date cannot create a 3-year-old grandmother above a 27-year-old grandchild.
+        issues.addAll(validatePersonMultiGenerationAgeConsistency(person, allPersons))
+
+        return ValidationResult(issues.distinctBy { "${it.type}|${it.title}|${it.message}" })
+    }
+
+    /**
+     * Multi-Generation Biological Age Feasibility Check (`12 * N` years minimum gap across `N >= 2` steps).
+     * Walks upward through biological ancestors of [parent] and downward through biological descendants of [child]
+     * so that even when an intermediate parent has no birth date recorded, an ancestor `N` steps above a descendant
+     * must be born at least `12 * N` years earlier (or strictly earlier if an adoptive link is present).
+     */
+    fun validateMultiGenerationAgeFeasibility(
+        parent: Person,
+        child: Person,
+        role: String,
+        isAdoptiveLink: Boolean,
+        allPersons: List<Person>
+    ): List<LinkIssue> {
+        val issues = mutableListOf<LinkIssue>()
+        val personMap = normalizePersonMap(allPersons)
+        if (parent.id.isNotBlank()) personMap[parent.id.trim().lowercase()] = parent
+        if (child.id.isNotBlank()) personMap[child.id.trim().lowercase()] = child
+
+        // Collect ancestors of parent:Pair(Person, stepsAboveParent, hasAdoptiveStep)
+        val ancestors = collectAncestorsWithDepth(parent, personMap, maxDepth = 5)
+        // Collect descendants of child:Pair(Person, stepsBelowChild, hasAdoptiveStep)
+        val descendants = collectDescendantsWithDepth(child, personMap, maxDepth = 5)
+
+        for ((ancestor, upSteps, upHasAdoptive) in ancestors) {
+            val ancYear = extractYear(ancestor.birthDate) ?: continue
+            for ((descendant, downSteps, downHasAdoptive) in descendants) {
+                val totalSteps = upSteps + 1 + downSteps
+                if (totalSteps < 2) continue // 1-step direct parent-child is already checked in step 6
+                if (isSameId(ancestor.id, descendant.id)) continue
+
+                val descYear = extractYear(descendant.birthDate) ?: continue
+                val gap = descYear - ancYear
+                val anyAdoptiveInChain = isAdoptiveLink || upHasAdoptive || downHasAdoptive
+                val minRequiredBioGap = 12 * totalSteps
+
+                val ancestorLabel = when (totalSteps) {
+                    2 -> if (ancestor.gender.equals("Female", ignoreCase = true)) "grandmother" else if (ancestor.gender.equals("Male", ignoreCase = true)) "grandfather" else "grandparent"
+                    3 -> if (ancestor.gender.equals("Female", ignoreCase = true)) "great-grandmother" else if (ancestor.gender.equals("Male", ignoreCase = true)) "great-grandfather" else "great-grandparent"
+                    else -> "${"great-".repeat((totalSteps - 2).coerceAtLeast(1))}grandparent"
+                }
+                val descendantLabel = when (totalSteps) {
+                    2 -> if (descendant.gender.equals("Female", ignoreCase = true)) "granddaughter" else if (descendant.gender.equals("Male", ignoreCase = true)) "grandson" else "grandchild"
+                    3 -> if (descendant.gender.equals("Female", ignoreCase = true)) "great-granddaughter" else if (descendant.gender.equals("Male", ignoreCase = true)) "great-grandson" else "great-grandchild"
+                    else -> "${"great-".repeat((totalSteps - 2).coerceAtLeast(1))}grandchild"
+                }
+
+                if (gap <= 0) {
+                    val youngerMsg = if (gap < 0) "${-gap} year(s) younger than" else "born in the exact same year as"
+                    issues.add(
+                        LinkIssue(
+                            type = IssueType.FATAL_ERROR,
+                            title = "Impossible Multi-Generation Age Gap (${ancestorLabel.replaceFirstChar { it.uppercase() }})",
+                            message = "Cannot link ${parent.firstName} as $role of ${child.firstName}: " +
+                                    "${ancestor.firstName} ${ancestor.lastName} (born $ancYear) would become the $ancestorLabel of " +
+                                    "${descendant.firstName} ${descendant.lastName} (born $descYear), making the $ancestorLabel $youngerMsg their own $descendantLabel.",
+                            field = role
+                        )
+                    )
+                } else if (!anyAdoptiveInChain && gap < minRequiredBioGap) {
+                    issues.add(
+                        LinkIssue(
+                            type = IssueType.FATAL_ERROR,
+                            title = "Biologically Impossible Multi-Generation Age Gap",
+                            message = "Cannot link ${parent.firstName} as $role of ${child.firstName}: " +
+                                    "${ancestor.firstName} ${ancestor.lastName} (born $ancYear) is $totalSteps biological generations above " +
+                                    "${descendant.firstName} ${descendant.lastName} (born $descYear) — a gap of only $gap year(s).\n\n" +
+                                    "Across $totalSteps biological generations, a $ancestorLabel must be at least $minRequiredBioGap years older than their $descendantLabel (12 years minimum per generation).",
+                            field = role
+                        )
+                    )
+                }
+            }
+        }
+
+        return issues
+    }
+
+    /**
+     * Checks multi-generation age feasibility when editing an existing [person]'s birthDate directly,
+     * even if their immediate parents or children have blank birth dates.
+     */
+    private fun validatePersonMultiGenerationAgeConsistency(
+        person: Person,
+        allPersons: List<Person>
+    ): List<LinkIssue> {
+        val issues = mutableListOf<LinkIssue>()
+        val personYear = extractYear(person.birthDate) ?: return issues
+        val personMap = normalizePersonMap(allPersons)
+        if (person.id.isNotBlank()) personMap[person.id.trim().lowercase()] = person
+
+        // Check ancestors >= 2 steps above person
+        val ancestors = collectAncestorsWithDepth(person, personMap, maxDepth = 5)
+        for ((ancestor, steps, hasAdoptive) in ancestors) {
+            if (steps < 2) continue
+            val ancYear = extractYear(ancestor.birthDate) ?: continue
+            val gap = personYear - ancYear
+            val minBioGap = 12 * steps
+            val ancRole = if (steps == 2) "grandparent" else "${"great-".repeat(steps - 2)}grandparent"
+            if (gap <= 0 || (!hasAdoptive && gap < minBioGap)) {
+                issues.add(
+                    LinkIssue(
+                        type = IssueType.FATAL_ERROR,
+                        title = "Biologically Impossible Multi-Generation Age Gap",
+                        message = "${ancestor.firstName} ${ancestor.lastName} (born $ancYear) is $steps generations above ${person.firstName} (born $personYear). " +
+                                "A biological $ancRole must be at least $minBioGap years older than their descendant (found $gap year(s) difference).",
+                        field = "birthDate"
+                    )
+                )
+            }
+        }
+
+        // Check descendants >= 2 steps below person
+        val descendants = collectDescendantsWithDepth(person, personMap, maxDepth = 5)
+        for ((descendant, steps, hasAdoptive) in descendants) {
+            if (steps < 2) continue
+            val descYear = extractYear(descendant.birthDate) ?: continue
+            val gap = descYear - personYear
+            val minBioGap = 12 * steps
+            val ancRole = if (steps == 2) "grandparent" else "${"great-".repeat(steps - 2)}grandparent"
+            if (gap <= 0 || (!hasAdoptive && gap < minBioGap)) {
+                issues.add(
+                    LinkIssue(
+                        type = IssueType.FATAL_ERROR,
+                        title = "Biologically Impossible Multi-Generation Age Gap",
+                        message = "${person.firstName} ${person.lastName} (born $personYear) is $steps generations above ${descendant.firstName} ${descendant.lastName} (born $descYear). " +
+                                "A biological $ancRole must be at least $minBioGap years older than their descendant (found $gap year(s) difference).",
+                        field = "birthDate"
+                    )
+                )
+            }
+        }
+
+        return issues
+    }
+
+    private fun collectAncestorsWithDepth(
+        start: Person,
+        personMap: Map<String, Person>,
+        maxDepth: Int
+    ): List<Triple<Person, Int, Boolean>> {
+        val result = mutableListOf<Triple<Person, Int, Boolean>>()
+        val visited = mutableSetOf<String>()
+        val queue = ArrayDeque<Triple<Person, Int, Boolean>>()
+        queue.add(Triple(start, 0, false))
+        if (start.id.isNotBlank()) visited.add(start.id.trim().lowercase())
+
+        while (queue.isNotEmpty()) {
+            val (curr, depth, hasAdoptive) = queue.removeFirst()
+            result.add(Triple(curr, depth, hasAdoptive))
+            if (depth >= maxDepth) continue
+
+            val fId = curr.fatherId?.trim()?.lowercase()
+            if (!fId.isNullOrBlank() && visited.add(fId)) {
+                val fObj = personMap[fId]
+                val isStep = curr.fatherRelationshipType.equals("Step", ignoreCase = true)
+                val isAdopt = curr.fatherRelationshipType.equals("Adoptive", ignoreCase = true)
+                if (fObj != null && !isStep) {
+                    queue.add(Triple(fObj, depth + 1, hasAdoptive || isAdopt))
+                }
+            }
+
+            val mId = curr.motherId?.trim()?.lowercase()
+            if (!mId.isNullOrBlank() && visited.add(mId)) {
+                val mObj = personMap[mId]
+                val isStep = curr.motherRelationshipType.equals("Step", ignoreCase = true)
+                val isAdopt = curr.motherRelationshipType.equals("Adoptive", ignoreCase = true)
+                if (mObj != null && !isStep) {
+                    queue.add(Triple(mObj, depth + 1, hasAdoptive || isAdopt))
+                }
+            }
+        }
+        return result
+    }
+
+    private fun collectDescendantsWithDepth(
+        start: Person,
+        personMap: Map<String, Person>,
+        maxDepth: Int
+    ): List<Triple<Person, Int, Boolean>> {
+        val result = mutableListOf<Triple<Person, Int, Boolean>>()
+        val visited = mutableSetOf<String>()
+        val queue = ArrayDeque<Triple<Person, Int, Boolean>>()
+        queue.add(Triple(start, 0, false))
+        if (start.id.isNotBlank()) visited.add(start.id.trim().lowercase())
+
+        while (queue.isNotEmpty()) {
+            val (curr, depth, hasAdoptive) = queue.removeFirst()
+            result.add(Triple(curr, depth, hasAdoptive))
+            if (depth >= maxDepth || curr.id.isBlank()) continue
+
+            val children = personMap.values.filter {
+                isSameId(it.fatherId, curr.id) || isSameId(it.motherId, curr.id)
+            }
+            for (c in children) {
+                val cId = c.id.trim().lowercase()
+                if (cId.isNotBlank() && visited.add(cId)) {
+                    val isFather = isSameId(c.fatherId, curr.id)
+                    val relType = if (isFather) c.fatherRelationshipType else c.motherRelationshipType
+                    val isStep = relType.equals("Step", ignoreCase = true)
+                    val isAdopt = relType.equals("Adoptive", ignoreCase = true)
+                    if (!isStep) {
+                        queue.add(Triple(c, depth + 1, hasAdoptive || isAdopt))
+                    }
+                }
+            }
+        }
+        return result
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -1211,7 +1565,7 @@ object FamilyLinkValidator {
             if (!parentCheck.isValid) return@filter false
 
             if (mother != null && mother.id.isNotBlank()) {
-                val coParentCheck = validateCoParents(candidate, mother, allPersons)
+                val coParentCheck = validateCoParents(candidate, mother, allPersons, skipDeepTraces = true)
                 if (!coParentCheck.isValid) return@filter false
             }
 
@@ -1219,14 +1573,16 @@ object FamilyLinkValidator {
         }
 
         val linkedHusbands = findLinkedSpouses(mother, allPersons)
-        if (linkedHusbands.isNotEmpty()) {
-            return eligible.filter { candidate ->
-                linkedHusbands.any { isSameId(candidate.id, it.id) } ||
-                    (!preferredOtherParentId.isNullOrBlank() && isSameId(candidate.id, preferredOtherParentId))
-            }
-        }
-
-        return eligible
+        return eligible.sortedWith(
+            compareBy<Person> { candidate ->
+                when {
+                    !preferredOtherParentId.isNullOrBlank() && isSameId(candidate.id, preferredOtherParentId) -> 0
+                    mother != null && isSameId(candidate.id, mother.spouseId) -> 1
+                    linkedHusbands.any { isSameId(candidate.id, it.id) } -> 2
+                    else -> 3
+                }
+            }.thenBy { "${it.firstName} ${it.lastName}".trim().lowercase() }
+        )
     }
 
     fun getEligibleMothers(
@@ -1253,7 +1609,7 @@ object FamilyLinkValidator {
             if (!parentCheck.isValid) return@filter false
 
             if (father != null && father.id.isNotBlank()) {
-                val coParentCheck = validateCoParents(father, candidate, allPersons)
+                val coParentCheck = validateCoParents(father, candidate, allPersons, skipDeepTraces = true)
                 if (!coParentCheck.isValid) return@filter false
             }
 
@@ -1261,14 +1617,16 @@ object FamilyLinkValidator {
         }
 
         val linkedWives = findLinkedSpouses(father, allPersons)
-        if (linkedWives.isNotEmpty()) {
-            return eligible.filter { candidate ->
-                linkedWives.any { isSameId(candidate.id, it.id) } ||
-                    (!preferredOtherParentId.isNullOrBlank() && isSameId(candidate.id, preferredOtherParentId))
-            }
-        }
-
-        return eligible
+        return eligible.sortedWith(
+            compareBy<Person> { candidate ->
+                when {
+                    !preferredOtherParentId.isNullOrBlank() && isSameId(candidate.id, preferredOtherParentId) -> 0
+                    father != null && isSameId(candidate.id, father.spouseId) -> 1
+                    linkedWives.any { isSameId(candidate.id, it.id) } -> 2
+                    else -> 3
+                }
+            }.thenBy { "${it.firstName} ${it.lastName}".trim().lowercase() }
+        )
     }
 
     fun getEligibleSpouses(

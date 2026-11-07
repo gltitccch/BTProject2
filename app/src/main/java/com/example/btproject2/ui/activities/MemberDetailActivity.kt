@@ -331,6 +331,8 @@ class MemberDetailActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.btnQuickTrace)?.setOnClickListener {
             val intent = Intent(this, TraceActivity::class.java).apply {
                 putExtra("preselectedPersonA", personId)
+                putExtra("personAId", personId)
+                putExtra("promptSelectPersonB", true)
                 putExtra("TREE_ID", treeId)
                 putExtra("treeId", treeId)
             }
@@ -1057,7 +1059,7 @@ class MemberDetailActivity : AppCompatActivity() {
                         )
                         firestoreHelper.addNotification(notif)
                         com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                            .setTitle("Cannot Link Father")
+                            .setTitle(if (serviceCheck.reason.contains("step-parent", ignoreCase = true)) "Step-Father Detected (Select Adoptive in Edit Profile)" else "Cannot Link Father")
                             .setMessage("${serviceCheck.reason}\n\n${serviceCheck.legalBasis}")
                             .setPositiveButton("Understood", null)
                             .show()
@@ -1175,7 +1177,7 @@ class MemberDetailActivity : AppCompatActivity() {
                         )
                         firestoreHelper.addNotification(notif)
                         com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                            .setTitle("Cannot Link Mother")
+                            .setTitle(if (serviceCheck.reason.contains("step-parent", ignoreCase = true)) "Step-Mother Detected (Select Adoptive in Edit Profile)" else "Cannot Link Mother")
                             .setMessage("${serviceCheck.reason}\n\n${serviceCheck.legalBasis}")
                             .setPositiveButton("Understood", null)
                             .show()
@@ -1828,7 +1830,7 @@ class MemberDetailActivity : AppCompatActivity() {
         firestoreHelper.getTree(treeId,
             onSuccess = { tree ->
                 currentTreeName = tree?.name ?: "Family Tree"
-                isOwner = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                isOwner = tree == null || tree.isOwnedBy(currentUserId)
                 firestoreHelper.getUserMembership(currentUserId, treeId,
                     onSuccess = { member ->
                         isViewer = !isOwner && member?.role.equals("Viewer", ignoreCase = true)

@@ -109,6 +109,155 @@
             android:inputType="text"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="10dp" />
+
+        <!-- Quick Filter Chips Row -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/chipFilterAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="All Members"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/btn_gold_text"
+                    android:background="@drawable/badge_pill_gold"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipFilterLiving"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Living"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipFilterDeceased"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Deceased"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipFilterMissingParents"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Missing Parents"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginEnd="10dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- Vertical Divider between Filter and Sort -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="18dp"
+                    android:background="@color/forest_card_border"
+                    android:layout_marginEnd="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sort:"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_hint"
+                    android:layout_marginEnd="6dp" />
+
+                <TextView
+                    android:id="@+id/chipSortAZ"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="A–Z"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/btn_gold_text"
+                    android:background="@drawable/badge_pill_gold"
+                    android:paddingStart="11dp"
+                    android:paddingEnd="11dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipSortOldest"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Oldest"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="11dp"
+                    android:paddingEnd="11dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipSortYoungest"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Youngest"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="11dp"
+                    android:paddingEnd="11dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+        </HorizontalScrollView>
     </LinearLayout>
 
     <!-- Members Container with Loading & Empty State -->

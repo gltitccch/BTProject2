@@ -149,24 +149,55 @@ class BloodlineTracer {
         val classification = classifier.classify(bestD1, bestD2, isLineal = false)
 
         val isDualAncestors = coEqualAncestors.size >= 2
-        val isDoubleFirstCousins = bestD1 == 2 && bestD2 == 2 && run {
+        val doubleCousinCheck = if (bestD1 == 2 && bestD2 == 2) {
             val fA = personA.fatherId?.let { personMap[it] }
             val mA = personA.motherId?.let { personMap[it] }
             val fB = personB.fatherId?.let { personMap[it] }
             val mB = personB.motherId?.let { personMap[it] }
-            fun areSiblings(p1: Person?, p2: Person?): Boolean {
+            fun areAnySiblings(p1: Person?, p2: Person?): Boolean {
                 if (p1 == null || p2 == null || p1.id == p2.id) return false
                 val shareFather = !p1.fatherId.isNullOrBlank() && p1.fatherId == p2.fatherId
                 val shareMother = !p1.motherId.isNullOrBlank() && p1.motherId == p2.motherId
                 return shareFather || shareMother
             }
-            (areSiblings(fA, fB) && areSiblings(mA, mB)) ||
-                (areSiblings(fA, mB) && areSiblings(mA, fB))
+            fun areFullSiblings(p1: Person?, p2: Person?): Boolean {
+                if (p1 == null || p2 == null || p1.id == p2.id) return false
+                val shareFather = !p1.fatherId.isNullOrBlank() && p1.fatherId == p2.fatherId
+                val shareMother = !p1.motherId.isNullOrBlank() && p1.motherId == p2.motherId
+                return shareFather && shareMother
+            }
+            val directPairs = areAnySiblings(fA, fB) && areAnySiblings(mA, mB)
+            val crossPairs = areAnySiblings(fA, mB) && areAnySiblings(mA, fB)
+            val isFullDouble = (areFullSiblings(fA, fB) && areFullSiblings(mA, mB)) ||
+                (areFullSiblings(fA, mB) && areFullSiblings(mA, fB))
+            when {
+                isFullDouble -> "FULL_DOUBLE"
+                directPairs || crossPairs -> "HALF_DOUBLE"
+                else -> "NONE"
+            }
+        } else "NONE"
+        val isDoubleFirstCousins = doubleCousinCheck != "NONE"
+        val effectiveRelLabel = when (doubleCousinCheck) {
+            "FULL_DOUBLE" -> "Double First Cousins"
+            "HALF_DOUBLE" -> "Half-Double First Cousins"
+            else -> classification.label
         }
-        val effectiveRelLabel = if (isDoubleFirstCousins) "Double First Cousins" else classification.label
         val bloodlineSubtype = when {
-            isDoubleFirstCousins -> "Double First Cousins (Paternal & Maternal)"
+            doubleCousinCheck == "FULL_DOUBLE" -> "Double First Cousins (Paternal & Maternal)"
+            doubleCousinCheck == "HALF_DOUBLE" -> "Half-Double First Cousins (Paternal & Maternal Half-Lineage)"
             bestD1 == 1 && bestD2 == 1 -> if (isDualAncestors) "Full Siblings" else "Half-Siblings"
+            bestD1 == 1 && bestD2 == 2 -> {
+                val elderTitle = if (personA.gender.equals("Male", ignoreCase = true)) "Uncle" else if (personA.gender.equals("Female", ignoreCase = true)) "Aunt" else "Uncle/Aunt"
+                val youngerTitle = if (personB.gender.equals("Male", ignoreCase = true)) "Nephew" else if (personB.gender.equals("Female", ignoreCase = true)) "Niece" else "Nibling"
+                val prefix = if (isDualAncestors) "Full" else "Half"
+                "$prefix $elderTitle & $youngerTitle (${personA.firstName} is $elderTitle)"
+            }
+            bestD1 == 2 && bestD2 == 1 -> {
+                val youngerTitle = if (personA.gender.equals("Male", ignoreCase = true)) "Nephew" else if (personA.gender.equals("Female", ignoreCase = true)) "Niece" else "Nibling"
+                val elderTitle = if (personB.gender.equals("Male", ignoreCase = true)) "Uncle" else if (personB.gender.equals("Female", ignoreCase = true)) "Aunt" else "Uncle/Aunt"
+                val prefix = if (isDualAncestors) "Full" else "Half"
+                "$prefix $youngerTitle & $elderTitle (${personB.firstName} is $elderTitle)"
+            }
             bestD1 == 2 && bestD2 == 2 -> if (isDualAncestors) "Full First Cousins" else "Half-First Cousins"
             bestD1 == 3 && bestD2 == 3 -> if (isDualAncestors) "Full Second Cousins" else "Half-Second Cousins"
             else -> if (isDualAncestors) "Full Blood" else "Half Blood"
@@ -412,6 +443,14 @@ class BloodlineTracer {
                 else -> "Child-in-Law"
             }
             val label = if (aIsParentInLaw) "$pInLawRole / $cInLawRole" else "$cInLawRole / $pInLawRole"
+            val pInLawYear = FamilyLinkValidator.extractYear(parentInLaw.birthDate)
+            val cInLawYear = FamilyLinkValidator.extractYear(childInLaw.birthDate)
+            val ageInsightNote = if (pInLawYear != null && cInLawYear != null && pInLawYear > cInLawYear) {
+                val diff = pInLawYear - cInLawYear
+                " Generational & Affinity Age Note: Although ${childInLaw.firstName} (born $cInLawYear) is $diff year(s) older than ${parentInLaw.firstName} (born $pInLawYear), ${parentInLaw.firstName} holds the ${pInLawRole.lowercase()} title because ${parentInLaw.firstName} is the biological parent of ${connectingChild.firstName}, who is married to ${childInLaw.firstName}."
+            } else {
+                ""
+            }
 
             return TraceResult(
                 personA = personA,
@@ -423,7 +462,7 @@ class BloodlineTracer {
                 commonAncestor = connectingChild,
                 pathFromA = if (aIsParentInLaw) listOf(personA, connectingChild) else listOf(personA),
                 pathFromB = if (aIsParentInLaw) listOf(personB) else listOf(personB, connectingChild),
-                explanation = "${parentInLaw.firstName} is the ${pInLawRole.lowercase()} of ${childInLaw.firstName} through the marriage of ${connectingChild.firstName} ${connectingChild.lastName} and ${childInLaw.firstName}. While they have 0 degrees of biological consanguinity, under Article 38 of the Family Code of the Philippines, marriage between parents-in-law and children-in-law is void ab initio for reasons of public policy.",
+                explanation = "${parentInLaw.firstName} is the ${pInLawRole.lowercase()} of ${childInLaw.firstName} through the marriage of ${connectingChild.firstName} ${connectingChild.lastName} and ${childInLaw.firstName}. While they have 0 degrees of biological consanguinity, under Article 38 of the Family Code of the Philippines, marriage between parents-in-law and children-in-law is void ab initio for reasons of public policy.$ageInsightNote",
                 distanceA = 1,
                 distanceB = 1,
                 legalStatus = "Void (Public Policy)",
@@ -535,18 +574,33 @@ class BloodlineTracer {
 
             val spouseFullName = "${connectingSpouse.firstName} ${connectingSpouse.lastName}".trim()
             val bioSummary = describeBioRoleToSpouse(bloodRelative, connectingSpouse, distRelative, distSpouse, bioTrace.relationshipType)
+            val isStepGrandparentCase = distRelative >= 2 && distSpouse == 0
+            val relCategory = if (isStepGrandparentCase) "Affinity / Step" else "Affinity / In-Law"
+
+            val stepAgeNote = if (isStepGrandparentCase) {
+                val stepGpYear = FamilyLinkValidator.extractYear(marriedInPerson.birthDate)
+                val stepGcYear = FamilyLinkValidator.extractYear(bloodRelative.birthDate)
+                if (stepGpYear != null && stepGcYear != null && stepGpYear > stepGcYear) {
+                    val diff = stepGpYear - stepGcYear
+                    " Generational & Step-Family Age Note: Although ${marriedInPerson.firstName} (born $stepGpYear) is $diff year(s) younger than ${bloodRelative.firstName} (born $stepGcYear), ${marriedInPerson.firstName} is ${bloodRelative.firstName}'s step-grandparent by marriage to biological grandparent $spouseFullName."
+                } else {
+                    ""
+                }
+            } else {
+                ""
+            }
 
             return TraceResult(
                 personA = personA,
                 personB = personB,
                 isRelated = true,
                 relationshipType = inLawLabel,
-                relationshipCategory = "Affinity / In-Law",
+                relationshipCategory = relCategory,
                 degreeOfConsanguinity = 0,
                 commonAncestor = connectingSpouse,
                 pathFromA = fullPathFromA,
                 pathFromB = fullPathFromB,
-                explanation = "$bioSummary, and $spouseFullName is married to ${marriedInPerson.firstName} ${marriedInPerson.lastName}. Through this marriage bridge, ${personA.firstName} and ${personB.firstName} are connected as $inLawLabel (Affinity / By Marriage) with 0 degrees of biological blood consanguinity.",
+                explanation = "$bioSummary, and $spouseFullName is married to ${marriedInPerson.firstName} ${marriedInPerson.lastName}. Through this marriage bridge, ${personA.firstName} and ${personB.firstName} are connected as $inLawLabel (Affinity / By Marriage) with 0 degrees of biological blood consanguinity.$stepAgeNote",
                 distanceA = if (viaSpouseB) maxOf(1, bioTrace.distanceA + bioTrace.distanceB) else 1,
                 distanceB = if (viaSpouseB) 1 else maxOf(1, bioTrace.distanceA + bioTrace.distanceB),
                 legalStatus = "0° Blood Consanguinity (Connected by Marriage)",
@@ -779,18 +833,18 @@ class BloodlineTracer {
             return if (aIsBloodRelative) "$ancRole / $descRole" else "$descRole / $ancRole"
         }
 
-        // 2. Blood relative is Lineal Descendant of Spouse (e.g. Grandchild of Spouse)
+        // 2. Blood relative is Lineal Descendant of Spouse (e.g. Grandchild of Spouse -> Step-Grandparent / Step-Grandchild)
         if (distRelative >= 2 && distSpouse == 0) {
             val greats = if (distRelative > 2) "Great-".repeat(distRelative - 2) else ""
             val descRole = when {
-                relMale -> "${greats}Grandson-in-Law"
-                relFemale -> "${greats}Granddaughter-in-Law"
-                else -> "${greats}Grandchild-in-Law"
+                relMale -> "Step-${greats}Grandson"
+                relFemale -> "Step-${greats}Granddaughter"
+                else -> "Step-${greats}Grandchild"
             }
             val ancRole = when {
-                marMale -> "${greats}Grandfather-in-Law"
-                marFemale -> "${greats}Grandmother-in-Law"
-                else -> "${greats}Grandparent-in-Law"
+                marMale -> "Step-${greats}Grandfather"
+                marFemale -> "Step-${greats}Grandmother"
+                else -> "Step-${greats}Grandparent"
             }
             return if (aIsBloodRelative) "$descRole / $ancRole" else "$ancRole / $descRole"
         }
@@ -885,6 +939,15 @@ class BloodlineTracer {
             distRelative == 0 && distSpouse >= 3 -> {
                 val greats = "great-".repeat(distSpouse - 2)
                 val role = if (relMale) "biological ${greats}grandfather" else if (relFemale) "biological ${greats}grandmother" else "biological ${greats}grandparent"
+                "$relName is the $role of $spouseName"
+            }
+            distRelative == 2 && distSpouse == 0 -> {
+                val role = if (relMale) "biological grandson" else if (relFemale) "biological granddaughter" else "biological grandchild"
+                "$relName is the $role of $spouseName"
+            }
+            distRelative >= 3 && distSpouse == 0 -> {
+                val greats = "great-".repeat(distRelative - 2)
+                val role = if (relMale) "biological ${greats}grandson" else if (relFemale) "biological ${greats}granddaughter" else "biological ${greats}grandchild"
                 "$relName is the $role of $spouseName"
             }
             distRelative == 1 && distSpouse == 2 -> {

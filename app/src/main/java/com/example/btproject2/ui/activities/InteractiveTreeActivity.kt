@@ -1004,7 +1004,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         firestoreHelper.getTree(effectiveTreeId,
             onSuccess = { tree ->
                 currentTreeName = tree?.name ?: "Family Tree"
-                val ownerMatch = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                val ownerMatch = tree == null || tree.isOwnedBy(currentUserId)
                 if (ownerMatch) {
                     isOwner = true
                     isEditor = false
@@ -3323,9 +3323,6 @@ class FamilyTreeView @JvmOverloads constructor(
             computeHorizontalPedigreeLayout()
         } else {
             computeMainDownwardLayout()
-            customNodePositions.forEach { (pId, customPos) ->
-                posMap[pId]?.set(customPos.x, customPos.y)
-            }
         }
         precomputeCardDisplayData()
     }
@@ -3915,6 +3912,12 @@ class FamilyTreeView @JvmOverloads constructor(
 
         canvasW = maxOf(maxX + shiftX, 1200f)
         canvasH = maxOf(maxY + shiftY, 800f)
+
+        // Apply custom Organize Mode card coordinates BEFORE precomputing connectors and tap hit areas
+        customNodePositions.forEach { (pId, customPos) ->
+            posMap[pId]?.set(customPos.x, customPos.y)
+        }
+
         precomputeMainTreeConnectorsAndHitAreas()
     }
 
@@ -4008,13 +4011,15 @@ class FamilyTreeView @JvmOverloads constructor(
             }
 
             if (unit.children.isNotEmpty()) {
-                val yParent = pPos.y
+                val yParent = if (sPos != null) (pPos.y + sPos.y) / 2f else pPos.y
                 val parentCardBottom = yParent + CARD_H / 2f
-                val currentPairMidX = if (sPos != null) (pPos.x + sPos.x) / 2f else unit.x
-                val dropStartY = if (unit.spouse != null) pPos.y + 12f else parentCardBottom + ADD_BTN_R
+                val currentPairMidX = if (sPos != null) (pPos.x + sPos.x) / 2f else pPos.x
+                val dropStartY = if (unit.spouse != null) yParent + 12f else parentCardBottom + ADD_BTN_R
 
                 val allLeaves = unit.children.all { it.children.isEmpty() }
-                val isTiered = allLeaves && unit.children.size >= 4
+                val hasCustomMovedChildOrBus = customBusOffsets.containsKey(unit.primary.id) ||
+                    unit.children.any { customNodePositions.containsKey(getBiologicalChild(unit, it).id) }
+                val isTiered = allLeaves && unit.children.size >= 4 && !hasCustomMovedChildOrBus
 
                 if (isTiered) {
                     val tier1Count = (unit.children.size + 1) / 2
@@ -4135,17 +4140,17 @@ class FamilyTreeView @JvmOverloads constructor(
                         val bio = getBiologicalChild(unit, ch)
                         posMap[bio.id]?.y
                     }.average().toFloat().takeIf { !it.isNaN() } ?: (pPos.y + 100f)
-                    val isParentsAbove = pPos.y <= avgChildY
+                    val isParentsAbove = yParent <= avgChildY
 
                     val defaultDropStartY = if (isParentsAbove) {
-                        if (unit.spouse != null) pPos.y + 12f else parentCardBottom + ADD_BTN_R
+                        if (unit.spouse != null) yParent + 12f else parentCardBottom + ADD_BTN_R
                     } else {
-                        if (unit.spouse != null) pPos.y - 12f else (pPos.y - CARD_H / 2f) - 8f
+                        if (unit.spouse != null) yParent - 12f else (yParent - CARD_H / 2f) - 8f
                     }
                     val defaultYBus = if (isParentsAbove) {
                         parentCardBottom + V_GAP * 0.5f
                     } else {
-                        (pPos.y - CARD_H / 2f) - V_GAP * 0.5f
+                        (yParent - CARD_H / 2f) - V_GAP * 0.5f
                     }
 
                     val customBus = customBusOffsets[unit.primary.id]
@@ -4344,6 +4349,8 @@ class FamilyTreeView @JvmOverloads constructor(
             if (sharedUnit != null) {
                 val primaryPos = posMap[sharedUnit.primary.id]
                 if (primaryPos != null) {
+                    val sharedSpousePos = sharedUnit.spouse?.let { posMap[it.id] }
+                    val sharedMidX = if (sharedSpousePos != null) (primaryPos.x + sharedSpousePos.x) / 2f else primaryPos.x
                     val isChildBelow = cPos.y >= primaryPos.y
                     val pY = if (isChildBelow) primaryPos.y + 12f else primaryPos.y - 12f
                     val cY = if (isChildBelow) cPos.y - CARD_H / 2f else cPos.y + CARD_H / 2f + ADD_BTN_R
@@ -4354,7 +4361,7 @@ class FamilyTreeView @JvmOverloads constructor(
                             parentId = sharedUnit.primary.id,
                             secondParentId = sharedUnit.spouse?.id,
                             childId = p.id,
-                            pX = sharedUnit.x,
+                            pX = sharedMidX,
                             pY = pY,
                             cX = cPos.x,
                             cY = cY,

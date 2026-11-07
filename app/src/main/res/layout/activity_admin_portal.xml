@@ -848,9 +848,10 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:fontFamily="@font/font_display_sora"
                             android:text="👑 Freemium 50-Member Cap &amp; Clan Expansion Queue"
                             android:textColor="@color/text_primary"
-                            android:textSize="14sp"
+                            android:textSize="13.5sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -870,27 +871,121 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Administer cap expansions and grant 30-day reunion passes without database overflow."
+                        android:text="Fixed-height expansion vault • Approved clans automatically move to Approved History."
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="11.5sp" />
 
-                    <!-- Dynamic Live Firestore Clan Expansion Queue -->
+                    <!-- Sub-Tab Switcher: Pending Queue vs Approved History Archive -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_admin_code_box"
+                        android:orientation="horizontal"
+                        android:padding="4dp">
+
+                        <TextView
+                            android:id="@+id/tabQuotaPending"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_admin_tab_active"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:text="⚡ Pending Queue (0)"
+                            android:textColor="@color/white"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tabQuotaHistory"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:text="📜 Approved History (0)"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Search Filter Input -->
+                    <EditText
+                        android:id="@+id/etSearchQuota"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_admin_code_box"
+                        android:hint="🔍 Search clan name or owner email..."
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingHorizontal="10dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:textSize="11.5sp" />
+
+                    <!-- Instant Approval Flash Banner -->
+                    <TextView
+                        android:id="@+id/tvQuotaFlashBanner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_admin_code_box"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="6dp"
+                        android:text="✅ Clan expansion approved &amp; moved to History."
+                        android:textColor="@color/mint_text"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <!-- Dynamic Live Firestore Clan Expansion Queue (Direction 3 Fixed-Height Vault) -->
+                    <androidx.core.widget.NestedScrollView
+                        android:id="@+id/scrollQuotaQueueVault"
+                        android:layout_width="match_parent"
+                        android:layout_height="260dp"
+                        android:layout_marginTop="8dp"
+                        android:fadeScrollbars="false"
+                        android:fillViewport="true"
+                        android:overScrollMode="ifContentScrolls"
+                        android:scrollbars="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:id="@+id/layoutQuotaQueueList"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical" />
+
+                            <LinearLayout
+                                android:id="@+id/layoutQuotaHistoryList"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:visibility="gone" />
+                        </LinearLayout>
+                    </androidx.core.widget.NestedScrollView>
+
                     <TextView
                         android:id="@+id/tvEmptyQuotaQueue"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="10dp"
                         android:background="@drawable/bg_admin_code_box"
+                        android:gravity="center"
                         android:padding="12dp"
                         android:text="🔄 Scanning Firestore for clans at or near their member cap..."
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
-
-                    <LinearLayout
-                        android:id="@+id/layoutQuotaQueueList"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
 
                     <!-- Legacy Fallback Stubs (Hidden for backwards compatibility) -->
                     <LinearLayout
@@ -1006,7 +1101,7 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <!-- Soft Delete Console -->
+                <!-- Soft Delete Console (Direction 3: Compact Scroll Box + Restored History Archive) -->
                 <LinearLayout
                     android:id="@+id/cardDeletedRecovery"
                     android:layout_width="match_parent"
@@ -1015,29 +1110,144 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="🩹 Deleted Member Recovery Console"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/font_display_sora"
+                            android:text="🩹 Deleted Member Recovery Console"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvRecoveryCountBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/badge_pill_dark"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp"
+                            android:text="0 Pending"
+                            android:textColor="@color/danger"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Restore accidentally deleted family members to reconnect pedigree branches."
+                        android:text="Fixed-height recovery vault • Restored members automatically move to History Archive."
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="11.5sp" />
 
-                    <!-- Dynamic List of Archived Deleted Members -->
+                    <!-- Sub-Tab Switcher: Pending Recovery vs Restored History Archive -->
                     <LinearLayout
-                        android:id="@+id/layoutDeletedMembersList"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:orientation="vertical" />
+                        android:background="@drawable/bg_admin_code_box"
+                        android:orientation="horizontal"
+                        android:padding="4dp">
+
+                        <TextView
+                            android:id="@+id/tabRecoveryPending"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_admin_tab_active"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:text="🩹 Pending Recovery (0)"
+                            android:textColor="@color/white"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tabRecoveryHistory"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center"
+                            android:text="📜 Restored History (0)"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Search Filter Input -->
+                    <EditText
+                        android:id="@+id/etSearchRecovery"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_admin_code_box"
+                        android:hint="🔍 Search member name or clan tree..."
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:paddingHorizontal="10dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:textSize="11.5sp" />
+
+                    <!-- Instant Restore Flash Banner -->
+                    <TextView
+                        android:id="@+id/tvRecoveryFlashBanner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_admin_code_box"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="6dp"
+                        android:text="✅ Member restored &amp; moved to History Archive."
+                        android:textColor="@color/mint_text"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <!-- Fixed-Height Internal Scroll Box (Direction 3 — Never expands endlessly) -->
+                    <androidx.core.widget.NestedScrollView
+                        android:id="@+id/scrollDeletedRecoveryVault"
+                        android:layout_width="match_parent"
+                        android:layout_height="260dp"
+                        android:layout_marginTop="8dp"
+                        android:fadeScrollbars="false"
+                        android:fillViewport="true"
+                        android:overScrollMode="ifContentScrolls"
+                        android:scrollbars="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <!-- Dynamic List of Pending Archived Deleted Members -->
+                            <LinearLayout
+                                android:id="@+id/layoutDeletedMembersList"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical" />
+
+                            <!-- Dynamic List of Previously Restored Members (With Date & Time) -->
+                            <LinearLayout
+                                android:id="@+id/layoutRestoredHistoryList"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:visibility="gone" />
+                        </LinearLayout>
+                    </androidx.core.widget.NestedScrollView>
 
                     <TextView
                         android:id="@+id/tvNoDeletedMembers"

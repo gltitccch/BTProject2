@@ -418,6 +418,117 @@
                 android:paddingEnd="8dp" />
         </LinearLayout>
 
+        <!-- Smart Co-Parent Assist Banner (Direction 1) -->
+        <LinearLayout
+            android:id="@+id/layoutSmartCoParentBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/input_bg"
+            android:padding="14dp"
+            android:layout_marginBottom="14dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvSmartCoParentTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💡 Parent is married to Spouse"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvSmartCoParentSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="How is their spouse related to this member?"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:id="@+id/chipCoParentBio"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="🧬 Biological"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:background="@drawable/input_bg"
+                    android:layout_marginEnd="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipCoParentStep"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="🤝 Step-Parent"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/input_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chipCoParentAdoptive"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="💜 Adoptive"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/input_bg"
+                    android:layout_marginEnd="6dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/chipCoParentOther"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="🔍 Other / Unlisted"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/input_bg"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvSmartCoParentStatusNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="🧬 Both parents will be connected as Biological parents."
+                android:textSize="11.5sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
+
         <!-- Spouse -->
         <TextView
             android:layout_width="wrap_content"

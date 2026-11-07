@@ -27,6 +27,7 @@ class MarriageValidationEngine(
     companion object {
         const val DEFAULT_MINIMUM_SPOUSE_AGE = 18
         const val DEFAULT_ALLOW_SAME_GENDER_SPOUSE = false
+        const val MAX_SPOUSE_BIRTH_YEAR_GAP = 80
 
         /**
          * Calculates the chronological age of a person in years using their date of birth whenever available.
@@ -138,7 +139,8 @@ class MarriageValidationEngine(
         STEP_RELATIONSHIP,
         AFFINITY_IN_LAW,
         IMPOSSIBLE_CYCLE,
-        MARRIAGE_AFTER_DEATH
+        MARRIAGE_AFTER_DEATH,
+        CHRONOLOGICAL_LIFESPAN_CONFLICT
     }
 
     /**
@@ -279,6 +281,65 @@ class MarriageValidationEngine(
                     failureMessages.add("Marriage date cannot occur after ${personB.firstName} ${personB.lastName}'s date of death.")
                     legalBases.add("Chronological Feasibility & Philippine Civil Law")
                 }
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 2c. HISTORICAL LIFESPAN OVERLAP & CROSS-CENTURY BIRTH-YEAR GAP GUARD
+        // ---------------------------------------------------------------------
+        val birthYearA = extractYear(personA.birthDate)
+        val birthYearB = extractYear(personB.birthDate)
+        val deathYearA = if (!personA.isLiving && personA.deathDate.isNotBlank()) extractYear(personA.deathDate) else null
+        val deathYearB = if (!personB.isLiving && personB.deathDate.isNotBlank()) extractYear(personB.deathDate) else null
+
+        if (deathYearA != null && birthYearB != null) {
+            if (deathYearA < birthYearB) {
+                failures.add(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)
+                failureMessages.add(
+                    "Chronological Lifespan Conflict: ${personA.firstName} ${personA.lastName} passed away in $deathYearA, which is ${birthYearB - deathYearA} year(s) before ${personB.firstName} ${personB.lastName} was born in $birthYearB. Two individuals whose lifespans never overlapped cannot be linked as spouses."
+                )
+                legalBases.add("Chronological Lifespan Feasibility & Philippine Civil Law")
+            } else if (deathYearA - birthYearB < minimumSpouseAge) {
+                val ageAtPartnerDeath = deathYearA - birthYearB
+                failures.add(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)
+                failureMessages.add(
+                    "Chronological Lifespan Conflict: ${personB.firstName} ${personB.lastName} (born $birthYearB) was only $ageAtPartnerDeath year(s) old when ${personA.firstName} ${personA.lastName} passed away in $deathYearA (minimum marriage age is $minimumSpouseAge years under Article 5 of the Family Code & RA 11596)."
+                )
+                legalBases.add("Article 5, Family Code of the Philippines & Chronological Lifespan Feasibility")
+            }
+        }
+
+        if (deathYearB != null && birthYearA != null) {
+            if (deathYearB < birthYearA) {
+                if (!failures.contains(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)) {
+                    failures.add(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)
+                }
+                failureMessages.add(
+                    "Chronological Lifespan Conflict: ${personB.firstName} ${personB.lastName} passed away in $deathYearB, which is ${birthYearA - deathYearB} year(s) before ${personA.firstName} ${personA.lastName} was born in $birthYearA. Two individuals whose lifespans never overlapped cannot be linked as spouses."
+                )
+                legalBases.add("Chronological Lifespan Feasibility & Philippine Civil Law")
+            } else if (deathYearB - birthYearA < minimumSpouseAge) {
+                val ageAtPartnerDeath = deathYearB - birthYearA
+                if (!failures.contains(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)) {
+                    failures.add(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)
+                }
+                failureMessages.add(
+                    "Chronological Lifespan Conflict: ${personA.firstName} ${personA.lastName} (born $birthYearA) was only $ageAtPartnerDeath year(s) old when ${personB.firstName} ${personB.lastName} passed away in $deathYearB (minimum marriage age is $minimumSpouseAge years under Article 5 of the Family Code & RA 11596)."
+                )
+                legalBases.add("Article 5, Family Code of the Philippines & Chronological Lifespan Feasibility")
+            }
+        }
+
+        if (birthYearA != null && birthYearB != null) {
+            val birthYearGap = kotlin.math.abs(birthYearA - birthYearB)
+            if (birthYearGap > MAX_SPOUSE_BIRTH_YEAR_GAP) {
+                if (!failures.contains(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)) {
+                    failures.add(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)
+                }
+                failureMessages.add(
+                    "Historical Birth-Year Conflict: ${personA.firstName} ${personA.lastName} (born $birthYearA) and ${personB.firstName} ${personB.lastName} (born $birthYearB) were born $birthYearGap years apart, exceeding the maximum $MAX_SPOUSE_BIRTH_YEAR_GAP-year human marriage generation span. Please verify you did not select an ancestor or descendant with a similar name."
+                )
+                legalBases.add("Genealogical Lifespan Feasibility (Maximum 80-Year Birth Span)")
             }
         }
 
@@ -692,6 +753,7 @@ class MarriageValidationEngine(
                 SpouseValidationFailureReason.AFFINITY_IN_LAW -> "Parent-in-Law and Child-in-Law"
                 SpouseValidationFailureReason.IMPOSSIBLE_CYCLE -> "Impossible Ancestry Cycle"
                 SpouseValidationFailureReason.MARRIAGE_AFTER_DEATH -> "Post-Mortem Marriage Error"
+                SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT -> "Chronological Lifespan Conflict"
             }
         }
 
@@ -709,6 +771,7 @@ class MarriageValidationEngine(
         if (failures.contains(SpouseValidationFailureReason.STEP_RELATIONSHIP)) labels.add("Step-Relation")
         if (failures.contains(SpouseValidationFailureReason.AFFINITY_IN_LAW)) labels.add("In-Law Relation")
         if (failures.contains(SpouseValidationFailureReason.MARRIAGE_AFTER_DEATH)) labels.add("Marriage After Death")
+        if (failures.contains(SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT)) labels.add("Chronological Lifespan Conflict")
         return labels.joinToString(", ").ifEmpty { "Prohibited Spouse Relationship" }
     }
 

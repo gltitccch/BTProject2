@@ -37,6 +37,9 @@ class TraceActivity : AppCompatActivity() {
     private var lastPersonAId = ""
     private var lastPersonBId = ""
     private var lastTraceResult: TraceResult? = null
+    private var hasAutoTracedFromIntent = false
+    private var hasAppliedPreselectionFromIntent = false
+    private var hasPromptedPersonBFromIntent = false
 
     private val networkListener: (com.example.btproject2.utils.NetworkStateMonitor.NetworkState) -> Unit = { state ->
         com.example.btproject2.ui.navigation.FloatingNavigationCoordinator.updateNetworkState(this, state) {
@@ -126,13 +129,34 @@ class TraceActivity : AppCompatActivity() {
             true
         }
 
+        var swapRotationDegrees = 0f
         findViewById<View>(R.id.btnSwapTracePersons)?.setOnClickListener {
             if (familyMembers.isNotEmpty()) {
                 val idxA = spinnerA.selectedItemPosition
                 val idxB = spinnerB.selectedItemPosition
                 if (idxA >= 0 && idxB >= 0) {
+                    swapRotationDegrees += 180f
+                    findViewById<View>(R.id.iconSwapTraceWrap)?.animate()
+                        ?.rotation(swapRotationDegrees)
+                        ?.setDuration(260L)
+                        ?.start()
+
+                    val cardA = findViewById<View>(R.id.cardSelectPersonA)
+                    val cardB = findViewById<View>(R.id.cardSelectPersonB)
+                    cardA?.animate()?.scaleX(0.97f)?.scaleY(0.97f)?.setDuration(110L)?.withEndAction {
+                        cardA.animate().scaleX(1f).scaleY(1f).setDuration(130L).start()
+                    }?.start()
+                    cardB?.animate()?.scaleX(0.97f)?.scaleY(0.97f)?.setDuration(110L)?.withEndAction {
+                        cardB.animate().scaleX(1f).scaleY(1f).setDuration(130L).start()
+                    }?.start()
+
                     spinnerA.setSelection(idxB)
                     spinnerB.setSelection(idxA)
+
+                    // If a trace result is already displayed on screen and two distinct people are selected, auto-refresh perspective!
+                    if (resultContainer.visibility == View.VISIBLE && idxA != idxB) {
+                        btnTrace.performClick()
+                    }
                 }
             }
         }
@@ -391,10 +415,15 @@ class TraceActivity : AppCompatActivity() {
             resultCard.setBackgroundResource(R.drawable.result_card_bg)
             tvResultLabel.text = if (isAffinity) "MARRIAGE / AFFINITY CONNECTION" else "RELATIONSHIP FOUND"
             tvResultLabel.setTextColor(ContextCompat.getColor(this, R.color.status_mint_text))
-            tvType.text = if (result.bloodlineSubtype.isNotBlank() && result.relationshipCategory == "Collateral") {
-                "${result.relationshipType} (${result.bloodlineSubtype})"
-            } else {
-                result.relationshipType
+            tvType.text = when {
+                result.bloodlineSubtype.isBlank() || result.relationshipCategory != "Collateral" ->
+                    result.relationshipType
+                result.bloodlineSubtype.startsWith(result.relationshipType, ignoreCase = true) ->
+                    result.bloodlineSubtype
+                result.relationshipType.contains(result.bloodlineSubtype, ignoreCase = true) ->
+                    result.relationshipType
+                else ->
+                    "${result.relationshipType} (${result.bloodlineSubtype})"
             }
             tvType.setTextColor(ContextCompat.getColor(this, R.color.gold_accent))
             tvExplanation.text = result.explanation
@@ -490,6 +519,53 @@ class TraceActivity : AppCompatActivity() {
         }
     }
 
+    private fun applyPreselectedPersons(persons: List<Person>, spinnerA: Spinner, spinnerB: Spinner) {
+        if (persons.isEmpty()) return
+
+        val preselectedA = intent.getStringExtra("preselectedPersonA")
+            ?: intent.getStringExtra("personAId")
+        val preselectedB = intent.getStringExtra("preselectedPersonB")
+            ?: intent.getStringExtra("personBId")
+        val promptSelectPersonB = intent.getBooleanExtra("promptSelectPersonB", false)
+
+        // Preserve any existing user-chosen IDs if network refresh arrives after initial selection
+        if (hasAppliedPreselectionFromIntent) {
+            val currentAId = lastPersonAId.ifEmpty { persons.getOrNull(spinnerA.selectedItemPosition)?.id.orEmpty() }
+            val currentBId = lastPersonBId.ifEmpty { persons.getOrNull(spinnerB.selectedItemPosition)?.id.orEmpty() }
+            val restoredIdxA = persons.indexOfFirst { it.id == currentAId }
+            val restoredIdxB = persons.indexOfFirst { it.id == currentBId }
+            if (restoredIdxA >= 0) spinnerA.setSelection(restoredIdxA)
+            if (restoredIdxB >= 0) spinnerB.setSelection(restoredIdxB)
+            return
+        }
+
+        val (idxA, idxB) = resolveInitialSpinnerIndices(persons, preselectedA, preselectedB)
+        hasAppliedPreselectionFromIntent = true
+
+        if (idxA >= 0) {
+            spinnerA.setSelection(idxA)
+            lastPersonAId = persons[idxA].id
+        }
+        if (idxB >= 0) {
+            spinnerB.setSelection(idxB)
+            lastPersonBId = persons[idxB].id
+        }
+
+        if (!hasAutoTracedFromIntent && !preselectedA.isNullOrEmpty() && !preselectedB.isNullOrEmpty() && idxA >= 0 && idxB >= 0 && idxA != idxB) {
+            hasAutoTracedFromIntent = true
+            spinnerA.post {
+                findViewById<Button>(R.id.btnTrace)?.performClick()
+            }
+        } else if (promptSelectPersonB && !hasPromptedPersonBFromIntent && idxA >= 0 && persons.size > 1) {
+            hasPromptedPersonBFromIntent = true
+            spinnerB.post {
+                if (!isFinishing && !isDestroyed) {
+                    showSpotlightMemberSearchSheet(isPersonA = false, spinnerA = spinnerA, spinnerB = spinnerB, autoTraceOnSelect = true)
+                }
+            }
+        }
+    }
+
     private fun loadFamilyMembers(spinnerA: Spinner, spinnerB: Spinner) {
         val cached = FirestoreHelper.getCachedPersons(treeId)
         if (!cached.isNullOrEmpty()) {
@@ -497,14 +573,7 @@ class TraceActivity : AppCompatActivity() {
             val names = cached.map { "${it.firstName} ${it.lastName}" }
             spinnerA.setDarkAdapter(this, names)
             spinnerB.setDarkAdapter(this, names)
-
-            val preselectedId = intent.getStringExtra("preselectedPersonA")
-            if (!preselectedId.isNullOrEmpty()) {
-                val idx = cached.indexOfFirst { it.id == preselectedId }
-                if (idx >= 0) {
-                    spinnerA.setSelection(idx)
-                }
-            }
+            applyPreselectedPersons(cached, spinnerA, spinnerB)
         }
 
         firestoreHelper.getPersonsByTree(treeId,
@@ -513,14 +582,7 @@ class TraceActivity : AppCompatActivity() {
                 val names = persons.map { "${it.firstName} ${it.lastName}" }
                 spinnerA.setDarkAdapter(this, names)
                 spinnerB.setDarkAdapter(this, names)
-
-                val preselectedId = intent.getStringExtra("preselectedPersonA")
-                if (!preselectedId.isNullOrEmpty()) {
-                    val idx = persons.indexOfFirst { it.id == preselectedId }
-                    if (idx >= 0) {
-                        spinnerA.setSelection(idx)
-                    }
-                }
+                applyPreselectedPersons(persons, spinnerA, spinnerB)
             },
             onFailure = {
                 if (cached.isNullOrEmpty()) {
@@ -704,7 +766,12 @@ class TraceActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSpotlightMemberSearchSheet(isPersonA: Boolean, spinnerA: Spinner, spinnerB: Spinner) {
+    private fun showSpotlightMemberSearchSheet(
+        isPersonA: Boolean,
+        spinnerA: Spinner,
+        spinnerB: Spinner,
+        autoTraceOnSelect: Boolean = false
+    ) {
         if (familyMembers.isEmpty()) {
             showMessage("No Members", "Family members are still loading or the tree is empty.")
             return
@@ -763,8 +830,13 @@ class TraceActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { bottomMargin = dp(10) }
         }
+        val personAName = familyMembers.getOrNull(spinnerA.selectedItemPosition)?.firstName?.takeIf { it.isNotBlank() }
         val tvSheetTitle = TextView(this).apply {
-            text = if (isPersonA) "Select First Person (Person A)" else "Select Second Person (Person B)"
+            text = when {
+                isPersonA -> "Select First Person (Person A)"
+                autoTraceOnSelect && personAName != null -> "Trace Bloodline With $personAName — Select Person B"
+                else -> "Select Second Person (Person B)"
+            }
             textSize = 15f
             setTypeface(typeface, android.graphics.Typeface.BOLD)
             setTextColor(colorAccent)
@@ -996,11 +1068,18 @@ class TraceActivity : AppCompatActivity() {
                     if (targetIdx >= 0) {
                         if (isPersonA) {
                             spinnerA.setSelection(targetIdx)
+                            lastPersonAId = person.id
                         } else {
                             spinnerB.setSelection(targetIdx)
+                            lastPersonBId = person.id
                         }
                     }
                     dialog.dismiss()
+                    if (autoTraceOnSelect && targetIdx >= 0 && spinnerA.selectedItemPosition != spinnerB.selectedItemPosition) {
+                        spinnerB.post {
+                            findViewById<Button>(R.id.btnTrace)?.performClick()
+                        }
+                    }
                 }
 
                 listContainer.addView(itemRow)
@@ -1048,6 +1127,41 @@ class TraceActivity : AppCompatActivity() {
     }
 
     companion object {
+        /**
+         * Resolves initial spinner indices `(idxA, idxB)` for `TraceActivity` when launched with
+         * `preselectedPersonA` and/or `preselectedPersonB`, guaranteeing that `idxA != idxB` whenever
+         * at least 2 family members exist in the tree.
+         */
+        fun resolveInitialSpinnerIndices(
+            persons: List<Person>,
+            preselectedAId: String?,
+            preselectedBId: String?
+        ): Pair<Int, Int> {
+            if (persons.isEmpty()) return -1 to -1
+
+            val explicitA = if (!preselectedAId.isNullOrBlank()) {
+                persons.indexOfFirst { it.id.equals(preselectedAId.trim(), ignoreCase = true) }
+            } else -1
+
+            val explicitB = if (!preselectedBId.isNullOrBlank()) {
+                persons.indexOfFirst { it.id.equals(preselectedBId.trim(), ignoreCase = true) }
+            } else -1
+
+            val finalA = when {
+                explicitA >= 0 -> explicitA
+                explicitB == 0 && persons.size > 1 -> 1
+                else -> 0
+            }
+
+            val finalB = when {
+                explicitB >= 0 -> explicitB
+                persons.size > 1 -> persons.indices.firstOrNull { it != finalA } ?: 0
+                else -> 0
+            }
+
+            return finalA to finalB
+        }
+
         fun filterTraceMembers(
             members: List<Person>,
             query: String,

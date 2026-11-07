@@ -340,6 +340,9 @@ object KinTraceAlert {
                     lower.contains("cannot") || lower.contains("fail") || lower.contains("error") ||
                     lower.contains("invalid") || lower.contains("violat") ->
                 AlertArchetype.WARNING
+            lower.contains("success") || lower.contains("saved") || lower.contains("exported") ||
+                    lower.contains("generated") || lower.contains("approved") || lower.contains("downloads") ->
+                AlertArchetype.GENERIC_SUCCESS
             lower.contains("focus") || lower.contains("founder") || lower.contains("root") ||
                     lower.contains("pedigree") || lower.contains("tree") || lower.contains("canvas") ->
                 AlertArchetype.CANVAS

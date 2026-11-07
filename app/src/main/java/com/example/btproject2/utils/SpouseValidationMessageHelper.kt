@@ -78,6 +78,9 @@ object SpouseValidationMessageHelper {
                 SpouseValidationFailureReason.MARRIAGE_AFTER_DEATH -> {
                     bulletPoints.add("Unable to add this person as a spouse because the marriage date cannot occur after either spouse's date of death.")
                 }
+                SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT -> {
+                    bulletPoints.add("Unable to add this person as a spouse because their recorded birth or death years do not overlap as adults (chronological lifespan conflict).")
+                }
             }
         }
 
@@ -141,6 +144,8 @@ object SpouseValidationMessageHelper {
                 "Unable to add this person as a spouse because it creates an impossible generational loop."
             SpouseValidationFailureReason.MARRIAGE_AFTER_DEATH ->
                 "Unable to add this person as a spouse because the marriage date cannot occur after either spouse's date of death."
+            SpouseValidationFailureReason.CHRONOLOGICAL_LIFESPAN_CONFLICT ->
+                "Unable to add this person as a spouse because their recorded birth or death years do not overlap as adults."
         }
     }
 }

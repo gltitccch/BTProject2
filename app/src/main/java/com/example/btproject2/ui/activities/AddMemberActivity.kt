@@ -5,6 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -37,6 +40,7 @@ class AddMemberActivity : AppCompatActivity() {
     private val firestoreHelper = FirestoreHelper()
     private val authHelper = AuthHelper()
     private val familyRelationshipService = com.example.btproject2.service.FamilyRelationshipService()
+    private val relationshipCoordinator = com.example.btproject2.engine.FamilyRelationshipCoordinator()
 
     private var allMembers = listOf<Person>()
     private var treeId = ""
@@ -116,6 +120,18 @@ class AddMemberActivity : AppCompatActivity() {
     private lateinit var tvSelectedChildren: TextView
     private val selectedChildren = mutableListOf<Person>()
     private var isSaving = false
+    private var selectedChildrenRelationshipType: String = "Biological"
+    private var presetIsAdoptive: Boolean = false
+    private var layoutSmartCoParentBanner: View? = null
+    private var tvSmartCoParentTitle: TextView? = null
+    private var tvSmartCoParentSubtitle: TextView? = null
+    private var chipCoParentBio: TextView? = null
+    private var chipCoParentStep: TextView? = null
+    private var chipCoParentAdoptive: TextView? = null
+    private var chipCoParentOther: TextView? = null
+    private var tvSmartCoParentStatusNote: TextView? = null
+    private var activeCoParentAssistMode: String = "BIO"
+    private var primarySelectedParentRole: String? = null
 
     private lateinit var switchIsLiving: Switch
     private lateinit var tvVitalStatusDesc: TextView
@@ -199,6 +215,16 @@ class AddMemberActivity : AppCompatActivity() {
         tvParentBannerText = findViewById(R.id.tvParentBannerText)
         btnSelectChildren = findViewById(R.id.btnSelectChildren)
         tvSelectedChildren = findViewById(R.id.tvSelectedChildren)
+        presetIsAdoptive = intent.getBooleanExtra("presetIsAdoptive", false) || coParentChoice == "ADOPTIVE_WITH_SPOUSE" || coParentChoice == "ADOPTIVE_SINGLE"
+        if (coParentChoice == "UNKNOWN") activeCoParentAssistMode = "STEP" else if (presetIsAdoptive) activeCoParentAssistMode = "ADOPTIVE" else if (coParentChoice == "ANOTHER_PERSON") activeCoParentAssistMode = "OTHER"
+        layoutSmartCoParentBanner = findViewById(R.id.layoutSmartCoParentBanner)
+        tvSmartCoParentTitle = findViewById(R.id.tvSmartCoParentTitle)
+        tvSmartCoParentSubtitle = findViewById(R.id.tvSmartCoParentSubtitle)
+        chipCoParentBio = findViewById(R.id.chipCoParentBio)
+        chipCoParentStep = findViewById(R.id.chipCoParentStep)
+        chipCoParentAdoptive = findViewById(R.id.chipCoParentAdoptive)
+        chipCoParentOther = findViewById(R.id.chipCoParentOther)
+        tvSmartCoParentStatusNote = findViewById(R.id.tvSmartCoParentStatusNote)
 
         val btnAttachPhoto = findViewById<View>(R.id.btnAttachPhoto)
         tvAttachedPhotoStatus = findViewById(R.id.tvAttachedPhotoStatus)
@@ -241,7 +267,7 @@ class AddMemberActivity : AppCompatActivity() {
                     isQuotaExpansionRequested = tree.quotaExpansionRequested
                     currentTreeName = tree.name.ifBlank { "Family Tree" }
                 }
-                val isOwner = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                val isOwner = tree == null || tree.isOwnedBy(currentUserId)
                 if (!isOwner) {
                     firestoreHelper.getUserMembership(currentUserId, treeId,
                         onSuccess = { member ->
@@ -759,6 +785,9 @@ class AddMemberActivity : AppCompatActivity() {
             allMembers = treeFiltered
             syncCoordinator.allMembersList = allMembers
             refreshQuotaBadge(effectiveTreeId, allMembers.size)
+            lifecycleScope.launch(Dispatchers.Default) {
+                relationshipCoordinator.indexTreeMembers(allMembers)
+            }
 
                 val presetChildId = intent.getStringExtra("presetChildId")
                 val presetGender = intent.getStringExtra("presetGender")
@@ -822,6 +851,232 @@ class AddMemberActivity : AppCompatActivity() {
         }
     }
 
+    private fun formatMotherOptionLabel(candidate: Person, selectedFather: Person?, allMembers: List<Person>): String {
+        val base = "${candidate.firstName} ${candidate.lastName}".trim()
+        if (selectedFather == null) return base
+        return when {
+            com.example.btproject2.engine.FamilyLinkValidator.isSameId(candidate.id, selectedFather.spouseId) ->
+                "$base (Spouse of ${selectedFather.firstName})"
+            selectedFather.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(candidate.id, it) } ||
+                com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouses(selectedFather, allMembers).any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(candidate.id, it.id) } ->
+                "$base (Prior Spouse of ${selectedFather.firstName})"
+            else -> base
+        }
+    }
+
+    private fun formatFatherOptionLabel(candidate: Person, selectedMother: Person?, allMembers: List<Person>): String {
+        val base = "${candidate.firstName} ${candidate.lastName}".trim()
+        if (selectedMother == null) return base
+        return when {
+            com.example.btproject2.engine.FamilyLinkValidator.isSameId(candidate.id, selectedMother.spouseId) ->
+                "$base (Spouse of ${selectedMother.firstName})"
+            selectedMother.formerSpouseIds.any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(candidate.id, it) } ||
+                com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouses(selectedMother, allMembers).any { com.example.btproject2.engine.FamilyLinkValidator.isSameId(candidate.id, it.id) } ->
+                "$base (Prior Spouse of ${selectedMother.firstName})"
+            else -> base
+        }
+    }
+
+    private fun updateSmartCoParentBannerUI() {
+        val banner = layoutSmartCoParentBanner ?: return
+        val effectiveMembers = getEffectiveTreeMembers()
+        val fIdx = spinnerFather.selectedItemPosition
+        val mIdx = spinnerMother.selectedItemPosition
+        val selectedFather = if (fIdx > 0 && fIdx - 1 < maleMembers.size) maleMembers[fIdx - 1] else null
+        val selectedMother = if (mIdx > 0 && mIdx - 1 < femaleMembers.size) femaleMembers[mIdx - 1] else null
+
+        if (selectedFather == null && selectedMother == null) {
+            banner.visibility = View.GONE
+            primarySelectedParentRole = null
+            return
+        }
+
+        val anchorParent: Person?
+        val spouseOfAnchor: Person?
+        val isAnchorFather: Boolean
+
+        val fSpouse = com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouse(selectedFather, effectiveMembers)
+        val mSpouse = com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouse(selectedMother, effectiveMembers)
+
+        when {
+            primarySelectedParentRole == "FATHER" && selectedFather != null && fSpouse != null -> {
+                anchorParent = selectedFather
+                spouseOfAnchor = fSpouse
+                isAnchorFather = true
+            }
+            primarySelectedParentRole == "MOTHER" && selectedMother != null && mSpouse != null -> {
+                anchorParent = selectedMother
+                spouseOfAnchor = mSpouse
+                isAnchorFather = false
+            }
+            selectedFather != null && fSpouse != null -> {
+                anchorParent = selectedFather
+                spouseOfAnchor = fSpouse
+                isAnchorFather = true
+                primarySelectedParentRole = "FATHER"
+            }
+            selectedMother != null && mSpouse != null -> {
+                anchorParent = selectedMother
+                spouseOfAnchor = mSpouse
+                isAnchorFather = false
+                primarySelectedParentRole = "MOTHER"
+            }
+            else -> {
+                banner.visibility = View.GONE
+                return
+            }
+        }
+
+        banner.visibility = View.VISIBLE
+        val anchorName = "${anchorParent.firstName} ${anchorParent.lastName}".trim()
+        val spouseName = "${spouseOfAnchor.firstName} ${spouseOfAnchor.lastName}".trim()
+        val stepRoleWord = if (isAnchorFather) "Step-Mother" else "Step-Father"
+
+        tvSmartCoParentTitle?.text = "💡 $anchorName is married to $spouseName"
+        tvSmartCoParentSubtitle?.text = "How is $spouseName related to this member?"
+
+        val otherSelected = if (isAnchorFather) selectedMother else selectedFather
+        val otherRelType = if (isAnchorFather) {
+            spinnerMotherType.selectedItem?.toString() ?: "Biological"
+        } else {
+            spinnerFatherType.selectedItem?.toString() ?: "Biological"
+        }
+
+        activeCoParentAssistMode = when {
+            otherSelected == null -> {
+                if (activeCoParentAssistMode == "OTHER") "OTHER" else "STEP"
+            }
+            com.example.btproject2.engine.FamilyLinkValidator.isSameId(otherSelected.id, spouseOfAnchor.id) -> {
+                when {
+                    otherRelType.equals("Adoptive", ignoreCase = true) -> "ADOPTIVE"
+                    otherRelType.equals("Step", ignoreCase = true) -> "STEP"
+                    else -> "BIO"
+                }
+            }
+            else -> "OTHER"
+        }
+
+        val goldColor = ContextCompat.getColor(this, R.color.gold_accent)
+        val secondaryColor = ContextCompat.getColor(this, R.color.text_secondary)
+        val mintColor = ContextCompat.getColor(this, R.color.status_mint_text)
+
+        fun styleChip(chip: TextView?, isActive: Boolean) {
+            chip ?: return
+            chip.setTextColor(if (isActive) goldColor else secondaryColor)
+            chip.alpha = if (isActive) 1.0f else 0.72f
+        }
+
+        styleChip(chipCoParentBio, activeCoParentAssistMode == "BIO")
+        styleChip(chipCoParentStep, activeCoParentAssistMode == "STEP")
+        styleChip(chipCoParentAdoptive, activeCoParentAssistMode == "ADOPTIVE")
+        styleChip(chipCoParentOther, activeCoParentAssistMode == "OTHER")
+
+        when (activeCoParentAssistMode) {
+            "BIO" -> {
+                tvSmartCoParentStatusNote?.text = "🧬 Both ${anchorParent.firstName} and ${spouseOfAnchor.firstName} will be connected as Biological parents."
+                tvSmartCoParentStatusNote?.setTextColor(secondaryColor)
+            }
+            "STEP" -> {
+                tvSmartCoParentStatusNote?.text = "🤝 Only ${anchorParent.firstName} is connected as direct parent. $spouseName will automatically be recognized as $stepRoleWord through marriage."
+                tvSmartCoParentStatusNote?.setTextColor(mintColor)
+            }
+            "ADOPTIVE" -> {
+                tvSmartCoParentStatusNote?.text = "💜 $spouseName will be connected as an Adoptive parent (draws a dashed adoption line on the family tree)."
+                tvSmartCoParentStatusNote?.setTextColor(goldColor)
+            }
+            "OTHER" -> {
+                val chosenOther = if (otherSelected != null) "${otherSelected.firstName} ${otherSelected.lastName}".trim() else "None / Another person"
+                tvSmartCoParentStatusNote?.text = "🔍 Co-parent unlocked ($chosenOther). $spouseName is recognized as $stepRoleWord by marriage."
+                tvSmartCoParentStatusNote?.setTextColor(secondaryColor)
+            }
+        }
+
+        chipCoParentBio?.setOnClickListener {
+            activeCoParentAssistMode = "BIO"
+            coParentChoice = "CURRENT_SPOUSE"
+            isUpdatingSpinners = true
+            if (isAnchorFather) {
+                val idx = femaleMembers.indexOfFirst { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, spouseOfAnchor.id) }
+                if (idx >= 0) {
+                    spinnerMother.setSelection(idx + 1)
+                    lastSelectedMotherId = femaleMembers[idx].id
+                }
+                spinnerMotherType.setSelection(0)
+            } else {
+                val idx = maleMembers.indexOfFirst { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, spouseOfAnchor.id) }
+                if (idx >= 0) {
+                    spinnerFather.setSelection(idx + 1)
+                    lastSelectedFatherId = maleMembers[idx].id
+                }
+                spinnerFatherType.setSelection(0)
+            }
+            isUpdatingSpinners = false
+            updateSmartCoParentBannerUI()
+        }
+
+        chipCoParentStep?.setOnClickListener {
+            activeCoParentAssistMode = "STEP"
+            coParentChoice = "UNKNOWN"
+            isUpdatingSpinners = true
+            if (isAnchorFather) {
+                spinnerMother.setSelection(0)
+                lastSelectedMotherId = null
+                spinnerMotherType.setSelection(0)
+            } else {
+                spinnerFather.setSelection(0)
+                lastSelectedFatherId = null
+                spinnerFatherType.setSelection(0)
+            }
+            isUpdatingSpinners = false
+            updateSmartCoParentBannerUI()
+        }
+
+        chipCoParentAdoptive?.setOnClickListener {
+            activeCoParentAssistMode = "ADOPTIVE"
+            coParentChoice = "ADOPTIVE_WITH_SPOUSE"
+            isUpdatingSpinners = true
+            if (isAnchorFather) {
+                val idx = femaleMembers.indexOfFirst { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, spouseOfAnchor.id) }
+                if (idx >= 0) {
+                    spinnerMother.setSelection(idx + 1)
+                    lastSelectedMotherId = femaleMembers[idx].id
+                }
+                spinnerMotherType.setSelection(1) // Adoptive
+            } else {
+                val idx = maleMembers.indexOfFirst { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, spouseOfAnchor.id) }
+                if (idx >= 0) {
+                    spinnerFather.setSelection(idx + 1)
+                    lastSelectedFatherId = maleMembers[idx].id
+                }
+                spinnerFatherType.setSelection(1) // Adoptive
+            }
+            isUpdatingSpinners = false
+            updateSmartCoParentBannerUI()
+        }
+
+        chipCoParentOther?.setOnClickListener {
+            activeCoParentAssistMode = "OTHER"
+            coParentChoice = "ANOTHER_PERSON"
+            isUpdatingSpinners = true
+            if (isAnchorFather) {
+                if (otherSelected != null && com.example.btproject2.engine.FamilyLinkValidator.isSameId(otherSelected.id, spouseOfAnchor.id)) {
+                    spinnerMother.setSelection(0)
+                    lastSelectedMotherId = null
+                }
+                spinnerMotherType.setSelection(0)
+            } else {
+                if (otherSelected != null && com.example.btproject2.engine.FamilyLinkValidator.isSameId(otherSelected.id, spouseOfAnchor.id)) {
+                    spinnerFather.setSelection(0)
+                    lastSelectedFatherId = null
+                }
+                spinnerFatherType.setSelection(0)
+            }
+            isUpdatingSpinners = false
+            updateSmartCoParentBannerUI()
+            if (isAnchorFather) spinnerMother.performClick() else spinnerFather.performClick()
+        }
+    }
+
     private fun refreshCandidateSpinners() {
         val tempPerson = Person(
             id = "",
@@ -829,6 +1084,8 @@ class AddMemberActivity : AppCompatActivity() {
             lastName = etLastName.text?.toString()?.trim().orEmpty(),
             gender = spinnerGender.selectedItem?.toString() ?: "",
             birthDate = selectedDate,
+            fatherRelationshipType = spinnerFatherType.selectedItem?.toString() ?: if (presetIsAdoptive) "Adoptive" else "Biological",
+            motherRelationshipType = spinnerMotherType.selectedItem?.toString() ?: if (presetIsAdoptive) "Adoptive" else "Biological",
             maritalStatus = spinnerCivilStatus.selectedItem?.toString() ?: "Single",
             treeId = treeId,
             createdBy = authHelper.getCurrentUserId() ?: ""
@@ -859,7 +1116,7 @@ class AddMemberActivity : AppCompatActivity() {
         }
 
         val fatherNames = mutableListOf("-- None --")
-        fatherNames.addAll(maleMembers.map { "${it.firstName} ${it.lastName}" })
+        fatherNames.addAll(maleMembers.map { formatFatherOptionLabel(it, currentMother, effectiveMembers) })
         spinnerFather.setDarkAdapter(this, fatherNames)
         if (currentFather != null) {
             val newIdx = maleMembers.indexOfFirst { it.id == currentFather.id }
@@ -867,7 +1124,7 @@ class AddMemberActivity : AppCompatActivity() {
         }
 
         val motherNames = mutableListOf("-- None --")
-        motherNames.addAll(femaleMembers.map { "${it.firstName} ${it.lastName}" })
+        motherNames.addAll(femaleMembers.map { formatMotherOptionLabel(it, currentFather, effectiveMembers) })
         spinnerMother.setDarkAdapter(this, motherNames)
         if (currentMother != null) {
             val newIdx = femaleMembers.indexOfFirst { it.id == currentMother.id }
@@ -889,6 +1146,13 @@ class AddMemberActivity : AppCompatActivity() {
                 onResult = { result ->
                     coParentChoice = result.choice.name
                     presetOtherParentId = result.otherParent?.id
+                    presetIsAdoptive = result.isAdoptive || result.choice.name.startsWith("ADOPTIVE")
+                    activeCoParentAssistMode = when {
+                        presetIsAdoptive -> "ADOPTIVE"
+                        result.choice.name == "UNKNOWN" -> "STEP"
+                        result.choice.name == "ANOTHER_PERSON" -> "OTHER"
+                        else -> "BIO"
+                    }
                     runOnUiThread {
                         refreshCandidateSpinners()
                     }
@@ -929,35 +1193,35 @@ class AddMemberActivity : AppCompatActivity() {
             if (presetIsFather) {
                 val fatherIdx = maleMembers.indexOfFirst { it.id == pid }
                 if (fatherIdx >= 0) spinnerFather.setSelection(fatherIdx + 1)
-                spinnerFatherType.setSelection(0) // Biological
+                spinnerFatherType.setSelection(if (presetIsAdoptive) 1 else 0) // Biological or Adoptive
 
-                if (coParentChoice == "CURRENT_SPOUSE" || coParentChoice == "FORMER_SPOUSE" || coParentChoice == "ANOTHER_PERSON") {
+                if (coParentChoice == "CURRENT_SPOUSE" || coParentChoice == "FORMER_SPOUSE" || coParentChoice == "ANOTHER_PERSON" || coParentChoice == "ADOPTIVE_WITH_SPOUSE") {
                     val targetMotherId = presetOtherParentId
                     if (targetMotherId != null) {
                         val motherIdx = femaleMembers.indexOfFirst { it.id == targetMotherId }
                         if (motherIdx >= 0) {
                             spinnerMother.setSelection(motherIdx + 1)
-                            spinnerMotherType.setSelection(0) // Biological
+                            spinnerMotherType.setSelection(if (presetIsAdoptive) 1 else 0) // Biological or Adoptive
                         }
                     }
-                } else if (coParentChoice == "UNKNOWN") {
+                } else if (coParentChoice == "UNKNOWN" || coParentChoice == "ADOPTIVE_SINGLE") {
                     spinnerMother.setSelection(0) // None
                 }
             } else if (presetIsMother) {
                 val motherIdx = femaleMembers.indexOfFirst { it.id == pid }
                 if (motherIdx >= 0) spinnerMother.setSelection(motherIdx + 1)
-                spinnerMotherType.setSelection(0) // Biological
+                spinnerMotherType.setSelection(if (presetIsAdoptive) 1 else 0) // Biological or Adoptive
 
-                if (coParentChoice == "CURRENT_SPOUSE" || coParentChoice == "FORMER_SPOUSE" || coParentChoice == "ANOTHER_PERSON") {
+                if (coParentChoice == "CURRENT_SPOUSE" || coParentChoice == "FORMER_SPOUSE" || coParentChoice == "ANOTHER_PERSON" || coParentChoice == "ADOPTIVE_WITH_SPOUSE") {
                     val targetFatherId = presetOtherParentId
                     if (targetFatherId != null) {
                         val fatherIdx = maleMembers.indexOfFirst { it.id == targetFatherId }
                         if (fatherIdx >= 0) {
                             spinnerFather.setSelection(fatherIdx + 1)
-                            spinnerFatherType.setSelection(0) // Biological
+                            spinnerFatherType.setSelection(if (presetIsAdoptive) 1 else 0) // Biological or Adoptive
                         }
                     }
-                } else if (coParentChoice == "UNKNOWN") {
+                } else if (coParentChoice == "UNKNOWN" || coParentChoice == "ADOPTIVE_SINGLE") {
                     spinnerFather.setSelection(0) // None
                 }
             }
@@ -989,7 +1253,9 @@ class AddMemberActivity : AppCompatActivity() {
 
         isUpdatingSpinners = false
 
+        updateSmartCoParentBannerUI()
         setupCoParentSpinnerListeners(tempPerson)
+        setupAdditionalSpinnerListeners()
     }
 
     private var isUpdatingSpinners = false
@@ -1008,22 +1274,33 @@ class AddMemberActivity : AppCompatActivity() {
                 val currentMother = if (spinnerMother.selectedItemPosition > 0 && spinnerMother.selectedItemPosition - 1 < femaleMembers.size) femaleMembers[spinnerMother.selectedItemPosition - 1] else null
 
                 isUpdatingSpinners = true
-                femaleMembers = getEligibleMothers(tempPerson, effectiveMembers, selectedFather)
+                val effectiveTemp = tempPerson.copy(
+                    fatherRelationshipType = spinnerFatherType.selectedItem?.toString() ?: "Biological",
+                    motherRelationshipType = spinnerMotherType.selectedItem?.toString() ?: "Biological"
+                )
+                if (selectedFather != null && currentMother == null) primarySelectedParentRole = "FATHER" else if (selectedFather == null && currentMother != null) primarySelectedParentRole = "MOTHER"
+                femaleMembers = getEligibleMothers(effectiveTemp, effectiveMembers, selectedFather)
                 if (isChildSpouseMode && !presetSpouseId.isNullOrEmpty()) {
                     val child = effectiveMembers.find { it.id == presetSpouseId }
                     val inLawIds = setOfNotNull(inLawParentId, child?.fatherId, child?.motherId)
                     femaleMembers = femaleMembers.filter { it.id !in inLawIds }
                 }
                 val motherNames = mutableListOf("-- None --")
-                motherNames.addAll(femaleMembers.map { "${it.firstName} ${it.lastName}" })
-                spinnerMother.setDarkAdapter(this@AddMemberActivity, motherNames)
+                motherNames.addAll(femaleMembers.map { formatMotherOptionLabel(it, selectedFather, effectiveMembers) })
+                val currentMotherAdapter = spinnerMother.adapter as? ArrayAdapter<String>
+                val isSameMotherList = currentMotherAdapter != null && currentMotherAdapter.count == motherNames.size &&
+                    (0 until currentMotherAdapter.count).all { currentMotherAdapter.getItem(it) == motherNames[it] }
+
+                if (!isSameMotherList) {
+                    spinnerMother.setDarkAdapter(this@AddMemberActivity, motherNames)
+                }
 
                 val linkedSpouse = com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouse(selectedFather, effectiveMembers)
                 val linkedSpouseIdx = if (linkedSpouse != null) {
                     femaleMembers.indexOfFirst { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, linkedSpouse.id) }
                 } else -1
 
-                if (selectedFather != null && linkedSpouseIdx >= 0 && coParentChoice != "UNKNOWN") {
+                if (currentMother == null && selectedFather != null && linkedSpouseIdx >= 0 && coParentChoice != "UNKNOWN" && activeCoParentAssistMode != "STEP" && activeCoParentAssistMode != "OTHER") {
                     spinnerMother.setSelection(linkedSpouseIdx + 1)
                     lastSelectedMotherId = femaleMembers[linkedSpouseIdx].id
                 } else if (currentMother != null) {
@@ -1051,6 +1328,7 @@ class AddMemberActivity : AppCompatActivity() {
                     lastSelectedMotherId = null
                 }
                 isUpdatingSpinners = false
+                updateSmartCoParentBannerUI()
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
@@ -1066,22 +1344,33 @@ class AddMemberActivity : AppCompatActivity() {
                 val currentFather = if (spinnerFather.selectedItemPosition > 0 && spinnerFather.selectedItemPosition - 1 < maleMembers.size) maleMembers[spinnerFather.selectedItemPosition - 1] else null
 
                 isUpdatingSpinners = true
-                maleMembers = getEligibleFathers(tempPerson, effectiveMembers, selectedMother)
+                val effectiveTemp = tempPerson.copy(
+                    fatherRelationshipType = spinnerFatherType.selectedItem?.toString() ?: "Biological",
+                    motherRelationshipType = spinnerMotherType.selectedItem?.toString() ?: "Biological"
+                )
+                if (selectedMother != null && currentFather == null) primarySelectedParentRole = "MOTHER" else if (selectedMother == null && currentFather != null) primarySelectedParentRole = "FATHER"
+                maleMembers = getEligibleFathers(effectiveTemp, effectiveMembers, selectedMother)
                 if (isChildSpouseMode && !presetSpouseId.isNullOrEmpty()) {
                     val child = effectiveMembers.find { it.id == presetSpouseId }
                     val inLawIds = setOfNotNull(inLawParentId, child?.fatherId, child?.motherId)
                     maleMembers = maleMembers.filter { it.id !in inLawIds }
                 }
                 val fatherNames = mutableListOf("-- None --")
-                fatherNames.addAll(maleMembers.map { "${it.firstName} ${it.lastName}" })
-                spinnerFather.setDarkAdapter(this@AddMemberActivity, fatherNames)
+                fatherNames.addAll(maleMembers.map { formatFatherOptionLabel(it, selectedMother, effectiveMembers) })
+                val currentFatherAdapter = spinnerFather.adapter as? ArrayAdapter<String>
+                val isSameFatherList = currentFatherAdapter != null && currentFatherAdapter.count == fatherNames.size &&
+                    (0 until currentFatherAdapter.count).all { currentFatherAdapter.getItem(it) == fatherNames[it] }
+
+                if (!isSameFatherList) {
+                    spinnerFather.setDarkAdapter(this@AddMemberActivity, fatherNames)
+                }
 
                 val linkedSpouse = com.example.btproject2.engine.FamilyLinkValidator.findLinkedSpouse(selectedMother, effectiveMembers)
                 val linkedSpouseIdx = if (linkedSpouse != null) {
                     maleMembers.indexOfFirst { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, linkedSpouse.id) }
                 } else -1
 
-                if (selectedMother != null && linkedSpouseIdx >= 0 && coParentChoice != "UNKNOWN") {
+                if (currentFather == null && selectedMother != null && linkedSpouseIdx >= 0 && coParentChoice != "UNKNOWN" && activeCoParentAssistMode != "STEP" && activeCoParentAssistMode != "OTHER") {
                     spinnerFather.setSelection(linkedSpouseIdx + 1)
                     lastSelectedFatherId = maleMembers[linkedSpouseIdx].id
                 } else if (currentFather != null) {
@@ -1109,6 +1398,96 @@ class AddMemberActivity : AppCompatActivity() {
                     lastSelectedFatherId = null
                 }
                 isUpdatingSpinners = false
+                updateSmartCoParentBannerUI()
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+    }
+
+    private fun setupAdditionalSpinnerListeners() {
+        val typeListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (isUpdatingSpinners) return
+                val selectedType = parent?.getItemAtPosition(position)?.toString() ?: "Biological"
+                val isFatherSpinner = parent?.id == R.id.spinnerFatherType
+                if (selectedType.equals("Step", ignoreCase = true)) {
+                    val fIdx = spinnerFather.selectedItemPosition
+                    val mIdx = spinnerMother.selectedItemPosition
+                    val fObj = if (fIdx > 0 && fIdx - 1 < maleMembers.size) maleMembers[fIdx - 1] else null
+                    val mObj = if (mIdx > 0 && mIdx - 1 < femaleMembers.size) femaleMembers[mIdx - 1] else null
+                    if (fObj != null && mObj != null) {
+                        isUpdatingSpinners = true
+                        if (isFatherSpinner) {
+                            primarySelectedParentRole = "MOTHER"
+                            activeCoParentAssistMode = "STEP"
+                            coParentChoice = "UNKNOWN"
+                            spinnerFather.setSelection(0)
+                            lastSelectedFatherId = null
+                            spinnerFatherType.setSelection(0)
+                        } else {
+                            primarySelectedParentRole = "FATHER"
+                            activeCoParentAssistMode = "STEP"
+                            coParentChoice = "UNKNOWN"
+                            spinnerMother.setSelection(0)
+                            lastSelectedMotherId = null
+                            spinnerMotherType.setSelection(0)
+                        }
+                        isUpdatingSpinners = false
+                        updateSmartCoParentBannerUI()
+                        return
+                    }
+                }
+                updateSmartCoParentBannerUI()
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+        spinnerFatherType.onItemSelectedListener = typeListener
+        spinnerMotherType.onItemSelectedListener = typeListener
+
+        spinnerSpouse.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (isUpdatingSpinners) return
+                val selectedSpouse = if (position > 0 && position - 1 < eligibleSpouses.size) eligibleSpouses[position - 1] else null
+                val currentCivil = spinnerCivilStatus.selectedItem?.toString() ?: "Single"
+                if (selectedSpouse != null) {
+                    val targetStatus = if ((!selectedSpouse.isLiving || selectedSpouse.deathDate.isNotBlank()) && switchIsLiving.isChecked) {
+                        "Widowed"
+                    } else {
+                        "Married"
+                    }
+                    if (currentCivil.equals("Single", ignoreCase = true)) {
+                        val idx = (0 until spinnerCivilStatus.count).firstOrNull {
+                            spinnerCivilStatus.getItemAtPosition(it).toString().equals(targetStatus, ignoreCase = true)
+                        } ?: -1
+                        if (idx >= 0) spinnerCivilStatus.setSelection(idx)
+                    }
+                } else if (currentCivil.equals("Married", ignoreCase = true)) {
+                    val singleIdx = (0 until spinnerCivilStatus.count).firstOrNull {
+                        spinnerCivilStatus.getItemAtPosition(it).toString().equals("Single", ignoreCase = true)
+                    } ?: -1
+                    if (singleIdx >= 0) spinnerCivilStatus.setSelection(singleIdx)
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
+
+        spinnerGender.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (isUpdatingSpinners) return
+                if (selectedChildren.isNotEmpty()) {
+                    val effectiveMembers = getEffectiveTreeMembers()
+                    val tempP = Person(
+                        id = "temp_parent_gender_check",
+                        gender = spinnerGender.selectedItem?.toString() ?: "Male",
+                        birthDate = selectedDate
+                    )
+                    val invalidKids = selectedChildren.filter { !validateCandidateAsChild(tempP, it, effectiveMembers, selectedChildrenRelationshipType).isValid }
+                    if (invalidKids.isNotEmpty()) {
+                        selectedChildren.removeAll(invalidKids.toSet())
+                        updateSelectedChildrenText()
+                    }
+                }
+                refreshCandidateSpinners()
             }
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
@@ -1198,7 +1577,7 @@ class AddMemberActivity : AppCompatActivity() {
     private fun validateCandidateAsChild(
         parent: Person,
         child: Person,
-        allPersons: List<Person>
+        allPersons: List<Person>, relationshipType: String = "Biological"
     ): CandidateChildCheckResult {
         val childName = "${child.firstName} ${child.lastName}".trim().ifEmpty { "The selected person" }
         val existingParents = com.example.btproject2.engine.FamilyLinkValidator.getExistingParentsInfo(child, allPersons)
@@ -1241,7 +1620,12 @@ class AddMemberActivity : AppCompatActivity() {
 
         // 3. Comprehensive Parent-Child Checks (incest, generational leap, circular loop, age gaps)
         val role = if (isFather) "father" else "mother"
-        val pcCheck = com.example.btproject2.engine.FamilyLinkValidator.validateParentChild(parent, child, role, allPersons)
+        val pcCheck = com.example.btproject2.engine.FamilyLinkValidator.validateParentChild(
+            parent,
+            if (isFather) child.copy(fatherRelationshipType = relationshipType) else child.copy(motherRelationshipType = relationshipType),
+            role,
+            allPersons
+        )
         if (!pcCheck.isValid) {
             val firstErr = pcCheck.errors.first()
             return CandidateChildCheckResult(
@@ -1514,6 +1898,7 @@ class AddMemberActivity : AppCompatActivity() {
                             childId = child.id,
                             parentId = savedId,
                             parentGender = savedPerson.gender,
+                            relationshipType = selectedChildrenRelationshipType,
                             onSuccess = { opDone() },
                             onFailure = { opDone() }
                         )
@@ -1658,7 +2043,9 @@ class AddMemberActivity : AppCompatActivity() {
 
         val parentAgeAtBirth = yearDiff(parent.birthDate, child.birthDate)
 
-        if (parentAgeAtBirth < 12) {
+        val isAdoptive = (parentLabel.equals("father", ignoreCase = true) && child.fatherRelationshipType.equals("Adoptive", ignoreCase = true)) ||
+            (parentLabel.equals("mother", ignoreCase = true) && child.motherRelationshipType.equals("Adoptive", ignoreCase = true))
+        if (parentAgeAtBirth < 12 && !isAdoptive) {
             errors.add(
                 ValidationIssue(
                     parentLabel,

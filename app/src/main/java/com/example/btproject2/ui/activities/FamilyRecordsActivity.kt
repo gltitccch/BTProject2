@@ -45,6 +45,15 @@ class FamilyRecordsActivity : AppCompatActivity() {
     private lateinit var layoutEmptyRecords: View
     private lateinit var tvEmptySubtitle: TextView
     private lateinit var btnEmptyAddMember: TextView
+    private var chipFilterAll: TextView? = null
+    private var chipFilterLiving: TextView? = null
+    private var chipFilterDeceased: TextView? = null
+    private var chipFilterMissingParents: TextView? = null
+    private var chipSortAZ: TextView? = null
+    private var chipSortOldest: TextView? = null
+    private var chipSortYoungest: TextView? = null
+    private var activeFilterMode: String = "ALL"
+    private var activeSortMode: String = "AZ"
     private var isFirstLaunch = true
 
     internal val syncCoordinator by lazy {
@@ -135,6 +144,23 @@ class FamilyRecordsActivity : AppCompatActivity() {
         layoutEmptyRecords = findViewById(R.id.layoutEmptyRecords)
         tvEmptySubtitle = findViewById(R.id.tvEmptySubtitle)
         btnEmptyAddMember = findViewById(R.id.btnEmptyAddMember)
+        chipFilterAll = findViewById(R.id.chipFilterAll)
+        chipFilterLiving = findViewById(R.id.chipFilterLiving)
+        chipFilterDeceased = findViewById(R.id.chipFilterDeceased)
+        chipFilterMissingParents = findViewById(R.id.chipFilterMissingParents)
+        chipSortAZ = findViewById(R.id.chipSortAZ)
+        chipSortOldest = findViewById(R.id.chipSortOldest)
+        chipSortYoungest = findViewById(R.id.chipSortYoungest)
+
+        val initialFilter = intent.getStringExtra("INITIAL_FILTER")?.uppercase().orEmpty()
+        if (initialFilter in listOf("ALL", "LIVING", "DECEASED", "MISSING_PARENTS")) {
+            activeFilterMode = initialFilter
+        }
+        val initialSort = intent.getStringExtra("INITIAL_SORT")?.uppercase().orEmpty()
+        if (initialSort in listOf("AZ", "OLDEST", "YOUNGEST")) {
+            activeSortMode = initialSort
+        }
+        setupFilterChips()
 
         // FIX: back button now calls finish() to return to the previous screen
         btnBack.setOnClickListener { finish() }
@@ -287,7 +313,7 @@ class FamilyRecordsActivity : AppCompatActivity() {
         firestoreHelper.getTree(treeId,
             onSuccess = { tree ->
                 currentTreeName = tree?.name ?: "Family Tree"
-                val ownerMatch = tree?.ownerId.isNullOrEmpty() || tree?.ownerId == currentUserId
+                val ownerMatch = tree == null || tree.isOwnedBy(currentUserId)
                 if (ownerMatch) {
                     isOwner = true
                     isViewer = false
@@ -331,20 +357,84 @@ class FamilyRecordsActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupFilterChips() {
+        val filterChips = listOf(
+            "ALL" to chipFilterAll,
+            "LIVING" to chipFilterLiving,
+            "DECEASED" to chipFilterDeceased,
+            "MISSING_PARENTS" to chipFilterMissingParents
+        )
+        val sortChips = listOf(
+            "AZ" to chipSortAZ,
+            "OLDEST" to chipSortOldest,
+            "YOUNGEST" to chipSortYoungest
+        )
+        fun updateChipVisuals() {
+            val activeTextColor = androidx.core.content.ContextCompat.getColor(this, R.color.btn_gold_text)
+            val inactiveTextColor = androidx.core.content.ContextCompat.getColor(this, R.color.text_secondary)
+            filterChips.forEach { (mode, view) ->
+                if (view != null) {
+                    if (mode == activeFilterMode) {
+                        view.setBackgroundResource(R.drawable.badge_pill_gold)
+                        view.setTextColor(activeTextColor)
+                    } else {
+                        view.setBackgroundResource(R.drawable.badge_pill_dark)
+                        view.setTextColor(inactiveTextColor)
+                    }
+                }
+            }
+            sortChips.forEach { (sortMode, view) ->
+                if (view != null) {
+                    if (sortMode == activeSortMode) {
+                        view.setBackgroundResource(R.drawable.badge_pill_gold)
+                        view.setTextColor(activeTextColor)
+                    } else {
+                        view.setBackgroundResource(R.drawable.badge_pill_dark)
+                        view.setTextColor(inactiveTextColor)
+                    }
+                }
+            }
+        }
+        updateChipVisuals()
+        filterChips.forEach { (mode, view) ->
+            view?.setOnClickListener {
+                activeFilterMode = mode
+                updateChipVisuals()
+                applyFilter(etSearch.text?.toString().orEmpty())
+            }
+        }
+        sortChips.forEach { (sortMode, view) ->
+            view?.setOnClickListener {
+                activeSortMode = sortMode
+                updateChipVisuals()
+                applyFilter(etSearch.text?.toString().orEmpty())
+            }
+        }
+    }
+
+    private fun updateFilterChipCounts(visibleMembers: List<Person>) {
+        val total = visibleMembers.size
+        val livingCount = visibleMembers.count { it.isLiving }
+        val deceasedCount = visibleMembers.count { !it.isLiving }
+        val validIds = visibleMembers.mapNotNull { it.id.trim().takeIf(String::isNotEmpty)?.lowercase() }.toSet()
+        val missingParentsCount = visibleMembers.count { isMissingParents(it, validIds) }
+
+        chipFilterAll?.text = "All ($total)"
+        chipFilterLiving?.text = "Living ($livingCount)"
+        chipFilterDeceased?.text = "Deceased ($deceasedCount)"
+        chipFilterMissingParents?.text = "Missing Parents ($missingParentsCount)"
+    }
+
     private fun applyFilter(rawQuery: String) {
         val query = rawQuery.lowercase().trim()
         val visibleMembers = allMembers.filter { it.id !in recentlyDeletedIds }
-        val filtered = if (query.isEmpty()) {
+        updateFilterChipCounts(visibleMembers)
+        val filtered = filterAndSortMembers(visibleMembers, activeFilterMode, query, activeSortMode)
+
+        if (query.isEmpty() && activeFilterMode == "ALL") {
             tvMemberCount.text = "${visibleMembers.size} members"
-            visibleMembers
         } else {
-            val matched = visibleMembers.filter {
-                val name = "${it.firstName} ${it.lastName}".lowercase()
-                val statusStr = if (it.isLiving) "living" else "deceased"
-                name.contains(query) || statusStr.contains(query)
-            }
-            tvMemberCount.text = "${matched.size} of ${visibleMembers.size} members"
-            matched
+            tvMemberCount.text = "${filtered.size} of ${visibleMembers.size} members"
         }
 
         adapter.updateList(filtered, all = allMembers, viewerMode = isViewer, privacy = treePrivacy)
@@ -354,12 +444,96 @@ class FamilyRecordsActivity : AppCompatActivity() {
             layoutEmptyRecords.visibility = View.VISIBLE
             if (query.isNotEmpty()) {
                 tvEmptySubtitle.text = "No family members matching \"$rawQuery\""
+            } else if (activeFilterMode == "MISSING_PARENTS") {
+                tvEmptySubtitle.text = "Great job! Every member in this tree already has at least one parent linked."
+            } else if (activeFilterMode != "ALL") {
+                tvEmptySubtitle.text = "No members match the selected filter."
             } else {
                 tvEmptySubtitle.text = "Start by adding the first member of your family tree."
             }
         } else {
             rvMembers.visibility = View.VISIBLE
             layoutEmptyRecords.visibility = View.GONE
+        }
+    }
+
+    companion object {
+        /**
+         * Authoritative check for whether [person] is missing both biological/legal parent links
+         * (either both `fatherId` and `motherId` are blank, or any recorded parent ID points to a
+         * record that no longer exists in [validMemberIdsLower] when non-empty).
+         */
+        fun isMissingParents(person: Person, validMemberIdsLower: Set<String>? = null): Boolean {
+            val fId = person.fatherId?.trim()?.lowercase().orEmpty()
+            val mId = person.motherId?.trim()?.lowercase().orEmpty()
+            val hasValidFather = fId.isNotEmpty() && (validMemberIdsLower.isNullOrEmpty() || validMemberIdsLower.contains(fId))
+            val hasValidMother = mId.isNotEmpty() && (validMemberIdsLower.isNullOrEmpty() || validMemberIdsLower.contains(mId))
+            return !hasValidFather && !hasValidMother
+        }
+
+        fun countMissingParents(members: List<Person>): Int {
+            if (members.isEmpty()) return 0
+            val validIds = members.mapNotNull { it.id.trim().takeIf(String::isNotEmpty)?.lowercase() }.toSet()
+            return members.count { isMissingParents(it, validIds) }
+        }
+
+        fun filterMembers(members: List<Person>, filterMode: String, rawQuery: String): List<Person> {
+            val validIds = members.mapNotNull { it.id.trim().takeIf(String::isNotEmpty)?.lowercase() }.toSet()
+            val modeFiltered = when (filterMode.uppercase()) {
+                "LIVING" -> members.filter { it.isLiving }
+                "DECEASED" -> members.filter { !it.isLiving }
+                "MISSING_PARENTS" -> members.filter { isMissingParents(it, validIds) }
+                else -> members
+            }
+            val query = rawQuery.lowercase().trim()
+            if (query.isEmpty()) return modeFiltered
+            return modeFiltered.filter {
+                val name = "${it.firstName} ${it.lastName}".lowercase()
+                val reverseName = "${it.lastName} ${it.firstName}".lowercase()
+                val statusStr = if (it.isLiving) "living" else "deceased"
+                val birthDate = it.birthDate.lowercase()
+                val birthPlace = it.birthPlace.lowercase()
+                name.contains(query) ||
+                    reverseName.contains(query) ||
+                    statusStr.contains(query) ||
+                    birthDate.contains(query) ||
+                    birthPlace.contains(query)
+            }
+        }
+
+        fun sortMembers(members: List<Person>, sortMode: String): List<Person> {
+            return when (sortMode.uppercase()) {
+                "OLDEST" -> {
+                    val (withYear, withoutYear) = members.partition {
+                        com.example.btproject2.engine.FamilyLinkValidator.extractYear(it.birthDate) != null
+                    }
+                    withYear.sortedWith(
+                        compareBy<Person> {
+                            com.example.btproject2.engine.FamilyLinkValidator.extractYear(it.birthDate) ?: Int.MAX_VALUE
+                        }.thenBy { "${it.firstName} ${it.lastName}".lowercase() }
+                    ) + withoutYear.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+                }
+                "YOUNGEST" -> {
+                    val (withYear, withoutYear) = members.partition {
+                        com.example.btproject2.engine.FamilyLinkValidator.extractYear(it.birthDate) != null
+                    }
+                    withYear.sortedWith(
+                        compareByDescending<Person> {
+                            com.example.btproject2.engine.FamilyLinkValidator.extractYear(it.birthDate) ?: Int.MIN_VALUE
+                        }.thenBy { "${it.firstName} ${it.lastName}".lowercase() }
+                    ) + withoutYear.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+                }
+                else -> members.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+            }
+        }
+
+        fun filterAndSortMembers(
+            members: List<Person>,
+            filterMode: String,
+            rawQuery: String,
+            sortMode: String = "AZ"
+        ): List<Person> {
+            return sortMembers(filterMembers(members, filterMode, rawQuery), sortMode)
         }
     }
 

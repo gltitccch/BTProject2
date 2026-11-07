@@ -62,11 +62,12 @@ class HomeActivity : AppCompatActivity() {
     private val firestoreHelper = FirestoreHelper()
     private var treeId: String = ""
     private var userOwnedTrees: List<FamilyTree> = emptyList()
+    private var userPendingTrees: List<FamilyTree> = emptyList()
     private val recentlyDeletedIds = mutableSetOf<String>()
 
     private lateinit var tvUserName: TextView
     private lateinit var tvProfileInitial: TextView
-    private lateinit var layoutStatsHeader: LinearLayout
+    private lateinit var layoutStatsHeader: View
     private lateinit var layoutEmptyState: LinearLayout
     private lateinit var layoutPopulatedState: LinearLayout
 
@@ -136,6 +137,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private var announcementListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var liveNotificationsListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var liveMembershipsListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private val alertedJoinRequestNotifIds = mutableSetOf<String>()
+    private var hadPendingMembershipInSession = false
     private var currentAnnouncement: com.example.btproject2.models.SystemAnnouncement? = null
     private var isBannerDismissedSession = false
 
@@ -150,11 +155,108 @@ class HomeActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().registerListener(homeSyncListener)
+        announcementListener?.remove()
         announcementListener = firestoreHelper.listenToActiveSystemAnnouncement { announcement ->
             currentAnnouncement = announcement
             runOnUiThread {
                 updateMaintenanceBannerUi(announcement)
                 refreshNotificationBadge()
+            }
+        }
+        val uid = authHelper.getCurrentUserId().orEmpty()
+        if (uid.isNotBlank()) {
+            liveNotificationsListener?.remove()
+            liveNotificationsListener = firestoreHelper.listenToUserNotifications(uid) { notifs ->
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    val hasUnread = notifs.any { !it.isRead }
+                    if (hasUnread) {
+                        viewNotifBadge.visibility = View.VISIBLE
+                    } else {
+                        refreshNotificationBadge()
+                    }
+                    // Alert Tree Owner if a fresh unread join request just arrived
+                    val recentJoinNotif = notifs.firstOrNull {
+                        !it.isRead &&
+                            (it.type.equals("join_request", ignoreCase = true) ||
+                                it.title.contains("Join Request Pending Approval", ignoreCase = true)) &&
+                            (System.currentTimeMillis() - it.timestamp < 20_000L)
+                    }
+                    if (recentJoinNotif != null && alertedJoinRequestNotifIds.add(recentJoinNotif.id)) {
+                        KinTraceAlert.show(this, "🔑 New join request received! Tap Notifications to review in Privacy & Access.")
+                    }
+                }
+            }
+
+            liveMembershipsListener?.remove()
+            liveMembershipsListener = firestoreHelper.listenToUserMemberships(uid) { memberships ->
+                runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
+                    val pendingList = memberships.filter {
+                        it.status.equals("Pending", ignoreCase = true) ||
+                            it.status.equals("Pending_Join", ignoreCase = true) ||
+                            it.role.equals("Pending_Join", ignoreCase = true)
+                    }
+                    val hasPending = pendingList.isNotEmpty()
+                    val hasApproved = memberships.any { it.status.equals("Approved", ignoreCase = true) }
+
+                    if (pendingList.isEmpty()) {
+                        userPendingTrees = emptyList()
+                    } else {
+                        val pendingTreeIds = pendingList.map { it.treeId }.filter { it.isNotBlank() }.distinct()
+                        val resolvedPendingTrees = java.util.Collections.synchronizedList(mutableListOf<FamilyTree>())
+                        val remaining = java.util.concurrent.atomic.AtomicInteger(pendingTreeIds.size)
+                        for (pTreeId in pendingTreeIds) {
+                            firestoreHelper.getTree(pTreeId,
+                                onSuccess = { t ->
+                                    if (t != null) resolvedPendingTrees.add(t)
+                                    if (remaining.decrementAndGet() == 0) {
+                                        userPendingTrees = resolvedPendingTrees.toList()
+                                    }
+                                },
+                                onFailure = {
+                                    if (remaining.decrementAndGet() == 0) {
+                                        userPendingTrees = resolvedPendingTrees.toList()
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    if (hasPending) {
+                        hadPendingMembershipInSession = true
+                    } else if (hadPendingMembershipInSession && hasApproved) {
+                        hadPendingMembershipInSession = false
+                        KinTraceAlert.show(this, "🎉 Your join request was accepted! Updating family trees...")
+                        resolveAndLoadTree()
+                    }
+
+                    // Real-time eviction check: if the user is currently viewing a non-owned tree and their membership was removed
+                    val activeTreeObj = userOwnedTrees.firstOrNull { it.id == treeId }
+                    if (treeId.isNotBlank() && activeTreeObj != null && activeTreeObj.ownerId.isNotBlank() && activeTreeObj.ownerId != uid && !activeTreeObj.coOwnerIds.contains(uid)) {
+                        val stillApprovedInActiveTree = memberships.any {
+                            it.treeId == treeId &&
+                                (it.status.equals("Approved", ignoreCase = true) ||
+                                    it.status.equals("Role_Upgrade_Pending", ignoreCase = true))
+                        }
+                        if (!stillApprovedInActiveTree) {
+                            val removedTreeName = activeTreeObj.name.ifBlank { "Family Tree" }
+                            userOwnedTrees = userOwnedTrees.filter { it.id != treeId }
+                            TreePreferences.saveUserTreesList(this, uid, userOwnedTrees)
+                            val fallbackTree = userOwnedTrees.firstOrNull()
+                            if (fallbackTree != null) {
+                                this.treeId = fallbackTree.id
+                                TreePreferences.setActiveTree(this, fallbackTree.id, fallbackTree.name, uid)
+                            } else {
+                                this.treeId = ""
+                                TreePreferences.clear(this)
+                                TreePreferences.clearUserRememberedTree(this, uid)
+                            }
+                            KinTraceAlert.show(this, "🚫 Your access to \"$removedTreeName\" was removed by the tree owner.")
+                            resolveAndLoadTree()
+                        }
+                    }
+                }
             }
         }
         com.example.btproject2.utils.NetworkStateMonitor.startMonitoring(this)
@@ -167,6 +269,10 @@ class HomeActivity : AppCompatActivity() {
         com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().unregisterListener(homeSyncListener)
         announcementListener?.remove()
         announcementListener = null
+        liveNotificationsListener?.remove()
+        liveNotificationsListener = null
+        liveMembershipsListener?.remove()
+        liveMembershipsListener = null
         com.example.btproject2.utils.NetworkStateMonitor.removeListener(networkListener)
         stopThemeOnboardingLoopAnimators()
         findViewById<View?>(R.id.layoutHomeShimmer)?.let { com.example.btproject2.utils.KinTraceShimmerHelper.stopShimmer(it) }
@@ -185,10 +291,16 @@ class HomeActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_home)
 
-        com.example.btproject2.utils.InAppUpdateManager.syncCurrentReleaseToFirestore {
-            com.example.btproject2.utils.InAppUpdateManager.checkForUpdates(this, onNoUpdate = {
-                com.example.btproject2.utils.InAppUpdateManager.checkAndShowPostUpdateWhatsNew(this)
-            })
+        window.decorView.post {
+            com.example.btproject2.utils.InAppUpdateManager.syncCurrentReleaseToFirestore {
+                if (!isFinishing && !isDestroyed) {
+                    com.example.btproject2.utils.InAppUpdateManager.checkForUpdates(this@HomeActivity, onNoUpdate = {
+                        if (!isFinishing && !isDestroyed) {
+                            com.example.btproject2.utils.InAppUpdateManager.checkAndShowPostUpdateWhatsNew(this@HomeActivity)
+                        }
+                    })
+                }
+            }
         }
 
         val tvGreeting = findViewById<TextView>(R.id.tvGreeting)
@@ -196,6 +308,7 @@ class HomeActivity : AppCompatActivity() {
             !isRecreatingFromEmptyStateThemeSwitch && !pendingCornerDockMorph && !pendingCornerButtonPop && !justCompletedThemeMorphInSession && !isPlayingThemeMorphAnimation
         ) {
             OnboardingPreferences.setHasChosenInitialTheme(this, false)
+            OnboardingPreferences.setHasSeenWelcomeStory(this, false)
         }
         tvUserName = findViewById(R.id.tvUserName)
         tvProfileInitial = findViewById(R.id.tvProfileInitial)
@@ -529,29 +642,52 @@ class HomeActivity : AppCompatActivity() {
             onFailure = {}
         )
 
-        firestoreHelper.getUserTrees(currentUserId,
+        firestoreHelper.getUserTrees(currentUserId, includeMergedClan = true,
             onSuccess = { trees ->
-                if (trees.isNotEmpty()) {
-                    userOwnedTrees = trees
-                    TreePreferences.saveUserTreesList(this, currentUserId, trees)
+                val applyResolvedTrees: (List<FamilyTree>) -> Unit = { allCombinedTrees ->
+                    if (allCombinedTrees.isNotEmpty()) {
+                        val sortedTrees = allCombinedTrees
+                            .distinctBy { it.id }
+                            .sortedBy { if (it.isMergedClan()) 1 else 0 }
+                        userOwnedTrees = sortedTrees
+                        TreePreferences.saveUserTreesList(this, currentUserId, sortedTrees)
 
-                    val currentActivePrefId = TreePreferences.getActiveTreeId(this)
-                    val targetTree = trees.firstOrNull { it.id == currentActivePrefId }
-                        ?: trees.firstOrNull { it.ownerId == currentUserId }
-                        ?: trees.firstOrNull { it.id == resolvedProfileTreeId }
-                        ?: trees.first()
+                        val currentActivePrefId = TreePreferences.getActiveTreeId(this)
+                        val targetTree = sortedTrees.firstOrNull { it.id == currentActivePrefId }
+                            ?: sortedTrees.firstOrNull { !it.isMergedClan() && it.isOwnedBy(currentUserId) }
+                            ?: sortedTrees.firstOrNull { !it.isMergedClan() && it.id == resolvedProfileTreeId }
+                            ?: sortedTrees.firstOrNull { !it.isMergedClan() }
+                            ?: sortedTrees.first()
 
-                    val treeChanged = this.treeId != targetTree.id
-                    this.treeId = targetTree.id
-                    TreePreferences.setActiveTree(this, targetTree.id, targetTree.name, currentUserId)
-                    CentralTreeSynchronizer.getInstance().startRealtimeListener(targetTree.id)
+                        val treeChanged = this.treeId != targetTree.id
+                        this.treeId = targetTree.id
+                        TreePreferences.setActiveTree(this, targetTree.id, targetTree.name, currentUserId)
+                        CentralTreeSynchronizer.getInstance().startRealtimeListener(targetTree.id)
 
-                    layoutStatsHeader.visibility = View.VISIBLE
-                    layoutEmptyState.visibility = View.GONE
-                    findViewById<TextView?>(R.id.tvTreeTitle)?.text = "✎  ${targetTree.name}"
-                    if (treeChanged || cachedTreeId.isEmpty() || layoutPopulatedState.visibility != View.VISIBLE) {
-                        loadStatsForTree(targetTree.id)
+                        layoutStatsHeader.visibility = View.VISIBLE
+                        layoutEmptyState.visibility = View.GONE
+                        val titlePrefix = if (targetTree.isMergedClan()) "✎  🏛️ " else "✎  "
+                        findViewById<TextView?>(R.id.tvTreeTitle)?.text = "$titlePrefix${targetTree.name}"
+                        if (treeChanged || cachedTreeId.isEmpty() || layoutPopulatedState.visibility != View.VISIBLE) {
+                            loadStatsForTree(targetTree.id)
+                        }
                     }
+                }
+
+                if (trees.isNotEmpty()) {
+                    applyResolvedTrees(trees)
+                    // Also discover any partner-synthesized Merged Clan Trees where this user's personal tree is a source tree
+                    firestoreHelper.getMergedClanTrees(currentUserId,
+                        onSuccess = { clanTrees ->
+                            if (clanTrees.isNotEmpty()) {
+                                val combined = (trees + clanTrees).distinctBy { it.id }
+                                if (combined.size != userOwnedTrees.size || combined.any { c -> userOwnedTrees.none { it.id == c.id } }) {
+                                    applyResolvedTrees(combined)
+                                }
+                            }
+                        },
+                        onFailure = {}
+                    )
                     return@getUserTrees
                 }
 
@@ -609,6 +745,11 @@ class HomeActivity : AppCompatActivity() {
                     if (cloudState.hasChosenInitialTheme && !local.hasChosenInitialTheme &&
                         !com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(authHelper.getCurrentUser()?.email)) {
                         OnboardingPreferences.setHasChosenInitialTheme(this, true, currentUserId)
+                        changed = true
+                    }
+                    if (cloudState.hasSeenWelcomeStory && !local.hasSeenWelcomeStory &&
+                        !com.example.btproject2.models.DemoAccountRepository.isNewUserPreviewEmail(authHelper.getCurrentUser()?.email)) {
+                        OnboardingPreferences.setHasSeenWelcomeStory(this, true, currentUserId)
                         changed = true
                     }
                     if (cloudState.isQuestDismissed && !local.isQuestDismissed) {
@@ -679,10 +820,8 @@ class HomeActivity : AppCompatActivity() {
                         scaleY = 1f
                         translationY = 0f
                     }
-                    if (!justCompletedThemeMorphInSession) {
-                        // Phase 1 Onboarding: Show 3-slide welcome story modal for new user without trees
-                        WelcomeStoryDialogFragment.showIfNotSeen(this@HomeActivity)
-                    }
+                    // Phase 1 Onboarding: Show 3-slide welcome story modal for new user without trees
+                    WelcomeStoryDialogFragment.showIfNotSeen(this@HomeActivity)
                 }
             }
 
@@ -1001,6 +1140,10 @@ class HomeActivity : AppCompatActivity() {
                             alpha = 1f
                         }
                         updateAllThemeToggles()
+                        // Launch 3-slide Welcome Storybook right after new user finishes picking their initial theme
+                        if (treeId.isEmpty()) {
+                            WelcomeStoryDialogFragment.showIfNotSeen(this@HomeActivity)
+                        }
                     }
                 )
             }, 140L)
@@ -1133,33 +1276,47 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun showTreeSelectionDialog() {
-        if (userOwnedTrees.isEmpty()) {
+        if (userOwnedTrees.isEmpty() && userPendingTrees.isEmpty()) {
             startActivity(Intent(this, CreateTreeActivity::class.java))
             return
         }
 
-        val treeNames = userOwnedTrees.map { it.name }.toTypedArray()
+        val approvedCount = userOwnedTrees.size
+        val pendingChoices = userPendingTrees.filter { p -> userOwnedTrees.none { it.id == p.id } }
+        val combinedLabels = (userOwnedTrees.map { it.switcherDisplayLabel() } + pendingChoices.map { "⏳ ${it.name} (Pending Approval)" }).toTypedArray()
+
         val currentActiveId = TreePreferences.getActiveTreeId(this)
         val checkedItem = userOwnedTrees.indexOfFirst { it.id == currentActiveId }.let { if (it >= 0) it else 0 }
 
         com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
             .setTitle("Select Family Tree")
-            .setSingleChoiceItems(treeNames, checkedItem) { dialog, which ->
-                val selectedTree = userOwnedTrees[which]
-                TreePreferences.setActiveTree(this, selectedTree.id, selectedTree.name)
-                this.treeId = selectedTree.id
-                CentralTreeSynchronizer.getInstance().startRealtimeListener(selectedTree.id)
+            .setSingleChoiceItems(combinedLabels, checkedItem) { dialog, which ->
+                if (which < approvedCount) {
+                    val selectedTree = userOwnedTrees[which]
+                    val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                    TreePreferences.setActiveTree(this, selectedTree.id, selectedTree.name, currentUserId)
+                    this.treeId = selectedTree.id
+                    CentralTreeSynchronizer.getInstance().startRealtimeListener(selectedTree.id)
 
-                val currentUserId = authHelper.getCurrentUserId().orEmpty()
-                if (currentUserId.isNotEmpty()) {
-                    firestoreHelper.getUserProfile(currentUserId, onSuccess = { profile ->
-                        val updatedProfile = (profile ?: UserProfile(id = currentUserId)).copy(currentTreeId = selectedTree.id)
-                        firestoreHelper.saveUserProfile(updatedProfile, onSuccess = {}, onFailure = {})
-                    }, onFailure = {})
+                    if (currentUserId.isNotEmpty()) {
+                        firestoreHelper.getUserProfile(currentUserId, onSuccess = { profile ->
+                            val updatedProfile = (profile ?: UserProfile(id = currentUserId)).copy(currentTreeId = selectedTree.id)
+                            firestoreHelper.saveUserProfile(updatedProfile, onSuccess = {}, onFailure = {})
+                        }, onFailure = {})
+                    }
+                    val titlePrefix = if (selectedTree.isMergedClan()) "✎  🏛️ " else "✎  "
+                    findViewById<TextView>(R.id.tvTreeTitle)?.text = "$titlePrefix${selectedTree.name}"
+                    loadStatsForTree(selectedTree.id)
+                    dialog.dismiss()
+                } else {
+                    val pendingTree = pendingChoices[which - approvedCount]
+                    dialog.dismiss()
+                    KinTraceAlert.show(this, "⏳ Your join request for \"${pendingTree.name}\" is pending owner approval.")
+                    val intent = Intent(this, JoinTreeActivity::class.java).apply {
+                        putExtra("PENDING_TREE_ID", pendingTree.id)
+                    }
+                    startActivity(intent)
                 }
-                findViewById<TextView>(R.id.tvTreeTitle)?.text = "✎  ${selectedTree.name}"
-                loadStatsForTree(selectedTree.id)
-                dialog.dismiss()
             }
             .setPositiveButton("Create New Tree") { _, _ ->
                 startActivity(Intent(this, CreateTreeActivity::class.java))
@@ -1187,6 +1344,9 @@ class HomeActivity : AppCompatActivity() {
         if (!cached.isNullOrEmpty()) {
             layoutHomeShimmer?.let { com.example.btproject2.utils.KinTraceShimmerHelper.hideInstantly(it) }
             tvMemberCount.text = cached.size.toString()
+            val cachedBranchCount = InsightsActivity.computeClanBranchCount(cached)
+            tvBranchCount.text = cachedBranchCount.toString()
+            findViewById<TextView?>(R.id.tvBranchDelta)?.text = "+$cachedBranchCount"
             val genCount = calculateGenerations(cached)
             findViewById<TextView?>(R.id.tvGenerationCountLarge)?.text = genCount.toString()
             findViewById<TextView?>(R.id.tvGenerationsCount)?.text = genCount.toString()
@@ -1238,7 +1398,22 @@ class HomeActivity : AppCompatActivity() {
                         (!it.fatherId.isNullOrEmpty() || !it.motherId.isNullOrEmpty() || !it.spouseId.isNullOrEmpty())
                 }
                 val recentRecords7d = recentMembers7d + recentLinks7d
-                val uniqueClanSurnames = activePersons.mapNotNull { it.lastName.trim().takeIf { s -> s.isNotEmpty() }?.lowercase() }.distinct().size.coerceAtLeast(1)
+                val uniqueClanSurnames = InsightsActivity.computeClanBranchCount(activePersons)
+                val branchBreakdown = InsightsActivity.computeClanBranchBreakdown(activePersons)
+
+                tvBranchCount.text = uniqueClanSurnames.toString()
+                (tvBranchCount.parent as? View)?.setOnClickListener {
+                    if (branchBreakdown.isNotEmpty()) {
+                        val lines = branchBreakdown.mapIndexed { idx, (surname, count) ->
+                            "${idx + 1}. $surname — $count member${if (count == 1) "" else "s"}"
+                        }.joinToString("\n")
+                        com.example.btproject2.utils.KinTraceModalDialog.Builder(this@HomeActivity)
+                            .setTitle("🌿 Family Branches (${branchBreakdown.size})")
+                            .setMessage("Distinct family surname lineages represented in this tree:\n\n$lines")
+                            .setPositiveButton("Got It") { d, _ -> d.dismiss() }
+                            .show()
+                    }
+                }
 
                 findViewById<TextView?>(R.id.tvRecordsDelta)?.text = "+$recentRecords7d"
                 findViewById<TextView?>(R.id.tvMemberDelta)?.text = "+$recentMembers7d"
@@ -1275,6 +1450,9 @@ class HomeActivity : AppCompatActivity() {
                 val fallbackCache = FirestoreHelper.getCachedPersons(activeTreeId)?.filter { it.id !in recentlyDeletedIds }
                 if (!fallbackCache.isNullOrEmpty()) {
                     tvMemberCount.text = fallbackCache.size.toString()
+                    val fallbackBranches = InsightsActivity.computeClanBranchCount(fallbackCache)
+                    tvBranchCount.text = fallbackBranches.toString()
+                    findViewById<TextView?>(R.id.tvBranchDelta)?.text = "+$fallbackBranches"
                     val genCount = calculateGenerations(fallbackCache)
                     findViewById<TextView?>(R.id.tvGenerationCountLarge)?.text = genCount.toString()
                     findViewById<TextView?>(R.id.tvGenerationsCount)?.text = genCount.toString()
@@ -1313,7 +1491,8 @@ class HomeActivity : AppCompatActivity() {
         firestoreHelper.getTree(activeTreeId,
             onSuccess = { tree ->
                 val treeName = tree?.name?.takeIf { it.isNotBlank() } ?: "Your Family Tree"
-                findViewById<TextView>(R.id.tvTreeTitle)?.text = "✎  $treeName"
+                val titlePrefix = if (tree?.isMergedClan() == true) "✎  🏛️ " else "✎  "
+                findViewById<TextView>(R.id.tvTreeTitle)?.text = "$titlePrefix$treeName"
             },
             onFailure = {}
         )
@@ -1450,6 +1629,28 @@ class HomeActivity : AppCompatActivity() {
                             .setPositiveButton("OK", null)
                             .show()
                     }
+                }
+            } else if (actType == "TRACE" && activity.targetId.contains("|")) {
+                itemView.setOnClickListener {
+                    val parts = activity.targetId.split("|")
+                    val pA = parts.getOrNull(0)?.trim().orEmpty()
+                    val pB = parts.getOrNull(1)?.trim().orEmpty()
+                    val intent = Intent(this, TraceActivity::class.java).apply {
+                        putExtra("personAId", pA)
+                        putExtra("personBId", pB)
+                        putExtra("preselectedPersonA", pA)
+                        putExtra("preselectedPersonB", pB)
+                        putExtra("TREE_ID", treeId)
+                        putExtra("treeId", treeId)
+                    }
+                    startActivity(intent)
+                }
+            } else if (actType == "CLAN_MERGED") {
+                itemView.setOnClickListener {
+                    val intent = Intent(this, MergeBranchesActivity::class.java).apply {
+                        putExtra("TREE_ID", treeId)
+                    }
+                    startActivity(intent)
                 }
             } else if (activity.targetId.isNotEmpty()) {
                 itemView.setOnClickListener {

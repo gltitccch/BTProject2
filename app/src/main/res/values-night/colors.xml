@@ -51,17 +51,17 @@
     <!-- Dark Forest Semantic Tokens (Dark Mode) -->
     <color name="forest_bg">#0A1B12</color>
     <color name="forest_card">#122A1D</color>
-    <color name="forest_card_border">#1E4530</color>
-    <color name="forest_card_light">#183626</color>
+    <color name="forest_card_border">#2E6345</color>
+    <color name="forest_card_light">#0D2016</color>
     <color name="gold_accent">#D4A359</color>
-    <color name="gold_accent_light">#E8BA6E</color>
+    <color name="gold_accent_light">#F0C36D</color>
     <color name="gold_accent_dark">#9A6F29</color>
-    <color name="mint_text">#5EEAD4</color>
-    <color name="mint_pill_bg">#1B3D2B</color>
-    <color name="mint_badge_border">#285C41</color>
-    <color name="dark_subtext">#7A9A88</color>
-    <color name="dark_nav_active">#D4A359</color>
-    <color name="dark_nav_inactive">#4A725D</color>
+    <color name="mint_text">#F0C36D</color>
+    <color name="mint_pill_bg">#0D2016</color>
+    <color name="mint_badge_border">#356E4D</color>
+    <color name="dark_subtext">#B8D0C2</color>
+    <color name="dark_nav_active">#F0C36D</color>
+    <color name="dark_nav_inactive">#8CB09C</color>
 
     <!-- Health / Data Quality Card Semantic Tokens (Dark Mode) -->
     <color name="health_card_bg">#132B1E</color>
@@ -74,7 +74,15 @@
     <!-- Login Redesign Tokens (Dark Mode) -->
     <color name="login_hero_bg">#07170E</color>
     <color name="login_hero_border">#D4A359</color>
-    <color name="login_input_bg">#183626</color>
+    <color name="login_input_bg">#0D2016</color>
+    <color name="login_input_border">#356E4D</color>
+    <color name="login_input_accent">#D4A359</color>
+    <color name="login_card_border">#2E6345</color>
+    <color name="login_label_text">#F4F9F6</color>
+    <color name="login_hint_text">#B8D0C2</color>
+    <color name="login_sub_text">#D5E4DC</color>
+    <color name="login_badge_bg">#14FFFFFF</color>
+    <color name="login_badge_border">#24FFFFFF</color>
 
     <!-- Citadel Header Semantic Tokens (Dark Mode) -->
     <color name="citadel_glass_start">#1B3D2B</color>
@@ -144,8 +152,8 @@
     <color name="tool_amber_tint">#FBBF24</color>
     <color name="tool_rose_bg">#2D151E</color>
     <color name="tool_rose_tint">#FB7185</color>
-    <color name="tool_tag_bg">#183626</color>
-    <color name="tool_tag_border">#1E4530</color>
+    <color name="tool_tag_bg">#0D2016</color>
+    <color name="tool_tag_border">#6BD4A359</color>
     <!-- Design 3 Input-Halo Beacon Semantic Tokens (Dark Mode) -->
     <color name="beacon_chip_bg">#1B3D2B</color>
     <color name="beacon_chip_border">#D4A359</color>

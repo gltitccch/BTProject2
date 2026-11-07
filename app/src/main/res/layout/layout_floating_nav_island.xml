@@ -103,6 +103,8 @@
                 android:layout_height="wrap_content"
                 android:text="Home"
                 android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_display_sora"
                 android:textColor="@color/dark_nav_inactive"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
@@ -135,6 +137,8 @@
                 android:layout_height="wrap_content"
                 android:text="Tree"
                 android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_display_sora"
                 android:textColor="@color/dark_nav_inactive"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
@@ -228,6 +232,8 @@
                 android:layout_height="wrap_content"
                 android:text="Trace"
                 android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_display_sora"
                 android:textColor="@color/dark_nav_inactive"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
@@ -260,6 +266,8 @@
                 android:layout_height="wrap_content"
                 android:text="Profile"
                 android:textSize="9.5sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_display_sora"
                 android:textColor="@color/dark_nav_inactive"
                 android:layout_marginTop="2dp" />
         </LinearLayout>

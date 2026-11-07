@@ -63,6 +63,19 @@ object NotificationHelper {
             sorted
         } else if (category.equals(CATEGORY_SECURITY, ignoreCase = true)) {
             sorted.filter { it.type.equals(CATEGORY_SECURITY, ignoreCase = true) || it.type.equals("ADVISORY", ignoreCase = true) }
+        } else if (category.equals(CATEGORY_ACCESS, ignoreCase = true)) {
+            sorted.filter {
+                it.type.equals(CATEGORY_ACCESS, ignoreCase = true) ||
+                    it.type.equals("join_request", ignoreCase = true) ||
+                    it.type.equals("role_upgrade_request", ignoreCase = true) ||
+                    it.type.equals("CLAN_MERGE_REQUEST", ignoreCase = true) ||
+                    it.type.equals("CLAN_MERGE_COMPLETED", ignoreCase = true)
+            }
+        } else if (category.equals(CATEGORY_RECORDS, ignoreCase = true)) {
+            sorted.filter {
+                it.type.equals(CATEGORY_RECORDS, ignoreCase = true) ||
+                    it.type.equals("CLAN_MERGE_COMPLETED", ignoreCase = true)
+            }
         } else {
             sorted.filter { it.type.equals(category, ignoreCase = true) }
         }
@@ -294,6 +307,24 @@ object NotificationHelper {
             message = "Your account password was updated directly from your profile settings.",
             type = CATEGORY_SECURITY,
             targetId = userId,
+            timestamp = System.currentTimeMillis()
+        )
+    }
+
+    fun createClanMergeCompletedNotification(
+        masterTreeId: String,
+        masterTreeName: String,
+        recipientUserId: String,
+        combinedMemberCount: Int,
+        sourceTreeId: String = ""
+    ): NotificationRecord {
+        return NotificationRecord(
+            treeId = sourceTreeId.ifBlank { masterTreeId },
+            userId = recipientUserId,
+            title = "🏛️ Master Clan Tree Merged Successfully",
+            message = "'$masterTreeName' ($combinedMemberCount combined members) has been synthesized! Whenever you want, you can open it from the 'Select Family Tree' switcher on your Home Dashboard or in Merged Clan Space.",
+            type = "CLAN_MERGE_COMPLETED",
+            targetId = masterTreeId,
             timestamp = System.currentTimeMillis()
         )
     }

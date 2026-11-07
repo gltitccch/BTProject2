@@ -1,379 +1,390 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="@color/background">
 
-    <LinearLayout
+    <!-- Full-Screen Botanical & Wooden Branch Canopy Backdrop with Cute Hanging Family Node Charms -->
+    <com.example.btproject2.ui.views.LoginBotanicalBackdropView
+        android:id="@+id/loginBotanicalBackdrop"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent" />
 
-        <!-- Top Header Area (Harmonious Canvas, No harsh split-boxes or gold side arcs) -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:background="@android:color/transparent">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:paddingTop="38dp"
-            android:paddingBottom="10dp">
+            android:orientation="vertical">
 
-            <!-- Brand Wordmark -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="KINTRACE"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.16"
-                android:fontFamily="@font/font_display_sora"
-                android:textColor="@color/gold_accent" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Family Tree &amp; Lineage"
-                android:textSize="10.5sp"
-                android:textColor="@color/text_secondary"
-                android:letterSpacing="0.04"
-                android:layout_marginTop="2dp" />
-
-            <!-- Welcome Back Title -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Welcome Back"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/font_display_sora"
-                android:textColor="@color/text_primary"
-                android:layout_marginTop="10dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sign in to explore your family bloodline."
-                android:textSize="13sp"
-                android:textColor="@color/text_secondary"
-                android:layout_marginTop="3dp" />
-        </LinearLayout>
-
-        <!-- Keystone + Floating Card Container -->
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
-            android:layout_marginEnd="18dp"
-            android:layout_marginTop="14dp"
-            android:clipChildren="false"
-            android:clipToPadding="false">
-
-            <!-- Floating Elevated Card -->
+            <!-- Top Header Area: Exact Branch-Wrapped Georgia Bold "KinTrace" + Welcome Back -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="24dp"
-                android:background="@drawable/bg_login_card"
-                android:elevation="4dp"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:paddingTop="36dp"
-                android:paddingBottom="22dp">
+                android:gravity="center"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:paddingTop="32dp"
+                android:paddingBottom="4dp">
 
-                <!-- Card Subtitle Row (Left: ACCOUNT, Right: Sign-In) -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                <com.example.btproject2.ui.views.KinTraceWrappedHeaderView
+                    android:id="@+id/kinTraceWrappedHeader"
+                    android:layout_width="308dp"
+                    android:layout_height="104dp" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="ACCOUNT"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.08"
-                        android:textColor="@color/gold_accent" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sign-In"
-                        android:textSize="11sp"
-                        android:textColor="@color/text_hint" />
-                </LinearLayout>
-
-                <!-- Email Label -->
+                <!-- Welcome Back Title -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Email Address"
-                    android:textSize="12sp"
+                    android:text="Welcome Back"
+                    android:textSize="22sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginBottom="6dp" />
-
-                <!-- Email Input Field with leading icon -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_login_input_field"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:layout_marginBottom="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="✉️"
-                        android:textSize="15sp"
-                        android:alpha="0.7"
-                        android:layout_marginEnd="10dp" />
-
-                    <EditText
-                        android:id="@+id/etEmail"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@null"
-                        android:hint="Enter your email"
-                        android:inputType="textEmailAddress"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_primary"
-                        android:textColorHint="@color/text_hint" />
-                </LinearLayout>
-
-                <!-- Password Label -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Password"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginBottom="6dp" />
-
-                <!-- Password Input Field with leading icon & toggle -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_login_input_field"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="6dp"
-                    android:layout_marginBottom="8dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🔒"
-                        android:textSize="15sp"
-                        android:alpha="0.7"
-                        android:layout_marginEnd="10dp" />
-
-                    <EditText
-                        android:id="@+id/etPassword"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:background="@null"
-                        android:hint="Enter your password"
-                        android:inputType="textPassword"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_primary"
-                        android:textColorHint="@color/text_hint" />
-
-                    <ImageView
-                        android:id="@+id/btnTogglePassword"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:padding="11dp"
-                        android:src="@drawable/ic_visibility_off"
-                        android:contentDescription="Show password"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true" />
-                </LinearLayout>
-
-                <!-- Forgot Password -->
-                <TextView
-                    android:id="@+id/btnForgotPassword"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Forgot Password?"
-                    android:textSize="12sp"
-                    android:textColor="@color/gold_accent"
-                    android:textStyle="bold"
-                    android:layout_gravity="end"
-                    android:layout_marginBottom="22dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <!-- Login Button -->
-                <Button
-                    android:id="@+id/btnLogin"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:text="Sign In to KinTrace ➔"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/btn_gold_text"
                     android:fontFamily="@font/font_display_sora"
-                    android:background="@drawable/btn_primary_bg"
-                    android:textAllCaps="false"
-                    android:layout_marginBottom="16dp" />
+                    android:textColor="@color/text_primary"
+                    android:layout_marginTop="2dp" />
 
-                <!-- Register link inside card -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:paddingTop="12dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="New here? "
-                        android:textSize="13sp"
-                        android:textColor="@color/text_secondary" />
-
-                    <TextView
-                        android:id="@+id/btnRegister"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Create Account"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/gold_accent"
-                        android:clickable="true"
-                        android:focusable="true" />
-                </LinearLayout>
-
+                    android:text="Sign in to explore your family bloodline."
+                    android:textSize="12.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/login_sub_text"
+                    android:layout_marginTop="2dp" />
             </LinearLayout>
 
-            <!-- Integrated Medallion Keystone (Locks atop card center) -->
+            <!-- Keystone + Floating Card Container -->
             <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="top|center_horizontal"
-                android:background="@drawable/bg_keystone_medallion"
-                android:elevation="8dp"
-                android:padding="8dp">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="18dp"
+                android:layout_marginEnd="18dp"
+                android:layout_marginTop="6dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
 
-                <ImageView
+                <!-- Floating Elevated Card -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/ic_kintrace_tree_gold"
-                    android:scaleType="fitCenter"
-                    android:importantForAccessibility="no" />
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="22dp"
+                    android:background="@drawable/bg_login_card"
+                    android:elevation="4dp"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:paddingTop="32dp"
+                    android:paddingBottom="18dp">
+
+                    <!-- Card Subtitle Row (Left: ACCOUNT, Right: Sign-In) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="ACCOUNT"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/font_display_sora"
+                            android:letterSpacing="0.08"
+                            android:textColor="@color/gold_accent" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sign-In"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/bg_login_eyebrow_pill"
+                            android:paddingStart="9dp"
+                            android:paddingEnd="9dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:textColor="@color/login_sub_text" />
+                    </LinearLayout>
+
+                    <!-- Email Label -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email Address"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/font_display_sora"
+                        android:textColor="@color/login_label_text"
+                        android:layout_marginBottom="6dp" />
+
+                    <!-- Email Input Field with leading icon -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/bg_login_input_field"
+                        android:paddingStart="15dp"
+                        android:paddingEnd="14dp"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="✉️"
+                            android:textSize="15sp"
+                            android:alpha="0.95"
+                            android:layout_marginEnd="10dp" />
+
+                        <EditText
+                            android:id="@+id/etEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@null"
+                            android:hint="Enter your email"
+                            android:inputType="textEmailAddress"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/login_hint_text" />
+                    </LinearLayout>
+
+                    <!-- Password Label -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Password"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/font_display_sora"
+                        android:textColor="@color/login_label_text"
+                        android:layout_marginBottom="6dp" />
+
+                    <!-- Password Input Field with leading icon & toggle -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/bg_login_input_field"
+                        android:paddingStart="15dp"
+                        android:paddingEnd="6dp"
+                        android:layout_marginBottom="6dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🔒"
+                            android:textSize="15sp"
+                            android:alpha="0.95"
+                            android:layout_marginEnd="10dp" />
+
+                        <EditText
+                            android:id="@+id/etPassword"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:hint="Enter your password"
+                            android:inputType="textPassword"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/login_hint_text" />
+
+                        <ImageView
+                            android:id="@+id/btnTogglePassword"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:padding="11dp"
+                            android:src="@drawable/ic_visibility_off"
+                            android:tint="@color/login_label_text"
+                            android:contentDescription="Show password"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true" />
+                    </LinearLayout>
+
+                    <!-- Forgot Password -->
+                    <TextView
+                        android:id="@+id/btnForgotPassword"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Forgot Password?"
+                        android:textSize="12.5sp"
+                        android:fontFamily="@font/font_display_sora"
+                        android:textColor="@color/gold_accent"
+                        android:textStyle="bold"
+                        android:layout_gravity="end"
+                        android:layout_marginBottom="16dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <!-- Login Button -->
+                    <Button
+                        android:id="@+id/btnLogin"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="Sign In to KinTrace ➔"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/btn_gold_text"
+                        android:fontFamily="@font/font_display_sora"
+                        android:background="@drawable/btn_primary_bg"
+                        android:textAllCaps="false"
+                        android:layout_marginBottom="10dp" />
+
+                    <!-- Register link inside card -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingTop="6dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="New here? "
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/login_sub_text" />
+
+                        <TextView
+                            android:id="@+id/btnRegister"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Create Account"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/font_display_sora"
+                            android:textColor="@color/gold_accent"
+                            android:clickable="true"
+                            android:focusable="true" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Integrated Medallion Keystone (Locks atop card center) -->
+                <FrameLayout
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:background="@drawable/bg_keystone_medallion"
+                    android:elevation="8dp"
+                    android:padding="8dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_kintrace_tree_gold"
+                        android:scaleType="fitCenter"
+                        android:importantForAccessibility="no" />
+                </FrameLayout>
+
             </FrameLayout>
 
-        </FrameLayout>
-
-        <!-- Spacer to push quote toward bottom cleanly -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:minHeight="28dp" />
-
-        <!-- Bottom Quote Section (Without 'Archive') -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:paddingStart="32dp"
-            android:paddingEnd="32dp"
-            android:paddingBottom="24dp"
-            android:paddingTop="12dp">
-
+            <!-- Spacer so the lower wooden bough & family node charm sit cleanly between the Card and Quote Pill -->
             <View
-                android:layout_width="28dp"
-                android:layout_height="2dp"
-                android:background="@color/gold_accent"
-                android:alpha="0.4"
-                android:layout_marginBottom="12dp" />
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:minHeight="48dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Bottom High-Contrast Quote Card Pill (Readable in both Dark & Light Mode, zero branch overlap) -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="“A family tree can wither if nobody tends to the stories of its roots.”"
-                android:textSize="12sp"
-                android:textStyle="italic"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textColor="@color/text_secondary"
-                android:lineSpacingMultiplier="1.25"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginStart="26dp"
+                android:layout_marginEnd="26dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_login_quote_pill"
+                android:elevation="2dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
-            <TextView
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="“A family tree can wither if nobody tends to the stories of its roots.”"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold|italic"
+                    android:gravity="center"
+                    android:textColor="@color/text_primary"
+                    android:lineSpacingMultiplier="1.25"
+                    android:layout_marginBottom="3dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="— KinTrace Lineage"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent" />
+            </LinearLayout>
+
+            <!-- Centered Bottom Dock Capsule Button -->
+            <LinearLayout
+                android:id="@+id/btnDemoDock"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="— KinTrace Lineage"
-                android:textSize="10.5sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_hint" />
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_demo_dock_capsule"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:elevation="3dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🗝️"
+                    android:textSize="13sp"
+                    android:layout_marginEnd="6dp" />
+
+                <TextView
+                    android:id="@+id/tvVaultDockLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Account &amp; Demo Vault"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent" />
+
+                <TextView
+                    android:id="@+id/tvVaultDockCounter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:background="@drawable/bg_demo_badge_counter"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="1dp"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
         </LinearLayout>
-
-        <!-- Direction C: Centered Bottom Dock Capsule Button -->
-        <LinearLayout
-            android:id="@+id/btnDemoDock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="24dp"
-            android:background="@drawable/bg_demo_dock_capsule"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:elevation="3dp"
-            android:clickable="true"
-            android:focusable="true">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🗝️"
-                android:textSize="13sp"
-                android:layout_marginEnd="6dp" />
-
-            <TextView
-                android:id="@+id/tvVaultDockLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Account &amp; Demo Vault"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="@color/gold_accent" />
-
-            <TextView
-                android:id="@+id/tvVaultDockCounter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="3"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:background="@drawable/bg_demo_badge_counter"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp"
-                android:paddingTop="1dp"
-                android:paddingBottom="1dp"
-                android:layout_marginStart="8dp" />
-        </LinearLayout>
-
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</FrameLayout>

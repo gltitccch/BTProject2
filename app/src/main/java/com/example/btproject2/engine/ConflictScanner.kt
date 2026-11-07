@@ -600,6 +600,78 @@ class ConflictScanner {
                 }
             }
 
+            // 7b. Multi-generation ancestor younger than or too close in age to descendant (even if middle parent has no birth date)
+            val personYear = FamilyLinkValidator.extractYear(person.birthDate)
+            if (personYear != null) {
+                val parents = listOfNotNull(
+                    person.fatherId?.let { findPerson(it) to ("fatherId" to person.fatherRelationshipType) },
+                    person.motherId?.let { findPerson(it) to ("motherId" to person.motherRelationshipType) }
+                )
+                for ((midParent, fieldAndRel) in parents) {
+                    if (midParent == null) continue
+                    val (parentField, midRel) = fieldAndRel
+                    if (midRel.equals("Step", ignoreCase = true)) continue
+                    val midAdoptive = midRel.equals("Adoptive", ignoreCase = true)
+
+                    val grandparents = listOfNotNull(
+                        midParent.fatherId?.let { findPerson(it) to midParent.fatherRelationshipType },
+                        midParent.motherId?.let { findPerson(it) to midParent.motherRelationshipType }
+                    )
+                    for ((gp, gpRel) in grandparents) {
+                        if (gp == null || gpRel.equals("Step", ignoreCase = true)) continue
+                        val gpYear = FamilyLinkValidator.extractYear(gp.birthDate) ?: continue
+                        val gap = personYear - gpYear
+                        val anyAdoptive = midAdoptive || gpRel.equals("Adoptive", ignoreCase = true)
+                        if (gap <= 0 || (!anyAdoptive && gap < 24)) {
+                            val gpRole = if (gp.gender.equals("Female", ignoreCase = true)) "grandmother" else if (gp.gender.equals("Male", ignoreCase = true)) "grandfather" else "grandparent"
+                            val q = "“Can we check $first and ${gp.firstName}’s birth years?”"
+                            val exp = if (gap <= 0) {
+                                "Right now $first (born $personYear) is listed as the grandchild of ${gp.firstName} (born $gpYear), which makes the $gpRole younger than $first."
+                            } else {
+                                "Right now $first (born $personYear) and $gpRole ${gp.firstName} (born $gpYear) are only $gap year(s) apart across 2 generations (minimum 24 years expected)."
+                            }
+                            val opts = listOf(
+                                ResolutionOption(
+                                    id = "fix_grandparent_birth_year",
+                                    title = "Fix Birth Year Typo",
+                                    tag = "Edit Profile",
+                                    tagType = "edit",
+                                    description = "Opens the profile editor to correct $first or ${gp.firstName}'s birth year.",
+                                    actionType = ResolutionActionType.EDIT_PROFILE
+                                ),
+                                ResolutionOption(
+                                    id = "unlink_parent_bridge",
+                                    title = "Unlink ${midParent.firstName} as Parent",
+                                    tag = "Safe Fix",
+                                    tagType = "safe",
+                                    description = "Disconnects the parent link causing the impossible grandparent age gap.",
+                                    actionType = ResolutionActionType.UNLINK,
+                                    targetField = parentField
+                                )
+                            )
+                            conflicts.add(
+                                Conflict(
+                                    type = "age_conflict",
+                                    personId = person.id,
+                                    personName = name,
+                                    description = "$q $exp",
+                                    severity = "error",
+                                    field = "birthDate",
+                                    relatedPersonId = gp.id,
+                                    questionHeadline = q,
+                                    simpleExplanation = exp,
+                                    helperPrompt = "💡 Would you like to check $first or ${gp.firstName}’s birth date?",
+                                    primaryActionLabel = "✎ Open $first’s page to fix birth year",
+                                    secondaryActionLabel = "✨ Unlink ${midParent.firstName} instead",
+                                    canAutoFix = false,
+                                    options = opts
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
             // 8. Status mismatch
             if (person.maritalStatus == "Married" && person.spouseId.isNullOrBlank()) {
                 val q = "“Who is $first married to?”"

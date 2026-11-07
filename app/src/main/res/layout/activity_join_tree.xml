@@ -2,11 +2,12 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="@color/background">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="24dp"
         android:paddingTop="48dp">
@@ -63,9 +64,11 @@
         <LinearLayout
             android:id="@+id/layoutJoinForm"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center_horizontal"
+            android:gravity="center"
+            android:paddingBottom="36dp"
             android:visibility="visible">
 
             <!-- Icon -->
@@ -155,7 +158,7 @@
                 android:gravity="center"
                 android:layout_marginBottom="32dp" />
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnRequestAccess"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
@@ -180,22 +183,22 @@
         <LinearLayout
             android:id="@+id/layoutPendingApproval"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center_horizontal"
+            android:gravity="center"
+            android:paddingBottom="40dp"
             android:visibility="gone">
 
-            <!-- Clock icon -->
-            <TextView
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:gravity="center"
-                android:text="⏳"
-                android:textSize="32sp"
-                android:background="@drawable/profile_circle_bg"
-                android:layout_marginBottom="20dp" />
+            <!-- Animated Golden Sand Hourglass & 180° Flip Ripple Emblem -->
+            <com.example.btproject2.views.PendingSandHourglassView
+                android:id="@+id/viewPendingHourglass"
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_marginBottom="16dp" />
 
             <TextView
+                android:id="@+id/tvPendingHeaderTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Request sent"
@@ -221,9 +224,10 @@
                 android:orientation="vertical"
                 android:background="@drawable/card_bg"
                 android:padding="16dp"
-                android:layout_marginBottom="32dp">
+                android:layout_marginBottom="24dp">
 
                 <TextView
+                    android:id="@+id/tvPendingStatusLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="⏳  Pending approval"
@@ -233,6 +237,7 @@
                     android:layout_marginBottom="4dp" />
 
                 <TextView
+                    android:id="@+id/tvPendingStatusSub"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="You'll be notified once the owner approves your request."
@@ -240,16 +245,31 @@
                     android:textColor="@color/text_secondary" />
             </LinearLayout>
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnPendingBackToHome"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:text="Back to home"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="@color/primary"
-                android:background="@drawable/btn_outline_bg"
-                android:textAllCaps="false" />
+                android:textColor="@color/btn_gold_text"
+                android:background="@drawable/btn_primary_bg"
+                android:textAllCaps="false"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:id="@+id/btnCancelPendingJoinRequest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Withdraw join request"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#EF4444"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="visible" />
         </LinearLayout>
 
     </LinearLayout>

@@ -163,15 +163,31 @@
         </LinearLayout>
 
         <!-- Person A Selector Card (UI 3: Minimalist Search Input Bar Style) -->
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="PERSON A"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="@color/gold_accent"
-            android:letterSpacing="0.08"
-            android:layout_marginBottom="6dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="PERSON A"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Starting Relative"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/cardSelectPersonA"
@@ -184,7 +200,7 @@
             android:gravity="center_vertical"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="2dp">
 
             <ImageView
                 android:layout_width="18dp"
@@ -213,39 +229,120 @@
                 android:focusable="false" />
         </LinearLayout>
 
-        <!-- Connector Icon (Swap Person A & Person B) -->
+        <!-- Heritage Gold Lineage Pill Bridge (Swap Person A & Person B) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:layout_marginBottom="10dp">
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="4dp">
 
-            <TextView
-                android:id="@+id/btnSwapTracePersons"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:text="⇅"
-                android:textSize="18sp"
-                android:textColor="@color/gold_accent"
-                android:background="@drawable/icon_bg_green"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="Swap Person A and Person B" />
+            <!-- Top Lineage Stem -->
+            <View
+                android:layout_width="2dp"
+                android:layout_height="10dp"
+                android:background="@color/gold_accent"
+                android:alpha="0.55" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="28dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@color/forest_card_border"
+                    android:alpha="0.65" />
+
+                <LinearLayout
+                    android:id="@+id/btnSwapTracePersons"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="14dp"
+                    android:background="@drawable/bg_trace_swap_bridge"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="Swap Person A and Person B">
+
+                    <FrameLayout
+                        android:id="@+id/iconSwapTraceWrap"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:background="@drawable/bg_trace_swap_icon_circle">
+
+                        <ImageView
+                            android:id="@+id/ivSwapTraceIcon"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_swap_lineage_gold"
+                            android:importantForAccessibility="no" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/tvSwapTraceLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Swap A &amp; B"
+                        android:textSize="11.5sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/mint_text"
+                        android:letterSpacing="0.02" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="28dp"
+                    android:background="@color/forest_card_border"
+                    android:alpha="0.65" />
+            </LinearLayout>
+
+            <!-- Bottom Lineage Stem -->
+            <View
+                android:layout_width="2dp"
+                android:layout_height="10dp"
+                android:background="@color/gold_accent"
+                android:alpha="0.55" />
         </LinearLayout>
 
         <!-- Person B Selector Card (UI 3: Minimalist Search Input Bar Style) -->
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="PERSON B"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="@color/gold_accent"
-            android:letterSpacing="0.08"
-            android:layout_marginBottom="6dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="PERSON B"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Target Relative"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/mint_text" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/cardSelectPersonB"

@@ -678,6 +678,164 @@ class FirestoreHelper {
             return PersonUpdatePlan(p, vitalUpdates, partnerUpdate, hasActiveExSpouse)
         }
 
+        /**
+         * Pure, unit-testable plan for deduplicating member records in a single family tree.
+         * Safely merges duplicate person copies (matching normalized firstName + lastName + birthDate + gender)
+         * and strips synthetic balancing padding nodes (`_bal_`), preserving all valid parent, spouse, and child links.
+         */
+        data class TreeDeduplicationPlan(
+            val cleanedMembers: List<Person>,
+            val duplicateIdsToDelete: List<String>,
+            val updatedPrimaryMembers: List<Person>,
+            val originalCount: Int,
+            val uniqueCount: Int
+        ) {
+            val duplicatesRemovedCount: Int get() = duplicateIdsToDelete.size
+            val hasDuplicates: Boolean get() = duplicateIdsToDelete.isNotEmpty()
+        }
+
+        fun planTreeDeduplication(members: List<Person>): TreeDeduplicationPlan {
+            if (members.size <= 1) {
+                return TreeDeduplicationPlan(
+                    cleanedMembers = members,
+                    duplicateIdsToDelete = emptyList(),
+                    updatedPrimaryMembers = emptyList(),
+                    originalCount = members.size,
+                    uniqueCount = members.size
+                )
+            }
+
+            val idsToDelete = mutableSetOf<String>()
+            val idRemap = mutableMapOf<String, String>()
+
+            // 1. Identify synthetic balancing padding records (_bal_) if core non-bal members exist
+            val nonBalMembers = members.filter { !it.id.contains("_bal_", ignoreCase = true) }
+            val balMembers = members.filter { it.id.contains("_bal_", ignoreCase = true) }
+            val workingMembers = if (nonBalMembers.isNotEmpty() && balMembers.isNotEmpty()) {
+                balMembers.forEach { idsToDelete.add(it.id) }
+                nonBalMembers
+            } else {
+                members
+            }
+
+            // 2. Group remaining members by normalized identity signature
+            // (firstName + lastName + birthDate + gender)
+            fun connectionScore(p: Person): Int {
+                var score = 0
+                if (!p.fatherId.isNullOrBlank()) score += 3
+                if (!p.motherId.isNullOrBlank()) score += 3
+                if (!p.spouseId.isNullOrBlank()) score += 2
+                if (p.birthDate.isNotBlank()) score += 2
+                if (p.biography.isNotBlank()) score += 1
+                val childRefs = workingMembers.count {
+                    com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.fatherId, p.id) ||
+                        com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.motherId, p.id)
+                }
+                score += childRefs * 4
+                return score
+            }
+
+            val groups = workingMembers.groupBy { p ->
+                val fn = p.firstName.trim().lowercase()
+                val ln = p.lastName.trim().lowercase()
+                val bd = p.birthDate.trim().lowercase()
+                val gd = p.gender.trim().lowercase()
+                if (bd.isNotEmpty()) {
+                    "dated|$fn|$ln|$bd|$gd"
+                } else {
+                    val fId = p.fatherId?.trim()?.lowercase().orEmpty()
+                    val mId = p.motherId?.trim()?.lowercase().orEmpty()
+                    if (fId.isNotEmpty() || mId.isNotEmpty()) {
+                        "parented|$fn|$ln|$gd|$fId|$mId"
+                    } else {
+                        "unique_undated|${p.id}"
+                    }
+                }
+            }
+
+            val mergedPrimaries = mutableListOf<Person>()
+            for ((_, group) in groups) {
+                if (group.size == 1) {
+                    mergedPrimaries.add(group.first())
+                } else {
+                    val sorted = group.sortedWith(
+                        compareByDescending<Person> { connectionScore(it) }
+                            .thenBy { it.createdAt.takeIf { ts -> ts > 0L } ?: Long.MAX_VALUE }
+                            .thenBy { it.id }
+                    )
+                    var primary = sorted.first()
+                    val duplicates = sorted.drop(1)
+                    for (dup in duplicates) {
+                        idsToDelete.add(dup.id)
+                        idRemap[dup.id] = primary.id
+                        if (primary.fatherId.isNullOrBlank() && !dup.fatherId.isNullOrBlank() && dup.fatherId != primary.id) {
+                            primary = primary.copy(fatherId = dup.fatherId, fatherRelationshipType = dup.fatherRelationshipType)
+                        }
+                        if (primary.motherId.isNullOrBlank() && !dup.motherId.isNullOrBlank() && dup.motherId != primary.id) {
+                            primary = primary.copy(motherId = dup.motherId, motherRelationshipType = dup.motherRelationshipType)
+                        }
+                        if (primary.spouseId.isNullOrBlank() && !dup.spouseId.isNullOrBlank() && dup.spouseId != primary.id) {
+                            primary = primary.copy(spouseId = dup.spouseId, maritalStatus = dup.maritalStatus, marriageDate = dup.marriageDate.ifBlank { primary.marriageDate })
+                        }
+                        if (primary.birthDate.isBlank() && dup.birthDate.isNotBlank()) {
+                            primary = primary.copy(birthDate = dup.birthDate, birthPlace = dup.birthPlace.ifBlank { primary.birthPlace })
+                        }
+                        if (primary.biography.isBlank() && dup.biography.isNotBlank()) {
+                            primary = primary.copy(biography = dup.biography)
+                        }
+                    }
+                    mergedPrimaries.add(primary)
+                }
+            }
+
+            val survivingIds = mergedPrimaries.map { it.id }.toSet()
+
+            fun resolveId(rawId: String?, selfId: String): String? {
+                if (rawId.isNullOrBlank()) return null
+                val mapped = idRemap[rawId] ?: rawId
+                if (mapped == selfId) return null
+                if (mapped in idsToDelete && mapped !in survivingIds) return null
+                return mapped
+            }
+
+            val originalById = members.associateBy { it.id }
+            val updatedList = mutableListOf<Person>()
+            val cleanedList = mergedPrimaries.map { p ->
+                val newFatherId = resolveId(p.fatherId, p.id)
+                val newMotherId = resolveId(p.motherId, p.id)
+                val newSpouseId = resolveId(p.spouseId, p.id)
+                val newFormerSpouses = p.formerSpouseIds
+                    .mapNotNull { resolveId(it, p.id) }
+                    .filter { it != newSpouseId }
+                    .distinct()
+                val newMaritalStatus = if (newSpouseId == null && p.spouseId != null && p.maritalStatus.equals("Married", ignoreCase = true)) {
+                    "Single"
+                } else {
+                    p.maritalStatus
+                }
+                val rewound = p.copy(
+                    fatherId = newFatherId,
+                    motherId = newMotherId,
+                    spouseId = newSpouseId,
+                    maritalStatus = newMaritalStatus,
+                    formerSpouseIds = newFormerSpouses
+                )
+                val orig = originalById[p.id]
+                if (orig == null || hasPersonDiverged(orig, rewound)) {
+                    updatedList.add(rewound)
+                }
+                rewound
+            }
+
+            return TreeDeduplicationPlan(
+                cleanedMembers = cleanedList,
+                duplicateIdsToDelete = idsToDelete.toList(),
+                updatedPrimaryMembers = updatedList,
+                originalCount = members.size,
+                uniqueCount = cleanedList.size
+            )
+        }
+
         fun generateInviteCode(): String {
             val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
             return (1..6).map { chars.random() }.joinToString("")
@@ -714,8 +872,12 @@ class FirestoreHelper {
             val memberCount = (data["memberCount"] as? Number)?.toInt() ?: 1
             val memberQuota = ((data["memberQuota"] as? Number)?.toInt() ?: FamilyTree.DEFAULT_FREEMIUM_QUOTA)
                 .takeIf { it > 0 } ?: FamilyTree.DEFAULT_FREEMIUM_QUOTA
+            val previousMemberQuota = ((data["previousMemberQuota"] as? Number)?.toInt() ?: FamilyTree.DEFAULT_FREEMIUM_QUOTA)
+                .takeIf { it > 0 } ?: FamilyTree.DEFAULT_FREEMIUM_QUOTA
             val quotaExpansionRequested = data["quotaExpansionRequested"] as? Boolean ?: false
             val quotaRequestedAt = (data["quotaRequestedAt"] as? Number)?.toLong() ?: 0L
+            val quotaApprovedAt = (data["quotaApprovedAt"] as? Number)?.toLong() ?: 0L
+            val quotaApprovedBy = (data["quotaApprovedBy"] as? String)?.takeIf { it.isNotBlank() } ?: ""
             val createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis()
             val treeType = (data["treeType"] as? String)?.takeIf { it.isNotBlank() } ?: FamilyTree.TREE_TYPE_PERSONAL
             val bridgeDescription = (data["bridgeDescription"] as? String)?.takeIf { it.isNotBlank() } ?: ""
@@ -736,8 +898,11 @@ class FirestoreHelper {
                 isPrivate = isPrivate,
                 memberCount = memberCount,
                 memberQuota = memberQuota,
+                previousMemberQuota = previousMemberQuota,
                 quotaExpansionRequested = quotaExpansionRequested,
                 quotaRequestedAt = quotaRequestedAt,
+                quotaApprovedAt = quotaApprovedAt,
+                quotaApprovedBy = quotaApprovedBy,
                 createdAt = createdAt,
                 treeType = treeType,
                 bridgeDescription = bridgeDescription,
@@ -893,6 +1058,10 @@ class FirestoreHelper {
             .addOnSuccessListener {
                 docRef.update(vitalUpdates)
                 addPersonToCache(personWithId)
+                val scopedCount = getCachedPersons(personWithId.treeId)?.size
+                if (!personWithId.treeId.isNullOrBlank() && scopedCount != null && scopedCount > 0) {
+                    reconcileTreeMemberCount(personWithId.treeId, scopedCount)
+                }
                 CentralTreeSynchronizer.getInstance().notifyMemberAdded(personWithId, sourceScreen = "AddMember")
                 if (!personWithId.spouseId.isNullOrBlank()) {
                     updateSpouse(
@@ -907,6 +1076,78 @@ class FirestoreHelper {
                 onSuccess(docRef.id)
             }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Synchronizes the cached `memberCount` field on `trees/{treeId}` with the authoritative live
+     * count of `persons` documents in that tree so all screens (Home, Clan Profile, Admin Portal,
+     * and Merge Branches) always report the exact same member count.
+     */
+    fun reconcileTreeMemberCount(treeId: String, liveCount: Int) {
+        if (treeId.isBlank() || treeId == "default_tree" || liveCount < 0) return
+        db.collection("trees").document(treeId)
+            .update("memberCount", liveCount)
+            .addOnFailureListener { /* Ignore if tree doc is virtual or user lacks write access */ }
+    }
+
+    /**
+     * Executes safe deduplication on a family tree in Firestore using [planTreeDeduplication],
+     * removing duplicate clones/padding nodes, rewiring family pointers to the primary record,
+     * and syncing `trees/{treeId}.memberCount`.
+     */
+    fun deduplicateTreeMembers(
+        treeId: String,
+        onSuccess: (TreeDeduplicationPlan) -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (treeId.isBlank()) {
+            onFailure(IllegalArgumentException("Tree ID cannot be blank"))
+            return
+        }
+        getPersonsByTree(treeId,
+            onSuccess = { currentMembers ->
+                val plan = planTreeDeduplication(currentMembers)
+                if (!plan.hasDuplicates && plan.updatedPrimaryMembers.isEmpty()) {
+                    reconcileTreeMemberCount(treeId, plan.uniqueCount)
+                    onSuccess(plan)
+                    return@getPersonsByTree
+                }
+
+                val operations = mutableListOf<(com.google.firebase.firestore.WriteBatch) -> Unit>()
+                for (delId in plan.duplicateIdsToDelete) {
+                    operations.add { batch ->
+                        batch.delete(db.collection("persons").document(delId))
+                    }
+                }
+                for (updated in plan.updatedPrimaryMembers) {
+                    val encrypted = com.example.btproject2.utils.KinTraceCryptoEngine.encryptPersonForCloud(updated)
+                    operations.add { batch ->
+                        batch.set(db.collection("persons").document(updated.id), encrypted, SetOptions.merge())
+                    }
+                }
+
+                val chunks = operations.chunked(400)
+                fun commitChunk(index: Int) {
+                    if (index >= chunks.size) {
+                        setCachedPersons(
+                            plan.cleanedMembers,
+                            authoritativeTreeId = treeId,
+                            isAuthoritativeServerSnapshot = true
+                        )
+                        reconcileTreeMemberCount(treeId, plan.uniqueCount)
+                        onSuccess(plan)
+                        return
+                    }
+                    val batch = db.batch()
+                    chunks[index].forEach { op -> op(batch) }
+                    batch.commit()
+                        .addOnSuccessListener { commitChunk(index + 1) }
+                        .addOnFailureListener { onFailure(it) }
+                }
+                commitChunk(0)
+            },
+            onFailure = onFailure
+        )
     }
 
     fun getPerson(
@@ -1023,6 +1264,9 @@ class FirestoreHelper {
                     authoritativeTreeId = treeId,
                     isAuthoritativeServerSnapshot = true
                 )
+                if (treeId.isNotBlank() && treeId != "default_tree") {
+                    reconcileTreeMemberCount(treeId, filteredServer.size)
+                }
                 if (!dispatched || diverged) {
                     onSuccess(resolveFiltered(inMemoryPersonsCache ?: filteredServer))
                 }
@@ -1289,7 +1533,12 @@ class FirestoreHelper {
                 }
             }
             if (father != null) {
-                val pCheck = com.example.btproject2.engine.FamilyLinkValidator.validateParentChild(father, existing, "father", all)
+                val pCheck = com.example.btproject2.engine.FamilyLinkValidator.validateParentChild(
+                    father,
+                    existing.copy(fatherRelationshipType = relationshipType),
+                    "father",
+                    all
+                )
                 if (!pCheck.isValid) {
                     onFailure(IllegalArgumentException(pCheck.errors.first().message))
                     return
@@ -1379,7 +1628,12 @@ class FirestoreHelper {
                 }
             }
             if (mother != null) {
-                val pCheck = com.example.btproject2.engine.FamilyLinkValidator.validateParentChild(mother, existing, "mother", all)
+                val pCheck = com.example.btproject2.engine.FamilyLinkValidator.validateParentChild(
+                    mother,
+                    existing.copy(motherRelationshipType = relationshipType),
+                    "mother",
+                    all
+                )
                 if (!pCheck.isValid) {
                     onFailure(IllegalArgumentException(pCheck.errors.first().message))
                     return
@@ -2093,13 +2347,22 @@ class FirestoreHelper {
         parentId: String,
         parentGender: String,
         onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onFailure: (Exception) -> Unit,
+        relationshipType: String = "Biological"
     ) {
         val trimmedCid = childId.trim()
         val trimmedPid = parentId.trim()
         val isFemale = parentGender.lowercase() == "female"
+        val normalizedRelType = if (relationshipType.equals("Adoptive", ignoreCase = true) ||
+            relationshipType.equals("Adopted", ignoreCase = true)
+        ) "Adoptive" else "Biological"
         val existing = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedCid) }
-        val child = existing ?: Person(id = trimmedCid)
+        val baseChild = existing ?: Person(id = trimmedCid)
+        val child = if (isFemale) {
+            baseChild.copy(motherRelationshipType = normalizedRelType)
+        } else {
+            baseChild.copy(fatherRelationshipType = normalizedRelType)
+        }
         val parent = inMemoryPersonsCache?.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
         val treeScope = child.treeId.ifBlank { parent?.treeId.orEmpty() }.ifBlank { null }
         val all = getCachedPersons(treeScope).orEmpty()
@@ -2109,8 +2372,13 @@ class FirestoreHelper {
             treeMap[child.id] = child
             treeMap[parent.id] = parent
             val roleEnum = if (isFemale) ParentRole.MOTHER else ParentRole.FATHER
+            val proposedType = if (normalizedRelType == "Adoptive") {
+                ProposedRelationshipType.ADOPTIVE_PARENT
+            } else {
+                ProposedRelationshipType.BIOLOGICAL_PARENT
+            }
             val serviceCheck = centralFamilyService.checkProposedRelationship(
-                type = ProposedRelationshipType.BIOLOGICAL_PARENT,
+                type = proposedType,
                 primaryPersonId = child.id,
                 secondaryPersonId = parent.id,
                 tree = treeMap,
@@ -2147,13 +2415,13 @@ class FirestoreHelper {
         val relField = if (isFemale) "motherRelationshipType" else "fatherRelationshipType"
         val updates = mapOf(
             field to trimmedPid,
-            relField to "Biological"
+            relField to normalizedRelType
         )
         val base = existing ?: Person(id = trimmedCid)
         val updated = if (isFemale) {
-            base.copy(motherId = trimmedPid, motherRelationshipType = "Biological")
+            base.copy(motherId = trimmedPid, motherRelationshipType = normalizedRelType)
         } else {
-            base.copy(fatherId = trimmedPid, fatherRelationshipType = "Biological")
+            base.copy(fatherId = trimmedPid, fatherRelationshipType = normalizedRelType)
         }
         updatePersonInCache(updated)
 
@@ -2162,13 +2430,22 @@ class FirestoreHelper {
             .addOnSuccessListener {
                 updatePersonInCache(updated)
                 val parentObj = parent ?: all.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, trimmedPid) }
+                val roleStr = if (isFemale) "mother" else "father"
                 CentralTreeSynchronizer.getInstance().notifyParentChildChanged(
                     child = updated,
                     parent = parentObj,
-                    role = if (isFemale) "mother" else "father",
+                    role = roleStr,
                     isRemoval = false,
                     sourceScreen = "setChildParent"
                 )
+                if (normalizedRelType == "Adoptive") {
+                    CentralTreeSynchronizer.getInstance().notifyAdoptiveChanged(
+                        child = updated,
+                        parent = parentObj,
+                        role = roleStr,
+                        sourceScreen = "setChildParent"
+                    )
+                }
                 onSuccess()
             }
             .addOnFailureListener {
@@ -2616,27 +2893,16 @@ class FirestoreHelper {
                             doc.reference.delete()
                         }
                     }
-                // Update person records created by this user in shared trees
+                // Update person records created by this user in shared trees (keep all names/nodes intact)
                 db.collection("persons")
                     .whereEqualTo("treeId", shared.id)
                     .whereEqualTo("createdBy", userId)
                     .get()
                     .addOnSuccessListener { pSnaps ->
                         for (pDoc in pSnaps.documents) {
-                            val isLiving = pDoc.getBoolean("isLiving") ?: true
-                            val deathDate = pDoc.getString("deathDate").orEmpty()
-                            val isActuallyLiving = isLiving && deathDate.isBlank()
-
                             val pUpdates = mutableMapOf<String, Any>(
                                 "createdBy" to "Former Clan Contributor"
                             )
-                            if (isActuallyLiving) {
-                                pUpdates["isPrivate"] = true
-                                pUpdates["firstName"] = "Private"
-                                pUpdates["lastName"] = "Living Relative"
-                                pUpdates["middleName"] = ""
-                                pUpdates["biography"] = "[Redacted per Clan Stewardship & RA 10173]"
-                            }
                             pDoc.reference.update(pUpdates)
                         }
                     }
@@ -2784,7 +3050,7 @@ class FirestoreHelper {
         inMemoryLayoutCache[layout.treeId] = layout
         db.collection("trees").document(layout.treeId)
             .collection("layout_metadata").document("custom_layout")
-            .set(layout, SetOptions.merge())
+            .set(layout)
             .addOnSuccessListener {
                 CentralTreeSynchronizer.getInstance().notifyTreeLayoutChanged(layout.treeId)
                 onSuccess()
@@ -3209,12 +3475,37 @@ class FirestoreHelper {
             onSuccess(null)
             return
         }
+        val dispatchWithLiveMemberCount: (FamilyTree?) -> Unit = { resolvedTree ->
+            if (resolvedTree == null || resolvedTree.id.isBlank()) {
+                onSuccess(resolvedTree)
+            } else {
+                db.collection("persons")
+                    .whereEqualTo("treeId", resolvedTree.id)
+                    .get()
+                    .addOnSuccessListener { snap ->
+                        val liveDocs = snap.documents.mapNotNull { documentToPerson(it) }
+                        val dedupPlan = planTreeDeduplication(liveDocs)
+                        val liveUniqueCount = dedupPlan.uniqueCount
+                        if (liveUniqueCount > 0 && resolvedTree.memberCount != liveUniqueCount) {
+                            reconcileTreeMemberCount(resolvedTree.id, liveUniqueCount)
+                        }
+                        if (dedupPlan.hasDuplicates) {
+                            deduplicateTreeMembers(resolvedTree.id)
+                        }
+                        val effectiveCount = if (liveUniqueCount > 0) liveUniqueCount else resolvedTree.memberCount
+                        onSuccess(resolvedTree.copy(memberCount = effectiveCount))
+                    }
+                    .addOnFailureListener {
+                        onSuccess(resolvedTree)
+                    }
+            }
+        }
         db.collection("mergeInviteCodes").document(normalizedCode).get()
             .addOnSuccessListener { doc ->
                 if (doc.exists() && doc.getString("status") == "ACTIVE") {
                     val targetTreeId = doc.getString("treeId").orEmpty()
                     if (targetTreeId.isNotBlank()) {
-                        getTree(targetTreeId, onSuccess = onSuccess, onFailure = onFailure)
+                        getTree(targetTreeId, onSuccess = dispatchWithLiveMemberCount, onFailure = onFailure)
                     } else {
                         onSuccess(null)
                     }
@@ -3224,10 +3515,10 @@ class FirestoreHelper {
                         .get()
                         .addOnSuccessListener { res ->
                             if (!res.isEmpty) {
-                                onSuccess(documentToFamilyTree(res.documents.first()))
+                                dispatchWithLiveMemberCount(documentToFamilyTree(res.documents.first()))
                             } else {
                                 // Graceful backward fallback to general invite code if entered
-                                getTreeByInviteCode(normalizedCode, onSuccess = onSuccess, onFailure = onFailure)
+                                getTreeByInviteCode(normalizedCode, onSuccess = dispatchWithLiveMemberCount, onFailure = onFailure)
                             }
                         }
                         .addOnFailureListener { onFailure(it) }
@@ -3470,10 +3761,73 @@ class FirestoreHelper {
             .whereEqualTo("treeId", treeId)
             .get()
             .addOnSuccessListener { result ->
-                val members = result.map { it.toObject(TreeMember::class.java) }
+                val members = result.documents.mapNotNull { doc ->
+                    val m = doc.toObject(TreeMember::class.java)
+                    if (m != null && m.id.isBlank()) m.copy(id = doc.id) else m
+                }
                 onSuccess(members)
             }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    fun listenToTreeMembers(
+        treeId: String,
+        onChanged: (List<TreeMember>) -> Unit
+    ): com.google.firebase.firestore.ListenerRegistration? {
+        if (treeId.isBlank()) return null
+        return db.collection("tree_members")
+            .whereEqualTo("treeId", treeId)
+            .addSnapshotListener { snap, err ->
+                if (err != null || snap == null) return@addSnapshotListener
+                val members = snap.documents.mapNotNull { doc ->
+                    val m = doc.toObject(TreeMember::class.java)
+                    if (m != null && m.id.isBlank()) m.copy(id = doc.id) else m
+                }
+                onChanged(members)
+            }
+    }
+
+    fun getUserPendingJoinRequests(
+        userId: String,
+        onSuccess: (List<TreeMember>) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (userId.isBlank()) {
+            onSuccess(emptyList())
+            return
+        }
+        db.collection("tree_members")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                val pending = result.documents.mapNotNull { doc ->
+                    val m = doc.toObject(TreeMember::class.java)
+                    if (m != null && m.id.isBlank()) m.copy(id = doc.id) else m
+                }.filter { m ->
+                    m.status.equals("Pending", ignoreCase = true) ||
+                        m.status.equals("Pending_Join", ignoreCase = true) ||
+                        m.role.equals("Pending_Join", ignoreCase = true)
+                }
+                onSuccess(pending)
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun listenToUserMemberships(
+        userId: String,
+        onChanged: (List<TreeMember>) -> Unit
+    ): com.google.firebase.firestore.ListenerRegistration? {
+        if (userId.isBlank()) return null
+        return db.collection("tree_members")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snap, err ->
+                if (err != null || snap == null) return@addSnapshotListener
+                val list = snap.documents.mapNotNull { doc ->
+                    val m = doc.toObject(TreeMember::class.java)
+                    if (m != null && m.id.isBlank()) m.copy(id = doc.id) else m
+                }
+                onChanged(list)
+            }
     }
 
     fun updateTreeMemberRole(
@@ -3500,6 +3854,84 @@ class FirestoreHelper {
             .addOnFailureListener { onFailure(it) }
     }
 
+    /**
+     * Completely revokes a member's access to a family tree:
+     * 1. Deletes every tree_members document matching memberId or (treeId, userId).
+     * 2. If the removed user's UserProfile.currentTreeId was pointing to this tree, clears or resets it.
+     */
+    fun revokeTreeMemberAccess(
+        member: TreeMember,
+        treeId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val effectiveTreeId = treeId.ifBlank { member.treeId }
+        val targetUserId = member.userId
+
+        fun cleanupUserProfileAndFinish() {
+            if (targetUserId.isBlank()) {
+                onSuccess()
+                return
+            }
+            getUserProfile(targetUserId,
+                onSuccess = { profile ->
+                    if (profile != null && profile.currentTreeId == effectiveTreeId) {
+                        getUserTrees(targetUserId,
+                            onSuccess = { remainingTrees ->
+                                val nextTreeId = remainingTrees.firstOrNull { it.id != effectiveTreeId }?.id.orEmpty()
+                                saveUserProfile(
+                                    profile.copy(currentTreeId = nextTreeId),
+                                    onSuccess = { onSuccess() },
+                                    onFailure = { onSuccess() }
+                                )
+                            },
+                            onFailure = {
+                                saveUserProfile(
+                                    profile.copy(currentTreeId = ""),
+                                    onSuccess = { onSuccess() },
+                                    onFailure = { onSuccess() }
+                                )
+                            }
+                        )
+                    } else {
+                        onSuccess()
+                    }
+                },
+                onFailure = { onSuccess() }
+            )
+        }
+
+        if (targetUserId.isNotBlank() && effectiveTreeId.isNotBlank()) {
+            db.collection("tree_members")
+                .whereEqualTo("treeId", effectiveTreeId)
+                .whereEqualTo("userId", targetUserId)
+                .get()
+                .addOnSuccessListener { snap ->
+                    val batch = db.batch()
+                    if (member.id.isNotBlank()) {
+                        batch.delete(db.collection("tree_members").document(member.id))
+                    }
+                    for (doc in snap.documents) {
+                        batch.delete(doc.reference)
+                    }
+                    batch.commit()
+                        .addOnSuccessListener { cleanupUserProfileAndFinish() }
+                        .addOnFailureListener { onFailure(it) }
+                }
+                .addOnFailureListener {
+                    if (member.id.isNotBlank()) {
+                        deleteTreeMember(member.id, onSuccess = { cleanupUserProfileAndFinish() }, onFailure = onFailure)
+                    } else {
+                        onFailure(it)
+                    }
+                }
+        } else if (member.id.isNotBlank()) {
+            deleteTreeMember(member.id, onSuccess = { cleanupUserProfileAndFinish() }, onFailure = onFailure)
+        } else {
+            onFailure(IllegalArgumentException("Member ID and User ID are both blank"))
+        }
+    }
+
     fun getUserMembership(
         userId: String,
         treeId: String,
@@ -3512,7 +3944,9 @@ class FirestoreHelper {
             .get()
             .addOnSuccessListener { result ->
                 if (!result.isEmpty) {
-                    onSuccess(result.documents.first().toObject(TreeMember::class.java))
+                    val doc = result.documents.first()
+                    val m = doc.toObject(TreeMember::class.java)
+                    onSuccess(if (m != null && m.id.isBlank()) m.copy(id = doc.id) else m)
                 } else {
                     onSuccess(null)
                 }
@@ -3640,14 +4074,19 @@ class FirestoreHelper {
                 .filter { doc ->
                     val status = doc.getString("status")?.trim().orEmpty()
                     val role = doc.getString("role")?.trim().orEmpty()
-                    // Allow Approved members, Owners, Editors, Viewers, legacy records with empty status,
-                    // and active members with pending role upgrade requests
-                    status.equals("Approved", ignoreCase = true) ||
-                        status.equals("Pending", ignoreCase = true) ||
-                        role.equals("Owner", ignoreCase = true) ||
-                        role.equals("Editor", ignoreCase = true) ||
-                        role.equals("Viewer", ignoreCase = true) ||
-                        status.isEmpty()
+                    // Strictly block Pending join requests from loading the family tree before owner acceptance.
+                    // Allow Approved members, legacy records with empty status, and approved Viewers with a pending role upgrade ("Role_Upgrade_Pending").
+                    val isPendingJoin = status.equals("Pending", ignoreCase = true) ||
+                        status.equals("Pending_Join", ignoreCase = true) ||
+                        role.equals("Pending_Join", ignoreCase = true)
+                    !isPendingJoin && (
+                        status.equals("Approved", ignoreCase = true) ||
+                            status.equals("Role_Upgrade_Pending", ignoreCase = true) ||
+                            role.equals("Owner", ignoreCase = true) ||
+                            role.equals("Editor", ignoreCase = true) ||
+                            role.equals("Viewer", ignoreCase = true) ||
+                            status.isEmpty()
+                        )
                 }
                 .mapNotNull { it.getString("treeId")?.trim() }
                 .filter { id -> id.isNotBlank() && discoveredTrees.none { t -> t.id == id } }
@@ -3803,10 +4242,13 @@ class FirestoreHelper {
             .filter { it.isNotBlank() }
             .distinct()
 
+        val resolvedQuota = maxOf(masterTree.effectiveQuota, members.size + 50, 250)
+
         val finalTree = masterTree.copy(
             id = treeDocRef.id,
             inviteCode = inviteCode,
             memberCount = members.size,
+            memberQuota = resolvedQuota,
             treeType = FamilyTree.TREE_TYPE_MERGED_CLAN,
             mergeInviteCode = mergeCode,
             coOwnerIds = allCoOwners
@@ -3879,10 +4321,43 @@ class FirestoreHelper {
 
         batch.commit()
             .addOnSuccessListener {
+                val notifyMergeCompleted: () -> Unit = {
+                    com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeCreated(finalTree)
+                    if (finalTree.ownerId.isNotBlank()) {
+                        val ownerNotif = com.example.btproject2.utils.NotificationHelper.createClanMergeCompletedNotification(
+                            masterTreeId = finalTree.id,
+                            masterTreeName = finalTree.name,
+                            recipientUserId = finalTree.ownerId,
+                            combinedMemberCount = finalTree.memberCount,
+                            sourceTreeId = finalTree.sourceTree1Id.ifBlank { finalTree.id }
+                        )
+                        addNotification(ownerNotif)
+                    }
+                    if (!partnerTreeOwnerId.isNullOrBlank() && partnerTreeOwnerId != finalTree.ownerId) {
+                        val partnerNotif = com.example.btproject2.utils.NotificationHelper.createClanMergeCompletedNotification(
+                            masterTreeId = finalTree.id,
+                            masterTreeName = finalTree.name,
+                            recipientUserId = partnerTreeOwnerId,
+                            combinedMemberCount = finalTree.memberCount,
+                            sourceTreeId = finalTree.sourceTree2Id.ifBlank { finalTree.id }
+                        )
+                        addNotification(partnerNotif)
+                    }
+                    logActivity(
+                        treeId = finalTree.id,
+                        userId = finalTree.ownerId,
+                        userName = finalTree.ownerName,
+                        type = "CLAN_MERGED",
+                        description = "Synthesized Master Clan Tree '${finalTree.name}' with ${finalTree.memberCount} combined members.",
+                        targetId = finalTree.id,
+                        targetName = finalTree.name
+                    )
+                    onSuccess(finalTree)
+                }
+
                 val remainingChunks = chunks.drop(1)
                 if (remainingChunks.isEmpty()) {
-                    com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeCreated(finalTree)
-                    onSuccess(finalTree)
+                    notifyMergeCompleted()
                 } else {
                     val extraTasks = remainingChunks.map { extraChunk ->
                         val extraBatch = db.batch()
@@ -3894,13 +4369,10 @@ class FirestoreHelper {
                     }
                     com.google.android.gms.tasks.Tasks.whenAllComplete(extraTasks)
                         .addOnSuccessListener {
-                            com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyTreeCreated(finalTree)
-                            onSuccess(finalTree)
+                            notifyMergeCompleted()
                         }
                         .addOnFailureListener { onFailure(it) }
                 }
-                if (false)
-                onSuccess(finalTree)
             }
             .addOnFailureListener { onFailure(it) }
     }
@@ -4227,7 +4699,7 @@ class FirestoreHelper {
                     val resolvedEmail = requesterEmail.ifBlank { existing?.userEmail.orEmpty() }
                     val memberRecord = existing?.copy(
                         role = "Viewer",
-                        status = "Pending",
+                        status = "Role_Upgrade_Pending",
                         userName = cleanRequester,
                         userEmail = resolvedEmail,
                         lastActiveAt = System.currentTimeMillis()
@@ -4238,7 +4710,7 @@ class FirestoreHelper {
                         userName = cleanRequester,
                         userEmail = resolvedEmail,
                         role = "Viewer",
-                        status = "Pending",
+                        status = "Role_Upgrade_Pending",
                         joinedAt = System.currentTimeMillis(),
                         lastActiveAt = System.currentTimeMillis()
                     )
@@ -4252,7 +4724,7 @@ class FirestoreHelper {
                         userName = cleanRequester,
                         userEmail = requesterEmail,
                         role = "Viewer",
-                        status = "Pending",
+                        status = "Role_Upgrade_Pending",
                         joinedAt = System.currentTimeMillis(),
                         lastActiveAt = System.currentTimeMillis()
                     )
@@ -4333,10 +4805,9 @@ class FirestoreHelper {
                     return@addOnSuccessListener
                 }
 
-                // Also fetch user-specific notifications (like welcome or account alerts)
+                // Also fetch all user-directed notifications (including join requests, approvals, and account alerts)
                 db.collection("notifications")
                     .whereEqualTo("userId", userId)
-                    .whereEqualTo("treeId", "")
                     .get()
                     .addOnSuccessListener { userResult ->
                         val userList = userResult.mapNotNull { doc ->
@@ -4350,6 +4821,22 @@ class FirestoreHelper {
                     }
             }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    fun listenToUserNotifications(
+        userId: String,
+        onChanged: (List<NotificationRecord>) -> Unit
+    ): com.google.firebase.firestore.ListenerRegistration? {
+        if (userId.isBlank()) return null
+        return db.collection("notifications")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snap, err ->
+                if (err != null || snap == null) return@addSnapshotListener
+                val list = snap.documents.mapNotNull { doc ->
+                    documentToNotificationRecord(doc)
+                }.sortedByDescending { it.timestamp }
+                onChanged(list)
+            }
     }
 
     fun markNotificationAsRead(
@@ -4965,10 +5452,21 @@ class FirestoreHelper {
                     }
                 }
 
-                // 4. Mark restored in archive (write both fields for complete compatibility)
+                // 4. Mark restored in archive (write both fields + exact restoration timestamp & admin identity)
+                val restoredTimestamp = System.currentTimeMillis()
+                val currentAdmin = FirebaseAuth.getInstance().currentUser
+                val restoredByAdmin = currentAdmin?.displayName?.takeIf { it.isNotBlank() }
+                    ?: currentAdmin?.email
+                    ?: "Admin"
                 batch.update(
                     db.collection("archived_deleted_members").document(recordId),
-                    mapOf<String, Any>("isRestored" to true, "restored" to true, "restorationRequested" to false)
+                    mapOf<String, Any>(
+                        "isRestored" to true,
+                        "restored" to true,
+                        "restorationRequested" to false,
+                        "restoredAt" to restoredTimestamp,
+                        "restoredBy" to restoredByAdmin
+                    )
                 )
 
                 batch.commit()
@@ -4992,7 +5490,7 @@ class FirestoreHelper {
                             description = "Restored ${restored.firstName} ${restored.lastName} to ${archive.treeName} via Ops & Recovery Console.",
                             targetId = restored.id,
                             targetName = "${restored.firstName} ${restored.lastName}".trim(),
-                            timestamp = System.currentTimeMillis()
+                            timestamp = restoredTimestamp
                         )
                         logActivity(activity, onSuccess = {}, onFailure = {})
 
@@ -5000,6 +5498,51 @@ class FirestoreHelper {
                     }
                     .addOnFailureListener { onFailure(it) }
             }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun getRestoredMembersHistory(
+        onSuccess: (List<ArchivedMemberRecord>) -> Unit,
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        db.collection("archived_deleted_members")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.isEmpty) {
+                    onSuccess(emptyList())
+                } else {
+                    val restoredList = snapshot.documents.mapNotNull { doc ->
+                        val record = doc.toObject(ArchivedMemberRecord::class.java)?.copy(id = doc.id)
+                        val docRestored = doc.getBoolean("isRestored") == true || doc.getBoolean("restored") == true || record?.isRestored == true
+                        val restoredTime = doc.getLong("restoredAt") ?: record?.restoredAt ?: 0L
+                        val restoredByStr = doc.getString("restoredBy") ?: record?.restoredBy.orEmpty()
+                        if (record != null && docRestored) {
+                            record.copy(
+                                isRestored = true,
+                                restoredAt = if (restoredTime > 0L) restoredTime else record.deletedAt,
+                                restoredBy = restoredByStr.ifBlank { "System Admin" }
+                            )
+                        } else null
+                    }.sortedByDescending { it.restoredAt }
+                    onSuccess(restoredList)
+                }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    fun purgeArchivedMember(
+        recordId: String,
+        onSuccess: () -> Unit = {},
+        onFailure: (Exception) -> Unit = {}
+    ) {
+        if (recordId.isBlank()) {
+            onFailure(IllegalArgumentException("Record ID cannot be empty"))
+            return
+        }
+        db.collection("archived_deleted_members")
+            .document(recordId)
+            .delete()
+            .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }
     }
 
@@ -5301,11 +5844,14 @@ class FirestoreHelper {
             // 1. Explicitly requested an expansion, OR
             // 2. Reached or exceeded its quota (Capped), OR
             // 3. Is approaching its quota (>= 85%), OR
-            // 4. Has >= 50 members (including expanded trees so Admin can monitor active high-capacity clans)
+            // 4. Was previously expanded / approved (isExpandedTier or quotaApprovedAt > 0), OR
+            // 5. Has >= 50 members
             val filtered = allStatuses.filter { status ->
                 status.tree.quotaExpansionRequested ||
                     status.isCapped ||
                     status.isNearCap ||
+                    status.isExpandedTier ||
+                    status.tree.quotaApprovedAt > 0L ||
                     status.liveMemberCount >= FamilyTree.DEFAULT_FREEMIUM_QUOTA
             }.sortedWith(
                 compareByDescending<TreeQuotaStatus> { it.isCapped }
@@ -5327,19 +5873,26 @@ class FirestoreHelper {
 
     /**
      * Persists an expanded member quota cap for a specific clan tree in Firestore
-     * and clears any pending expansion request flag.
+     * and clears any pending expansion request flag, recording approval timestamp and admin identity.
      */
     fun expandTreeMemberQuota(
         treeId: String,
         treeName: String,
         newQuota: Int,
+        previousQuota: Int = FamilyTree.DEFAULT_FREEMIUM_QUOTA,
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
+        val currentAdmin = FirebaseAuth.getInstance().currentUser
+        val approvedByAdmin = currentAdmin?.displayName?.takeIf { it.isNotBlank() }
+            ?: currentAdmin?.email
+            ?: "System Admin"
         val data = mapOf(
             "memberQuota" to newQuota,
+            "previousMemberQuota" to previousQuota,
             "quotaExpansionRequested" to false,
             "quotaApprovedAt" to System.currentTimeMillis(),
+            "quotaApprovedBy" to approvedByAdmin,
             "name" to treeName
         )
         db.collection("trees").document(treeId)

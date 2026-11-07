@@ -367,6 +367,22 @@ object KinshipTitleHelper {
             return "GRANDMOTHER" to "Maternal Grandmother of $focalName"
         }
 
+        // 5b. Step-Grandparents (Spouse of a biological grandparent of focal, without being a biological grandparent)
+        val bioGrandparents = listOfNotNull(
+            focalFather?.fatherId?.let { byId[it] },
+            focalFather?.motherId?.let { byId[it] },
+            focalMother?.fatherId?.let { byId[it] },
+            focalMother?.motherId?.let { byId[it] }
+        )
+        val isStepGrandparent = bioGrandparents.any { gp ->
+            gp.id != target.id && (gp.hasSpouseId(target.id) || target.hasSpouseId(gp.id))
+        } && bioGrandparents.none { it.id == target.id }
+        if (isStepGrandparent) {
+            val title = if (isMale) "STEP-GRANDFATHER" else if (isFemale) "STEP-GRANDMOTHER" else "STEP-GRANDPARENT"
+            val label = if (isMale) "Step-Grandfather" else if (isFemale) "Step-Grandmother" else "Step-Grandparent"
+            return title to "$label of $focalName"
+        }
+
         // 6. Grandchildren (2nd Degree Descendant)
         val focalChildIds = childrenOf[focal.id] ?: emptySet()
         val isGrandchild = focalChildIds.any { childId ->
@@ -376,6 +392,19 @@ object KinshipTitleHelper {
         if (isGrandchild) {
             val title = if (isMale) "GRANDSON" else if (isFemale) "GRANDDAUGHTER" else "GRANDCHILD"
             val label = if (isMale) "Grandson" else if (isFemale) "Granddaughter" else "Grandchild"
+            return title to "$label of $focalName"
+        }
+
+        // 6b. Step-Grandchildren (Grandchild of any spouse of focal, without being focal's direct grandchild)
+        val isStepGrandchild = focalSpouses.any { sp ->
+            val spChildren = childrenOf[sp.id] ?: emptySet()
+            spChildren.any { spChildId ->
+                (childrenOf[spChildId] ?: emptySet()).contains(target.id)
+            }
+        }
+        if (isStepGrandchild) {
+            val title = if (isMale) "STEP-GRANDSON" else if (isFemale) "STEP-GRANDDAUGHTER" else "STEP-GRANDCHILD"
+            val label = if (isMale) "Step-Grandson" else if (isFemale) "Step-Granddaughter" else "Step-Grandchild"
             return title to "$label of $focalName"
         }
 
@@ -528,18 +557,28 @@ object KinshipTitleHelper {
         if (isCousin) {
             val targetFather = target.fatherId?.let { byId[it] }
             val targetMother = target.motherId?.let { byId[it] }
-            fun areSiblings(p1: Person?, p2: Person?): Boolean {
+            fun areAnySiblings(p1: Person?, p2: Person?): Boolean {
                 if (p1 == null || p2 == null || p1.id == p2.id) return false
                 val shareF = !p1.fatherId.isNullOrBlank() && p1.fatherId == p2.fatherId
                 val shareM = !p1.motherId.isNullOrBlank() && p1.motherId == p2.motherId
                 return shareF || shareM
             }
-            val isDoubleCousin = (areSiblings(focalFather, targetFather) && areSiblings(focalMother, targetMother)) ||
-                (areSiblings(focalFather, targetMother) && areSiblings(focalMother, targetFather))
-            return if (isDoubleCousin) {
-                "DOUBLE COUSIN" to "Double First Cousin of $focalName"
-            } else {
-                "COUSIN" to "First Cousin of $focalName"
+            fun areFullSiblings(p1: Person?, p2: Person?): Boolean {
+                if (p1 == null || p2 == null || p1.id == p2.id) return false
+                val shareF = !p1.fatherId.isNullOrBlank() && p1.fatherId == p2.fatherId
+                val shareM = !p1.motherId.isNullOrBlank() && p1.motherId == p2.motherId
+                return shareF && shareM
+            }
+            val isFullDouble = (areFullSiblings(focalFather, targetFather) && areFullSiblings(focalMother, targetMother)) ||
+                (areFullSiblings(focalFather, targetMother) && areFullSiblings(focalMother, targetFather))
+            val isHalfDouble = !isFullDouble && (
+                (areAnySiblings(focalFather, targetFather) && areAnySiblings(focalMother, targetMother)) ||
+                    (areAnySiblings(focalFather, targetMother) && areAnySiblings(focalMother, targetFather))
+                )
+            return when {
+                isFullDouble -> "DOUBLE COUSIN" to "Double First Cousin of $focalName"
+                isHalfDouble -> "HALF-DOUBLE COUSIN" to "Half-Double First Cousin of $focalName"
+                else -> "COUSIN" to "First Cousin of $focalName"
             }
         }
 

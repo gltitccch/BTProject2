@@ -265,8 +265,14 @@ class MergeSimulationEngine(
             }
         }
 
+        // 3b. Auto-deduplicate any overlapping identical relatives across both source trees
+        val deduplicatedList = com.example.btproject2.firebase.FirestoreHelper
+            .planTreeDeduplication(clonedList)
+            .cleanedMembers
+            .toMutableList()
+
         // 4. Pre-Flight Graph Conflict Scan
-        val allConflicts = conflictScanner.scanAll(clonedList)
+        val allConflicts = conflictScanner.scanAll(deduplicatedList)
         val critical = allConflicts.filter { it.severity.equals("error", ignoreCase = true) }
         val warnings = allConflicts.filter { !it.severity.equals("error", ignoreCase = true) }
 
@@ -275,7 +281,7 @@ class MergeSimulationEngine(
         return SimulationResult(
             isSafe = isSafe,
             bridgeDescription = bridgeDesc,
-            simulatedMembers = clonedList,
+            simulatedMembers = deduplicatedList,
             validationResult = valResult,
             criticalConflicts = critical,
             warningConflicts = warnings
