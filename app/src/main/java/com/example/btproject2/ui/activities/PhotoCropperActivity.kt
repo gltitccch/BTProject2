@@ -1,13 +1,16 @@
 package com.example.btproject2.ui.activities
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -15,11 +18,14 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import android.media.ExifInterface
 import com.example.btproject2.R
 import com.example.btproject2.utils.DocumentHelper
 import com.example.btproject2.utils.KinTraceAlert
+import com.example.btproject2.utils.KinTraceModalDialog
 import com.example.btproject2.views.KinTraceCropImageView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.io.File
@@ -73,6 +79,17 @@ class PhotoCropperActivity : AppCompatActivity() {
     private var tempCameraFile: File? = null
     private var tempCameraUri: Uri? = null
     private var isSourcePickerShown = false
+
+    // Camera Permission Launcher
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            executeCameraCapture()
+        } else {
+            handleCameraPermissionDenied()
+        }
+    }
 
     // Camera Launcher
     private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
@@ -213,6 +230,20 @@ class PhotoCropperActivity : AppCompatActivity() {
     }
 
     private fun launchCameraCapture() {
+        when {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED -> {
+                executeCameraCapture()
+            }
+            ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA) -> {
+                showCameraPermissionRationaleDialog()
+            }
+            else -> {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    private fun executeCameraCapture() {
         try {
             val cacheDir = File(cacheDir, "camera_captures").apply { if (!exists()) mkdirs() }
             tempCameraFile = File(cacheDir, "cap_${System.currentTimeMillis()}.jpg")
@@ -226,6 +257,48 @@ class PhotoCropperActivity : AppCompatActivity() {
             e.printStackTrace()
             KinTraceAlert.show(this, "Could not launch camera: ${e.message}")
         }
+    }
+
+    private fun showCameraPermissionRationaleDialog() {
+        KinTraceModalDialog.Builder(this)
+            .setIconCrest("📷")
+            .setKicker("DEVICE PERMISSION")
+            .setTitle("Camera Access Needed")
+            .setMessage("KinTrace needs camera access to capture family portraits for your genealogy tree. Please grant permission to take pictures.")
+            .setPositiveButton("Grant Permission") { _, _ ->
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+            .setNegativeButton("Cancel")
+            .show()
+    }
+
+    private fun handleCameraPermissionDenied() {
+        if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+            // User checked "Don't ask again" or OS blocked further dialogs
+            showCameraSettingsDialog()
+        } else {
+            KinTraceAlert.show(this, "Camera permission denied. Cannot capture photo.")
+        }
+    }
+
+    private fun showCameraSettingsDialog() {
+        KinTraceModalDialog.Builder(this)
+            .setIconCrest("⚙️")
+            .setKicker("PERMISSION DISABLED")
+            .setTitle("Camera Permission Turned Off")
+            .setMessage("Camera access has been disabled for KinTrace on this device. To snap family portraits, please enable Camera permission in your device App Settings.")
+            .setPositiveButton("Open Settings") { _, _ ->
+                try {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", packageName, null)
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    KinTraceAlert.show(this, "Could not open settings: ${e.message}")
+                }
+            }
+            .setNegativeButton("Not Now")
+            .show()
     }
 
     private fun loadBitmapFromFile(file: File) {

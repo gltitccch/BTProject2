@@ -16,6 +16,12 @@
     <!-- Needed for Over-The-Air (OTA) in-app APK installation prompts -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
+
     <application
         android:name=".KinTraceApplication"
         android:allowBackup="false"
