@@ -1377,6 +1377,72 @@
                         android:text="Sandbox clean state active."
                         android:textColor="@color/text_secondary"
                         android:textSize="10sp" />
+
+                    <!-- Authentic Bugarin Heritage Clan Seeder (Zero-Bypass) -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@color/forest_card_border" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👑 Authentic Bugarin Heritage Clan (200 Members)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Zero-bypass dataset featuring double first cousins, aunt younger than niece, and 5-generation pedigree."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <Button
+                        android:id="@+id/btnSeedBugarinClan"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="10dp"
+                        android:backgroundTint="@color/primary"
+                        android:text="🌿 Seed Bugarin Clan (200 Authentic Members)"
+                        android:textColor="@color/white"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvBugarinSeedStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:text="Bugarin Heritage Clan seeder ready (Zero-Bypass)."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp" />
+
+                    <Button
+                        android:id="@+id/btnFlushBugarinClan"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/forest_card"
+                        android:text="🗑 Flush Bugarin Heritage Clan"
+                        android:textColor="@color/danger"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvBugarinFlushStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center"
+                        android:text="Bugarin Heritage state active."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp" />
                 </LinearLayout>
 
                 <!-- Over-The-Air (OTA) Release Deployment Desk -->

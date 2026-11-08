@@ -144,6 +144,10 @@ class AdminPortalActivity : AppCompatActivity() {
     private lateinit var tvSeedStatus: TextView
     private lateinit var btnFlushDemoState: Button
     private lateinit var tvFlushStatus: TextView
+    private lateinit var btnSeedBugarinClan: Button
+    private lateinit var tvBugarinSeedStatus: TextView
+    private lateinit var btnFlushBugarinClan: Button
+    private lateinit var tvBugarinFlushStatus: TextView
 
     // OTA Release Desk Controls
     private lateinit var tvCurrentPublishedVersion: TextView
@@ -336,6 +340,10 @@ class AdminPortalActivity : AppCompatActivity() {
         tvSeedStatus = findViewById(R.id.tvSeedStatus)
         btnFlushDemoState = findViewById(R.id.btnFlushDemoState)
         tvFlushStatus = findViewById(R.id.tvFlushStatus)
+        btnSeedBugarinClan = findViewById(R.id.btnSeedBugarinClan)
+        tvBugarinSeedStatus = findViewById(R.id.tvBugarinSeedStatus)
+        btnFlushBugarinClan = findViewById(R.id.btnFlushBugarinClan)
+        tvBugarinFlushStatus = findViewById(R.id.tvBugarinFlushStatus)
 
         // OTA Release Desk
         tvCurrentPublishedVersion = findViewById(R.id.tvCurrentPublishedVersion)
@@ -1101,6 +1109,52 @@ class AdminPortalActivity : AppCompatActivity() {
                     runOnUiThread {
                         btnFlushDemoState.isEnabled = true
                         tvFlushStatus.text = "⚠️ Failed to flush demo state: ${err.message}"
+                    }
+                }
+            )
+        }
+
+        btnSeedBugarinClan.setOnClickListener {
+            btnSeedBugarinClan.isEnabled = false
+            tvBugarinSeedStatus.text = "⏳ Seeding authentic Bugarin Clan (200 Members) to Firestore..."
+            firestoreHelper.seedBugarinAuthenticClan(
+                onSuccess = { memberCount ->
+                    runOnUiThread {
+                        btnSeedBugarinClan.isEnabled = true
+                        tvBugarinSeedStatus.text = "✅ 5-Gen Bugarin Heritage Clan ($memberCount Members) seeded in Firestore."
+                        tvBugarinSeedStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        recordAudit("BUGARIN_CLAN_SEEDED", com.example.btproject2.models.BugarinClanData.TREE_ID, "Seeded $memberCount authentic members into Bugarin Heritage Clan")
+                        loadLiveTelemetry()
+                        KinTraceAlert.telemetry(this, "Bugarin Clan Seeded", "$memberCount authentic members seeded into Bugarin Heritage Tree!", "SEEDED")
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnSeedBugarinClan.isEnabled = true
+                        tvBugarinSeedStatus.text = "⚠️ Failed to seed Bugarin clan: ${err.message}"
+                    }
+                }
+            )
+        }
+
+        btnFlushBugarinClan.setOnClickListener {
+            btnFlushBugarinClan.isEnabled = false
+            tvBugarinFlushStatus.text = "⏳ Flushing Bugarin Heritage Clan from Firestore..."
+            firestoreHelper.flushBugarinAuthenticClan(
+                onSuccess = { removedCount ->
+                    runOnUiThread {
+                        btnFlushBugarinClan.isEnabled = true
+                        tvBugarinFlushStatus.text = "✅ Bugarin clan flushed ($removedCount member records removed)."
+                        tvBugarinFlushStatus.setTextColor(ContextCompat.getColor(this, R.color.mint_text))
+                        recordAudit("BUGARIN_CLAN_FLUSHED", com.example.btproject2.models.BugarinClanData.TREE_ID, "Flushed $removedCount members from Bugarin Heritage Clan")
+                        loadLiveTelemetry()
+                        KinTraceAlert.telemetry(this, "Bugarin Clan Flushed", "Flushed $removedCount members from Bugarin Heritage Clan.", "CLEAN")
+                    }
+                },
+                onFailure = { err ->
+                    runOnUiThread {
+                        btnFlushBugarinClan.isEnabled = true
+                        tvBugarinFlushStatus.text = "⚠️ Failed to flush Bugarin clan: ${err.message}"
                     }
                 }
             )

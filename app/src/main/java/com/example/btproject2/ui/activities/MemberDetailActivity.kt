@@ -72,6 +72,85 @@ class MemberDetailActivity : AppCompatActivity() {
 
     private val repairedSpousePairKeys = java.util.Collections.synchronizedSet(mutableSetOf<String>())
 
+    private val photoCropperLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val isRemoved = result.data?.getBooleanExtra(PhotoCropperActivity.RESULT_PHOTO_REMOVED, false) == true
+            val returnedUri = result.data?.getStringExtra(PhotoCropperActivity.RESULT_PHOTO_URI).orEmpty()
+            val returnedBase64 = result.data?.getStringExtra(PhotoCropperActivity.RESULT_PHOTO_BASE64).orEmpty()
+            val personSnapshot = currentPerson ?: return@registerForActivityResult
+            val personIdSnapshot = personSnapshot.id
+            val pName = "${personSnapshot.firstName} ${personSnapshot.lastName}".trim()
+
+            if (isRemoved) {
+                firestoreHelper.updatePersonPhoto(
+                    personIdSnapshot,
+                    "",
+                    "",
+                    onSuccess = {
+                        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                        val currentUserName = authHelper.getCurrentUser()?.displayName ?: "User"
+                        val updatedPerson = personSnapshot.copy(photoBase64 = "", photoUri = "")
+                        currentPerson = updatedPerson
+                        com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyProfileEdited(
+                            updatedPerson = updatedPerson,
+                            previousPerson = personSnapshot,
+                            sourceScreen = "MemberDetailActivity"
+                        )
+                        firestoreHelper.logActivity(
+                            treeId = treeId,
+                            userId = currentUserId,
+                            userName = currentUserName,
+                            type = "PHOTO",
+                            description = "Removed profile photo for $pName",
+                            targetId = personIdSnapshot,
+                            targetName = pName
+                        )
+                        KinTraceAlert.show(this, "Profile photo removed")
+                        setResult(RESULT_OK)
+                        loadAllAndDisplay()
+                    },
+                    onFailure = {
+                        KinTraceAlert.show(this, "Failed to remove photo: ${it.message}")
+                    }
+                )
+            } else if (returnedBase64.isNotBlank() || returnedUri.isNotBlank()) {
+                firestoreHelper.updatePersonPhoto(
+                    personIdSnapshot,
+                    returnedBase64,
+                    returnedUri,
+                    onSuccess = {
+                        val currentUserId = authHelper.getCurrentUserId().orEmpty()
+                        val currentUserName = authHelper.getCurrentUser()?.displayName ?: "User"
+                        val updatedPerson = personSnapshot.copy(photoBase64 = returnedBase64, photoUri = returnedUri)
+                        currentPerson = updatedPerson
+                        com.example.btproject2.sync.CentralTreeSynchronizer.getInstance().notifyProfileEdited(
+                            updatedPerson = updatedPerson,
+                            previousPerson = personSnapshot,
+                            sourceScreen = "MemberDetailActivity"
+                        )
+                        firestoreHelper.logActivity(
+                            treeId = treeId,
+                            userId = currentUserId,
+                            userName = currentUserName,
+                            type = "PHOTO",
+                            description = "Updated profile photo for $pName",
+                            targetId = personIdSnapshot,
+                            targetName = pName
+                        )
+                        KinTraceAlert.show(this, "Profile photo updated")
+                        setResult(RESULT_OK)
+                        loadAllAndDisplay()
+                    },
+                    onFailure = {
+                        KinTraceAlert.show(this, "Failed to update photo: ${it.message}")
+                    }
+                )
+            }
+        }
+    }
+
     private val detailPhotoPickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
@@ -237,9 +316,22 @@ class MemberDetailActivity : AppCompatActivity() {
         tvDetailNoDocs      = findViewById(R.id.tvDetailNoDocs)
         btnDetailAttachDoc  = findViewById(R.id.btnDetailAttachDoc)
 
-        btnDetailChangePhoto.setOnClickListener {
-            detailPhotoPickerLauncher.launch("image/*")
+        val openRelativePhotoStudio: () -> Unit = {
+            val p = currentPerson
+            if (p != null) {
+                val intent = PhotoCropperActivity.createIntent(
+                    context = this,
+                    entityId = p.id,
+                    title = "Frame & Crop Photo of ${p.firstName}",
+                    currentPhotoBase64 = p.photoBase64.takeIf { it.isNotBlank() }
+                )
+                photoCropperLauncher.launch(intent)
+            }
         }
+
+        btnDetailChangePhoto.setOnClickListener { openRelativePhotoStudio() }
+        ivDetailPhoto.setOnClickListener { openRelativePhotoStudio() }
+        tvAvatar.setOnClickListener { openRelativePhotoStudio() }
         btnDetailAttachDoc.setOnClickListener {
             detailDocPickerLauncher.launch("*/*")
         }

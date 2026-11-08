@@ -78,34 +78,87 @@
             android:orientation="vertical"
             android:layout_marginBottom="16dp">
 
+            <!-- Clickable Profile Avatar Container with Golden Ring, Photo / Initial & Camera Badge -->
             <FrameLayout
-                android:layout_width="76dp"
-                android:layout_height="76dp">
+                android:id="@+id/layoutProfileAvatarContainer"
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:clickable="true"
+                android:focusable="true">
 
+                <!-- Golden Crest Ring Background -->
+                <View
+                    android:layout_width="76dp"
+                    android:layout_height="76dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_avatar_crest_ring" />
+
+                <!-- Text Avatar (fallback initial like "R") -->
                 <TextView
                     android:id="@+id/tvProfileAvatar"
                     android:layout_width="72dp"
                     android:layout_height="72dp"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:text="V"
+                    android:text="R"
                     android:textSize="26sp"
                     android:textStyle="bold"
-                    android:textColor="@color/gold_accent"
-                    android:background="@drawable/bg_avatar_crest_ring" />
+                    android:textColor="@color/gold_accent" />
 
+                <!-- Image Avatar (when user has an authentic photo) -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivProfilePhoto"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_gravity="center"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                <!-- Camera Action Badge (quick tap to change photo) -->
                 <TextView
-                    android:id="@+id/tvVerifiedBadge"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
+                    android:id="@+id/btnChangeProfilePhotoBadge"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:layout_gravity="bottom|end"
                     android:gravity="center"
-                    android:text="✓"
+                    android:text="📷"
                     android:textSize="11sp"
+                    android:background="@drawable/circle_dark_action"
+                    android:elevation="3dp" />
+
+                <!-- Verification Badge -->
+                <TextView
+                    android:id="@+id/tvVerifiedBadge"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="top|end"
+                    android:gravity="center"
+                    android:text="✓"
+                    android:textSize="10sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
-                    android:background="@drawable/bg_verified_check_badge" />
+                    android:background="@drawable/bg_verified_check_badge"
+                    android:elevation="3dp" />
             </FrameLayout>
+
+            <!-- Quick Action Pill: Change Photo -->
+            <TextView
+                android:id="@+id/btnChangeProfilePhoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📷 Change Photo"
+                android:textSize="11.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/badge_pill_dark"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:layout_marginTop="6dp"
+                android:clickable="true"
+                android:focusable="true" />
 
             <TextView
                 android:id="@+id/tvProfileHeaderName"

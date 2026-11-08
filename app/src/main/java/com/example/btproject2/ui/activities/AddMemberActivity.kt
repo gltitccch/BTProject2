@@ -147,6 +147,27 @@ class AddMemberActivity : AppCompatActivity() {
     private lateinit var tvAttachedPhotoStatus: TextView
     private lateinit var tvAttachedDocStatus: TextView
 
+    private val photoCropperLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val isRemoved = result.data?.getBooleanExtra(PhotoCropperActivity.RESULT_PHOTO_REMOVED, false) == true
+            val returnedUri = result.data?.getStringExtra(PhotoCropperActivity.RESULT_PHOTO_URI).orEmpty()
+            val returnedBase64 = result.data?.getStringExtra(PhotoCropperActivity.RESULT_PHOTO_BASE64).orEmpty()
+            if (isRemoved) {
+                attachedPhotoUri = ""
+                attachedPhotoBase64 = ""
+                tvAttachedPhotoStatus.text = "Attach Profile Photo (Optional)"
+                tvAttachedPhotoStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.text_hint))
+            } else if (returnedBase64.isNotBlank() || returnedUri.isNotBlank()) {
+                attachedPhotoUri = returnedUri
+                attachedPhotoBase64 = returnedBase64
+                tvAttachedPhotoStatus.text = "✓ Profile Photo Cropped & Ready"
+                tvAttachedPhotoStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.status_mint_text))
+            }
+        }
+    }
+
     private val addPhotoPickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
@@ -231,7 +252,18 @@ class AddMemberActivity : AppCompatActivity() {
         val btnAttachDocument = findViewById<View>(R.id.btnAttachDocument)
         tvAttachedDocStatus = findViewById(R.id.tvAttachedDocStatus)
 
-        btnAttachPhoto?.setOnClickListener { addPhotoPickerLauncher.launch("image/*") }
+        btnAttachPhoto?.setOnClickListener {
+            val fName = etFirstName.text?.toString()?.trim().orEmpty()
+            val lName = etLastName.text?.toString()?.trim().orEmpty()
+            val fullName = "$fName $lName".trim().ifBlank { "New Member" }
+            val intent = PhotoCropperActivity.createIntent(
+                context = this,
+                entityId = "temp_${System.currentTimeMillis()}",
+                title = "Frame & Crop Photo of $fullName",
+                currentPhotoBase64 = attachedPhotoBase64.takeIf { it.isNotBlank() }
+            )
+            photoCropperLauncher.launch(intent)
+        }
         btnAttachDocument?.setOnClickListener { addDocPickerLauncher.launch("*/*") }
 
         btnSelectChildren.setOnClickListener {

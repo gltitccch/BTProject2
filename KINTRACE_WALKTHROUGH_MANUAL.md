@@ -9,7 +9,7 @@
 
 - [Chapter 1: The Front Gate — Authentication & Security Gateway (`LoginActivity.kt`)](#-chapter-1-the-front-gate--authentication--security-gateway)
 - [Chapter 2: The Recovery Lifeline — Password Reset & Account Retrieval Gateway (`ForgotPasswordActivity.kt`)](#-chapter-2-the-recovery-lifeline--password-reset--account-retrieval-gateway)
-- [Chapter 3: The Clan Gateway — Registration, Password Policy & Data Stewardship (`RegisterActivity.kt`)](#-chapter-3-the-clan-gateway--registration-password-policy--data-stewardship)
+- [Chapter 3: The Clan Gateway — Registration, Password Policy & 16-Clause Data Stewardship (`RegisterActivity.kt`)](#-chapter-3-the-clan-gateway--registration-password-policy--data-stewardship)
 - [Chapter 4: The Defense Arsenal — KinTrace Account Studio & Dual-Mode Vault (`DemoVaultBottomSheet.kt`)](#-chapter-4-the-defense-arsenal--kintrace-account-studio--dual-mode-vault)
 - [Chapter 5: The Heritage Command Center — Dynamic Clan Dashboard & Multi-Stage Lifecycle (`HomeActivity.kt`)](#-chapter-5-the-heritage-command-center--dynamic-clan-dashboard--multi-stage-lifecycle)
 - [Chapter 6: Comprehensive Guide — Add Member Module (`AddMemberActivity.kt`)](#-chapter-6-comprehensive-guide--add-member-module-addmemberactivitykt)
@@ -25,7 +25,13 @@
 - [Chapter 16: The Central Command Citadel — Part 2: Maintenance & Scoped In-App Broadcaster Subsystem (`AdminPortalActivity.kt` & `SystemAnnouncement.kt`)](#-chapter-16-the-central-command-citadel--part-2-maintenance--scoped-in-app-broadcaster-subsystem)
 - [Chapter 17: The Central Command Citadel — Part 3: Freemium 50-Member Cap, Clan Expansion Queue & Quota Governance Subsystem (`AdminPortalActivity.kt` & `FamilyTree.kt`)](#-chapter-17-the-central-command-citadel--part-3-freemium-50-member-cap-clan-expansion-queue--quota-governance-subsystem)
 - [Chapter 18: The Central Command Citadel — Part 4: Soft-Delete Disaster Recovery Console, Pedigree Tree Grafting & Ops Governance Subsystem (`AdminPortalActivity.kt` & `ArchivedMemberRecord.kt`)](#-chapter-18-the-central-command-citadel--part-4-soft-delete-disaster-recovery-console-pedigree-tree-grafting--ops-governance-subsystem)
-- *(Upcoming Chapters: Legal Civil Audit will be added as we walk through each screen together).*
+- [Chapter 19: The Clan Alert Dispatcher & Notification Command Hub (`NotificationsActivity.kt` & `NotificationHelper.kt`)](#-chapter-19-the-clan-alert-dispatcher--notification-command-hub)
+- [Chapter 20: The Tree Integrity Sentinel & Guided Conflict Resolution Wizard (`TreeAuditActivity.kt` & `ConflictScanner.kt`)](#-chapter-20-the-tree-integrity-sentinel--guided-conflict-resolution-wizard)
+- [Chapter 21: The Master Member Biographical Profile, Timeline & Archival Vault (`MemberDetailActivity.kt` & `MemberDetailSyncCoordinator.kt`)](#-chapter-21-the-master-member-biographical-profile-timeline--archival-vault)
+- [Chapter 22: The Step-by-Step Relationship Path Visualizer & Generation Timeline (`RelationshipPathActivity.kt`)](#-chapter-22-the-step-by-step-relationship-path-visualizer--generation-timeline)
+- [Chapter 23: The Kin Academy Heritage Learning Hub & Kamag-anak Lexicon (`KinAcademyActivity.kt` & `EducationalContentRepository.kt`)](#-chapter-23-the-kin-academy-heritage-learning-hub--kamag-anak-lexicon)
+- [Chapter 24: The Kinship Reference Guide & Civil Consanguinity Law Matrix (`RelationshipTypesActivity.kt`)](#-chapter-24-the-kinship-reference-guide--civil-consanguinity-law-matrix)
+- [Chapter 25: The Central Command Citadel — Part 5: Zero-Cost Over-The-Air (OTA) Release Desk & In-App Auto-Installer Subsystem (`AdminPortalActivity.kt` & `InAppUpdateManager.kt`)](#-chapter-25-the-central-command-citadel--part-5-zero-cost-over-the-air-ota-release-desk--in-app-auto-installer-subsystem)
 
 ---
 
@@ -371,7 +377,7 @@ firestoreHelper.addNotification(notif)
 
 ### 3.1 The Plain English 10-Second Pitch
 
-> *"This screen onboards new family members safely into KinTrace. It protects accounts using a live 60-frame-per-second password strength meter, enforces legal compliance with Republic Act 10173 through an interactive 'must-scroll-to-bottom' 10-point Data Stewardship agreement, initializes a zero-trust blank profile in Cloud Firestore, and immediately locks the user into the email verification gate so unverified accounts can never touch family trees."*
+> *"This screen onboards new family members safely into KinTrace. It protects accounts using a live 60-frame-per-second password strength meter, enforces legal compliance with Republic Act 10173 through an interactive 'must-scroll-to-bottom' 16-clause Data Stewardship agreement, initializes a zero-trust blank profile in Cloud Firestore, and immediately locks the user into the email verification gate so unverified accounts can never touch family trees."*
 
 ---
 
@@ -408,7 +414,7 @@ firestoreHelper.addNotification(notif)
 
 7. **The Data Stewardship & Terms Gate (`Tap card to read`)**:
    - Summarizes the 4 core pillars: *Privacy & Data Usage*, *Clan Stewardship License*, *Community & Family Code*, and *Data Security & RA 10173*.
-   - Displays a scroll-counter badge (`0/10`).
+   - Displays a dynamic scroll-counter badge (`0/16`).
    - Tapping opens the full-screen bottom sheet dialog.
 
 8. **"Create Account" Action Button**:
@@ -454,7 +460,7 @@ for (i in segments.indices) {
   1. The "Agree" button inside the bottom sheet is locked (`isClickable = false`).
   2. A scroll listener tracks user movement: `v.canScrollVertically(1)` checks if there is any text remaining below the screen.
   3. A dynamic progress bar (`pbScrollProgress`) visually tracks their reading progress (0% to 100%).
-  4. Only when the scroll reaches the very bottom of the 10th policy does the gold button unlock: `"✓ I Have Read & Agree to the Terms"`.
+  4. Only when the user scrolls through all 16 covenants across all 4 legal parts does the gold button unlock: `"✓ I Have Read & Agree to All 16 Terms"`.
   5. Upon agreement, `isTosAccepted` flips to `true`, and the "Create Account" button turns emerald green.
 
 ```kotlin
@@ -519,14 +525,14 @@ firestoreHelper.saveUserProfile(profile, ...)
 > **Panelist Probe**: *Isn't a checkbox easier for users? Why force them to scroll all the way down?*
 > 
 > **Your Answer:**
-> *"KinTrace stores sensitive family genealogical and demographic records. Under the **Philippine Data Privacy Act of 2012 (Republic Act 10173)**, processing sensitive personal data requires express, informed consent. In [`TermsOfServiceBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TermsOfServiceBottomSheet.kt), we mathematically detect vertical scroll displacement (`canScrollVertically(1)`). The acceptance button remains physically locked until the user scrolls through all 10 stewardship policies, ensuring legal compliance and preventing accidental agreement."*
+> *"KinTrace stores sensitive family genealogical and demographic records. Under the **Philippine Data Privacy Act of 2012 (Republic Act 10173)**, processing sensitive personal data requires express, informed consent. In [`TermsOfServiceBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TermsOfServiceBottomSheet.kt), we mathematically detect vertical scroll displacement (`canScrollVertically(1)`). The acceptance button remains physically locked until the user scrolls through all 16 stewardship policies across its 4 legal parts, ensuring legal compliance and preventing accidental agreement."*
 
 ```kotlin
 // 📍 Source Code: TermsOfServiceBottomSheet.kt (Lines 61-72)
 fun unlockAcceptButton() {
     hasScrolledToBottom = true
     pbScrollProgress.progress = 100
-    tvScrollBadge.text = "✓ All 10 sections read. You may now accept."
+    tvScrollBadge.text = "✓ All 16 sections read. You may now accept."
     btnAcceptTerms.isClickable = true
     btnAcceptTerms.setBackgroundResource(R.drawable.btn_gold_primary)
 }
@@ -1387,11 +1393,11 @@ private fun wouldCreateCycle(childId: String, proposedParentId: String): Boolean
 
 - **`LIVE DATA` Badge**: Indicates that these metrics are synchronized directly with Cloud Firestore.
 - **The 6 Metrics Explained**:
-  1. **Total Members (`1`)**: Count of all individuals currently documented in this tree.
-  2. **Living (`1`)**: Relatives flagged as living (subject to automated RA 10173 privacy protections).
-  3. **Deceased (`0`)**: Relatives documented with vital memorial or passing records.
+  1. **Total Members (`1`)**: Count of all individuals currently documented in this tree. *(Tapping this card immediately launches `FamilyRecordsActivity` filtered to `ALL`)*.
+  2. **Living (`1`)**: Relatives flagged as living (subject to automated RA 10173 privacy protections). *(Tapping immediately opens `FamilyRecordsActivity` filtered to `LIVING`)*.
+  3. **Deceased (`0`)**: Relatives documented with vital memorial or passing records. *(Tapping immediately opens `FamilyRecordsActivity` filtered to `DECEASED`)*.
   4. **Generations (`1`)**: Maximum generational depth from root ancestors to descendants.
-  5. **Branches (`1`)**: Total unique family surname lineages connected to this tree.
+  5. **Branches (`1`)**: Total unique family surname lineages connected to this tree (`tvBranchesCount`). *(Tapping this card opens the interactive **Clan Branches Breakdown Dialog**, listing each distinct family branch and its active member count)*.
   6. **Relationships (`0`)**: Sum of all confirmed genealogical links (`Fathers + Mothers + Spouses`).
 
 ---
@@ -1472,8 +1478,14 @@ $$\text{Member Score} = \left(\frac{\text{Points Earned}}{6}\right) \times 100$$
 - **60% – 84%**: *"Good Record Completeness"*.
 - **1% – 59%**: *"Basic Records (Details Incomplete)"* (Current state).
 
-### The Dynamic AI Guided Tip:
-- The system automatically detects missing data and displays actionable tips (e.g., *"💡 1 member doesn't have parents set. Setting parent links improves bloodline tracing accuracy."*).
+### The Dynamic Clickable Data Quality & Missing-Parents Banner:
+- **Missing-Parents Warning Banner (`cardDataQuality`, `tvTip`)**:
+  - The system dynamically executes `FamilyRecordsActivity.countMissingParents(persons)`.
+  - When unconnected members exist, an actionable amber banner illuminates:
+    > *"💡 N members don't have parents set. Setting them connects your branches. Tap to review →"*
+  - **1-Tap Deep-Linking Drill-Down**: Tapping the tip or the Data Quality card immediately launches `FamilyRecordsActivity` with `EXTRA_DEFAULT_FILTER = "MISSING_PARENTS"`, instantly filtering the directory down to disconnected relatives so elders can link their parents in seconds!
+  - **Live Completeness Breakdown**: Shows vital ratio metrics: `📅 Birth Dates: X/total · 🌳 Parent Links: Y/total · 📖 Biographies: Z/total`.
+  - **Optimal Tree Celebration**: When all members are connected (`noParentCount == 0`), the banner transforms to Mint green: *"💡 Great job! All members have parents assigned, giving your family tree optimal bloodline accuracy."*
 
 ---
 
@@ -1584,10 +1596,15 @@ private fun checkOne(person: Person): Int {
 2. **Person A & Person B Search Cards**:
    - Tapping either card launches the interactive **Member Spotlight Search Sheet**, enabling live search filtering across all members in the current tree.
 
-3. **Center Swap Button `[ ⇅ ]`**:
-   - Swaps Person A and Person B in 0ms, reversing the perspective of the trace (e.g., viewing *"Aunt to Nephew"* vs. *"Nephew to Aunt"*).
+3. **Animated 180° Perspective Swap Button (`btnSwapTracePersons`)**:
+   - Features a smooth hardware-accelerated 180° rotation animation (`swapRotationDegrees += 180f` on `iconSwapTraceWrap`).
+   - Instantly inverts Person A and Person B with zero lag, allowing researchers to flip generational perspective (e.g., viewing *"Aunt to Nephew"* vs. *"Nephew to Aunt"*).
 
-4. **The Self-Selection Sentry**:
+4. **Recent Trace Activity Stream (`layoutRecentTraces`, `containerRecentTraces`)**:
+   - Automatically records recent kinship calculations in Cloud Firestore and renders historical trace cards (`item_recent_trace.xml`) directly beneath the selector.
+   - Displays past relationship queries, computed degrees, and relative timestamps (`tvRecentTraceTime`), enabling 1-tap review of prior family searches.
+
+5. **The Self-Selection Sentry**:
    - If both Person A and Person B are set to the same individual (as currently shown with `Yuuno` in a single-member tree), [`TraceActivity.kt` lines 149–152](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/TraceActivity.kt#L149-L152) halts execution with an alert:
      > *"You selected the same person. Please choose two different family members."*
    - KinTrace requires two distinct individuals to perform consanguinity analysis.
@@ -1636,6 +1653,9 @@ $$\text{Degree} = \max(d_1, d_2)$$
 
 #### 2. Collateral Calculation (Branching Relatives via MRCA)
 $$\text{Degree} = d_1 + d_2 \quad (\text{Steps from A to MRCA} + \text{Steps from B to MRCA})$$
+
+- **Double First Cousins vs. Half-Double Cousins Engine**: KinTrace detects when two individuals share **both sets of grandparents** (e.g., when two brothers marry two sisters). While standard software misclassifies them as simple first cousins, KinTrace's engine accurately categorizes them as **Double First Cousins**, noting that they share approximately 25% of their genetic heritage (equivalent to half-siblings) while remaining collateral relatives in the 4th civil degree.
+- **Historical Lifespan Overlap Validation**: Checks birth years of spouses and parent-child links. If a gap exceeds 80 years or birth years indicate individuals lived in different centuries, the engine flags a chronological warning preventing accidental namesake linkages.
 
 | Relationship | Steps from A ($d_1$) | Steps from B ($d_2$) | Math Formula ($d_1 + d_2$) | Resulting Civil Degree | Family Code Legal Status |
 | :--- | :---: | :---: | :---: | :--- | :--- |
@@ -1748,7 +1768,7 @@ val degree = min + max
 - **Interactive Canvas Engine**: `FamilyTreeView` *(Custom 2D hardware-accelerated canvas engine declared in `InteractiveTreeActivity.kt#L2288`)*
 - **Horseshoe Fan Chart Engine**: `HorseshoeFanChartView` *(Custom polar coordinate canvas view in `FamilyTreeActivity.kt`)*
 - **Generational Pedigree Adapter**: [`GenerationalPedigreeAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/GenerationalPedigreeAdapter.kt)
-- **Custom Drag-and-Drop Layout Model**: [`CustomTreeLayout.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/model/CustomTreeLayout.kt)
+- **Custom Drag-and-Drop Layout Model**: [`CustomTreeLayout.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/CustomTreeLayout.kt)
 - **Real-Time Synchronizer**: [`CentralTreeSynchronizer.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt)
 - **Tools Popover Helper**: [`TreeToolsPopoverHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TreeToolsPopoverHelper.kt)
 
@@ -1947,9 +1967,15 @@ Each card is engineered with specific genealogical data points:
    - The focal point at the base of the horseshoe.
    - Summarizes the core clan lineage name, total active members (`21 Members`), and generational depth (`4 Gens`).
    - Labeled with the genealogical orientation guide: `Inner Ring = Older Gen  •  Outer Ring = Newer Gen`.
-2. **Generational Arc Wedges**:
-   - Each relative occupies a precision-calculated angular wedge proportional to their genealogical branch.
-   - Each wedge displays the relative's **Full Name** and **Vital Lifespan** (e.g., *Arthur Malone 1935–2015*, *William Vance 1936–2010*, *Grace Vance 1963–2021*).
+2. **Generational Arc Wedges & The Living Plant Growth Engine**:
+   - **Adaptive World Scaling ("Grows Like a Plant")**:
+     - *Under 100 members*: The chart renders in a compact 840×840 vector canvas with an inner center radius of 92px and maximum outer radius of 392px.
+     - *100+ members (or ring count ≥ 32)*: The Fan Chart dynamically expands its logical radius and ring depth like a growing plant into a 1680×1680 vector world (`maxRadius = 780px`, `rCenter = 145px`, `ringGap = 10px`)!
+   - **Upright Radial Spoke Orientation with Strict Wedge Clipping**:
+     - In large trees, standard horizontal text overflows. KinTrace rotates labels along upright radial spokes and applies strict geometric canvas clipping (`clipPath`) to ensure text never bleeds outside wedge borders.
+     - In expanded charts, single-line radial spoke nameplates (`"Alba Bugarin (2016–)"`) maximize readability across narrow outer generational strips.
+   - **Hardware-Accelerated 800% Retina Vector Zoom**:
+     - Renders vector graphics scaled to the physical device pixel ratio, providing razor-sharp typography up to 800% zoom without blurriness.
 3. **Paternal & Maternal Lineage Split**:
    - The vertical midline neatly bifurcates the horseshoe:
      - **Left Half**: Paternal bloodline lineages (*Malone* line).
@@ -2289,7 +2315,7 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 > **Panelist Probe**: *Is the custom drag-and-drop organize mode stored locally on the phone or synced globally?*
 > 
 > **Your Layman's Answer:**
-> *"It is synchronized globally through Cloud Firestore. When an Owner or Editor arranges cards in Organize Mode and taps 'Done', the custom coordinate positions are serialized into a [`CustomTreeLayout`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/model/CustomTreeLayout.kt) document in Firestore. Whenever any family member opens the interactive tree on their own phone, our [`CentralTreeSynchronizer`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt) applies those exact coordinate positions in real time."*
+> *"It is synchronized globally through Cloud Firestore. When an Owner or Editor arranges cards in Organize Mode and taps 'Done', the custom coordinate positions are serialized into a [`CustomTreeLayout`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/CustomTreeLayout.kt) document in Firestore. Whenever any family member opens the interactive tree on their own phone, our [`CentralTreeSynchronizer`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/CentralTreeSynchronizer.kt) applies those exact coordinate positions in real time."*
 
 ---
 
@@ -2350,10 +2376,20 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 3. **Dynamic Member Counter Pill (`21 members`)**:
    - Displays the total live count of individuals in this clan tree.
    - When a search filter is typed, this dynamically updates to show match density (e.g., `3 of 21 members`).
-4. **Dual-Index Real-Time Search Bar**:
-   - Performs instant keystroke filtering across **two distinct data dimensions**:
-     - **Name matching**: Searches first names and surnames (e.g., typing *"Malone"* or *"Vance"*).
-     - **Vital status matching**: Users can literally type **`"deceased"`** to see all departed ancestors, or **`"living"`** to see active relatives.
+4. **4 Horizontal Quick Filter Chips with Live Count Badges**:
+   - `chipFilterAll`: `"All (21)"` — Shows all documented members.
+   - `chipFilterLiving`: `"Living (15)"` — Isolates active, living relatives.
+   - `chipFilterDeceased`: `"Deceased (6)"` — Displays departed ancestors for memorial and genealogical review.
+   - `chipFilterMissingParents`: `"Missing Parents (2)"` — Isolates unconnected root relatives requiring parent linkage.
+   - Each chip displays dynamic, real-time count badges that recalculate instantly as records are updated.
+
+5. **3-Mode Sort Chips (`AZ`, `Oldest First`, `Youngest First`)**:
+   - `chipSortAZ`: Sorts alphabetically by member name (A–Z).
+   - `chipSortOldest`: Sorts chronologically by birth year, placing earliest progenitors at the top.
+   - `chipSortYoungest`: Sorts by youngest descendants first, ideal for reviewing new family additions.
+
+6. **Combined Real-Time Filter & Search Indexer**:
+   - The search bar and active filter chips work in tandem through `filterAndSortMembers()`. Users can filter by `"Living"`, sort by `"Oldest"`, and type `"Cremen"` simultaneously with 0ms query latency.
 
 ---
 
@@ -3481,8 +3517,16 @@ When demonstrating this screen during your defense:
 #### Step 3: Trigger the Export & Show the File
 5. Tap **"Export as PDF"**:
    - The button transitions to `"Generating comprehensive PDF report..."`.
-   - Within 1–2 seconds, a green confirmation toast appears: `"✅ Comprehensive PDF Report saved: Malone_Family_Report.pdf"`.
-6. Open the phone's notification bar or Downloads app to display the resulting PDF:
+   - Within 1–2 seconds, KinTrace automatically displays the **Post-Export Action Dialog** (`showPostExportActionModal`):
+     > *"Your family tree archive has been saved to your device's Downloads folder:
+
+📄 Malone_Family_Report.pdf
+
+Would you like to open it now or share it with family?"*
+   - **`[Open File]` Action**: Immediately launches an `ACTION_VIEW` intent via Android's secure `FileProvider`, opening the report in the user's default PDF or image viewer.
+   - **`[Share]` Action**: Launches an `ACTION_SEND` intent with `EXTRA_STREAM`, allowing the user to share the certified report directly over Messenger, Google Drive, WhatsApp, or Gmail.
+   - **`[Done]` Action**: Dismisses the modal safely.
+6. Tap **"Open File"** to inspect the resulting certified report:
    > *"As you can see, the generated PDF contains an executive cover with verified metrics, an embedded visual diagram of our tree, and a paginated directory table suitable for legal submission, family reunions, or genealogical archives."*
 
 ---
@@ -4818,3 +4862,993 @@ When presenting this screen during your capstone defense:
 ---
 
 *(End of Chapter 18 — Ready for your next screen).*
+
+---
+
+
+# 🔔 Chapter 19: The Clan Alert Dispatcher & Notification Command Hub
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`NotificationsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/NotificationsActivity.kt)
+- Associated Layout: [`activity_notifications.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_notifications.xml)
+- List Item Layout: [`item_notification.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_notification.xml)
+- Recycler Adapter: [`NotificationAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/NotificationAdapter.kt)
+- Logic & Notification Engine: [`NotificationHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/NotificationHelper.kt)
+- Data Model: [`NotificationRecord.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/NotificationRecord.kt)
+- Header Bell Icon & Badge: [`ic_header_notification_bell.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/drawable/ic_header_notification_bell.xml)
+
+---
+
+### 19.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"The Clan Alert Dispatcher is KinTrace's central real-time nervous system. It ensures that family tree editors and elders never miss critical events—whether a relative requests tree access, an editor updates a birth record, a civil marriage rule is triggered, or the system broadcasts a platform maintenance alert. It unifies high-priority security alerts with day-to-day genealogical updates, categorizes them across 5 dedicated filter chips, and provides 1-tap deep-linking that teleports the user directly to the exact screen where action is required."*
+
+---
+
+### 19.2 Screen Anatomy & Visual Elements (What the Panelist Sees)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ← Back      🔔 Notifications                           [Mark all read]      │
+│             3 unread notifications                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  [All (7)]  [Access (2)]  [Records (3)]  [Validation (1)]  [Security (1)]   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 📢 SYSTEM MAINTENANCE ADVISORY                                12m ago · NEW │
+│ Scheduled maintenance on Sunday at 2:00 AM PHT for database index tuning.   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 👤 ACCESS REQUEST: Mateo Santos                                1h ago · NEW │
+│ Requested Editor access to Santos-Reyes Heritage Clan.                      │
+│ ➔ Tap to review pending request in Clan Privacy Desk                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🌳 RECORD ADDED: Clara Millare                                       3h ago │
+│ Gabriel Cremen added Clara Millare (Daughter) to Generation 4.              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ⚠️ VALIDATION ALERT: Unlinked Parent Node                           Yesterday │
+│ Rodrigo Cremen has no parent connection set. Tap to review.                │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Header Navigation & Live Unread Counter**:
+   - `btnBack`: Returns smoothly to the previous dashboard.
+   - `tvTitle` & `tvSubtitle`: Displays `"Notifications"` along with a dynamic real-time unread tally (e.g., `"3 unread notifications"`).
+   - `btnMarkAllRead`: Golden action pill in the top-right corner that marks all pending unread notifications as read across Cloud Firestore in one tap.
+
+2. **5 Horizontal Category Filter Chips**:
+   - `chipAll`: Shows all alerts chronologically.
+   - `chipAccess`: Filters for clan join requests, role upgrades (Viewer to Editor), and invitations.
+   - `chipRecords`: Filters for newly added relatives, profile photo uploads, document attachments, and biographical updates.
+   - `chipValidation`: Filters for relationship integrity warnings, incomplete parent links, and civil marriage rule flags.
+   - `chipSecurity`: Filters for password changes, new device logins, and system administrator announcements.
+
+3. **Interactive Notification Cards (`item_notification.xml`)**:
+   - **Severity Accent Strip & Icon**: Color-coded visual indicator (Gold for announcements/access, Mint for records, Crimson/Amber for validation and security).
+   - **Title & Relative Timestamp**: Formatted using human-friendly relative time (e.g., `"12m ago"`, `"2h ago"`, `"Yesterday"`).
+   - **Unread Status Dot**: A glowing emerald-gold dot indicating unread status; smoothly disappears once tapped.
+   - **1-Tap Deep-Linking Action**: Tapping any card marks it as read and automatically redirects the user to the relevant screen (e.g., taking an elder directly to the Pending Requests tab in `PrivacyControlsActivity`).
+
+---
+
+### 19.3 The Core Architectural Mechanisms Under the Hood
+
+```mermaid
+flowchart TD
+    A[Event Trigger: Join Request / Tree Edit / System Advisory] --> B[FirestoreHelper / NotificationHelper]
+    B --> C[Cloud Firestore Collection: users/{userId}/notifications]
+    B --> D[Global System Announcements: system/announcements]
+    C --> E[Dual Real-Time Snapshot Listeners in NotificationsActivity]
+    D --> E
+    E --> F[In-Memory Deduplication & Timestamp Sorting]
+    F --> G[5-Way Category Filter Engine: All / Access / Records / Validation / Security]
+    G --> H[RecyclerView Render via NotificationAdapter]
+    H --> I{User Taps Notification Card}
+    I -->|Mark as Read| J[Atomic Firestore Update: isRead = true]
+    I -->|Deep Link: Access Request| K[Teleport to PrivacyControlsActivity Tab 1]
+    I -->|Deep Link: Validation Alert| L[Teleport to TreeAuditActivity Wizard]
+```
+
+#### 1. Dual Real-Time Snapshot Architecture
+Unlike ordinary apps that poll a server every few minutes, `NotificationsActivity` maintains two simultaneous, low-overhead Firestore snapshot listeners:
+- **Personal Stream**: Listens to `users/{userId}/notifications` for direct clan alerts.
+- **Platform Advisory Stream**: Listens to `system/announcements` where system administrators broadcast emergency maintenance or update alerts.
+Both streams are merged in memory, deduplicated, and sorted in descending order so the newest alert always appears at the very top.
+
+#### 2. 1-Tap Deep-Linking Teleportation
+When an elder receives an alert saying `"Mateo Santos requested Editor access"`, tapping the alert does not leave the user stranded on the notification screen. Instead, the intent router inspects the notification's category and payload metadata, immediately opening [`PrivacyControlsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/PrivacyControlsActivity.kt) with `TAB_INDEX = 1` pre-selected. The elder lands directly on the Pending Requests queue ready to approve or reject with a single tap.
+
+#### 3. Optimistic UI Updates & Mark All Read
+When the user taps `[Mark all read]`:
+1. The UI instantly updates all cards to the read state with zero perceptible lag (optimistic update).
+2. A background batch process commits `isRead = true` across all unread document IDs in Cloud Firestore.
+3. The unread badge counter on the Home dashboard bell icon updates immediately via the centralized tree synchronizer.
+
+---
+
+### 19.4 Capstone Defense Q&A: Critical Panelist Questions Answered
+
+#### 🎓 Question 1: *"Why did you build an in-app notification center instead of relying purely on Android system push notifications?"*
+> **Plain English Defense Script:**
+> *"Push notifications can easily be dismissed, disabled in phone settings, or lost when a user is offline. For a collaborative family heritage platform, having an in-app audit trail of clan activity is essential. When an elder logs into KinTrace, the Notification Center acts as an immutable mailbox where they can review who joined their tree, what records were edited, and whether any validation errors were detected—even if their phone had 'Do Not Disturb' enabled. Furthermore, it allows 1-tap deep-linking directly into clan governance tools like the Access Approval desk."*
+
+#### 🎓 Question 2: *"How do system administrator announcements integrate with everyday user notifications?"*
+> **Plain English Defense Script:**
+> *"In [`NotificationsActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/NotificationsActivity.kt), we use a dual-stream architecture. Platform maintenance broadcasts originating from the Citadel Command Hub are stored globally in `system/announcements`. The activity merges these broadcast documents with the user's private notification collection in memory, prefixing them with a distinct `SYS_ANN_` tag. This ensures that platform-wide alerts are delivered instantaneously to all active users without having to write duplicate copies to thousands of individual user databases, saving significant Firestore storage costs."*
+
+---
+
+### 19.5 Step-by-Step Defense Walkthrough: Live Demo Script
+
+1. **Step 1: Open the Notification Center**
+   - Tap the **Header Bell Icon** on the Home dashboard.
+   - *Say to panelists:* *"Here is KinTrace's centralized Clan Alert Dispatcher. Notice the header shows '3 unread notifications' with a golden Mark All Read action button."*
+2. **Step 2: Demonstrate the 5 Filter Chips**
+   - Tap **`[Access]`** to view pending clan invitations and role requests.
+   - Tap **`[Records]`** to see family members recently added or edited by relatives.
+   - Tap **`[Validation]`** to isolate civil marriage or tree consistency alerts.
+3. **Step 3: Execute Deep-Linking Teleportation**
+   - Tap on an **Access Request** card.
+   - Show how the app instantly routes into `PrivacyControlsActivity` on the Pending Requests tab, placing the reviewer directly in front of the approval dialog!
+4. **Step 4: Mark All as Read**
+   - Tap **`[Mark all read]`** and return to Home.
+   - Show how the notification bell badge disappears immediately in real time.
+
+---
+
+---
+
+
+# 🛡️ Chapter 20: The Tree Integrity Sentinel & Guided Conflict Resolution Wizard
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`TreeAuditActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/TreeAuditActivity.kt)
+- Associated Layout: [`activity_tree_audit.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_tree_audit.xml)
+- Guided Wizard Stepper Dialog: [`dialog_tree_conflict_wizard.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_tree_conflict_wizard.xml)
+- Issue Card Layout: [`item_audit_issue.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_audit_issue.xml)
+- Option Item Layout: [`item_wizard_resolution_option.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_wizard_resolution_option.xml)
+- Recycler Adapter: [`TreeAuditAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/TreeAuditAdapter.kt)
+- Audit & Conflict Engine: [`ConflictScanner.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/ConflictScanner.kt)
+- Kinship Service Engine: [`FamilyRelationshipService.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/service/FamilyRelationshipService.kt)
+
+---
+
+### 20.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"The Tree Integrity Sentinel is KinTrace's automated genealogical doctor and legal compliance inspector. As family trees grow to hundreds of members across multiple generations, humans inevitably introduce mistakes—such as linking spouses who are legally first cousins under Article 38 of the Philippine Family Code, creating one-way broken parent links, or entering biologically impossible birth years. KinTrace continuously scans the entire graph, categorizes discrepancies into Critical Errors and Warnings, and provides a 1-tap interactive Guided Resolution Wizard that repairs broken links atomically without risking data loss."*
+
+---
+
+### 20.2 Screen Anatomy & Visual Elements (What the Panelist Sees)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ← Back      🛡️ Tree Integrity Sentinel                         [Audit Now]  │
+│             Santos-Reyes Heritage Clan · 12 Issues Detected                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  [All (12)]                 [Critical (4)]                 [Warnings (8)]   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ✨ Start Guided Resolution (12 Issues)                         [⚡ Fix All] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🚨 CRITICAL ERROR · CIVIL MARRIAGE IMPEDIMENT                               │
+│ Juan Santos & Maria Santos (Spouses)                                        │
+│ Collateral blood relatives within the 4th civil degree (First Cousins).    │
+│ Void from the beginning under Philippine Family Code Article 38(1).         │
+│ ➔ [Repair Marriage Link]                                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ⚠️ WARNING · ONE-WAY PARENT LINK DISCONNECTED                               │
+│ Clara Santos (Daughter)                                                     │
+│ Roberto Santos is recorded as father, but Roberto's profile has no child.   │
+│ ➔ [Sync Reciprocal Parent Link]                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ⚠️ WARNING · CHRONOLOGICAL LIFESPAN ANOMALY                                 │
+│ Elena Reyes (Mother) & Pedro Reyes (Son)                                    │
+│ Mother was recorded as 9 years old when child was born.                     │
+│ ➔ [Edit Birth Dates]                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Header Navigation & Health Tally**:
+   - `btnBack`: Returns to Family Insights or Tree Settings.
+   - `tvAuditTitle` & `tvAuditSubtitle`: Displays the active clan name and the live count of unresolved discrepancies.
+   - `btnAuditNow`: Forces an immediate re-scan across all Firestore documents in memory.
+
+2. **3 Severity Filter Chips**:
+   - `chipFilterAll`: Displays the complete combined list of issues.
+   - `chipFilterCritical`: Filters for non-negotiable legal impediments (Art. 37/38 violations) and circular parent-child loops.
+   - `chipFilterWarnings`: Filters for minor inconsistencies, such as one-way unreciprocated links, missing birth years, or unusually large age gaps.
+
+3. **Guided Resolution Launcher (`btnLaunchConflictWizard`)**:
+   - A prominent golden action button: `"✨ Start Guided Resolution (N Issues)"`.
+   - Accompanied by a quick `"⚡ Fix All"` option for safe, deterministic repairs (such as synchronizing one-way parent-child links).
+
+---
+
+### 20.3 The Guided Resolution Stepper Wizard (`dialog_tree_conflict_wizard.xml`)
+
+When the user taps the Guided Resolution button, KinTrace opens an interactive modal stepper:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🛡️ GUIDED RESOLUTION STEPPER                                     [Close ✕]  │
+│ Step 3 of 12 (25% Complete)                                                 │
+│ [█████████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Issue: One-Way Broken Parent Link                                           │
+│ "Clara Santos lists Roberto Santos as father, but Roberto is missing Clara" │
+│                                                                             │
+│ Choose how KinTrace should resolve this:                                    │
+│                                                                             │
+│ (●) Option A: Sync Reciprocal Link (RECOMMENDED · AUTO-FIX)                 │
+│     Add Clara to Roberto Santos's biological children list.                 │
+│                                                                             │
+│ ( ) Option B: Disconnect Parent Link                                        │
+│     Remove Roberto Santos as Clara's father.                                │
+│                                                                             │
+│ ( ) Option C: Manual Edit Profile                                           │
+│     Open Clara's full profile to modify parents manually.                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ [◄ Previous]                  [Skip]                  [Apply Resolution ➔]  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+- **Dynamic Progress Bar (`progressWizardSteps`)**: Visually indicates completion percentage (e.g., 25% complete).
+- **Interactive Option Radio Cards**: Each card displays a title, descriptive explanation, and a badge pill (`RECOMMENDED` in Mint, `AUTO-FIX` in Slate, `MANUAL EDIT` in Gold).
+- **Atomic Execution (`btnWizardPrimaryChoice`)**: Tapping **"Apply Resolution"** executes the repair in Cloud Firestore atomically, dynamically removes the conflict card from the queue, and automatically advances to the next issue.
+- **Victory State**: When the last issue is resolved, the header dynamically transforms to `"🏆 ALL ISSUES RESOLVED"` with a celebratory Mint green badge.
+
+---
+
+### 20.4 Architectural Mechanisms Under the Hood
+
+```mermaid
+sequenceDiagram
+    participant User as Clan Editor
+    participant Activity as TreeAuditActivity
+    participant Scanner as ConflictScanner
+    participant Service as FamilyRelationshipService
+    participant DB as Cloud Firestore (FirestoreHelper)
+
+    User->>Activity: Opens Tree Integrity Sentinel
+    Activity->>Scanner: scanAll(cachedPersons)
+    Scanner->>Service: Check Civil Code Consanguinity (Arts. 37 & 38)
+    Scanner->>Scanner: Check Reciprocal Parent-Child Symmetry
+    Scanner->>Scanner: Check Lifespan Consistency (>80y / <12y)
+    Scanner-->>Activity: Returns List<Conflict>
+    Activity-->>User: Displays Issues grouped by Severity
+    User->>Activity: Taps "Start Guided Resolution"
+    Activity-->>User: Opens dialog_tree_conflict_wizard
+    User->>Activity: Selects Option A & Taps "Apply Resolution"
+    Activity->>DB: Atomic WriteBatch (Syncs reciprocal links)
+    DB-->>Activity: Success confirmation
+    Activity->>Activity: Remove resolved issue & Advance step
+    Activity-->>User: Updates Stepper Progress Bar
+```
+
+#### 1. Civil Law Impediment Scanner (Articles 37 & 38)
+KinTrace scans every linked spouse pair against [`FamilyRelationshipService.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/service/FamilyRelationshipService.kt). If two spouses share common ancestors within the 4th civil degree (such as first cousins, uncles/nieces, or siblings), the scanner immediately flags a **Critical Error** citing the exact statutory article of the Philippine Family Code.
+
+#### 2. Reciprocal Symmetry Engine
+In a relational database or tree graph, parent-child links must be bidirectional: if Person A is the father of Person B, Person B's `fatherId` must be Person A's ID. The scanner verifies graph symmetry in $O(N)$ time. If an editor deleted a parent on one screen but the child still points to that parent, the sentinel detects the orphan reference and offers a 1-tap auto-repair.
+
+#### 3. Chronological Sanity Checks
+- **Child Born Before Parent Was 12**: Flags a biological warning if a mother or father was younger than 12 at child's birth.
+- **Child Born After Father's Death (>10 Months)**: Flags an impossible posthumous timeline conflict.
+- **Cross-Century Marriage (>80 Year Gap)**: Flags accidental linkages between namesake ancestors living in different centuries.
+
+---
+
+### 20.5 Capstone Defense Q&A: Critical Panelist Questions Answered
+
+#### 🎓 Question 1: *"What happens if a user ignores these warnings? Does KinTrace delete their tree?"*
+> **Plain English Defense Script:**
+> *"No, KinTrace never deletes family trees or destroys user data. The Tree Integrity Sentinel functions as a non-destructive advisory governance tool. It flags legal impediments and chronological errors with clear, educational explanations, empowering family elders to make informed corrections. Even when Critical Errors exist, the tree remains accessible in view-only mode while the Guided Resolution Wizard provides step-by-step options to heal the data cleanly."*
+
+#### 🎓 Question 2: *"How does the Guided Resolution Wizard prevent data corruption when fixing two relatives simultaneously?"*
+> **Plain English Defense Script:**
+> *"In [`TreeAuditActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/TreeAuditActivity.kt), every resolution action executes through an atomic Firestore `WriteBatch`. For instance, when healing a broken one-way link between a father and daughter, the batch writes the daughter's ID into the father's `childrenIds` list while simultaneously ensuring the daughter's `fatherId` is set. Both database updates succeed together or fail together—there is zero possibility of a half-applied edit."*
+
+---
+
+### 20.6 Step-by-Step Defense Walkthrough: Live Demo Script
+
+1. **Step 1: Open the Sentinel from Insights or Tree Menu**
+   - Tap **`[🛡️ Tree Audit]`** from Family Insights.
+   - *Say to panelists:* *"KinTrace has just performed a deep integrity scan across all members in this clan. Notice how it categorizes 4 Critical Errors and 8 Warnings."*
+2. **Step 2: Demonstrate Severity Filtering**
+   - Tap **`[Critical]`** to isolate the first-cousin civil marriage violation.
+   - *Say to panelists:* *"Here is an Article 38 violation detected under Philippine Family Code. The app explains exactly why this union cannot be validly recorded as a legal civil marriage."*
+3. **Step 3: Launch Guided Resolution Wizard**
+   - Tap **`[✨ Start Guided Resolution]`**.
+   - Show how the modal stepper presents the problem in simple layman's terms with a clear **Recommended Auto-Fix**.
+4. **Step 4: Execute a 1-Tap Repair**
+   - Tap **`[Apply Resolution]`**.
+   - Show the progress bar advance from 25% to 33%, with the resolved card disappearing smoothly from the list in real time!
+
+---
+
+---
+
+
+# 👤 Chapter 21: The Master Member Biographical Profile, Timeline & Archival Vault
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`MemberDetailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MemberDetailActivity.kt) *(Comprehensive 2,160-line master profile activity)*
+- Associated Layout: [`activity_member_detail.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_member_detail.xml)
+- Timeline Event Item: [`item_timeline_event.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_timeline_event.xml)
+- Real-Time Sync Coordinator: [`MemberDetailSyncCoordinator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/sync/MemberDetailSyncCoordinator.kt)
+- Dynamic Timeline Engine: [`TimelineGenerator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/TimelineGenerator.kt)
+- Consanguinity Calculator: [`LinealConsanguinityCalculator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/LinealConsanguinityCalculator.kt)
+- Document & Archival Vault: [`DocumentHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/DocumentHelper.kt)
+
+---
+
+### 21.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"The Member Detail Profile is KinTrace's ultimate biographical showcase and genealogical dossier. Beyond storing simple names and dates, it reconstructs a relative's complete life story: synthesizing an interactive chronological timeline of major milestones, computing their legal lineal consanguinity from the 1st through 4th degrees, automatically writing a narrative biography with one tap, securely archiving historical documents and portrait photographs, and providing a direct 1-tap shortcut to trace bloodline relationships with any other clan member."*
+
+---
+
+### 21.2 Screen Anatomy & Visual Elements (What the Panelist Sees)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ← Back      👤 Member Profile                              [Edit Profile ✏️] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│   [ 📷 Circular Avatar ]     Gabriel Millare Cremen                         │
+│                              1952 – Living (Age 72) · 🌿 Generation 3       │
+│                              [🧬 Trace Bloodline With Gabriel ➔]            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 📖 BIOGRAPHICAL NARRATIVE                               [✨ Auto-Generate]   │
+│ Gabriel Millare Cremen was born in 1952. He married Fely Millare in 1978.   │
+│ Together they raised 3 children: Maraiah Queen, Joshua, and Kenneth. He     │
+│ currently resides in Cavite, Philippines as a clan elder.                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ⏳ LIFE-EVENTS TIMELINE                                                      │
+│ • 1952 — 🍼 Born in Naic, Cavite to Roberto Cremen & Elena Millare          │
+│ • 1978 — 💍 Married Fely Millare in Manila Cathedral                         │
+│ • 1980 — 👶 Welcomed first child: Maraiah Queen Cremen                      │
+│ • 1983 — 👶 Welcomed second child: Joshua Cremen                            │
+│ • 1987 — 👶 Welcomed third child: Kenneth Cremen                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🏛️ LINEAL CONSANGUINITY BREAKDOWN (1ST TO 4TH DEGREE)                       │
+│ [1° Parents & Children (5)]  [2° Grandparents & Siblings (8)]               │
+│ [3° Great-Grandparents & Uncles (12)]  [4° First Cousins (16)]              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🗄️ ARCHIVAL PROOF VAULT                                   [+ Add Document]  │
+│ [📄 1978_Marriage_Certificate.pdf]    [🖼️ 1952_Baptismal_Record.jpg]        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Heritage Hero Header**:
+   - **Circular HD Portrait (`ivMemberPhoto`)**: Rendered via `DocumentHelper.getCachedCircularAvatar` with an elegant gold border ring.
+   - **Lifespan & Generation Badge**: Displays birth/death years, auto-calculated age (e.g., `"1952 – Living (Age 72)"`), and generation tag (`"Generation 3"`).
+   - **Quick Trace Shortcut (`btnQuickTrace`)**: Prominent action button (`"🧬 Trace Bloodline With [Name] ➔"`) that pre-populates this relative as Person A in `TraceActivity` for instant comparison.
+   - **Timeline Conflict Badge (`tvTimelineConflictBadge`)**: Appears automatically if an anomaly exists (e.g., `"⚠️ Timeline Conflict (> 10 mos after father's death)"`).
+
+2. **Automated Biography Builder (`btnAutoGenerate`, `etBiography`)**:
+   - Allows editors to type custom life stories or tap **"✨ Auto-Generate"**.
+   - The auto-generator compiles known database facts (birth, parents, marriage, children count, profession) into a grammatically coherent narrative in seconds.
+
+3. **Chronological Life-Events Timeline (`layoutTimeline`)**:
+   - Generates an interactive vertical milestone track using `TimelineGenerator`.
+   - Automatically merges birth, wedding, children's birth dates, and passing events into a chronological story without requiring manual entry.
+
+4. **Lineal Consanguinity Accordion (1st to 4th Degree)**:
+   - `containerDegree1`: 1st Civil Degree (Parents & Children).
+   - `containerDegree2`: 2nd Civil Degree (Grandparents, Grandchildren & Siblings).
+   - `containerDegree3`: 3rd Civil Degree (Great-Grandparents, Great-Grandchildren, Uncles, Aunts, Nephews, Nieces).
+   - `containerDegree4`: 4th Civil Degree (First Cousins, Great-Great Grandparents).
+
+5. **Archival Proof Vault (`DocumentHelper`)**:
+   - Secure local storage for primary source evidence: birth certificates, marriage licenses, land titles, and baptismal papers.
+   - Files are hashed, named safely, and saved within app-internal sandboxed storage.
+
+---
+
+### 21.3 Architectural Mechanisms Under the Hood
+
+```mermaid
+graph TD
+    A[Member ID Loaded from Intent] --> B[MemberDetailSyncCoordinator]
+    B --> C[Fetch Member Document from Firestore]
+    B --> D[Fetch All Clan Members in Tree]
+    C & D --> E[TimelineGenerator.generate]
+    E --> F[Synthesize Chronological Event Stream]
+    C & D --> G[LinealConsanguinityCalculator]
+    G --> H[Populate 1st to 4th Degree Containers]
+    C --> I[DocumentHelper: Load Portrait & Proofs]
+    I --> J[Render UI in 60 FPS Single Pass]
+    K[Cloud Update from another device] --> B
+    B -->|Reactive Push| J
+```
+
+#### 1. Real-Time Multi-Device Synchronization (`MemberDetailSyncCoordinator`)
+If another family editor edits this member's surname, attaches a photo, or links a new child on a separate device, `MemberDetailSyncCoordinator` detects the Firestore snapshot delta and smoothly refreshes the profile UI in real time without refreshing or restarting the screen.
+
+#### 2. The Algorithmic Timeline Synthesizer
+Rather than forcing users to manually construct timelines, `TimelineGenerator` scans the family graph dynamically:
+- Takes the member's birth year as Year 0.
+- Scans `allMembersList` to find children who list this member as father or mother, extracting their birth dates.
+- Extracts spouse marriage dates.
+- Sorts all events chronologically with descriptive genealogical iconography (🍼 Birth, 💍 Marriage, 👶 Child, 🕊️ Passing).
+
+---
+
+### 21.4 Capstone Defense Q&A: Critical Panelist Questions Answered
+
+#### 🎓 Question 1: *"Why did you build an automated biography generator? Isn't it just a static text field?"*
+> **Plain English Defense Script:**
+> *"Many family members want to preserve their heritage but struggle with writing long biographies from scratch. In [`MemberDetailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MemberDetailActivity.kt), tapping **'✨ Auto-Generate'** executes our deterministic natural language engine. It inspects the member's parents, marital status, children count, and birth dates to write an eloquent biographical summary in plain English. The user can then freely review, edit, or append personal family memories before saving."*
+
+#### 🎓 Question 2: *"How does KinTrace protect primary source documents like birth certificates uploaded to the Archival Vault?"*
+> **Plain English Defense Script:**
+> *"Under the Philippine Data Privacy Act (RA 10173), civil registry documents are sensitive personal information. In [`DocumentHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/DocumentHelper.kt), uploaded images and PDFs are stored in sandboxed app-internal storage (`context.filesDir/documents/`) rather than public device folders. File paths are never exposed to external apps without scoped `FileProvider` authorization, and access is governed strictly by KinTrace's Botanical Role-Based Access Control."*
+
+---
+
+### 21.5 Step-by-Step Defense Walkthrough: Live Demo Script
+
+1. **Step 1: Open Member Profile from Family Records or Tree Canvas**
+   - Tap on **Gabriel Millare Cremen**.
+   - *Say to panelists:* *"Here is KinTrace's master biographical dossier. Notice the circular portrait with generation and age badges, and the 1-tap 'Trace Bloodline With Gabriel' button."*
+2. **Step 2: Demonstrate the Automated Life Timeline**
+   - Scroll down to the **Life-Events Timeline**.
+   - Show how the app dynamically stitched together his 1952 birth, 1978 marriage, and the births of his three children without any manual timeline assembly!
+3. **Step 3: Auto-Generate Biography**
+   - Tap **`[✨ Auto-Generate]`**.
+   - Watch the biography box fill with a natural, complete biographical paragraph in 1 second.
+4. **Step 4: Inspect Lineal Consanguinity**
+   - Expand the **`[1° Parents & Children]`** and **`[4° First Cousins]`** accordions.
+   - Show how every single relative is categorized strictly according to the Roman civil degrees of the Philippine Civil Code.
+
+---
+
+---
+
+
+# 🧬 Chapter 22: The Step-by-Step Relationship Path Visualizer & Generation Timeline
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`RelationshipPathActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RelationshipPathActivity.kt)
+- Associated Layout: [`activity_relationship_path.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_path.xml)
+- Kinship Service Engine: [`FamilyRelationshipService.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/service/FamilyRelationshipService.kt)
+- Path Result Model: [`RelationshipPathResult.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/RelationshipPathResult.kt)
+- Interactive Canvas Gateway: [`InteractiveTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/InteractiveTreeActivity.kt)
+
+---
+
+### 22.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"The Relationship Path Visualizer is KinTrace's ultimate lineage storytelling screen. While standard software merely states a dry label like 'Second Cousin,' KinTrace brings the bloodline connection to life through an interactive step-by-step generational pipeline. It shows the exact ascent from Person A up to their Most Recent Common Ancestor (MRCA), highlights marriage bridges with gold rings, traces the descent down to Person B, and provides a 1-tap button that highlights this entire path across the interactive family tree canvas."*
+
+---
+
+### 22.2 Screen Anatomy & Visual Elements (What the Panelist Sees)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ← Back      🧬 Step-by-Step Relationship Path              [Quick Assist ❓] │
+│             Connection: Kenneth Cremen & Bianca Millare                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  [ 4TH CIVIL DEGREE · COLLATERAL (FIRST COUSINS) ]                          │
+│  [ 🌳 Highlight On Tree Canvas ➔ ]                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────┐          │
+│  │ STEP 1 · STARTING INDIVIDUAL                                 │          │
+│  │ Kenneth Cremen (Born 1987) · Generation 4                    │          │
+│  └──────────────────────────────────────────────────────────────┘          │
+│                                │                                            │
+│                        ▲ Child of                                           │
+│                                │                                            │
+│  ┌──────────────────────────────────────────────────────────────┐          │
+│  │ STEP 2 · 1 STEP UP                                           │          │
+│  │ Gabriel Millare Cremen (Born 1952)                           │          │
+│  └──────────────────────────────────────────────────────────────┘          │
+│                                │                                            │
+│                        ▲ Child of                                           │
+│                                │                                            │
+│  ┌──────────────────────────────────────────────────────────────┐          │
+│  │ STEP 3 · 👑 MOST RECENT COMMON ANCESTOR (MRCA)               │          │
+│  │ Roberto Cremen (1925 – 2005) · Shared Grandfather            │          │
+│  └──────────────────────────────────────────────────────────────┘          │
+│                                │                                            │
+│                        ▼ Biological Parent of                               │
+│                                │                                            │
+│  ┌──────────────────────────────────────────────────────────────┐          │
+│  │ STEP 4 · 1 STEP DOWN                                         │          │
+│  │ Eduardo Cremen Millare (Born 1958)                           │          │
+│  └──────────────────────────────────────────────────────────────┘          │
+│                                │                                            │
+│                        ▼ Biological Parent of                               │
+│                                │                                            │
+│  ┌──────────────────────────────────────────────────────────────┐          │
+│  │ STEP 5 · TARGET INDIVIDUAL                                   │          │
+│  │ Bianca Millare (Born 1991) · Generation 4                    │          │
+│  └──────────────────────────────────────────────────────────────┘          │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  [ 🌳 Highlight Entire Path on Interactive Tree Canvas ]                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Header & Legal Consanguinity Badge**:
+   - `tvPathSubtitle`: Displays `"Step-by-step bloodline connection between Person A and Person B"`.
+   - `tvConsanguinityBadge`: Formatted in bold gold and emerald:
+     - For blood relatives: e.g., `"4TH CIVIL DEGREE · COLLATERAL (FIRST COUSINS)"`.
+     - For marriage ties: `"0° BLOOD CONSANGUINITY · AFFINITY (IN-LAW)"`.
+     - For marriage bridges: Displays `"💍 Marriage Bridge: [Name] (Spouse of [Other])"`.
+
+2. **Step-by-Step Generational Pipe Track**:
+   - **Step Badges (`STEP 1`, `STEP 2`, etc.)**: Clear numerical ordering from starting person to target.
+   - **Common Ancestor Crown**: The shared progenitor card is highlighted in gold with a crown icon (`👑 MOST RECENT COMMON ANCESTOR`).
+   - **Directional Connector Pipes (`addConnectorPipe`)**:
+     - Upward arrow: `▲ Child of`
+     - Horizontal ring: `💍 Married to (Marriage Bridge)`
+     - Downward arrow: `▼ Biological Parent of`
+   - **Interactive Node Cards**: Tapping any person card opens their complete biography and timeline in [`MemberDetailActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/MemberDetailActivity.kt).
+
+3. **1-Tap Canvas Highlighting (`btnHighlightOnTreeHeader` / `btnHighlightOnTreeBottom`)**:
+   - Teleports the user directly to [`InteractiveTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/InteractiveTreeActivity.kt).
+   - Passes `highlightPathIds` through the intent.
+   - Automatically pans and highlights the connecting branch lines with glowing gold halos on the 60 FPS interactive Canvas!
+
+---
+
+### 22.3 Architectural Mechanisms Under the Hood
+
+```mermaid
+flowchart TD
+    A[TraceActivity initiates Path Query] --> B[FamilyRelationshipService.calculateRelationshipPath]
+    B --> C[Find Closest Common Ancestor: MRCA / Marriage Bridge]
+    C --> D[Trace Path A: Person A -> Parent -> ... -> MRCA]
+    C --> E[Trace Path B: Person B -> Parent -> ... -> MRCA]
+    D & E --> F[RelationshipPathResult Data Object]
+    F --> G[Launch RelationshipPathActivity]
+    G --> H[Render Ascending Pipe Track]
+    H --> I[Render Common Progenitor Hero Card]
+    I --> J[Render Descending Pipe Track]
+    G --> K{User Taps 'Highlight On Tree'}
+    K --> L[Launch InteractiveTreeActivity with TRACE_HIGHLIGHT]
+    L --> M[Canvas highlights connecting bus lines in Gold]
+```
+
+#### 1. Bidirectional Graph Traversal (MRCA Discovery)
+In [`FamilyRelationshipService.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/service/FamilyRelationshipService.kt), the path engine traverses ancestral lineages from both directions simultaneously. When paths intersect at the lowest generational level, that individual is identified as the Most Recent Common Ancestor (MRCA). If the connection requires passing through a marriage, the spouse is identified as the **Marriage Bridge** with $0^\circ$ consanguinity.
+
+#### 2. Vector Pipe Connectors
+Rather than static images, the generational pipes are constructed programmatically with custom XML drawables (`path_connector_pipe.xml`). This ensures that whether a connection spans 2 generations (siblings) or 8 generations (third cousins), the vertical track renders smoothly without pixelation.
+
+---
+
+### 22.4 Capstone Defense Q&A: Critical Panelist Questions Answered
+
+#### 🎓 Question 1: *"What is a 'Marriage Bridge' and why does KinTrace highlight it separately?"*
+> **Plain English Defense Script:**
+> *"In genealogy, two people often consider themselves family even if they do not share common biological blood—such as a brother-in-law or a step-parent. Under the Philippine Family Code, these are relationships by affinity. KinTrace detects when a connection transitions from biological blood to a legal marriage bond, marking that specific relative with a golden '💍 Marriage Bridge' card and specifying '0° Blood Consanguinity'. This prevents confusing legal in-laws with biological blood relatives."*
+
+#### 🎓 Question 2: *"How does the 'Highlight On Tree Canvas' feature know which lines to light up?"*
+> **Plain English Defense Script:**
+> *"When the user taps 'Highlight On Tree', [`RelationshipPathActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RelationshipPathActivity.kt) packages all member IDs along the path into an `ArrayList<String> highlightPathIds` and launches [`InteractiveTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/InteractiveTreeActivity.kt) with `viewMode = 'TRACE_HIGHLIGHT'`. The custom canvas view reads these IDs, renders dimmed opacities for unrelated members, and draws vibrant golden glow paths directly along the connecting parent-child and marriage buses at 60 FPS."*
+
+---
+
+### 22.5 Step-by-Step Defense Walkthrough: Live Demo Script
+
+1. **Step 1: Calculate Kinship in Bloodline Tracer**
+   - In `TraceActivity`, select **Kenneth Cremen** and **Bianca Millare**.
+   - Tap **`[Trace Bloodline]`** then tap **`[View Visual Path ➔]`**.
+2. **Step 2: Walk Through the Generational Track**
+   - *Say to panelists:* *"KinTrace does not just tell us they are First Cousins; it proves why. Watch how it takes us 2 steps up from Kenneth to their shared grandfather Roberto Cremen, and then 2 steps down to Bianca."*
+3. **Step 3: Show the Common Progenitor Hero Card**
+   - Point out **Roberto Cremen** crowned as the MRCA.
+   - *Say to panelists:* *"Notice the crown icon and gold border identifying Roberto as the shared biological ancestor."*
+4. **Step 4: Highlight on the Interactive Canvas (The WOW Moment!)**
+   - Tap **`[🌳 Highlight On Tree Canvas]`**.
+   - Watch the app smoothly transition to the master tree canvas, centering on Kenneth and Bianca with their connecting lineage branches glowing in gold!
+
+---
+
+---
+
+
+# 🎓 Chapter 23: The Kin Academy Heritage Learning Hub & Kamag-anak Lexicon
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`KinAcademyActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/KinAcademyActivity.kt)
+- Associated Layout: [`activity_kin_academy.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_kin_academy.xml)
+- Module Item Layout: [`item_kin_academy_module.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/item_kin_academy_module.xml)
+- Recycler Adapter: [`KinAcademyModuleAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/KinAcademyModuleAdapter.kt)
+- Curriculum & Glossary Repository: [`EducationalContentRepository.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/education/EducationalContentRepository.kt)
+
+---
+
+### 23.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"The Kin Academy is KinTrace's in-app educational encyclopedia and cultural heritage repository. To make genealogical research accessible to every Filipino family, KinTrace does not merely offer technical tools—it teaches users how to use them. Through 10 interactive curriculum modules and a searchable 'Kamag-anak' Filipino-to-English legal kinship dictionary, the Academy educates users on everything from tracing generational lines and reading fan charts to understanding Philippine consanguinity law and traditional Filipino kinship terms."*
+
+---
+
+### 23.2 Screen Anatomy & Visual Elements (What the Panelist Sees)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ← Back      🎓 Kin Academy Heritage Hub                      [Quick Help ❓] │
+│             Mastering Genealogical Tracing & Philippine Kinship Laws        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  🔍 [Search lessons, terms, or legal rules...                           ] ✕ │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  [All (10)] [Foundations] [Canvas] [Bloodline] [Archival] [📖 Lexicon (32)] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 📖 MODULE 1 · FOUNDATIONS OF GENEALOGY                           [Expanded] │
+│ "Understanding Generations, Progenitors & Ahnentafel Numbering"             │
+│                                                                             │
+│ • Lesson Summary: Learn how family trees organize ancestral time.           │
+│ • Key Takeaway: Every generation up doubles your biological ancestor count. │
+│ • Practical Tip: Always start with living elders before tracing archives.   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ⚖️ MODULE 4 · PHILIPPINE CONSANGUINITY LAW & MARRIAGE RULES       [Tap to View] │
+│ "Roman Civil Degrees (Arts. 963–966) & Family Code Impediments (Art. 38)"   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🇵🇭 KAMAG-ANAK DICTIONARY (WHEN LEXICON CHIP ACTIVE)                         │
+│ • "Bilas" — Spouse of your spouse's sibling (Co-brother/sister-in-law)      │
+│ • "Pinsang Buo" — First cousin sharing biological grandparents (4th Degree) │
+│ • "Balae" — Parent of your child's spouse (In-law relationship)             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Header & Real-Time Search Bar**:
+   - `etSearchAcademy`: Allows users to type any concept (e.g., `"cousin"`, `"bilas"`, `"consanguinity"`, or `"Article 38"`) to instantly filter curriculum modules and dictionary definitions.
+   - `btnClearSearch`: One-tap clear button (`✕`) restoring the full list.
+
+2. **6 Category Filter Chips**:
+   - `chipFilterAll`: Displays all 10 educational modules.
+   - `chipFilterFoundations`: Covers basic family tree concepts and ancestral tiers.
+   - `chipFilterCanvas`: Guides users on navigating the 60 FPS interactive tree and fan charts.
+   - `chipFilterBloodline`: Explains Roman civil degree calculations and bloodline tracing.
+   - `chipFilterArchival`: Covers GEDCOM exports, PDF reports, and data privacy stewardship under RA 10173.
+   - `chipFilterLexicon`: Instantly transforms the view into the **Kamag-anak Dictionary**.
+
+3. **Expandable Module Cards (`KinAcademyModuleAdapter`)**:
+   - Tap-to-expand accordion design: Keeps the screen uncluttered while providing in-depth lessons, bulleted principles, and defense-ready definitions when opened.
+   - Smooth animation and visual badges (`Foundations`, `Legal`, `Visual Canvas`).
+
+4. **Deep-Linking Integration (`TARGET_MODULE_ID`)**:
+   - If a user taps a "Learn More" or "?" button on other screens (such as the Horseshoe Fan Chart or Tree Audit), KinTrace launches the Academy with `TARGET_MODULE_ID`, automatically scrolling to and opening that specific lesson!
+
+---
+
+### 23.3 The Philippine Kamag-anak Lexicon Dictionary
+
+When users switch to the **Lexicon** chip or search for cultural terms, KinTrace delivers exact mappings between traditional Filipino kinship terms, Western genealogical terminology, and Philippine Civil Code definitions:
+
+| Filipino Term | English Equivalent | Philippine Civil Code / Genealogical Definition |
+| :--- | :--- | :--- |
+| **Pinsang Buo** | First Cousin | Collateral relative in the **4th civil degree** sharing common biological grandparents. |
+| **Pinsang Makalawa** | Second Cousin | Collateral relative in the **6th civil degree** sharing common great-grandparents. |
+| **Bilas** | Co-sibling-in-law | The spouse of one's spouse's sibling (Affinity bond; $0^\circ$ consanguinity). |
+| **Balae** | Co-in-law | The parent of one's child-in-law (Relationship by affinity between parents of married couple). |
+| **Bayaw / Hipag** | Brother / Sister-in-law | The brother or sister of one's spouse (Affinity bond). |
+| **Manugang** | Son / Daughter-in-law | The spouse of one's child (Affinity bond in the direct descending line). |
+| **Biyanan** | Father / Mother-in-law | The parent of one's spouse (Affinity bond in the direct ascending line). |
+| **Lolo/Lola sa Tuhod** | Great-Grandparent | Direct lineal ancestor in the **3rd civil degree** (3 generations back). |
+| **Pamangkin** | Niece / Nephew | Collateral blood relative in the **3rd civil degree** (child of brother or sister). |
+
+---
+
+### 23.4 Capstone Defense Q&A: Critical Panelist Questions Answered
+
+#### 🎓 Question 1: *"Why did you include a cultural dictionary of Filipino kinship terms in an IT capstone project?"*
+> **Plain English Defense Script:**
+> *"In the Philippines, family relationships are deeply cultural. Terms like 'Bilas' or 'Balae' have no direct single-word equivalent in standard Western genealogical software like Ancestry.com or MyHeritage. By building a dedicated Kamag-anak Lexicon in [`KinAcademyActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/KinAcademyActivity.kt), KinTrace contextualizes global genealogical standards to Filipino culture, clarifying the exact civil degree and legal implications of each traditional relationship under the Philippine Family Code."*
+
+#### 🎓 Question 2: *"How does the Kin Academy support users who are confused on other screens?"*
+> **Plain English Defense Script:**
+> *"KinTrace uses a contextual deep-linking architecture. In [`FamilyTreeActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/FamilyTreeActivity.kt) or [`TraceActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/TraceActivity.kt), tapping the Quick Assist help button sends an intent with `TARGET_MODULE_ID`. The Academy catches this signal, instantly filters to the relevant lesson, and automatically expands the card so the user gets targeted guidance without having to hunt through a manual."*
+
+---
+
+### 23.5 Step-by-Step Defense Walkthrough: Live Demo Script
+
+1. **Step 1: Open the Kin Academy**
+   - Tap **`[🎓 Kin Academy]`** from the Home dashboard menu.
+   - *Say to panelists:* *"Here is KinTrace's educational learning hub, featuring 10 structured genealogy modules and our Kamag-anak dictionary."*
+2. **Step 2: Demonstrate Interactive Search**
+   - In the search bar, type `"Article 38"`.
+   - Show how the list instantly filters down to Module 4 on Philippine Consanguinity Law.
+   - Tap the card to expand and reveal the breakdown of Roman civil degrees and legal marriage impediments.
+3. **Step 3: Switch to the Kamag-anak Lexicon**
+   - Tap the **`[📖 Lexicon]`** filter chip.
+   - Show terms like *"Bilas"*, *"Balae"*, and *"Pinsang Buo"*.
+   - *Say to panelists:* *"Notice how KinTrace translates unique Filipino family terms into their formal legal definitions under Philippine law."*
+
+---
+
+---
+
+
+# ⚖️ Chapter 24: The Kinship Reference Guide & Civil Consanguinity Law Matrix
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`RelationshipTypesActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RelationshipTypesActivity.kt)
+- Associated Layout: [`activity_relationship_types.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_relationship_types.xml) *(Comprehensive 36KB legal and consanguinity matrix)*
+- Governing Legal Authorities:
+  - **Civil Code of the Philippines (Republic Act No. 386)**: Articles 963, 964, 965, 966 (Rules on Consanguinity & Degree Computation)
+  - **Family Code of the Philippines (Executive Order No. 209)**: Articles 37 & 38 (Void Marriages by Reason of Incest & Public Policy)
+
+---
+
+### 24.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"The Kinship Reference Guide is KinTrace's authoritative legal matrix and consanguinity chart. Built directly on Articles 963 through 966 of the Philippine Civil Code and Articles 37 and 38 of the Family Code, this screen demystifies the Roman civil method of computing relationship degrees. It gives families, researchers, and defense panelists a transparent, single-source reference table that explains exactly how kinship degrees are calculated across lineal and collateral lines, and clearly marks the statutory 4th civil degree boundary where marriage is legally prohibited under Philippine law."*
+
+---
+
+### 24.2 Screen Anatomy & Visual Elements (What the Panelist Sees)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ← Back      ⚖️ Relationship Types & Consanguinity                          │
+│             Roman Civil Method & Philippine Family Code Guide               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 🏛️ ROMAN CIVIL METHOD (CIVIL CODE ART. 963)                                  │
+│ "Proximity of relationship is determined by the number of generations.     │
+│ Each generation forms one civil degree."                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. LINEAL CONSANGUINITY (DIRECT VERTICAL BLOODLINE)                         │
+│ • 1° — Parent and Child (1 Gen · Father/Mother to Son/Daughter)             │
+│ • 2° — Grandparent & Grandchild (2 Gens · Lolo/Lola to Apo)                │
+│ • 3° — Great-Grandparent & Great-Grandchild (3 Gens · Lolo sa Tuhod)        │
+│ • 4° — Great-Great-Grandparent & Posterity (4 Gens · Lolo sa Talampakan)    │
+│ All lineal relationships carry perpetual marriage impediments (Art. 37).   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 2. COLLATERAL CONSANGUINITY (SHARED COMMON ANCESTOR)                        │
+│ Degree = Steps Up to Closest Common Ancestor + Steps Down                   │
+│                                                                             │
+│ • 2° [WITHIN 4TH DEGREE] — Siblings (Brothers/Sisters · 1 Up + 1 Down)      │
+│ • 3° [WITHIN 4TH DEGREE] — Uncle/Aunt & Nephew/Niece (1 Up + 2 Down)       │
+│ • 4° [WITHIN 4TH DEGREE] — First Cousins / Pinsang Buo (2 Up + 2 Down)      │
+│ • 4° [WITHIN 4TH DEGREE] — Great-Uncle/Aunt & Grandniece (1 Up + 3 Down)    │
+│ ─────────────────────────────────────────────────────────────────────────── │
+│ 🚨 STATUTORY BOUNDARY: Article 38(1) prohibits marriage up to 4th degree    │
+│ ─────────────────────────────────────────────────────────────────────────── │
+│ • 5° [BEYOND 4TH DEGREE] — First Cousin Once Removed (2 Up + 3 Down)        │
+│ • 6° [BEYOND 4TH DEGREE] — Second Cousins (3 Up + 3 Down from Great-Grand)  │
+│ • 8° [BEYOND 4TH DEGREE] — Third Cousins (4 Up + 4 Down from Great-Great)   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Header & Statutory Hero Card**:
+   - `tvHeroTitle` & `tvHeroDescription`: Highlights the fundamental tenet of Roman Civil Law codified in Article 963: *"Proximity of relationship is determined by the number of generations. Each generation forms one degree."*
+
+2. **Section 1: Lineal Consanguinity (Direct Line)**:
+   - Covers vertical ascendants and descendants without branches.
+   - Highlights Filipino generational terms (*Lolo/Lola sa Tuhod* for 3rd degree, *Lolo/Lola sa Talampakan* for 4th degree).
+   - Clarifies that under Article 37, marriage between lineal ascendants and descendants of **any degree** is incestuous and void from the beginning (*ab initio*).
+
+3. **Section 2: Collateral Consanguinity & Legal Boundaries**:
+   - Clearly divides collateral relationships into two distinct visual zones:
+     - **Within the 4th Civil Degree (Crimson & Amber Zone)**: Marked with `[WITHIN 4TH DEGREE]` badge. Includes siblings ($2^\circ$), uncles/aunts ($3^\circ$), first cousins ($4^\circ$), and great-uncles/grandnieces ($4^\circ$).
+     - **The Article 38(1) Statutory Divider**: A high-contrast visual bar warning that marriage between collateral blood relatives up to the 4th civil degree is void by reason of public policy.
+     - **Beyond the 4th Civil Degree (Mint & Slate Zone)**: Marked with `[BEYOND 4TH DEGREE]` badge. Includes first cousins once removed ($5^\circ$), second cousins ($6^\circ$), and third cousins ($8^\circ$), who are legally eligible to marry under Philippine civil law.
+
+---
+
+### 24.3 Mathematical Logic: How Civil Degrees are Computed
+
+```mermaid
+graph TD
+    A[Person A: Starting Individual] -->|1 Step Up| B[Parent]
+    B -->|1 Step Up| C[Grandparent: Closest Common Ancestor / MRCA]
+    C -->|1 Step Down| D[Uncle / Aunt]
+    D -->|1 Step Down| E[First Cousin / Person B]
+    
+    subgraph "The Roman Civil Method (Art. 964-966)"
+        B --- |Step 1: +1°| A
+        C --- |Step 2: +1°| B
+        D --- |Step 3: +1°| C
+        E --- |Step 4: +1°| D
+    end
+    
+    style C fill:#D4AF37,stroke:#06120D,color:#06120D
+    style E fill:#132B1E,stroke:#D4AF37,color:#FFFFFF
+```
+
+Under Article 966 of the Civil Code:
+1. **In the Direct Line**: You count the number of generations between the two individuals. A father to son is 1 generation ($1^\circ$); a grandfather to grandson is 2 generations ($2^\circ$).
+2. **In the Collateral Line**: You rise from Person A up to the Closest Common Ancestor (MRCA), counting one degree per generation, and then descend from that ancestor to Person B, counting one degree per generation.
+   $$\text{Collateral Civil Degree} = \text{Steps}_{\text{Ascent}} + \text{Steps}_{\text{Descent}}$$
+   - For **First Cousins**: 2 steps up to Grandparents ($+2^\circ$) $+$ 2 steps down to Cousin ($+2^\circ$) $= \mathbf{4^\circ\text{ Civil Degree}}$.
+   - For **Second Cousins**: 3 steps up to Great-Grandparents ($+3^\circ$) $+$ 3 steps down to Cousin ($+3^\circ$) $= \mathbf{6^\circ\text{ Civil Degree}}$.
+
+---
+
+### 24.4 Capstone Defense Q&A: Critical Panelist Questions Answered
+
+#### 🎓 Question 1: *"Why does KinTrace use the Roman Civil Method instead of the Canon Law method used by the Catholic Church?"*
+> **Plain English Defense Script:**
+> *"KinTrace is designed and developed in the Republic of the Philippines. Philippine law specifically codifies the **Roman Civil Method** in Articles 963 through 966 of Republic Act 386 (Civil Code of the Philippines). Under the Roman method, degrees in the collateral line are computed by summing the steps up to the common ancestor and the steps down. The Canon Law method counts only the longest branch, which differs from civil statutory law. Because KinTrace validates legal civil marriage impediments under Article 38 of the Family Code, our engine strictly adheres to the official statutory Roman Civil Method."*
+
+#### 🎓 Question 2: *"Why are First Cousins 4th degree, but Second Cousins are 6th degree? Why did it skip 5th degree?"*
+> **Plain English Defense Script:**
+> *"In collateral genealogy between individuals of the same generation, each generational step back adds one step on the ascent and one step on the descent—adding 2 degrees per generation! For first cousins, you go 2 steps up to grandparents and 2 steps down, totaling 4 degrees. For second cousins, you go 3 steps up to great-grandparents and 3 steps down, totaling 6 degrees. The 5th degree belongs to relatives on unequal generational tiers, specifically a **First Cousin Once Removed** (the child of your first cousin, which is 2 steps up and 3 steps down)."*
+
+---
+
+### 24.5 Step-by-Step Defense Walkthrough: Live Demo Script
+
+1. **Step 1: Open the Reference Guide**
+   - In `TraceActivity`, tap **`[⚖️ Legal Consanguinity Guide]`** or open it via Kin Academy.
+   - *Say to panelists:* *"Here is KinTrace's Philippine Civil Code Reference Guide, which provides complete academic and legal justification for our kinship calculation engine."*
+2. **Step 2: Walk Through the Direct Lineal Table**
+   - Point to the lineal table: 1° Parent, 2° Grandparent, 3° Great-Grandparent (*Lolo sa Tuhod*), 4° Great-Great-Grandparent (*Lolo sa Talampakan*).
+   - *Say to panelists:* *"Notice how our system integrates traditional Filipino generational terminology with the statutory articles of the Civil Code."*
+3. **Step 3: Point Out the Article 38 Marriage Impediment Boundary**
+   - Scroll down to the Collateral section.
+   - Point out the high-contrast dividing line between 4th degree (First Cousins) and 5th degree (Cousin Once Removed).
+   - *Say to panelists:* *"This amber divider represents the statutory boundary of Article 38(1) of the Philippine Family Code. Relationships above this line are prohibited by public policy, while relationships below this line are legally permissible."*
+
+---
+
+---
+
+
+# 🚀 Chapter 25: The Central Command Citadel — Part 5: Zero-Cost Over-The-Air (OTA) Release Desk & In-App Auto-Installer Subsystem
+
+### 📍 Target Files & Architecture:
+- Primary Activity: [`AdminPortalActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/AdminPortalActivity.kt) *(Lines 1109–1195: OTA Release Desk Subsystem)*
+- OTA Engine & Auto-Installer: [`InAppUpdateManager.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/InAppUpdateManager.kt)
+- Version Configuration Model: [`AppVersionConfig.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/AppVersionConfig.kt)
+- Associated Layouts:
+  - Citadel Release Console: [`activity_admin_portal.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/activity_admin_portal.xml)
+  - Post-Update "What's New" Dialog: [`dialog_app_update.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/dialog_app_update.xml)
+  - Non-Intrusive Floating Ready Pill: [`layout_update_ready_pill.xml`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/res/layout/layout_update_ready_pill.xml)
+- Android Manifest Permissions:
+  - `REQUEST_INSTALL_PACKAGES` (API 26+ unknown package install authorization)
+  - `FileProvider` authority: `com.example.btproject2.fileprovider`
+
+---
+
+### 25.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
+
+> *"The Over-The-Air (OTA) Release Desk is KinTrace's enterprise-grade, zero-cost continuous deployment engine. In academic capstone evaluations and real-world family testing, distributing updated APKs manually over chat or USB drives is error-prone and tedious. KinTrace solves this completely: from the Citadel Command Hub, a Super Administrator configures a new version (such as v1.4.0, Code 13) and publishes it in 1 tap. Within seconds, client devices quietly stream the signed binary from GitHub Releases in the background and present a non-intrusive floating install pill—enabling seamless, continuous software delivery without expensive Play Store developer fees or cloud hosting costs."*
+
+---
+
+### 25.2 Screen Anatomy & Visual Elements (What the Panelist Sees)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🚀 OVER-THE-AIR (OTA) RELEASE DESK                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Active Version: v1.3.9 (Code 12)                                            │
+│ • Historical Birth-Year Lifespan Check for Spouses & Co-Parents             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ CONFIGURE NEXT INCREMENT                                                    │
+│                                                                             │
+│ Version Name:                         Version Code:                         │
+│ [ v1.4.0                            ] [ 13                                ] │
+│                                                                             │
+│ Direct APK Download URL (Hosted Link / GitHub Releases CDN):                │
+│ [ https://github.com/gltitccch/BTProject2/releases/download/v1.4.0/...    ] │
+│                                                                             │
+│ What's New in This Version (Changelog Bullets):                             │
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ • Added new lineage features & UI enhancements                          │ │
+│ │ • Zero-Cost GitHub Releases OTA auto-installer                          │ │
+│ │ • Adaptive Dark & Light Mode semantic palette                           │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+│                                                                             │
+│ [ 🚀 Deploy Update to Client Devices                                      ] │
+│                                                                             │
+│ ✅ v1.4.0 (Code 13) deployed via GitHub Releases!                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Active Version Telemetry (`tvCurrentPublishedVersion`)**:
+   - Displays the version currently active across the ecosystem (e.g., `"Active Version: v1.3.9 (Code 12)"`).
+   - Summarizes the top changelog bullet points of the active build.
+
+2. **Next Increment Configuration Fields**:
+   - `etReleaseVersionName`: Semantic version string (e.g., `v1.4.0`).
+   - `etReleaseVersionCode`: Monotonically increasing Android version code integer (e.g., `13`). Auto-increments by $+1$ based on the current version.
+   - `etReleaseApkUrl`: Direct HTTPS download link to the compiled APK binary, automatically pre-populated with KinTrace's official GitHub Releases repository link via `InAppUpdateManager.buildGitHubReleaseApkUrl("v1.4.0")`.
+   - `etReleaseNotes`: Multi-line text field containing bulleted release highlights that are broadcasted directly to family devices.
+
+3. **Deploy Action & Status Feedback**:
+   - `btnPublishVersionIncrement`: High-craft golden button (`"🚀 Deploy Update to Client Devices"`).
+   - `tvPublishVersionStatus`: Provides real-time feedback:
+     - Publishing state: `"⏳ Publishing v1.4.0 (Code 13) to Firestore..."`
+     - Success state: `"✅ v1.4.0 (Code 13) deployed via GitHub Releases!"` in Mint green.
+     - Error state: `"⚠️ Deploy failed: [message]"` in Crimson danger red.
+
+---
+
+### 25.3 The Client-Side Auto-Installer Experience (`InAppUpdateManager.kt`)
+
+Rather than bombarding users with jarring modal popup dialogs upon launching the app, KinTrace implements **Direction 1: Silent Background Download with Floating Ready Pill**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🏰 KinTrace Home Dashboard                                                  │
+│                                                                             │
+│   (User is freely exploring their family tree or viewing records...)        │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ 🚀 KinTrace v1.4.0 Ready! · Tap to view notes     [⚡ Install]  [✕ 24h]  │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+1. **Silent Background Download**: When `HomeActivity` starts, `InAppUpdateManager.checkForUpdates()` compares the local version code (12) with Firestore's remote version code (13). If a new version exists, a background thread quietly streams the APK binary from GitHub Releases into `context.cacheDir/updates/kintrace_v1.4.0.apk`.
+2. **Floating Ready Pill (`layout_update_ready_pill.xml`)**: Once the binary is downloaded and cryptographically verified, a floating dark-emerald pill smoothly slides in at the bottom of the screen.
+3. **1-Tap Installation (`installApk()`)**: Tapping **`[⚡ Install]`** invokes Android's native `PackageInstaller` via `FileProvider`. The Android system takes over, updates the application in place without data loss, and relaunches KinTrace.
+4. **Post-Update "What's New" Announcement**: Upon first boot of the updated version, `InAppUpdateManager` displays the Dark Emerald and Gold **"What's New in KinTrace"** celebration modal (`showWhatsNewDialog`), presenting the new features and improvements to the user.
+
+---
+
+### 25.4 End-to-End OTA Architecture: The Zero-Cost Pipeline
+
+```mermaid
+sequenceDiagram
+    participant Admin as System Administrator (Citadel)
+    participant Cloud as Cloud Firestore (system/app_version)
+    participant GitHub as GitHub Releases CDN (Direct APK Host)
+    participant Client as Family User Device (HomeActivity)
+    participant Installer as Android Native PackageInstaller
+
+    Admin->>Admin: Compiles v1.4.0 APK (assembleRelease)
+    Admin->>GitHub: Pushes tag v1.4.0 & uploads app-release.apk
+    Admin->>Cloud: Taps 'Deploy Update' (Writes AppVersionConfig)
+    Cloud-->>Client: Firestore snapshot detects remote Code 13 > local Code 12
+    Client->>GitHub: HTTP GET /releases/download/v1.4.0/app-release.apk
+    GitHub-->>Client: Streams binary into cacheDir/updates/ (Silent Background)
+    Client-->>Client: Verifies APK integrity & shows Floating Ready Pill
+    Client->>Installer: User taps [Install] -> FileProvider ACTION_VIEW
+    Installer-->>Client: In-place system upgrade (Preserves all local data)
+    Client->>Client: Boots v1.4.0 -> Shows "What's New in KinTrace" Dialog
+```
+
+---
+
+### 25.5 Capstone Defense Q&A: Critical Panelist Questions Answered
+
+#### 🎓 Question 1: *"Why build a custom GitHub OTA updater instead of uploading the app to the Google Play Store?"*
+> **Plain English Defense Script:**
+> *"For university capstone projects and research deployments, the Google Play Store has several serious limitations: it requires a paid developer license, subjects every minor bug fix to multi-day review queues, and restricts closed testing to pre-whitelisted email addresses. By building our own OTA updater in [`InAppUpdateManager.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/InAppUpdateManager.kt), KinTrace achieves continuous delivery at **zero financial cost**. Administrators can push critical algorithm updates or UI enhancements to all tester devices across the country in under 30 seconds."*
+
+#### 🎓 Question 2: *"How do you handle Android 8.0+ security restrictions on installing unknown apps?"*
+> **Plain English Defense Script:**
+> *"Starting in Android 8.0 (API 26), Google deprecated the global 'Allow Unknown Sources' toggle in favor of per-app permissions. In [`InAppUpdateManager.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/InAppUpdateManager.kt), our `installApk()` method checks `packageManager.canRequestPackageInstalls()`. If permission has not yet been granted, the app launches an intent directly to `ACTION_MANAGE_UNKNOWN_APP_SOURCES` targeting KinTrace's package URI. Once the user flips the toggle, the system returns immediately to KinTrace and launches the native package installer via our sandboxed `FileProvider`."*
+
+#### 🎓 Question 3: *"What happens if a user is on mobile data and doesn't want to download a large update immediately?"*
+> **Plain English Defense Script:**
+> *"KinTrace strictly adheres to user convenience and non-intrusive design. Unlike aggressive enterprise apps that block the entire screen with an unclosable dialog, KinTrace uses a dismissible floating pill with a 24-hour suppression cache (`KEY_DISMISSED_VERSION` in `SharedPreferences`). If a user taps '✕ Dismiss', the pill disappears instantly, allowing them to continue working uninterrupted. The app will quietly wait 24 hours before reminding them again."*
+
+---
+
+### 25.6 Step-by-Step Defense Walkthrough: Live Demo Script
+
+1. **Step 1: Open the Citadel Command Hub**
+   - In the Citadel Command Hub, tap the **`[🚀 Deployment Desk]`** tab.
+   - Point to the active version card: *"Active Version: v1.3.9 (Code 12)"*.
+   - *Say to panelists:* *"This is KinTrace's Over-The-Air deployment desk. Let's deploy our newly compiled release v1.4.0 (Code 13) live to our test devices."*
+2. **Step 2: Review Next Increment Fields**
+   - Point to `Version Name: v1.4.0`, `Version Code: 13`, and the GitHub Releases download link.
+   - Show the release notes changelog bullets.
+3. **Step 3: Trigger the Live Broadcast**
+   - Tap **`[🚀 Deploy Update to Client Devices]`**.
+   - Watch the status badge change to: `✅ v1.4.0 (Code 13) deployed via GitHub Releases!`.
+   - *Say to panelists:* *"In less than a second, Cloud Firestore has broadcasted the v1.4.0 version metadata to every active installation."*
+4. **Step 4: Demonstrate Client-Side Reception (The Live Update)**
+   - Switch to a client device or emulator running on the Home dashboard.
+   - Show how the background engine quietly streams the package and presents the floating pill: `"🚀 KinTrace v1.4.0 Ready! · [⚡ Install]"` at the bottom of the screen!
+5. **Step 5: Tap Install & Show "What's New" Celebration**
+   - Tap **`[⚡ Install]`**.
+   - Show the Android system package updater install the APK and relaunch KinTrace into the Dark Emerald & Gold "What's New in KinTrace" post-update announcement dialog!
+
+---
+
+---
+
+*(End of KinTrace Walkthrough & Defense Manual — Fully Updated for v1.4.0)*

@@ -63,6 +63,48 @@ object DocumentHelper {
         }
     }
 
+    fun saveCroppedBitmapToInternal(context: Context, croppedBitmap: Bitmap, entityId: String): Pair<String, String>? {
+        return try {
+            val maxDim = 256
+            val width = croppedBitmap.width
+            val height = croppedBitmap.height
+            val scale = min(maxDim.toFloat() / width, maxDim.toFloat() / height).coerceAtMost(1f)
+            val scaledBitmap = if (scale < 1f) {
+                Bitmap.createScaledBitmap(
+                    croppedBitmap,
+                    (width * scale).toInt().coerceAtLeast(1),
+                    (height * scale).toInt().coerceAtLeast(1),
+                    true
+                )
+            } else {
+                croppedBitmap
+            }
+
+            val dir = File(context.filesDir, "avatars").apply { if (!exists()) mkdirs() }
+            val destFile = File(dir, "${entityId}_avatar.jpg")
+            val outputStream = FileOutputStream(destFile)
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 88, outputStream)
+            outputStream.flush()
+            outputStream.close()
+
+            val byteStream = ByteArrayOutputStream()
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 88, byteStream)
+            val base64 = Base64.encodeToString(byteStream.toByteArray(), Base64.NO_WRAP)
+
+            // Pre-cache circular bitmap for instantaneous UI display
+            val circular = getCircularBitmap(scaledBitmap, 112)
+            val cacheKey = "${base64.hashCode()}_${base64.length}_112"
+            synchronized(avatarBitmapLruCache) {
+                avatarBitmapLruCache.put(cacheKey, circular)
+            }
+
+            Pair(destFile.absolutePath, base64)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
     fun saveDocumentToInternal(
         context: Context,
         uri: Uri,

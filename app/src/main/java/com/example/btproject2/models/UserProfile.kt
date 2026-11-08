@@ -11,6 +11,7 @@ data class UserProfile(
     val currentTreeId: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val tosAcceptedAt: Long = 0L,
-    val onboardingState: UserOnboardingState? = null
+    val onboardingState: UserOnboardingState? = null,
+    val photoUri: String = "",
+    val photoBase64: String = ""
 )
-

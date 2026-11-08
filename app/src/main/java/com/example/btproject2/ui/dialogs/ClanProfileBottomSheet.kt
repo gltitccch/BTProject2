@@ -2,6 +2,7 @@ package com.example.btproject2.ui.dialogs
 
 import com.example.btproject2.utils.KinTraceAlert
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
@@ -10,8 +11,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doOnTextChanged
 import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
@@ -19,6 +22,8 @@ import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.UserProfile
 import com.example.btproject2.ui.activities.AdminPortalActivity
 import com.example.btproject2.ui.activities.LoginActivity
+import com.example.btproject2.ui.activities.PhotoCropperActivity
+import com.example.btproject2.utils.DocumentHelper
 import com.example.btproject2.utils.NotificationHelper
 import com.example.btproject2.utils.OnboardingPreferences
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -43,8 +48,74 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
     private var treeId: String = ""
 
     var onProfileUpdated: ((newName: String) -> Unit)? = null
+    var onPhotoUpdated: ((photoBase64: String) -> Unit)? = null
     var onQuestResetRequested: (() -> Unit)? = null
     var onRequestChangePassword: (() -> Unit)? = null
+
+    private var userPhotoUri: String = ""
+    private var userPhotoBase64: String = ""
+
+    private val photoCropperLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val isRemoved = result.data?.getBooleanExtra(PhotoCropperActivity.RESULT_PHOTO_REMOVED, false) == true
+            val returnedUri = result.data?.getStringExtra(PhotoCropperActivity.RESULT_PHOTO_URI).orEmpty()
+            val returnedBase64 = result.data?.getStringExtra(PhotoCropperActivity.RESULT_PHOTO_BASE64).orEmpty()
+            val user = authHelper.getCurrentUser() ?: return@registerForActivityResult
+
+            if (isRemoved) {
+                userPhotoUri = ""
+                userPhotoBase64 = ""
+
+                firestoreHelper.updateUserProfilePhoto(
+                    userId = user.uid,
+                    photoUri = "",
+                    photoBase64 = "",
+                    onSuccess = {
+                        val ctx = context ?: return@updateUserProfilePhoto
+                        val ivPhoto = view?.findViewById<ImageView>(R.id.ivProfilePhoto)
+                        val tvAv = view?.findViewById<TextView>(R.id.tvProfileAvatar)
+                        ivPhoto?.setImageBitmap(null)
+                        ivPhoto?.visibility = View.GONE
+                        tvAv?.visibility = View.VISIBLE
+                        KinTraceAlert.show(ctx, "Profile photo removed. Crest restored.")
+                        onPhotoUpdated?.invoke("")
+                    },
+                    onFailure = { err ->
+                        val ctx = context ?: return@updateUserProfilePhoto
+                        KinTraceAlert.show(ctx, "Failed to remove photo: ${err.message}")
+                    }
+                )
+            } else if (returnedBase64.isNotBlank() || returnedUri.isNotBlank()) {
+                userPhotoUri = returnedUri
+                userPhotoBase64 = returnedBase64
+
+                firestoreHelper.updateUserProfilePhoto(
+                    userId = user.uid,
+                    photoUri = returnedUri,
+                    photoBase64 = returnedBase64,
+                    onSuccess = {
+                        val ctx = context ?: return@updateUserProfilePhoto
+                        val circularBmp = DocumentHelper.getCachedCircularAvatar(returnedBase64, 72)
+                        val ivPhoto = view?.findViewById<ImageView>(R.id.ivProfilePhoto)
+                        val tvAv = view?.findViewById<TextView>(R.id.tvProfileAvatar)
+                        if (circularBmp != null) {
+                            ivPhoto?.setImageBitmap(circularBmp)
+                            ivPhoto?.visibility = View.VISIBLE
+                            tvAv?.visibility = View.GONE
+                        }
+                        KinTraceAlert.show(ctx, "Heritage profile photo updated successfully!")
+                        onPhotoUpdated?.invoke(returnedBase64)
+                    },
+                    onFailure = { err ->
+                        val ctx = context ?: return@updateUserProfilePhoto
+                        KinTraceAlert.show(ctx, "Failed to update profile photo: ${err.message}")
+                    }
+                )
+            }
+        }
+    }
 
     companion object {
         const val TAG = "ClanProfileBottomSheet"
@@ -104,6 +175,10 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         // View References
         val btnClose = view.findViewById<TextView>(R.id.btnProfileSheetClose)
         val tvAvatar = view.findViewById<TextView>(R.id.tvProfileAvatar)
+        val ivProfilePhoto = view.findViewById<ImageView>(R.id.ivProfilePhoto)
+        val layoutAvatarContainer = view.findViewById<View>(R.id.layoutProfileAvatarContainer)
+        val btnChangePhotoBadge = view.findViewById<View>(R.id.btnChangeProfilePhotoBadge)
+        val btnChangePhotoPill = view.findViewById<View>(R.id.btnChangeProfilePhoto)
         val tvHeaderName = view.findViewById<TextView>(R.id.tvProfileHeaderName)
         val tvEmail = view.findViewById<TextView>(R.id.tvProfileEmail)
         val tvRoleTag = view.findViewById<TextView>(R.id.tvProfileRoleTag)
@@ -122,6 +197,44 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         tvHeaderName.text = currentName
         tvEmail.text = user.email ?: ""
         etDisplayName.setText(currentName)
+
+        // Photo Cropper Launcher Helper
+        val openPhotoStudio: () -> Unit = {
+            val intent = PhotoCropperActivity.createIntent(
+                context = requireContext(),
+                entityId = user.uid,
+                title = "Frame & Crop Your Heritage Photo",
+                currentPhotoBase64 = userPhotoBase64.takeIf { it.isNotBlank() }
+            )
+            photoCropperLauncher.launch(intent)
+        }
+
+        layoutAvatarContainer?.setOnClickListener { openPhotoStudio() }
+        btnChangePhotoBadge?.setOnClickListener { openPhotoStudio() }
+        btnChangePhotoPill?.setOnClickListener { openPhotoStudio() }
+
+        // Fetch User Profile from Firestore to load existing avatar photo
+        firestoreHelper.getUserProfile(
+            userId = user.uid,
+            onSuccess = { profile ->
+                if (profile != null) {
+                    userPhotoUri = profile.photoUri
+                    userPhotoBase64 = profile.photoBase64
+                    if (profile.photoBase64.isNotBlank()) {
+                        val circularBmp = DocumentHelper.getCachedCircularAvatar(
+                            profile.photoBase64,
+                            72
+                        )
+                        if (circularBmp != null) {
+                            ivProfilePhoto?.setImageBitmap(circularBmp)
+                            ivProfilePhoto?.visibility = View.VISIBLE
+                            tvAvatar.visibility = View.GONE
+                        }
+                    }
+                }
+            },
+            onFailure = {}
+        )
 
         // Bind live Botanical Role Badge (🌱 Viewer / 🌿 Editor / 🌳 Owner)
         val effectiveTreeId = treeId.ifBlank {
@@ -196,7 +309,9 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                         id = user.uid,
                         displayName = newName,
                         email = user.email ?: "",
-                        currentTreeId = treeId
+                        currentTreeId = treeId,
+                        photoUri = userPhotoUri,
+                        photoBase64 = userPhotoBase64
                     )
                     firestoreHelper.saveUserProfile(profile, onSuccess = {}, onFailure = {})
                     

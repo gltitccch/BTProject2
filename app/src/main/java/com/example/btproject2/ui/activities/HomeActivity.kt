@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -20,6 +21,7 @@ import com.example.btproject2.models.ActivityRecord
 import com.example.btproject2.models.Person
 import com.example.btproject2.models.UserProfile
 import com.example.btproject2.models.FamilyTree
+import com.example.btproject2.utils.DocumentHelper
 import com.example.btproject2.utils.TreePreferences
 import com.example.btproject2.sync.CentralTreeSynchronizer
 import java.text.SimpleDateFormat
@@ -67,6 +69,7 @@ class HomeActivity : AppCompatActivity() {
 
     private lateinit var tvUserName: TextView
     private lateinit var tvProfileInitial: TextView
+    private var ivHomeProfilePhoto: ImageView? = null
     private lateinit var layoutStatsHeader: View
     private lateinit var layoutEmptyState: LinearLayout
     private lateinit var layoutPopulatedState: LinearLayout
@@ -312,6 +315,7 @@ class HomeActivity : AppCompatActivity() {
         }
         tvUserName = findViewById(R.id.tvUserName)
         tvProfileInitial = findViewById(R.id.tvProfileInitial)
+        ivHomeProfilePhoto = findViewById(R.id.ivHomeProfilePhoto)
         val tvMemberCount = findViewById<TextView>(R.id.tvMemberCount)
         val tvBranchCount = findViewById<TextView>(R.id.tvBranchCount)
         val tvRecentCount = findViewById<TextView>(R.id.tvRecentCount)
@@ -475,7 +479,10 @@ class HomeActivity : AppCompatActivity() {
         tvProfileInitial.text = displayName.first().uppercase()
 
         tvProfileInitial.setOnClickListener { showAccountProfileDialog() }
+        ivHomeProfilePhoto?.setOnClickListener { showAccountProfileDialog() }
+        findViewById<View?>(R.id.layoutHomeAvatarContainer)?.setOnClickListener { showAccountProfileDialog() }
         tvUserName.setOnClickListener { showAccountProfileDialog() }
+        loadUserAvatarPhoto()
 
         cardExportTree?.setOnClickListener {
             val intent = Intent(this, ExportTreeActivity::class.java).apply {
@@ -1825,6 +1832,9 @@ class HomeActivity : AppCompatActivity() {
             tvUserName.text = newName
             tvProfileInitial.text = newName.first().uppercase()
         }
+        sheet.onPhotoUpdated = { photoBase64 ->
+            loadUserAvatarPhoto(photoBase64)
+        }
         sheet.onQuestResetRequested = {
             refreshQuestHudUi()
         }
@@ -1832,6 +1842,60 @@ class HomeActivity : AppCompatActivity() {
             showChangePasswordDialog()
         }
         sheet.show(supportFragmentManager, ClanProfileBottomSheet.TAG)
+    }
+
+    private fun loadUserAvatarPhoto(directBase64: String? = null) {
+        val currentUser = authHelper.getCurrentUser() ?: return
+        val ivPhoto = ivHomeProfilePhoto ?: findViewById<ImageView>(R.id.ivHomeProfilePhoto) ?: return
+
+        if (directBase64 != null) {
+            if (directBase64.isNotBlank()) {
+                val circularBmp = DocumentHelper.getCachedCircularAvatar(directBase64, 34)
+                if (circularBmp != null) {
+                    ivPhoto.setImageBitmap(circularBmp)
+                    ivPhoto.visibility = View.VISIBLE
+                    tvProfileInitial.visibility = View.GONE
+                    return
+                }
+            } else {
+                // Photo was explicitly removed
+                ivPhoto.setImageBitmap(null)
+                ivPhoto.visibility = View.GONE
+                tvProfileInitial.visibility = View.VISIBLE
+                return
+            }
+        }
+
+        firestoreHelper.getUserProfile(
+            userId = currentUser.uid,
+            onSuccess = { profile ->
+                if (!isFinishing && !isDestroyed) {
+                    if (profile != null && profile.photoBase64.isNotBlank()) {
+                        val circularBmp = DocumentHelper.getCachedCircularAvatar(
+                            profile.photoBase64,
+                            34
+                        )
+                        if (circularBmp != null) {
+                            ivPhoto.setImageBitmap(circularBmp)
+                            ivPhoto.visibility = View.VISIBLE
+                            tvProfileInitial.visibility = View.GONE
+                        } else {
+                            ivPhoto.visibility = View.GONE
+                            tvProfileInitial.visibility = View.VISIBLE
+                        }
+                    } else {
+                        ivPhoto.visibility = View.GONE
+                        tvProfileInitial.visibility = View.VISIBLE
+                    }
+                }
+            },
+            onFailure = {
+                if (!isFinishing && !isDestroyed) {
+                    ivPhoto.visibility = View.GONE
+                    tvProfileInitial.visibility = View.VISIBLE
+                }
+            }
+        )
     }
 
     private fun showChangePasswordDialog() {
