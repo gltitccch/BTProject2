@@ -1,0 +1,1127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layoutPlayerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/arcade_bg"
+    android:fitsSystemWindows="true">
+
+    <!-- ── Main Shaking Container (For Violent Screen Tremor on Wrong Choice) ── -->
+    <LinearLayout
+        android:id="@+id/layoutRootShakeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- ── Top Player HUD Bar ── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="10dp"
+            android:background="@color/arcade_bg">
+
+            <!-- Exit / Back Button -->
+            <TextView
+                android:id="@+id/btnPlayerBack"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:gravity="center"
+                android:text="←"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_display_sora"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_arcade_back_btn"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Room Badge (Yellow Pill) -->
+            <TextView
+                android:id="@+id/tvPlayerRoomBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🕹️ ROOM #9930"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_mono_jetbrains"
+                android:textColor="@color/arcade_yellow"
+                android:background="@drawable/bg_arcade_hud_room"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Hidden Codename for Logic Sync -->
+            <TextView
+                android:id="@+id/tvPlayerCodename"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Player: Guest"
+                android:textSize="10.5sp"
+                android:fontFamily="@font/font_display_sora"
+                android:textColor="#B3A1E6"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <!-- Streak Combo Badge (Flame Gradient) -->
+            <TextView
+                android:id="@+id/tvPlayerStreakBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔥 3X COMBO"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_display_sora"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_arcade_hud_streak"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Live Score Badge (Gold Border Pill) -->
+            <TextView
+                android:id="@+id/tvPlayerScoreBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="980 PTS"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/font_mono_jetbrains"
+                android:textColor="@color/arcade_yellow"
+                android:background="@drawable/bg_arcade_hud_score" />
+        </LinearLayout>
+
+        <!-- ── Main States Container ── -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!-- ── STATE 1: LOBBY WAIT SCREEN ── -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <LinearLayout
+                android:id="@+id/layoutPlayerLobby"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="28dp">
+
+                <TextView
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:background="@drawable/bg_arcade_question_card"
+                    android:gravity="center"
+                    android:text="🕹️"
+                    android:textSize="40sp"
+                    android:layout_marginBottom="20dp" />
+
+                <TextView
+                    android:id="@+id/tvLobbyTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="You're in the Lobby!"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvLobbySubtext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Waiting for the Host to start the game..."
+                    android:textSize="13sp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="#B3A1E6"
+                    android:layout_marginBottom="24dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_arcade_status_card"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💡 Arcade Quest Rules"
+                        android:textSize="12.5sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/arcade_yellow"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lock in fast! Correct answers trigger the Mario Coin Block Jump and score surges (+350 PTS). Wrong answers plummet down trapdoors!"
+                        android:textSize="11.5sp"
+                        android:lineSpacingExtra="2dp"
+                        android:textColor="#D1CAE6" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!-- ── STATE 2: ACTIVE QUESTION SCREEN (RETRO 8-BIT QUEST) ── -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <ScrollView
+                android:id="@+id/layoutPlayerGame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="20dp">
+
+                    <!-- Countdown Timer Pill: ⏱️ TIME: 18 SEC -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:layout_marginBottom="12dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/bg_arcade_timer_pill"
+                            android:paddingStart="18dp"
+                            android:paddingEnd="18dp"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="⏱️ TIME: "
+                                android:textSize="13.5sp"
+                                android:textStyle="bold"
+                                android:textColor="#FFFFFF" />
+
+                            <TextView
+                                android:id="@+id/tvPlayerCountdown"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="18"
+                                android:textSize="17sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/font_mono_jetbrains"
+                                android:textColor="@color/arcade_yellow"
+                                android:layout_marginStart="2dp"
+                                android:layout_marginEnd="4dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="SEC"
+                                android:textSize="13.5sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/font_display_sora"
+                                android:textColor="#FFFFFF" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Question Card (Purple with 3D Shadow) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_arcade_question_card"
+                        android:padding="16dp"
+                        android:layout_marginBottom="14dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="10dp">
+
+                            <!-- Category / Clan Patriarch Badge -->
+                            <TextView
+                                android:id="@+id/tvPlayerQuestionCategory"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="👑 CLAN PATRIARCH"
+                                android:textSize="10.5sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/font_display_sora"
+                                android:textColor="#000000"
+                                android:background="@color/arcade_yellow"
+                                android:paddingStart="8dp"
+                                android:paddingEnd="8dp"
+                                android:paddingTop="3dp"
+                                android:paddingBottom="3dp" />
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:id="@+id/tvPlayerQuestionCounter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Question 4 of 5"
+                                android:textSize="11.5sp"
+                                android:fontFamily="@font/font_mono_jetbrains"
+                                android:textColor="#B3A1E6" />
+                        </LinearLayout>
+
+                        <!-- Question Prompt -->
+                        <TextView
+                            android:id="@+id/tvPlayerQuestionPrompt"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Who planted our clan's roots as the first-generation patriarch of the Vance family branch?"
+                            android:textSize="14.5sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/font_display_sora"
+                            android:lineSpacingExtra="4dp"
+                            android:textColor="#FFFFFF" />
+
+                        <!-- Silhouette Clues -->
+                        <TextView
+                            android:id="@+id/tvPlayerSilhouetteClues"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="🔍 Clue: Born 1988 • Elder Brother"
+                            android:textSize="11.5sp"
+                            android:textColor="@color/arcade_yellow"
+                            android:layout_marginTop="8dp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <!-- ── 2x2 ARCADE 3D CHISELED BUTTON GRID ── -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:layout_marginBottom="14dp">
+
+                        <!-- Row 1: Choice A & Choice B -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:clipChildren="false"
+                            android:clipToPadding="false"
+                            android:layout_marginBottom="12dp">
+
+                            <!-- Choice A -->
+                            <FrameLayout
+                                android:id="@+id/btnChoiceA"
+                                android:layout_width="0dp"
+                                android:layout_height="102dp"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="6dp"
+                                android:clipChildren="false"
+                                android:clipToPadding="false"
+                                android:background="@drawable/bg_arcade_btn_default"
+                                android:clickable="true"
+                                android:focusable="true">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical">
+
+                                        <TextView
+                                            android:id="@+id/tvChoiceAIcon"
+                                            android:layout_width="26dp"
+                                            android:layout_height="26dp"
+                                            android:background="#55000000"
+                                            android:gravity="center"
+                                            android:text="🍂"
+                                            android:textSize="13sp" />
+
+                                        <View
+                                            android:layout_width="0dp"
+                                            android:layout_height="1dp"
+                                            android:layout_weight="1" />
+
+                                        <TextView
+                                            android:id="@+id/tvChoiceATag"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="ROOT A"
+                                            android:textSize="11sp"
+                                            android:textStyle="bold"
+                                            android:fontFamily="@font/font_mono_jetbrains"
+                                            android:textColor="#99FFFFFF" />
+                                    </LinearLayout>
+
+                                    <View
+                                        android:layout_width="1dp"
+                                        android:layout_height="0dp"
+                                        android:layout_weight="1" />
+
+                                    <TextView
+                                        android:id="@+id/tvChoiceAName"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="George Malone"
+                                        android:textSize="13.5sp"
+                                        android:textStyle="bold"
+                                        android:fontFamily="@font/font_display_sora"
+                                        android:textColor="#FFFFFF"
+                                        android:maxLines="2"
+                                        android:ellipsize="end" />
+                                </LinearLayout>
+
+                                <!-- Lock Stamp Badge -->
+                                <TextView
+                                    android:id="@+id/badgeChoiceALock"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="top|end"
+                                    android:layout_marginTop="6dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@drawable/bg_arcade_lock_stamp"
+                                    android:text="🔒 LOCKED"
+                                    android:textSize="9sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/arcade_yellow"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+
+                            <!-- Choice B -->
+                            <FrameLayout
+                                android:id="@+id/btnChoiceB"
+                                android:layout_width="0dp"
+                                android:layout_height="102dp"
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:clipChildren="false"
+                                android:clipToPadding="false"
+                                android:background="@drawable/bg_arcade_btn_default"
+                                android:clickable="true"
+                                android:focusable="true">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical">
+
+                                        <TextView
+                                            android:id="@+id/tvChoiceBIcon"
+                                            android:layout_width="26dp"
+                                            android:layout_height="26dp"
+                                            android:background="#55000000"
+                                            android:gravity="center"
+                                            android:text="🍃"
+                                            android:textSize="13sp" />
+
+                                        <View
+                                            android:layout_width="0dp"
+                                            android:layout_height="1dp"
+                                            android:layout_weight="1" />
+
+                                        <TextView
+                                            android:id="@+id/tvChoiceBTag"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="ROOT B"
+                                            android:textSize="11sp"
+                                            android:textStyle="bold"
+                                            android:fontFamily="@font/font_mono_jetbrains"
+                                            android:textColor="#99FFFFFF" />
+                                    </LinearLayout>
+
+                                    <View
+                                        android:layout_width="1dp"
+                                        android:layout_height="0dp"
+                                        android:layout_weight="1" />
+
+                                    <TextView
+                                        android:id="@+id/tvChoiceBName"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Arthur Vance"
+                                        android:textSize="13.5sp"
+                                        android:textStyle="bold"
+                                        android:fontFamily="@font/font_display_sora"
+                                        android:textColor="#FFFFFF"
+                                        android:maxLines="2"
+                                        android:ellipsize="end" />
+                                </LinearLayout>
+
+                                <!-- Lock Stamp Badge -->
+                                <TextView
+                                    android:id="@+id/badgeChoiceBLock"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="top|end"
+                                    android:layout_marginTop="6dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@drawable/bg_arcade_lock_stamp"
+                                    android:text="🔒 LOCKED"
+                                    android:textSize="9sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/arcade_yellow"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+                        </LinearLayout>
+
+                        <!-- Row 2: Choice C & Choice D -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
+
+                            <!-- Choice C -->
+                            <FrameLayout
+                                android:id="@+id/btnChoiceC"
+                                android:layout_width="0dp"
+                                android:layout_height="102dp"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="6dp"
+                                android:clipChildren="false"
+                                android:clipToPadding="false"
+                                android:background="@drawable/bg_arcade_btn_default"
+                                android:clickable="true"
+                                android:focusable="true">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical">
+
+                                        <TextView
+                                            android:id="@+id/tvChoiceCIcon"
+                                            android:layout_width="26dp"
+                                            android:layout_height="26dp"
+                                            android:background="#55000000"
+                                            android:gravity="center"
+                                            android:text="🌸"
+                                            android:textSize="13sp" />
+
+                                        <View
+                                            android:layout_width="0dp"
+                                            android:layout_height="1dp"
+                                            android:layout_weight="1" />
+
+                                        <TextView
+                                            android:id="@+id/tvChoiceCTag"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="ROOT C"
+                                            android:textSize="11sp"
+                                            android:textStyle="bold"
+                                            android:fontFamily="@font/font_mono_jetbrains"
+                                            android:textColor="#99FFFFFF" />
+                                    </LinearLayout>
+
+                                    <View
+                                        android:layout_width="1dp"
+                                        android:layout_height="0dp"
+                                        android:layout_weight="1" />
+
+                                    <TextView
+                                        android:id="@+id/tvChoiceCName"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="William Vance"
+                                        android:textSize="13.5sp"
+                                        android:textStyle="bold"
+                                        android:fontFamily="@font/font_display_sora"
+                                        android:textColor="#FFFFFF"
+                                        android:maxLines="2"
+                                        android:ellipsize="end" />
+                                </LinearLayout>
+
+                                <!-- Lock Stamp Badge -->
+                                <TextView
+                                    android:id="@+id/badgeChoiceCLock"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="top|end"
+                                    android:layout_marginTop="6dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@drawable/bg_arcade_lock_stamp"
+                                    android:text="🔒 LOCKED"
+                                    android:textSize="9sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/arcade_yellow"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+
+                            <!-- Choice D -->
+                            <FrameLayout
+                                android:id="@+id/btnChoiceD"
+                                android:layout_width="0dp"
+                                android:layout_height="102dp"
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:clipChildren="false"
+                                android:clipToPadding="false"
+                                android:background="@drawable/bg_arcade_btn_default"
+                                android:clickable="true"
+                                android:focusable="true">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:orientation="vertical"
+                                    android:padding="12dp">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical">
+
+                                        <TextView
+                                            android:id="@+id/tvChoiceDIcon"
+                                            android:layout_width="26dp"
+                                            android:layout_height="26dp"
+                                            android:background="#55000000"
+                                            android:gravity="center"
+                                            android:text="🪵"
+                                            android:textSize="13sp" />
+
+                                        <View
+                                            android:layout_width="0dp"
+                                            android:layout_height="1dp"
+                                            android:layout_weight="1" />
+
+                                        <TextView
+                                            android:id="@+id/tvChoiceDTag"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="ROOT D"
+                                            android:textSize="11sp"
+                                            android:textStyle="bold"
+                                            android:fontFamily="@font/font_mono_jetbrains"
+                                            android:textColor="#99FFFFFF" />
+                                    </LinearLayout>
+
+                                    <View
+                                        android:layout_width="1dp"
+                                        android:layout_height="0dp"
+                                        android:layout_weight="1" />
+
+                                    <TextView
+                                        android:id="@+id/tvChoiceDName"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:text="Lucas Malone"
+                                        android:textSize="13.5sp"
+                                        android:textStyle="bold"
+                                        android:fontFamily="@font/font_display_sora"
+                                        android:textColor="#FFFFFF"
+                                        android:maxLines="2"
+                                        android:ellipsize="end" />
+                                </LinearLayout>
+
+                                <!-- Lock Stamp Badge -->
+                                <TextView
+                                    android:id="@+id/badgeChoiceDLock"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="top|end"
+                                    android:layout_marginTop="6dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@drawable/bg_arcade_lock_stamp"
+                                    android:text="🔒 LOCKED"
+                                    android:textSize="9sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/arcade_yellow"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- ── Synchronous Status / Waiting Card ── -->
+                    <LinearLayout
+                        android:id="@+id/cardPlayerSubmittedStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/bg_arcade_status_card"
+                        android:padding="14dp"
+                        android:layout_marginBottom="14dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvPlayerStatusTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pick your answer!"
+                                android:textSize="12.5sp"
+                                android:textStyle="bold"
+                                android:textColor="#FFFFFF"
+                                android:layout_marginBottom="2dp" />
+
+                            <TextView
+                                android:id="@+id/tvPlayerSubmissionsStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tap any choice to lock &amp; trigger animation."
+                                android:textSize="11sp"
+                                android:textColor="#B3A1E6" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvPlayerReadyCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_arcade_hud_room"
+                            android:text="1 of 4 Ready"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/arcade_yellow"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="4dp"
+                            android:paddingBottom="4dp" />
+                    </LinearLayout>
+
+                    <!-- ── Round Result Feedback Banner ── -->
+                    <LinearLayout
+                        android:id="@+id/cardPlayerResultFeedback"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_arcade_question_card"
+                        android:padding="16dp"
+                        android:visibility="gone"
+                        android:layout_marginBottom="20dp">
+
+                        <TextView
+                            android:id="@+id/tvPlayerResultBanner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🎉 CORRECT! +350 PTS"
+                            android:textSize="15.5sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/arcade_yellow"
+                            android:layout_marginBottom="6dp" />
+
+                        <TextView
+                            android:id="@+id/tvPlayerProofText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Verified KinTrace Fact: Maria Santos was registered in 1988."
+                            android:textSize="12sp"
+                            android:textColor="#FFFFFF" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </ScrollView>
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!-- ── STATE 3: PAUSED FOR FAMILY DEBATE OVERLAY ── -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <LinearLayout
+                android:id="@+id/layoutPlayerPausedOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#E60C071C"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="32dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/bg_arcade_hud_score"
+                    android:gravity="center"
+                    android:text="⏸"
+                    android:textSize="28sp"
+                    android:textColor="@color/arcade_yellow"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PAUSED FOR FAMILY DEBATE"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"
+                    android:textColor="@color/arcade_yellow"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="The room host paused the timer so relatives can discuss and banter!"
+                    android:textSize="12.5sp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="3dp"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
+
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <!-- ── STATE 4: COMPLETED / PODIUM ── -->
+            <!-- ════════════════════════════════════════════════════════════ -->
+            <ScrollView
+                android:id="@+id/layoutPlayerCompleted"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🏆"
+                        android:textSize="44sp"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="KinClash Completed!"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvPlayerFinalScore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Your Score: 1,200 pts (Rank #1)"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/arcade_yellow"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- ── 3-PILLAR PODIUM LEADERBOARD ── -->
+                    <LinearLayout
+                        android:id="@+id/layoutPodiumLeaderboard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="bottom"
+                        android:background="@drawable/bg_arcade_question_card"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp">
+
+                        <!-- 2nd Place -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🥈"
+                                android:textSize="22sp" />
+
+                            <TextView
+                                android:id="@+id/tvPodiumRank2Name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="2nd Place"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="#FFFFFF"
+                                android:maxLines="1"
+                                android:ellipsize="end" />
+
+                            <TextView
+                                android:id="@+id/tvPodiumRank2Score"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 pts"
+                                android:textSize="11sp"
+                                android:textColor="#B3A1E6" />
+
+                            <!-- Pillar Block -->
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="54dp"
+                                android:layout_marginTop="6dp"
+                                android:gravity="center"
+                                android:text="2"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/podium_silver"
+                                android:background="@drawable/bg_podium_step_silver" />
+                        </LinearLayout>
+
+                        <!-- 1st Place (Center, Tallest) -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1.2"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:layout_marginStart="6dp"
+                            android:layout_marginEnd="6dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="👑 🥇"
+                                android:textSize="26sp" />
+
+                            <TextView
+                                android:id="@+id/tvPodiumRank1Name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="1st Place"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/arcade_yellow"
+                                android:maxLines="1"
+                                android:ellipsize="end" />
+
+                            <TextView
+                                android:id="@+id/tvPodiumRank1Score"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 pts"
+                                android:textSize="11.5sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/arcade_yellow" />
+
+                            <!-- Pillar Block -->
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="80dp"
+                                android:layout_marginTop="6dp"
+                                android:gravity="center"
+                                android:text="1"
+                                android:textSize="32sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/podium_gold"
+                                android:background="@drawable/bg_podium_step_gold" />
+                        </LinearLayout>
+
+                        <!-- 3rd Place -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🥉"
+                                android:textSize="22sp" />
+
+                            <TextView
+                                android:id="@+id/tvPodiumRank3Name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="3rd Place"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="#FFFFFF"
+                                android:maxLines="1"
+                                android:ellipsize="end" />
+
+                            <TextView
+                                android:id="@+id/tvPodiumRank3Score"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 pts"
+                                android:textSize="11sp"
+                                android:textColor="#B3A1E6" />
+
+                            <!-- Pillar Block -->
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:layout_marginTop="6dp"
+                                android:gravity="center"
+                                android:text="3"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/podium_bronze"
+                                android:background="@drawable/bg_podium_step_bronze" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Share to Messenger Card -->
+                    <Button
+                        android:id="@+id/btnPlayerShareCard"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:text="📤  Share Results to Clan Messenger"
+                        android:textSize="12.5sp"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/bg_arcade_status_card"
+                        app:backgroundTint="@null"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- ── 1-TAP CLAIM MY BRANCH SECTION ── -->
+                    <LinearLayout
+                        android:id="@+id/cardPlayerClaimBranch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/bg_arcade_question_card"
+                        android:padding="16dp"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🌿 Visiting Relative or Guest?"
+                            android:textSize="13.5sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/arcade_yellow"
+                            android:layout_marginBottom="4dp" />
+
+                        <TextView
+                            android:id="@+id/tvPlayerClaimPrompt"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Join this official KinTrace tree permanently! Tap below to request your branch."
+                            android:textSize="11.5sp"
+                            android:textColor="#B3A1E6"
+                            android:lineSpacingExtra="2dp"
+                            android:layout_marginBottom="12dp" />
+
+                        <!-- Pending Request State -->
+                        <TextView
+                            android:id="@+id/tvPlayerClaimPending"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="⏳ Request sent! Waiting for Host approval..."
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:gravity="center"
+                            android:textColor="@color/arcade_yellow"
+                            android:visibility="gone"
+                            android:layout_marginBottom="10dp" />
+
+                        <!-- Approved Success State -->
+                        <LinearLayout
+                            android:id="@+id/layoutBranchApproved"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🎉 YOU'RE IN THE FAMILY TREE!"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/arcade_yellow"
+                                android:layout_marginBottom="4dp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="The host approved your branch. You are now recorded as an official clan member!"
+                                android:textSize="11.5sp"
+                                android:gravity="center"
+                                android:textColor="#B3A1E6"
+                                android:layout_marginBottom="10dp" />
+
+                            <Button
+                                android:id="@+id/btnViewMyTreeNode"
+                                android:layout_width="match_parent"
+                                android:layout_height="42dp"
+                                android:text="🌳  View Tree &amp; My Profile"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:textColor="#000000"
+                                android:background="@drawable/bg_arcade_btn_correct"
+                                app:backgroundTint="@null"
+                                android:layout_marginBottom="4dp" />
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/btnPlayerClaimBranch"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:text="🌿  Claim My Branch in This Tree"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#000000"
+                            android:background="@drawable/bg_arcade_btn_correct"
+                            app:backgroundTint="@null" />
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btnPlayerExit"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:text="Return to Home Screen"
+                        android:textSize="13sp"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/bg_arcade_status_card"
+                        app:backgroundTint="@null"
+                        android:layout_marginBottom="16dp" />
+                </LinearLayout>
+            </ScrollView>
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- ── Red Screen Vignette Flash (For Violent Tremor & Wrong Answer) ── -->
+    <View
+        android:id="@+id/vRedVignette"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_arcade_red_vignette"
+        android:alpha="0"
+        android:visibility="gone"
+        android:clickable="false"
+        android:focusable="false" />
+
+</FrameLayout>

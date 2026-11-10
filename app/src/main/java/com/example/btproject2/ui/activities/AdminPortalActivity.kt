@@ -27,7 +27,6 @@ import com.example.btproject2.models.AdminAuditLog
 import com.example.btproject2.models.ArchivedMemberRecord
 import com.example.btproject2.models.MergeCollisionRecord
 import com.example.btproject2.models.Person
-import com.example.btproject2.models.ReunionPassRecord
 import com.example.btproject2.models.SystemAnnouncement
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
@@ -121,10 +120,6 @@ class AdminPortalActivity : AppCompatActivity() {
     private lateinit var tvMaloneStatus: TextView
     private lateinit var btnApproveSantos: Button
     private lateinit var tvSantosStatus: TextView
-    private lateinit var btnGenerateReunionPass: Button
-    private lateinit var layoutGeneratedPass: LinearLayout
-    private lateinit var tvGeneratedPassCode: TextView
-    private lateinit var btnCopyPassCode: Button
 
     // Ops Desk Dynamic Containers
     private lateinit var cardDeletedRecovery: View
@@ -317,10 +312,6 @@ class AdminPortalActivity : AppCompatActivity() {
         tvMaloneStatus = findViewById(R.id.tvMaloneStatus)
         btnApproveSantos = findViewById(R.id.btnApproveSantos)
         tvSantosStatus = findViewById(R.id.tvSantosStatus)
-        btnGenerateReunionPass = findViewById(R.id.btnGenerateReunionPass)
-        layoutGeneratedPass = findViewById(R.id.layoutGeneratedPass)
-        tvGeneratedPassCode = findViewById(R.id.tvGeneratedPassCode)
-        btnCopyPassCode = findViewById(R.id.btnCopyPassCode)
 
         // Ops Desk
         cardDeletedRecovery = findViewById(R.id.cardDeletedRecovery)
@@ -695,61 +686,6 @@ class AdminPortalActivity : AppCompatActivity() {
                 }
             )
         }
-
-        btnGenerateReunionPass.setOnClickListener {
-            val charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-            val passCode = (1..6).map { charset.random() }.joinToString("")
-            layoutGeneratedPass.visibility = View.VISIBLE
-            tvGeneratedPassCode.text = passCode
-
-            val activeTreeId = com.example.btproject2.utils.TreePreferences.getActiveTreeId(this).ifBlank { "tree_malone" }
-            val activeTreeName = com.example.btproject2.utils.TreePreferences.getActiveTreeName(this).ifBlank { "Malone Clan Reunion" }
-            val currentUserId = authHelper.getCurrentUserId().orEmpty().ifBlank { "system_admin" }
-
-            // 1. Register as a valid 6-character InviteCodeRecord so JoinTreeActivity accepts it
-            val thirtyDaysMs = 30L * 24L * 60L * 60L * 1000L
-            val inviteRecord = com.example.btproject2.models.InviteCodeRecord(
-                code = passCode,
-                treeId = activeTreeId,
-                treeName = activeTreeName,
-                createdBy = currentUserId,
-                createdAt = System.currentTimeMillis(),
-                expiresAt = System.currentTimeMillis() + thirtyDaysMs,
-                usageLimit = 0,
-                usageCount = 0,
-                status = com.example.btproject2.models.InviteCodeRecord.STATUS_ACTIVE
-            )
-            firestoreHelper.saveInviteCodeRecord(inviteRecord)
-            firestoreHelper.updateTreeInviteCode(activeTreeId, passCode, activeTreeName, currentUserId)
-
-            // 2. Also persist the ReunionPassRecord for Admin Citadel tracking
-            val passRecord = ReunionPassRecord(
-                code = passCode,
-                treeId = activeTreeId,
-                treeName = activeTreeName,
-                validDays = 30,
-                generatedBy = authHelper.getCurrentUser()?.email ?: "admin@kintrace.ph"
-            )
-
-            firestoreHelper.saveReunionPass(
-                pass = passRecord,
-                onSuccess = {
-                    recordAudit("REUNION_PASS_GENERATED", passCode, "Generated 6-char 30-day reunion invite code ($passCode) for $activeTreeName")
-                },
-                onFailure = {
-                    recordAudit("REUNION_PASS_GENERATED", passCode, "Generated 6-char 30-day reunion invite code (offline)")
-                }
-            )
-
-            KinTraceAlert.clipboard(this, "Pass Generated", "6-Char Join Code generated: $passCode", "GENERATED")
-        }
-
-        btnCopyPassCode.setOnClickListener {
-            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Reunion Pass Code", tvGeneratedPassCode.text.toString())
-            clipboard.setPrimaryClip(clip)
-            KinTraceAlert.clipboard(this, "Code Copied", "Copied ${tvGeneratedPassCode.text} to clipboard!")
-        }
     }
 
     private fun loadDynamicQuotaQueue() {
@@ -869,7 +805,7 @@ class AdminPortalActivity : AppCompatActivity() {
         tvEmptyQuotaQueue.visibility = View.GONE
         scrollQuotaQueueVault.visibility = View.VISIBLE
 
-        // Direction 3 Fixed-Height Cap: lock to 260dp when 3+ items so Reunion Pass section is never pushed away
+        // Direction 3 Fixed-Height Cap: lock to 260dp when 3+ items so quota queue scrolls cleanly
         val lp = scrollQuotaQueueVault.layoutParams
         lp.height = if (activeListSize >= 3) {
             (260 * resources.displayMetrics.density).toInt()

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_arcade_status_card"
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:layout_marginBottom="8dp">
+
+    <!-- Avatar Initial Circle (Arcade Stamp) -->
+    <TextView
+        android:id="@+id/tvPlayerAvatar"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:background="@drawable/bg_arcade_hud_room"
+        android:gravity="center"
+        android:text="👤"
+        android:textSize="16sp"
+        android:textColor="@color/arcade_yellow"
+        android:textStyle="bold"
+        android:layout_marginEnd="12dp" />
+
+    <!-- Player Nickname & Subtitle -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvPlayerNickname"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tito Boy"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/tvPlayerStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🟢 Ready in Lobby"
+            android:textSize="11.5sp"
+            android:textColor="#B3A1E6" />
+    </LinearLayout>
+
+    <!-- Score Badge (for in-game / podium) -->
+    <TextView
+        android:id="@+id/tvPlayerScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 pts"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/arcade_yellow"
+        android:layout_marginEnd="10dp"
+        android:visibility="gone" />
+
+    <!-- Kick Button -->
+    <TextView
+        android:id="@+id/btnKickPlayer"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:gravity="center"
+        android:text="✕"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#FF0055"
+        android:background="?attr/selectableItemBackgroundBorderless" />
+</LinearLayout>

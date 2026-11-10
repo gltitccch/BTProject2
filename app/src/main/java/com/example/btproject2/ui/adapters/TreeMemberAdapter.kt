@@ -102,6 +102,7 @@ class TreeMemberAdapter(
         private val tvName: TextView   = view.findViewById(R.id.tvName)
         private val tvInfo: TextView   = view.findViewById(R.id.tvInfo)
         private val tvKinshipPill: TextView? = view.findViewById(R.id.tvKinshipPill)
+        private val tvVoicePill: TextView? = view.findViewById(R.id.tvVoicePill)
         private val layoutMemberCard: View? = view.findViewById(R.id.layoutMemberCard)
 
         fun bind(
@@ -111,8 +112,7 @@ class TreeMemberAdapter(
             cachedTitles: Map<String, String> = emptyMap(),
             onClick: (Person) -> Unit
         ) {
-            val initials = "${person.firstName.firstOrNull() ?: ""}${person.lastName.firstOrNull() ?: ""}".uppercase()
-            tvAvatar.text = initials
+            tvAvatar.text = person.avatarMonogram
 
             // Avatar color based on gender and living status
             if (!person.isLiving) {
@@ -125,7 +125,7 @@ class TreeMemberAdapter(
                 tvAvatar.setTextColor(android.graphics.Color.WHITE)
             }
 
-            tvName.text = "${person.firstName} ${person.lastName}".trim()
+            tvName.text = if (person.standardDisplayName.isNotBlank()) person.standardDisplayName else "${person.firstName} ${person.lastName}".trim()
 
             val effectiveFocal = focalPerson ?: resolveDefaultFocal(allMembers)
             val isSelf = effectiveFocal != null && effectiveFocal.id == person.id
@@ -154,6 +154,17 @@ class TreeMemberAdapter(
                     tvKinshipPill.setBackgroundResource(R.drawable.badge_pill_dark)
                     tvKinshipPill.setTextColor(androidx.core.content.ContextCompat.getColor(itemView.context, R.color.gold_accent))
                     layoutMemberCard?.setBackgroundResource(R.drawable.bg_forest_card)
+                }
+            }
+
+            if (tvVoicePill != null) {
+                if (person.voiceCapsules.isNotEmpty()) {
+                    val count = person.voiceCapsules.size
+                    val firstDur = person.voiceCapsules.firstOrNull()?.durationFormatted ?: ""
+                    tvVoicePill.text = if (count > 1) "🎙️ $count Stories" else "🎙️ $firstDur"
+                    tvVoicePill.visibility = View.VISIBLE
+                } else {
+                    tvVoicePill.visibility = View.GONE
                 }
             }
 

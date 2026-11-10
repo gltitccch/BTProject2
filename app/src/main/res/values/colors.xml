@@ -13,6 +13,7 @@
     <color name="text_primary">#0F172A</color>
     <color name="text_secondary">#475569</color>
     <color name="text_hint">#788A7E</color>
+    <color name="text_muted">#788A7E</color>
     <color name="border">#D2D9CE</color>
     <color name="surface">#F5F7F1</color>
     <color name="white">#FFFFFF</color>
@@ -55,6 +56,9 @@
     <color name="gold_accent">#B45309</color>
     <color name="gold_accent_light">#7C3A16</color>
     <color name="gold_accent_dark">#78350F</color>
+    <color name="podium_gold">#D4AF37</color>
+    <color name="podium_silver">#C0C7CE</color>
+    <color name="podium_bronze">#CD7F32</color>
     <color name="mint_text">#7C3A16</color>
     <color name="mint_pill_bg">#F4EFE6</color>
     <color name="mint_badge_border">#C2B097</color>
@@ -218,4 +222,17 @@
     <color name="vault_segment_inactive_text">#475569</color>
     <color name="vault_dropdown_bg">#FFFFFF</color>
     <color name="vault_dropdown_border">#D2D9CE</color>
+
+    <!-- Retro 8-Bit Pixel Quest Arcade Tokens -->
+    <color name="arcade_bg">#0C071C</color>
+    <color name="arcade_card_bg">#1F1147</color>
+    <color name="arcade_card_border">#8C52FF</color>
+    <color name="arcade_btn_bg">#2A175B</color>
+    <color name="arcade_btn_border">#582CA8</color>
+    <color name="arcade_btn_shadow">#13092C</color>
+    <color name="arcade_yellow">#FFE600</color>
+    <color name="arcade_red">#FF0055</color>
+    <color name="arcade_status_bg">#170C36</color>
+    <color name="arcade_status_border">#4D2D8F</color>
+    <color name="arcade_timer_bg">#1E0F42</color>
 </resources>

@@ -4,10 +4,16 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Camera & Gallery access for Profile & Ancestor Portraits -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Audio Recording for Oral History Time Capsules -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Needed for PDF/PNG/GEDCOM/CSV export on Android < 10 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -62,6 +68,7 @@
 
         <activity
             android:name=".ui.activities.HomeActivity"
+            android:launchMode="singleTop"
             android:exported="true" />
         <activity android:name=".ui.activities.AddMemberActivity" />
         <activity android:name=".ui.activities.TraceActivity" />
@@ -84,6 +91,18 @@
         <activity android:name=".ui.activities.CreateTreeActivity" />
         <activity android:name=".ui.activities.JoinTreeActivity" />
         <activity android:name=".ui.activities.EditMemberActivity" />
+        <activity
+            android:name=".ui.activities.ReunionHostActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:label="KinClash Host Command Center" />
+        <activity
+            android:name=".ui.activities.ReunionPlayerActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:label="KinClash Player Game" />
         <activity android:name=".ui.activities.PhotoCropperActivity"
             android:screenOrientation="portrait"
             android:exported="false"
@@ -110,6 +129,28 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Milestone Alarm Receiver for morning lock-screen notifications -->
+        <receiver
+            android:name=".receivers.MilestoneAlarmReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.example.btproject2.ACTION_CHECK_MILESTONES" />
+            </intent-filter>
+        </receiver>
+
+        <!-- KinClash Test Receiver for automated party game orchestration -->
+        <receiver
+            android:name=".receivers.KinClashTestReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.btproject2.START_KINCLASH" />
+                <action android:name="com.example.btproject2.NEXT_QUESTION" />
+                <action android:name="com.example.btproject2.FINISH_GAME" />
+                <action android:name="com.example.btproject2.APPROVE_CLAIM" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

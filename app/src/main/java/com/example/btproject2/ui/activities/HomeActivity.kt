@@ -450,6 +450,26 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        val btnEmptyJoinKinClash = findViewById<View?>(R.id.btnEmptyJoinKinClash)
+        btnEmptyJoinKinClash?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.JoinKinClashDialog.show(supportFragmentManager) { pin, nickname ->
+                val intent = Intent(this, ReunionPlayerActivity::class.java).apply {
+                    putExtra("PIN", pin)
+                    putExtra("NICKNAME", nickname)
+                }
+                startActivity(intent)
+            }
+        }
+
+        val btnEmptyHostKinClash = findViewById<View?>(R.id.btnEmptyHostKinClash)
+        btnEmptyHostKinClash?.setOnClickListener {
+            val intent = Intent(this, ReunionHostActivity::class.java).apply {
+                val activeId = TreePreferences.getActiveTreeId(this@HomeActivity).ifEmpty { treeId }
+                if (activeId.isNotEmpty()) putExtra("TREE_ID", activeId)
+            }
+            startActivity(intent)
+        }
+
         // ── Populated State Action Buttons (Figure 6) ──────────────
         val cardExportTree = findViewById<LinearLayout?>(R.id.cardExportTree) ?: findViewById<LinearLayout?>(R.id.cardAddMember)
         val cardViewTree = findViewById<LinearLayout>(R.id.cardViewTree)
@@ -490,6 +510,29 @@ class HomeActivity : AppCompatActivity() {
                 if (activeId.isNotEmpty()) putExtra("TREE_ID", activeId)
             }
             startActivity(intent)
+        }
+
+        val cardHostKinClash = findViewById<View?>(R.id.cardHostKinClash)
+        cardHostKinClash?.setOnClickListener {
+            com.example.btproject2.ui.dialogs.KinClashModeSelectDialog.show(
+                supportFragmentManager,
+                onHost = {
+                    val intent = Intent(this, ReunionHostActivity::class.java).apply {
+                        val activeId = TreePreferences.getActiveTreeId(this@HomeActivity).ifEmpty { treeId }
+                        if (activeId.isNotEmpty()) putExtra("TREE_ID", activeId)
+                    }
+                    startActivity(intent)
+                },
+                onJoin = {
+                    com.example.btproject2.ui.dialogs.JoinKinClashDialog.show(supportFragmentManager) { pin, nickname ->
+                        val intent = Intent(this, ReunionPlayerActivity::class.java).apply {
+                            putExtra("PIN", pin)
+                            putExtra("NICKNAME", nickname)
+                        }
+                        startActivity(intent)
+                    }
+                }
+            )
         }
 
         cardViewTree.setOnClickListener {
@@ -550,6 +593,106 @@ class HomeActivity : AppCompatActivity() {
 
         setupQuestHud()
         resolveAndLoadTree()
+        handleMilestoneIntent(intent)
+        requestNotificationPermissionIfNecessary()
+    }
+
+    private fun requestNotificationPermissionIfNecessary() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                androidx.core.app.ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    101
+                )
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleMilestoneIntent(intent)
+    }
+
+    private fun handleMilestoneIntent(inIntent: Intent?) {
+        if (inIntent == null) return
+        val shouldOpen = inIntent.getBooleanExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_OPEN_HERITAGE_DIALOG,
+            false
+        )
+        if (!shouldOpen) return
+
+        val categoryStr = inIntent.getStringExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_MILESTONE_CATEGORY
+        ) ?: return
+
+        val category = try {
+            com.example.btproject2.utils.HeritageMilestoneEngine.MilestoneCategory.valueOf(categoryStr)
+        } catch (_: Throwable) {
+            com.example.btproject2.utils.HeritageMilestoneEngine.MilestoneCategory.BIRTHDAY
+        }
+
+        val personId = inIntent.getStringExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_MILESTONE_PERSON_ID
+        ).orEmpty()
+        val personName = inIntent.getStringExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_MILESTONE_PERSON_NAME
+        ).orEmpty()
+        val years = inIntent.getIntExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_MILESTONE_YEARS,
+            0
+        )
+        val title = inIntent.getStringExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_MILESTONE_TITLE
+        ).orEmpty()
+        val subtitle = inIntent.getStringExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_MILESTONE_SUBTITLE
+        ).orEmpty()
+        val isBabangLuksa = inIntent.getBooleanExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_MILESTONE_BABANG_LUKSA,
+            false
+        )
+        val tId = inIntent.getStringExtra(
+            com.example.btproject2.services.MilestoneNotificationManager.EXTRA_MILESTONE_TREE_ID
+        ).orEmpty()
+
+        val milestone = com.example.btproject2.utils.HeritageMilestoneEngine.Milestone(
+            category = category,
+            personId = personId,
+            personName = personName,
+            milestoneYears = years,
+            eventTitle = title,
+            eventSubtitle = subtitle,
+            isBabangLuksa = isBabangLuksa
+        )
+
+        window.decorView.post {
+            if (!isFinishing && !isDestroyed) {
+                com.example.btproject2.ui.dialogs.HeritageMilestoneDialog.show(this, milestone, tId.ifBlank { treeId })
+            }
+        }
+    }
+
+    private var hasCheckedTodayMilestoneInSession = false
+
+    private fun checkAndShowTodayMilestoneIfEligible(persons: List<com.example.btproject2.models.Person>) {
+        if (hasCheckedTodayMilestoneInSession) return
+        hasCheckedTodayMilestoneInSession = true
+
+        val milestones = com.example.btproject2.utils.HeritageMilestoneEngine.findMilestonesForDate(persons)
+        if (milestones.isNotEmpty()) {
+            val topMilestone = milestones.first()
+            window.decorView.postDelayed({
+                if (!isFinishing && !isDestroyed) {
+                    com.example.btproject2.ui.dialogs.HeritageMilestoneDialog.show(this@HomeActivity, topMilestone, treeId)
+                }
+            }, 800)
+        }
     }
 
     override fun onResume() {
@@ -1364,6 +1507,8 @@ class HomeActivity : AppCompatActivity() {
             layoutEmptyState.visibility = View.GONE
             layoutPopulatedState.visibility = View.VISIBLE
             renderRecentActivity(cached)
+            com.example.btproject2.services.MilestoneNotificationManager.cacheTreeMembersForOfflineMilestones(this@HomeActivity, cached)
+            checkAndShowTodayMilestoneIfEligible(cached)
         } else {
             // No cache available: display heritage shimmer skeleton placeholder (0ms)
             layoutStatsHeader.visibility = View.GONE
@@ -1377,6 +1522,8 @@ class HomeActivity : AppCompatActivity() {
             onSuccess = { persons ->
                 val activePersons = persons.filter { it.id !in recentlyDeletedIds }
                 FirestoreHelper.setCachedPersons(activePersons)
+                com.example.btproject2.services.MilestoneNotificationManager.cacheTreeMembersForOfflineMilestones(this@HomeActivity, activePersons)
+                checkAndShowTodayMilestoneIfEligible(activePersons)
                 tvMemberCount.text = activePersons.size.toString()
                 
                 // In Phase 2, Milestone 1 (Roots) is confirmed established

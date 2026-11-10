@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialogMilestoneScrimRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp">
+
+    <!-- Card Background Root (Themed per event, 100% Centered) -->
+    <LinearLayout
+        android:id="@+id/cardMilestoneRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="12dp"
+        android:background="@drawable/bg_milestone_card_birthday"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="22dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="18dp">
+
+        <!-- Top Pill Category Badge -->
+        <TextView
+            android:id="@+id/tvMilestonePill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:background="@drawable/bg_milestone_pill_birthday"
+            android:gravity="center"
+            android:letterSpacing="0.06"
+            android:paddingStart="14dp"
+            android:paddingTop="4.5dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="4.5dp"
+            android:text="🎂 BIRTHDAY CELEBRATION"
+            android:textAllCaps="true"
+            android:textColor="#FDA4AF"
+            android:textSize="10.5sp"
+            android:textStyle="bold" />
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- DYNAMIC HERO CONTAINER (SWAPPABLE PER EVENT VIBE)      -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <FrameLayout
+            android:id="@+id/layoutMilestoneHeroContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <!-- 1. Birthday Avatar Halo -->
+            <FrameLayout
+                android:id="@+id/heroBirthdayAvatar"
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:layout_gravity="center">
+
+                <!-- Gradient Aura Halo Ring -->
+                <View
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_milestone_avatar_halo" />
+
+                <!-- Inner Dark Circular Base -->
+                <FrameLayout
+                    android:layout_width="78dp"
+                    android:layout_height="78dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_milestone_avatar_circle">
+
+                    <ImageView
+                        android:id="@+id/ivMilestoneAvatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <!-- Fallback Avatar Emoji if no photo -->
+                    <TextView
+                        android:id="@+id/tvAvatarEmojiFallback"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="👩🏻"
+                        android:textSize="36sp"
+                        android:visibility="visible" />
+                </FrameLayout>
+
+                <!-- Corner Party Badge -->
+                <FrameLayout
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/bg_milestone_badge_circle">
+
+                    <TextView
+                        android:id="@+id/tvMilestoneEmojiBadge"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🎉"
+                        android:textSize="12sp" />
+                </FrameLayout>
+            </FrameLayout>
+
+            <!-- 2. Memorial Vigil Candle with Glowing Aura -->
+            <FrameLayout
+                android:id="@+id/heroMemorialCandle"
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:layout_gravity="center"
+                android:visibility="gone">
+
+                <!-- Golden Candle Glow Aura -->
+                <View
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_milestone_glow_candle" />
+
+                <TextView
+                    android:id="@+id/tvMemorialCandleIcon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="🕯️"
+                    android:textSize="38sp" />
+            </FrameLayout>
+
+            <!-- 3. Wedding Interlocking 3D Golden Rings -->
+            <FrameLayout
+                android:id="@+id/heroWeddingRings"
+                android:layout_width="100dp"
+                android:layout_height="84dp"
+                android:layout_gravity="center"
+                android:visibility="gone">
+
+                <!-- Soft Golden Glow -->
+                <View
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_milestone_glow_rings" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💍"
+                        android:textSize="36sp"
+                        android:translationX="10dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💍"
+                        android:textSize="36sp"
+                        android:translationX="-10dp" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- 4. Undas Multi-Candle Altar -->
+            <FrameLayout
+                android:id="@+id/heroUndasAltar"
+                android:layout_width="140dp"
+                android:layout_height="84dp"
+                android:layout_gravity="center"
+                android:visibility="gone">
+
+                <View
+                    android:layout_width="120dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_milestone_glow_candle" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="2dp"
+                        android:text="🕯️"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="2dp"
+                        android:text="🕯️"
+                        android:textSize="28sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="2dp"
+                        android:text="🕯️"
+                        android:textSize="28sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="2dp"
+                        android:text="🕯️"
+                        android:textSize="24sp" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- 5. Clan Quest Floating Puzzle Piece -->
+            <FrameLayout
+                android:id="@+id/heroQuestPuzzle"
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:layout_gravity="center"
+                android:visibility="gone">
+
+                <!-- Cyan/Mint Glow Aura -->
+                <View
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_milestone_glow_quest" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="🧩"
+                    android:textSize="38sp" />
+            </FrameLayout>
+
+        </FrameLayout>
+
+        <!-- Centered Serif Member Name in Glowing Heritage Gold -->
+        <TextView
+            android:id="@+id/tvMilestoneMemberName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:letterSpacing="0.04"
+            android:text="Carla Bugarin-Santos"
+            android:textAllCaps="true"
+            android:textColor="#F5D77F"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Relationship Subtitle in Soft Mint / Slate -->
+        <TextView
+            android:id="@+id/tvMilestoneSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:gravity="center"
+            android:text="Your 1st Cousin • Turns 24 Today"
+            android:textColor="#C8D6CD"
+            android:textSize="12sp" />
+
+        <!-- Milestone Tribute Quote Box (Dark Translucent with Subtle Dashed Border) -->
+        <LinearLayout
+            android:id="@+id/layoutMilestoneQuoteBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_milestone_quote_box"
+            android:orientation="vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="11dp">
+
+            <TextView
+                android:id="@+id/tvMilestoneMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:lineSpacingExtra="3.5dp"
+                android:text="&quot;Warmest birthday blessings to Carla! A cherished light of our 4th generation branch.&quot;"
+                android:textColor="#E2E8F0"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <!-- Continuation Actions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Primary Action Button (Themed Gradient Pill with NO Material Tint override) -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnMilestonePrimary"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_milestone_btn_gold"
+                app:backgroundTint="@null"
+                android:fontFamily="sans-serif-medium"
+                android:text="💌 Send Greeting Card to Viber/FB"
+                android:textAllCaps="false"
+                android:textColor="#060D09"
+                android:textSize="12.5sp"
+                android:textStyle="bold" />
+
+            <!-- Secondary Action Button (Dark Ghost Pill with NO Material Tint override) -->
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnMilestoneSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_milestone_btn_ghost"
+                app:backgroundTint="@null"
+                android:fontFamily="sans-serif-medium"
+                android:text="📍 Find Carla on Family Tree"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <!-- Dismiss Button -->
+            <TextView
+                android:id="@+id/btnMilestoneDismiss"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="6dp"
+                android:text="Close"
+                android:textColor="#8FA396"
+                android:textSize="11.5sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Celebration Particle Engine Overlay (Floats over dialog) -->
+    <com.example.btproject2.ui.views.HeritageCelebrationOverlayView
+        android:id="@+id/celebrationOverlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="20dp" />
+
+</FrameLayout>

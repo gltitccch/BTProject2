@@ -985,6 +985,14 @@ class EditMemberActivity : AppCompatActivity() {
                 if (selectedMother?.id == lastSelectedMotherId) return
                 lastSelectedMotherId = selectedMother?.id
 
+                // Matrilineal auto-inheritance under Philippine Civil Code & RA 11642 adoption
+                if (selectedMother != null) {
+                    val momSurname = selectedMother.lastName.trim()
+                    if (momSurname.isNotBlank() && etMiddleName.text.isNullOrBlank()) {
+                        etMiddleName.setText(momSurname)
+                    }
+                }
+
                 val currentFather = if (spinnerFather.selectedItemPosition > 0 && spinnerFather.selectedItemPosition - 1 < maleMembers.size) maleMembers[spinnerFather.selectedItemPosition - 1] else null
 
                 isUpdatingSpinners = true

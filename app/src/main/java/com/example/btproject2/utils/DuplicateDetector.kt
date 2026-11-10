@@ -10,6 +10,18 @@ class DuplicateDetector {
         threshold: Double = 0.85
     ): List<Person> {
         return existingPersons.filter { existing ->
+            // Cousin Disambiguation: If both individuals have distinct middle names, they are distinct cousins
+            val midNew = newPerson.middleName.trim().lowercase()
+            val midEx = existing.middleName.trim().lowercase()
+            if (midNew.isNotEmpty() && midEx.isNotEmpty() && midNew != midEx) {
+                return@filter false
+            }
+
+            // If both have distinct mothers recorded, they are distinct relatives
+            if (!newPerson.motherId.isNullOrBlank() && !existing.motherId.isNullOrBlank() && newPerson.motherId != existing.motherId) {
+                return@filter false
+            }
+
             val similarity = calculateSimilarity(
                 "${newPerson.firstName} ${newPerson.lastName}",
                 "${existing.firstName} ${existing.lastName}"

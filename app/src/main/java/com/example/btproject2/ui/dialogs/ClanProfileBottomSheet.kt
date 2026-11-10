@@ -474,13 +474,21 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         val progress = root.findViewById<android.widget.ProgressBar?>(R.id.progressClanCapacity)
         val tvCount = root.findViewById<TextView?>(R.id.tvClanCapacityCount)
         val btnRequest = root.findViewById<TextView?>(R.id.btnRequestClanExpansion)
+        val tvCrownBadge = root.findViewById<TextView?>(R.id.tvHeritageCrownBadge)
+        val tvPassPill = root.findViewById<TextView?>(R.id.tvHeritagePassPill)
         val step = com.example.btproject2.models.FamilyTree.EXPANSION_STEP
 
         card.visibility = View.VISIBLE
 
         fun render(liveCount: Int, quota: Int, requested: Boolean) {
             if (!isAdded) return
-            val tierLabel = if (quota >= 200) "Extended Clan Tier" else "Free Tier"
+            val isPrem = tree.isPremium || quota >= 200
+
+            // Update VIP Crown and Heritage Pass tags on avatar
+            tvCrownBadge?.visibility = if (isPrem) View.VISIBLE else View.GONE
+            tvPassPill?.visibility = if (isPrem) View.VISIBLE else View.GONE
+
+            val tierLabel = if (isPrem) "👑 Heritage Pass Tier" else "Free Tier"
             tvTier?.text = tierLabel
             progress?.progress = ((liveCount * 100f) / quota.coerceAtLeast(1)).toInt().coerceIn(0, 100)
             val remaining = (quota - liveCount).coerceAtLeast(0)
@@ -489,8 +497,12 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
                 btnRequest?.text = "⏳ Expansion Queued in Admin Citadel"
                 btnRequest?.alpha = 0.6f
                 btnRequest?.isEnabled = false
+            } else if (isPrem) {
+                btnRequest?.text = "⚡ Add +150 Slots (₱50 GCash)"
+                btnRequest?.alpha = 1f
+                btnRequest?.isEnabled = true
             } else {
-                btnRequest?.text = "⚡ Request Free Tier Expansion (+$step Cap)"
+                btnRequest?.text = "👑 Heritage Pass (+$step Slots • ₱99 GCash)"
                 btnRequest?.alpha = 1f
                 btnRequest?.isEnabled = true
             }
@@ -511,37 +523,19 @@ class ClanProfileBottomSheet : BottomSheetDialogFragment() {
         )
 
         btnRequest?.setOnClickListener {
-            val ctx = context ?: return@setOnClickListener
-            com.example.btproject2.utils.KinTraceModalDialog.Builder(ctx)
-                .setTitle("👑 Request Free Clan Expansion")
-                .setMessage(
-                    "'${tree.name.ifBlank { "Your family tree" }}' currently has $liveCount of $quota member slots used.\n\n" +
-                        "Request a free Tier Expansion (+$step capacity, up to ${quota + step} members) from the System Admin Citadel?"
-                )
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("⚡ Request +$step") { _, _ ->
-                    btnRequest.isEnabled = false
-                    firestoreHelper.requestTreeQuotaExpansion(
-                        treeId = tree.id,
-                        requesterEmail = authHelper.getCurrentUser()?.email.orEmpty(),
-                        onSuccess = {
-                            render(liveCount, quota, true)
-                            context?.let {
-                                KinTraceAlert.security(
-                                    it,
-                                    "Expansion Requested",
-                                    "Request sent to Admin Citadel (+$step Cap for ${tree.name}).",
-                                    "QUEUED"
-                                )
-                            }
-                        },
-                        onFailure = { err ->
-                            btnRequest.isEnabled = true
-                            context?.let { KinTraceAlert.show(it, err.message ?: "Unable to submit expansion request.") }
-                        }
-                    )
-                }
-                .show()
+            val isPrem = tree.isPremium || quota >= 200
+            val passSheet = HeritagePassBottomSheetDialog.newInstance(
+                treeId = tree.id,
+                treeName = tree.name,
+                currentQuota = quota,
+                currentCount = liveCount,
+                isPremium = isPrem
+            )
+            passSheet.onPassUnlocked = { newQuota ->
+                tree.isPremium = true
+                render(liveCount, newQuota, false)
+            }
+            passSheet.show(parentFragmentManager, "HeritagePassBottomSheetDialog")
         }
     }
 

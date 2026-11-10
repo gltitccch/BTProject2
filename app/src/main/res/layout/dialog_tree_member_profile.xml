@@ -370,6 +370,94 @@
                 android:layout_marginTop="8dp" />
         </LinearLayout>
 
+        <!-- Oral History & Voice Capsules Section -->
+        <LinearLayout
+            android:id="@+id/cardProfileVoiceCapsules"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_forest_card"
+            android:padding="14dp"
+            android:layout_marginBottom="14dp">
+
+            <!-- Title Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎙️ Oral History &amp; Time Capsules"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvProfileVoiceBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 Capsules"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/gold_accent"
+                    android:background="@drawable/badge_pill_dark"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Listen to authentic personal stories and ancestral memories."
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Dynamic Voice Capsules Container -->
+            <LinearLayout
+                android:id="@+id/layoutProfileVoiceContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- Empty Voice Notice -->
+            <TextView
+                android:id="@+id/tvProfileNoVoice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="No voice memories recorded yet."
+                android:textSize="12sp"
+                android:textColor="@color/text_hint"
+                android:padding="10dp" />
+
+            <!-- Record New Capsule Button (Hidden if isViewer == true) -->
+            <TextView
+                android:id="@+id/btnProfileRecordVoice"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="🎙️ Record Voice Story (Max 60s)"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/gold_accent"
+                android:background="@drawable/btn_outline_bg"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+
         <!-- Quick Vital Status Toggle Action -->
         <TextView
             android:id="@+id/btnProfileToggleVitalStatus"

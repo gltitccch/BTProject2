@@ -131,7 +131,7 @@ class TreeHealthCalculator {
         )
     }
 
-    private fun countDuplicateSuspects(persons: List<Person>): Int {
+    fun countDuplicateSuspects(persons: List<Person>): Int {
         var count = 0
         val checked = mutableSetOf<String>()
         for (i in persons.indices) {
@@ -157,6 +157,18 @@ class TreeHealthCalculator {
                 val numA = Regex("""(\d+|\b(?:ii|iii|iv|jr|sr)\b)$""").find(firstA)?.value
                 val numB = Regex("""(\d+|\b(?:ii|iii|iv|jr|sr)\b)$""").find(firstB)?.value
                 if (numA != null && numB != null && numA != numB) {
+                    continue
+                }
+
+                // If middle names are both known and distinct (e.g. "Santos" vs "Ramos"), they are distinct cousins, not duplicates
+                val midA = pA.middleName.lowercase().trim()
+                val midB = pB.middleName.lowercase().trim()
+                if (midA.isNotBlank() && midB.isNotBlank() && midA != midB) {
+                    continue
+                }
+
+                // If mothers are known and distinct, they are distinct relatives
+                if (!pA.motherId.isNullOrBlank() && !pB.motherId.isNullOrBlank() && pA.motherId != pB.motherId) {
                     continue
                 }
 

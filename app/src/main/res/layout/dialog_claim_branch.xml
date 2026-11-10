@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_arcade_dialog"
+    android:padding="22dp">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_arcade_hud_room"
+            android:gravity="center"
+            android:text="🌿"
+            android:textSize="18sp"
+            android:layout_marginEnd="10dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Claim My Branch"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Link yourself into this KinTrace tree"
+                android:textSize="11.5sp"
+                android:textColor="#B3A1E6" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnClaimClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="✕"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#B3A1E6"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tell the host how you fit into the clan so they can officially place your branch in the tree."
+        android:textSize="12sp"
+        android:lineSpacingExtra="3dp"
+        android:textColor="#D1CAE6"
+        android:layout_marginBottom="14dp" />
+
+    <!-- Parent / Relation Input -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="YOUR PARENTS OR CLAN CONNECTION"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.08"
+        android:textColor="@color/arcade_yellow"
+        android:layout_marginBottom="6dp" />
+
+    <EditText
+        android:id="@+id/etClaimParentName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="e.g. Son of Tito Roberto, Grandson of Maria Santos"
+        android:textSize="13sp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#7868A8"
+        android:background="@drawable/bg_arcade_input"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvClaimError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please provide your parent or relation."
+        android:textSize="11.5sp"
+        android:textStyle="bold"
+        android:textColor="#FF0055"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <Button
+            android:id="@+id/btnClaimCancel"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:textSize="12.5sp"
+            android:textStyle="bold"
+            android:textColor="#B3A1E6"
+            android:background="@drawable/bg_arcade_status_card"
+            app:backgroundTint="@null"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnClaimSubmit"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1.4"
+            android:text="🌿 Send Request"
+            android:textSize="12.5sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:background="@drawable/bg_arcade_btn_correct"
+            app:backgroundTint="@null" />
+    </LinearLayout>
+</LinearLayout>

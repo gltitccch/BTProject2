@@ -29,6 +29,7 @@ class ExportTreeActivity : AppCompatActivity() {
     private val firestoreHelper = FirestoreHelper()
     private var treeId = ""
     private var treeName = "Family Tree"
+    private var currentTree: com.example.btproject2.models.FamilyTree? = null
     private var persons: List<Person> = emptyList()
 
     private lateinit var tvTotalMembers: TextView
@@ -85,6 +86,25 @@ class ExportTreeActivity : AppCompatActivity() {
 
         btnExport.setOnClickListener {
             if (isExporting) return@setOnClickListener
+            val isPrem = currentTree?.isPremium == true || (currentTree?.effectiveQuota ?: 50) >= 200
+
+            // Gatekeeper: 300 DPI Heirloom Visual Chart is reserved for Heritage Pass holders
+            if (!isPrem && selectedFormat == "PNG") {
+                val sheet = com.example.btproject2.ui.dialogs.HeritagePassBottomSheetDialog.newInstance(
+                    treeId = treeId,
+                    treeName = treeName,
+                    currentQuota = currentTree?.effectiveQuota ?: 50,
+                    currentCount = persons.size,
+                    isPremium = false
+                )
+                sheet.onPassUnlocked = {
+                    currentTree?.isPremium = true
+                    exportPng()
+                }
+                sheet.show(supportFragmentManager, "ExportPassGatekeeper")
+                return@setOnClickListener
+            }
+
             when (selectedFormat) {
                 "PDF"    -> exportPdf()
                 "PNG"    -> exportPng()
@@ -111,6 +131,7 @@ class ExportTreeActivity : AppCompatActivity() {
         if (treeId.isNotBlank()) {
             firestoreHelper.getTree(treeId,
                 onSuccess = { tree ->
+                    currentTree = tree
                     if (tree != null && tree.name.isNotBlank()) {
                         treeName = tree.name
                         updateTreePillBadge()
@@ -432,7 +453,7 @@ class ExportTreeActivity : AppCompatActivity() {
                             canvas.drawText((personIdx + 1).toString(), colX[0] + 4f, rowY + 16f, pCellText)
 
                             // 2. Full Name
-                            val fullName = "${p.firstName} ${p.lastName}".trim()
+                            val fullName = if (p.standardDisplayName.isNotBlank()) p.standardDisplayName else "${p.firstName} ${p.lastName}".trim()
                             val shortName = android.text.TextUtils.ellipsize(fullName, android.text.TextPaint(pCellBold), colW[1] - 8f, android.text.TextUtils.TruncateAt.END).toString()
                             canvas.drawText(shortName, colX[1] + 4f, rowY + 16f, pCellBold)
 
@@ -588,7 +609,7 @@ class ExportTreeActivity : AppCompatActivity() {
                         p.firstName,
                         p.middleName,
                         p.lastName,
-                        "${p.firstName} ${if (p.middleName.isNotBlank()) p.middleName + " " else ""}${p.lastName}".trim(),
+                        p.formalFullName.ifBlank { "${p.firstName} ${p.lastName}".trim() },
                         p.gender,
                         if (p.isLiving) "Living" else "Deceased",
                         p.birthDate,

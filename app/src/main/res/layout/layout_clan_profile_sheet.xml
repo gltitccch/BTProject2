@@ -140,6 +140,19 @@
                     android:textColor="#FFFFFF"
                     android:background="@drawable/bg_verified_check_badge"
                     android:elevation="3dp" />
+
+                <!-- Heritage Pass VIP Crown Badge -->
+                <TextView
+                    android:id="@+id/tvHeritageCrownBadge"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="top|start"
+                    android:gravity="center"
+                    android:text="👑"
+                    android:textSize="13sp"
+                    android:background="@drawable/circle_dark_action"
+                    android:elevation="4dp"
+                    android:visibility="gone" />
             </FrameLayout>
 
             <!-- Quick Action Pill: Change Photo -->
@@ -199,6 +212,22 @@
                     android:paddingTop="2dp"
                     android:paddingBottom="2dp"
                     android:layout_marginStart="8dp" />
+
+                <TextView
+                    android:id="@+id/tvHeritagePassPill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👑 HERITAGE PASS"
+                    android:textSize="9.5sp"
+                    android:textStyle="bold"
+                    android:textColor="#D4AF37"
+                    android:background="@drawable/bg_quick_assist_card"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:layout_marginStart="6dp"
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
 

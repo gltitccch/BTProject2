@@ -492,16 +492,21 @@ object KinshipTitleHelper {
         }
 
         // 11. Aunts & Uncles (3rd Degree Collateral: Parent's Siblings)
-        val parentSiblingIds = mutableSetOf<String>()
+        val paternalSiblingIds = mutableSetOf<String>()
         focalFather?.let { f ->
-            f.fatherId?.let { childrenOf[it]?.let { s -> parentSiblingIds.addAll(s) } }
-            f.motherId?.let { childrenOf[it]?.let { s -> parentSiblingIds.addAll(s) } }
-            parentSiblingIds.remove(f.id)
+            f.fatherId?.let { childrenOf[it]?.let { s -> paternalSiblingIds.addAll(s) } }
+            f.motherId?.let { childrenOf[it]?.let { s -> paternalSiblingIds.addAll(s) } }
+            paternalSiblingIds.remove(f.id)
         }
+        val maternalSiblingIds = mutableSetOf<String>()
         focalMother?.let { m ->
-            m.fatherId?.let { childrenOf[it]?.let { s -> parentSiblingIds.addAll(s) } }
-            m.motherId?.let { childrenOf[it]?.let { s -> parentSiblingIds.addAll(s) } }
-            parentSiblingIds.remove(m.id)
+            m.fatherId?.let { childrenOf[it]?.let { s -> maternalSiblingIds.addAll(s) } }
+            m.motherId?.let { childrenOf[it]?.let { s -> maternalSiblingIds.addAll(s) } }
+            maternalSiblingIds.remove(m.id)
+        }
+        val parentSiblingIds = mutableSetOf<String>().apply {
+            addAll(paternalSiblingIds)
+            addAll(maternalSiblingIds)
         }
         if (parentSiblingIds.contains(target.id)) {
             val title = if (isMale) "UNCLE" else if (isFemale) "AUNT" else "AUNT/UNCLE"
@@ -551,7 +556,13 @@ object KinshipTitleHelper {
         }
 
         // 13. First Cousins (4th Degree Collateral: Aunt/Uncle's Children)
-        val isCousin = parentSiblingIds.any { auntUncleId ->
+        val isPaternalCousin = paternalSiblingIds.any { auntUncleId ->
+            (childrenOf[auntUncleId] ?: emptySet()).contains(target.id)
+        }
+        val isMaternalCousin = maternalSiblingIds.any { auntUncleId ->
+            (childrenOf[auntUncleId] ?: emptySet()).contains(target.id)
+        }
+        val isCousin = isPaternalCousin || isMaternalCousin || parentSiblingIds.any { auntUncleId ->
             (childrenOf[auntUncleId] ?: emptySet()).contains(target.id)
         }
         if (isCousin) {
@@ -578,6 +589,8 @@ object KinshipTitleHelper {
             return when {
                 isFullDouble -> "DOUBLE COUSIN" to "Double First Cousin of $focalName"
                 isHalfDouble -> "HALF-DOUBLE COUSIN" to "Half-Double First Cousin of $focalName"
+                isMaternalCousin && !isPaternalCousin -> "COUSIN" to "Maternal First Cousin (Pinsang Buo sa Ina) of $focalName"
+                isPaternalCousin && !isMaternalCousin -> "COUSIN" to "Paternal First Cousin (Pinsang Buo sa Ama) of $focalName"
                 else -> "COUSIN" to "First Cousin of $focalName"
             }
         }

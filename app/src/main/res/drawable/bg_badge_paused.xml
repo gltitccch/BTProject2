@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 3D Bottom Chiseled Shadow -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <solid android:color="#B45309" />
+        </shape>
+    </item>
+    <!-- Top Interactive Surface -->
+    <item android:bottom="2.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <gradient
+                android:startColor="#F59E0B"
+                android:endColor="#D97706"
+                android:angle="270" />
+            <stroke
+                android:width="1.5dp"
+                android:color="#FCD34D" />
+        </shape>
+    </item>
+</layer-list>

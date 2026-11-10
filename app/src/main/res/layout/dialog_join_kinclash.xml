@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_arcade_dialog"
+    android:paddingStart="22dp"
+    android:paddingEnd="22dp"
+    android:paddingTop="22dp"
+    android:paddingBottom="22dp">
+
+    <!-- Header Row: Title & Close -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🕹️"
+            android:textSize="22sp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Join KinClash Arcade"
+            android:textSize="17.5sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/btnKinClashClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="✕"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#B3A1E6"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Subtitle -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enter the 4-digit PIN shared by the host to connect your phone to the live trivia room!"
+        android:textSize="12sp"
+        android:textColor="#B3A1E6"
+        android:lineSpacingExtra="2dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- PIN Label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ROOM GAME PIN"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.08"
+        android:textColor="@color/arcade_yellow"
+        android:layout_marginBottom="6dp" />
+
+    <!-- PIN Input -->
+    <EditText
+        android:id="@+id/etKinClashPin"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:background="@drawable/bg_arcade_input"
+        android:gravity="center"
+        android:hint="7821"
+        android:textColorHint="#7868A8"
+        android:textColor="@color/arcade_yellow"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:letterSpacing="0.25"
+        android:inputType="textCapCharacters"
+        android:maxLength="6"
+        android:singleLine="true"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_marginBottom="14dp" />
+
+    <!-- Nickname Label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="YOUR NICKNAME / CODENAME"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.08"
+        android:textColor="@color/arcade_yellow"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Nickname Input -->
+    <EditText
+        android:id="@+id/etKinClashNickname"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_arcade_input"
+        android:hint="e.g. Carlo from Davao"
+        android:textColorHint="#7868A8"
+        android:textColor="#FFFFFF"
+        android:textSize="13.5sp"
+        android:inputType="textCapWords"
+        android:maxLength="24"
+        android:singleLine="true"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Error Banner -->
+    <TextView
+        android:id="@+id/tvKinClashError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please enter a valid 4-digit PIN."
+        android:textSize="11.5sp"
+        android:textStyle="bold"
+        android:textColor="#FF0055"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Actions Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="6dp">
+
+        <Button
+            android:id="@+id/btnKinClashCancel"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:textSize="12.5sp"
+            android:textStyle="bold"
+            android:textColor="#B3A1E6"
+            android:background="@drawable/bg_arcade_status_card"
+            app:backgroundTint="@null"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnKinClashSubmit"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1.6"
+            android:text="🚀  Join Room"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:background="@drawable/bg_arcade_btn_correct"
+            app:backgroundTint="@null" />
+    </LinearLayout>
+
+</LinearLayout>

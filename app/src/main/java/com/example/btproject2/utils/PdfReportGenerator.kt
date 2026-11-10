@@ -106,14 +106,14 @@ object PdfReportGenerator {
 
         // Person A
         canvas.drawText("PERSON A (REFERENCE):", col1X, curY + 18f, pLabel)
-        val nameA = "${result.personA.firstName} ${result.personA.middleName} ${result.personA.lastName} ${result.personA.suffix}".trim()
+        val nameA = result.personA.formalFullName.ifBlank { "${result.personA.firstName} ${result.personA.lastName}".trim() }
         canvas.drawText(nameA, col1X, curY + 34f, pHeader.apply { textSize = 12f })
         val detailsA = "${result.personA.gender}  •  b. ${result.personA.birthDate.ifEmpty { "Unknown" }}  •  ${if (result.personA.isLiving) "Living" else "Deceased"}"
         canvas.drawText(detailsA, col1X, curY + 50f, pSubHeader)
 
         // Person B
         canvas.drawText("PERSON B (TARGET RELATIVE):", col2X, curY + 18f, pLabel)
-        val nameB = "${result.personB.firstName} ${result.personB.middleName} ${result.personB.lastName} ${result.personB.suffix}".trim()
+        val nameB = result.personB.formalFullName.ifBlank { "${result.personB.firstName} ${result.personB.lastName}".trim() }
         canvas.drawText(nameB, col2X, curY + 34f, pHeader.apply { textSize = 12f })
         val detailsB = "${result.personB.gender}  •  b. ${result.personB.birthDate.ifEmpty { "Unknown" }}  •  ${if (result.personB.isLiving) "Living" else "Deceased"}"
         canvas.drawText(detailsB, col2X, curY + 50f, pSubHeader)

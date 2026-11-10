@@ -72,6 +72,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
     private var isEditor: Boolean = false
     private var isViewer: Boolean = false
     fun isViewerUser(): Boolean = isViewer
+    private var currentTree: com.example.btproject2.models.FamilyTree? = null
     private var currentTreeName: String = "Family Tree"
     private var treePrivacy: com.example.btproject2.models.PrivacySettings = com.example.btproject2.models.PrivacySettings()
     private var tvInteractiveTreeRoleBadge: TextView? = null
@@ -296,6 +297,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             highlightPathIds = pathList.toSet()
         }
         focalPedigreePersonId = intent.getStringExtra("focalPedigreePersonId")
+        val focusMemberId = intent.getStringExtra("FOCUS_MEMBER_ID")
+        if (!focusMemberId.isNullOrBlank()) {
+            highlightPersonAId = focusMemberId
+            focalPedigreePersonId = focusMemberId
+        }
         val requestedMode = intent.getStringExtra("viewMode")
 
         val container = findViewById<FrameLayout>(R.id.treeContainer)
@@ -500,12 +506,18 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         CentralTreeSynchronizer.getInstance().registerListener(this)
     }
 
+    override fun onStop() {
+        super.onStop()
+        com.example.btproject2.utils.AudioTimeCapsuleEngine.stopAudio()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         activeProfileDialog?.dismiss()
         activeProfileDialog = null
         activeProfilePersonId = null
         CentralTreeSynchronizer.getInstance().unregisterListener(this)
+        com.example.btproject2.utils.AudioTimeCapsuleEngine.releaseAll()
     }
 
     internal val syncCoordinator by lazy {
@@ -1003,6 +1015,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
         firestoreHelper.getTree(effectiveTreeId,
             onSuccess = { tree ->
+                currentTree = tree
                 currentTreeName = tree?.name ?: "Family Tree"
                 val ownerMatch = tree == null || tree.isOwnedBy(currentUserId)
                 if (ownerMatch) {
@@ -1582,6 +1595,11 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         val tvNoDocs = dialogView.findViewById<TextView>(R.id.tvProfileNoDocs)
         val btnAttachDoc = dialogView.findViewById<TextView>(R.id.btnProfileAttachDoc)
 
+        val tvVoiceBadge = dialogView.findViewById<TextView>(R.id.tvProfileVoiceBadge)
+        val layoutVoiceContainer = dialogView.findViewById<LinearLayout>(R.id.layoutProfileVoiceContainer)
+        val tvNoVoice = dialogView.findViewById<TextView>(R.id.tvProfileNoVoice)
+        val btnRecordVoice = dialogView.findViewById<TextView>(R.id.btnProfileRecordVoice)
+
         val btnAddChild = dialogView.findViewById<TextView>(R.id.btnProfileAddChild)
         val btnEdit = dialogView.findViewById<TextView>(R.id.btnProfileEdit)
         val btnFullDetail = dialogView.findViewById<TextView>(R.id.btnProfileFullDetail)
@@ -1734,6 +1752,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
 
         // Documents & Verification Badge
         renderProfileDocuments(person, layoutDocsContainer, tvNoDocs, tvVerificationBadge)
+        renderProfileVoiceCapsules(person, layoutVoiceContainer, tvNoVoice, tvVoiceBadge, btnRecordVoice)
 
         val btnAddSpouse = dialogView.findViewById<TextView?>(R.id.btnProfileAddSpouse)
         val rowProfileSpouse = dialogView.findViewById<View?>(R.id.rowProfileSpouse)
@@ -1742,6 +1761,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         if (isViewer) {
             btnChangePhoto.visibility = View.GONE
             btnAttachDoc.visibility = View.GONE
+            btnRecordVoice.visibility = View.GONE
             btnEdit.visibility = View.GONE
             btnAddChild.visibility = View.GONE
             btnAddSpouse?.visibility = View.GONE
@@ -1776,6 +1796,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             }
             btnChangePhoto.visibility = View.VISIBLE
             btnAttachDoc.visibility = View.VISIBLE
+            btnRecordVoice.visibility = View.VISIBLE
             btnEdit.visibility = View.VISIBLE
             btnAddChild.visibility = View.VISIBLE
             btnAddSpouse?.visibility = View.VISIBLE
@@ -1817,6 +1838,7 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
         }
 
         dialog.setOnDismissListener {
+            com.example.btproject2.utils.AudioTimeCapsuleEngine.stopAudio()
             if (activeProfileDialog === dialog) {
                 activeProfileDialog = null
                 if (activeProfilePersonId == person.id) {
@@ -2279,6 +2301,162 @@ class InteractiveTreeActivity : AppCompatActivity(), SyncEventListener {
             }
         }
     }
+
+    private fun renderProfileVoiceCapsules(
+        person: Person,
+        container: LinearLayout,
+        tvNoVoice: TextView,
+        badge: TextView,
+        btnRecordVoice: TextView
+    ) {
+        container.removeAllViews()
+        val capsules = person.voiceCapsules
+        val isPrem = currentTree?.isPremium == true || (currentTree?.effectiveQuota ?: 50) >= 200
+
+        if (capsules.isEmpty()) {
+            tvNoVoice.visibility = View.VISIBLE
+            badge.text = if (isPrem) "0 Stories • Unlimited 👑" else "0 / 5 Free"
+            badge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.text_hint))
+        } else {
+            tvNoVoice.visibility = View.GONE
+            val count = capsules.size
+            if (isPrem) {
+                badge.text = "$count ${if (count == 1) "Story" else "Stories"} • Unlimited 👑"
+                badge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.gold_accent))
+            } else {
+                badge.text = "$count / 5 Stories"
+                if (count >= 5) {
+                    badge.setTextColor(android.graphics.Color.parseColor("#F59E0B"))
+                } else {
+                    badge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+                }
+            }
+
+            capsules.forEach { capsule ->
+                val capsuleView = layoutInflater.inflate(R.layout.item_voice_capsule, container, false)
+                val btnPlay = capsuleView.findViewById<TextView>(R.id.btnPlayCapsule)
+                val tvTitle = capsuleView.findViewById<TextView>(R.id.tvCapsuleTitle)
+                val tvDuration = capsuleView.findViewById<TextView>(R.id.tvCapsuleDuration)
+                val tvMeta = capsuleView.findViewById<TextView>(R.id.tvCapsuleMeta)
+                val btnDelete = capsuleView.findViewById<TextView>(R.id.btnDeleteCapsule)
+
+                tvTitle.text = capsule.title.ifBlank { "Family Story" }
+                tvDuration.text = "🎙️ ${capsule.durationFormatted.ifBlank { "0:00" }}"
+                tvMeta.text = listOfNotNull(
+                    capsule.fileSizeFormatted.takeIf { it.isNotBlank() },
+                    capsule.promptQuestion.takeIf { it.isNotBlank() }
+                ).joinToString(" • ").ifBlank { "Recorded Audio" }
+
+                val isThisPlaying = com.example.btproject2.utils.AudioTimeCapsuleEngine.isCurrentlyPlaying &&
+                    com.example.btproject2.utils.AudioTimeCapsuleEngine.activeAudioUri == capsule.audioUri
+                btnPlay.text = if (isThisPlaying) "⏸" else "▶"
+
+                btnPlay.setOnClickListener {
+                    if (com.example.btproject2.utils.AudioTimeCapsuleEngine.isCurrentlyPlaying &&
+                        com.example.btproject2.utils.AudioTimeCapsuleEngine.activeAudioUri == capsule.audioUri
+                    ) {
+                        com.example.btproject2.utils.AudioTimeCapsuleEngine.pauseAudio()
+                        btnPlay.text = "▶"
+                    } else if (!com.example.btproject2.utils.AudioTimeCapsuleEngine.isCurrentlyPlaying &&
+                        com.example.btproject2.utils.AudioTimeCapsuleEngine.activeAudioUri == capsule.audioUri
+                    ) {
+                        com.example.btproject2.utils.AudioTimeCapsuleEngine.resumeAudio()
+                        btnPlay.text = "⏸"
+                    } else {
+                        val started = com.example.btproject2.utils.AudioTimeCapsuleEngine.playAudio(
+                            context = this,
+                            audioUri = capsule.audioUri,
+                            audioBase64 = capsule.audioBase64,
+                            onProgress = { current, total ->
+                                runOnUiThread {
+                                    tvDuration.text = "🔊 ${com.example.btproject2.utils.AudioTimeCapsuleEngine.formatSeconds(current)} / ${com.example.btproject2.utils.AudioTimeCapsuleEngine.formatSeconds(total)}"
+                                }
+                            },
+                            onCompletion = {
+                                runOnUiThread {
+                                    tvDuration.text = "🎙️ ${capsule.durationFormatted}"
+                                    btnPlay.text = "▶"
+                                }
+                            }
+                        )
+                        if (started) {
+                            for (i in 0 until container.childCount) {
+                                val otherChild = container.getChildAt(i)
+                                otherChild.findViewById<TextView>(R.id.btnPlayCapsule)?.text = "▶"
+                            }
+                            btnPlay.text = "⏸"
+                        } else {
+                            KinTraceAlert.warning(this, "Audio Unavailable", "Could not play this recording.")
+                        }
+                    }
+                }
+
+                btnDelete.visibility = if (isViewer) View.GONE else View.VISIBLE
+                btnDelete.setOnClickListener {
+                    if (isViewer) {
+                        KinTraceAlert.warning(this, "Read-Only Access", "Read-only Viewers cannot remove voice memories.")
+                        return@setOnClickListener
+                    }
+                    com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                        .setTitle("Remove Voice Story")
+                        .setMessage("Remove \"${capsule.title}\" from ${person.firstName}'s profile?")
+                        .setPositiveButton("Remove") { _, _ ->
+                            val targetPersonId = person.id
+                            firestoreHelper.removeVoiceCapsule(targetPersonId, capsule.id,
+                                onSuccess = {
+                                    KinTraceAlert.show(this, "Voice story removed")
+                                    val updatedList = allPersonsList.map { p ->
+                                        if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(p.id, targetPersonId)) {
+                                            p.copy(voiceCapsules = p.voiceCapsules.filter { it.id != capsule.id })
+                                        } else p
+                                    }
+                                    allPersonsList = updatedList
+                                    val refreshedPerson = updatedList.find { com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, targetPersonId) }
+                                    if (refreshedPerson != null) {
+                                        renderProfileVoiceCapsules(refreshedPerson, container, tvNoVoice, badge, btnRecordVoice)
+                                    }
+                                },
+                                onFailure = {
+                                    KinTraceAlert.show(this, "Failed to remove: ${it.message}")
+                                }
+                            )
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+
+                container.addView(capsuleView)
+            }
+        }
+
+        btnRecordVoice.visibility = if (isViewer) View.GONE else View.VISIBLE
+        btnRecordVoice.setOnClickListener {
+            val totalClanStories = allPersonsList.sumOf { it.voiceCapsules.size }
+            if (!isPrem && (person.voiceCapsules.size >= com.example.btproject2.models.FamilyTree.FREE_AUDIO_CAP || totalClanStories >= com.example.btproject2.models.FamilyTree.FREE_AUDIO_CAP)) {
+                activeProfileDialog?.dismiss()
+                val passSheet = com.example.btproject2.ui.dialogs.HeritagePassBottomSheetDialog.newInstance(
+                    treeId = treeId,
+                    treeName = currentTreeName,
+                    currentQuota = currentTree?.effectiveQuota ?: com.example.btproject2.models.FamilyTree.DEFAULT_FREEMIUM_QUOTA,
+                    currentCount = allPersonsList.size,
+                    isPremium = false
+                )
+                passSheet.onPassUnlocked = {
+                    currentTree?.isPremium = true
+                    loadTree(refreshProfile = true)
+                }
+                passSheet.show(supportFragmentManager, "HeritagePassTreeAudioGatekeeper")
+                return@setOnClickListener
+            }
+            activeProfileDialog?.dismiss()
+            val intent = Intent(this, MemberDetailActivity::class.java).apply {
+                putExtra("personId", person.id)
+                putExtra("TREE_ID", treeId)
+                putExtra("isViewer", isViewer)
+            }
+            startActivity(intent)
+        }
+    }
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -2462,6 +2640,40 @@ class FamilyTreeView @JvmOverloads constructor(
         color = Color.parseColor("#F5D77F"); textSize = 13f; textAlign = Paint.Align.CENTER; typeface = tfSoraBold
     }
 
+    // In-Law Lineage Badge Paints (Mega-Clan Scale >= 100 members)
+    private val pInLawBadgeBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#183324"); style = Paint.Style.FILL
+    }
+    private val pInLawBadgeBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#D4AF37"); style = Paint.Style.STROKE; strokeWidth = 1.2f
+    }
+    private val pInLawBadgeText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#F3E5AB"); textSize = 9.5f; textAlign = Paint.Align.CENTER; typeface = tfSoraBold
+    }
+
+    // Heritage Milestone Badges (Candles & Birthday Celebrations)
+    private val pCandleBadgeBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#251D0F"); style = Paint.Style.FILL
+    }
+    private val pCandleBadgeBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#FFB703"); style = Paint.Style.STROKE; strokeWidth = 1.4f
+    }
+    private val pCandleBadgeTxt = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = 9.5f; textAlign = Paint.Align.CENTER
+    }
+
+    private val pBirthdayBadgeBg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#2B1218"); style = Paint.Style.FILL
+    }
+    private val pBirthdayBadgeBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#FB7185"); style = Paint.Style.STROKE; strokeWidth = 1.4f
+    }
+    private val pBirthdayBadgeTxt = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = 9.5f; textAlign = Paint.Align.CENTER
+    }
+
+    private val todayBirthdayPersonIds = mutableSetOf<String>()
+
     // Node Drop Shadow Paint
     private val pNodeShadow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#40000000"); style = Paint.Style.FILL
@@ -2582,6 +2794,8 @@ class FamilyTreeView @JvmOverloads constructor(
     private val pMemTxt = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 13f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD }
     private val pCheckBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#10B981") }
     private val pCheckTxt = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 14f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD }
+    private val pVoiceBadgeBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#B45309") }
+    private val pVoiceBadgeTxt = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 13f; textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT_BOLD }
     private val pBmpDim = Paint().apply { alpha = 90 }
     private val pBmpNormal = Paint()
     private val pBmpDeceasedNormal = Paint().apply {
@@ -2654,6 +2868,9 @@ class FamilyTreeView @JvmOverloads constructor(
         pMaritalPillBgDim.color = Color.parseColor("#1B2E24"); pMaritalPillBgDim.alpha = 80
         pMaritalPillBorderDim.color = Color.parseColor("#D4A359"); pMaritalPillBorderDim.alpha = 80
         pMaritalPillTextDim.color = Color.parseColor("#F5D77F"); pMaritalPillTextDim.alpha = 80
+        pInLawBadgeBg.color = Color.parseColor("#183324")
+        pInLawBadgeBorder.color = Color.parseColor("#D4AF37")
+        pInLawBadgeText.color = Color.parseColor("#F3E5AB")
         pTitleBg.color = Color.parseColor("#132B20")
         pTitleBorder.color = Color.parseColor("#D4A359")
         pTitleText.color = Color.parseColor("#F5D77F")
@@ -2721,6 +2938,9 @@ class FamilyTreeView @JvmOverloads constructor(
             pMaritalPillBgDim.color = Color.parseColor("#FEF3C7"); pMaritalPillBgDim.alpha = 130
             pMaritalPillBorderDim.color = Color.parseColor("#B45309"); pMaritalPillBorderDim.alpha = 130
             pMaritalPillTextDim.color = Color.parseColor("#92400E"); pMaritalPillTextDim.alpha = 130
+            pInLawBadgeBg.color = Color.parseColor("#FEF3C7")
+            pInLawBadgeBorder.color = Color.parseColor("#D97706")
+            pInLawBadgeText.color = Color.parseColor("#92400E")
             pTitleBg.color = Color.parseColor("#FEF3C7")
             pTitleBorder.color = Color.parseColor("#FDE68A")
             pTitleText.color = Color.parseColor("#92400E")
@@ -2832,6 +3052,18 @@ class FamilyTreeView @JvmOverloads constructor(
     private val precomputedBuses = mutableListOf<PrecomputedFamilyBus>()
     private val precomputedFallbackLines = mutableListOf<PrecomputedFallbackLine>()
     private val precomputedPedigreeConnectors = mutableListOf<PrecomputedPedigreeConnector>()
+
+    private data class PrecomputedInLawBadge(
+        val personId: String,
+        val targetParentId: String,
+        val label: String,
+        val cx: Float,
+        val cy: Float,
+        val w: Float,
+        val h: Float
+    )
+    private val precomputedInLawBadges = mutableListOf<PrecomputedInLawBadge>()
+    private val tempBadgeRect = RectF()
 
     // ── State ─────────────────────────────────────────────────────
     private var allPersons: List<Person> = emptyList()
@@ -3159,6 +3391,16 @@ class FamilyTreeView @JvmOverloads constructor(
                 }
                 it.remove()
             }
+        }
+        todayBirthdayPersonIds.clear()
+        try {
+            val todayMilestones = com.example.btproject2.utils.HeritageMilestoneEngine.findMilestonesForDate(list)
+            for (m in todayMilestones) {
+                if (m.category == com.example.btproject2.utils.HeritageMilestoneEngine.MilestoneCategory.BIRTHDAY) {
+                    todayBirthdayPersonIds.add(m.personId)
+                }
+            }
+        } catch (_: Throwable) {
         }
         updateAvatarBitmaps(list)
         updateDisplayPersons()
@@ -3873,11 +4115,13 @@ class FamilyTreeView @JvmOverloads constructor(
             }
         }
 
+        val isMegaClan = displayPersons.size >= 100
+        val effectiveBranchGap = if (isMegaClan) 80f else BRANCH_GAP
         var startX = MARGIN
         rootUnits.forEach { ru ->
             val center = startX + ru.width / 2f
             assignPos(ru, center)
-            startX += ru.width + BRANCH_GAP
+            startX += ru.width + effectiveBranchGap
         }
 
         // Safety fallback for any unplaced persons
@@ -4190,9 +4434,12 @@ class FamilyTreeView @JvmOverloads constructor(
                     if (childDrops.isNotEmpty()) {
                         val minX = childDrops.minOf { it.x }
                         val maxX = childDrops.maxOf { it.x }
-                        val hasBridge = dropX < minX || dropX > maxX
+                        val isMegaClan = displayPersons.size >= 100
+                        val hasBridge = if (isMegaClan) false else (dropX < minX || dropX > maxX)
                         val bridgeTargetX = if (dropX < minX) minX else if (dropX > maxX) maxX else dropX
                         val bridgeStepY = (dropStartY + yBus) / 2f
+                        val effectiveBusLeft = if (isMegaClan) minOf(dropX, minX) else minX
+                        val effectiveBusRight = if (isMegaClan) maxOf(dropX, maxX) else maxX
 
                         precomputedBuses.add(
                             PrecomputedFamilyBus(
@@ -4201,8 +4448,8 @@ class FamilyTreeView @JvmOverloads constructor(
                                 dropX = dropX,
                                 dropStartY = dropStartY,
                                 yBus = yBus,
-                                busLeft = minX,
-                                busRight = maxX,
+                                busLeft = effectiveBusLeft,
+                                busRight = effectiveBusRight,
                                 childDrops = childDrops,
                                 bridgeTargetX = bridgeTargetX,
                                 bridgeStepY = bridgeStepY,
@@ -4264,9 +4511,12 @@ class FamilyTreeView @JvmOverloads constructor(
                     if (fsDrops.isNotEmpty()) {
                         val fsMinX = fsDrops.minOf { it.x }
                         val fsMaxX = fsDrops.maxOf { it.x }
-                        val fsHasBridge = fsMidX < fsMinX || fsMidX > fsMaxX
+                        val isMegaClan = displayPersons.size >= 100
+                        val fsHasBridge = if (isMegaClan) false else (fsMidX < fsMinX || fsMidX > fsMaxX)
                         val fsBridgeTargetX = if (fsMidX < fsMinX) fsMinX else if (fsMidX > fsMaxX) fsMaxX else fsMidX
                         val fsBridgeStepY = (fsDropStartY + fsBusY) / 2f
+                        val fsEffectiveBusLeft = if (isMegaClan) minOf(fsMidX, fsMinX) else fsMinX
+                        val fsEffectiveBusRight = if (isMegaClan) maxOf(fsMidX, fsMaxX) else fsMaxX
 
                         precomputedBuses.add(
                             PrecomputedFamilyBus(
@@ -4275,8 +4525,8 @@ class FamilyTreeView @JvmOverloads constructor(
                                 dropX = fsMidX,
                                 dropStartY = fsDropStartY,
                                 yBus = fsBusY,
-                                busLeft = fsMinX,
-                                busRight = fsMaxX,
+                                busLeft = fsEffectiveBusLeft,
+                                busRight = fsEffectiveBusRight,
                                 childDrops = fsDrops,
                                 bridgeTargetX = fsBridgeTargetX,
                                 bridgeStepY = fsBridgeStepY,
@@ -4328,11 +4578,20 @@ class FamilyTreeView @JvmOverloads constructor(
             }
         }
 
+        precomputedInLawBadges.clear()
+        val isMegaClan = displayPersons.size >= 100
+
         displayPersons.forEach { p ->
             val cPos = posMap[p.id] ?: return@forEach
             val uncoveredParents = listOfNotNull(p.fatherId, p.motherId)
                 .filter { it.isNotBlank() && !coveredParentChild.contains(Pair(it, p.id)) }
             if (uncoveredParents.isEmpty()) return@forEach
+
+            // Check if this person is married into a family unit or distant branch
+            val isSpouseInUnit = familyUnits.any { u ->
+                com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse?.id, p.id) ||
+                (u.formerSpouses.any { fs -> com.example.btproject2.engine.FamilyLinkValidator.isSameId(fs.id, p.id) })
+            }
 
             // Check if two uncovered parents form a married FamilyUnit so we emit a single shared line from their marriage ring
             val sharedUnit = if (uncoveredParents.size >= 2) {
@@ -4345,6 +4604,35 @@ class FamilyTreeView @JvmOverloads constructor(
                      com.example.btproject2.engine.FamilyLinkValidator.isSameId(u.spouse?.id, p1))
                 }
             } else null
+
+            // In Mega Clan mode (100+ members): replace sprawling cross-branch fallback lines for married spouses
+            // (or remote connections spanning across branches) with smart interactive in-law badges
+            if (isMegaClan && (isSpouseInUnit || (sharedUnit != null && kotlin.math.abs((posMap[sharedUnit.primary.id]?.x ?: cPos.x) - cPos.x) > 600f))) {
+                val targetParentId = sharedUnit?.primary?.id ?: uncoveredParents.first()
+                val targetParent = allPersons.find { it.id == targetParentId }
+                val clanName = targetParent?.lastName?.takeIf { it.isNotBlank() }
+                    ?: targetParent?.firstName?.takeIf { it.isNotBlank() }
+                    ?: "Ancestral"
+                val badgeLabel = "💍 [Root] $clanName ↗"
+                val badgeW = pInLawBadgeText.measureText(badgeLabel) + 20f
+                val badgeH = 18f
+                val badgeCx = cPos.x
+                val badgeCy = cPos.y - CARD_H / 2f - 11f
+
+                precomputedInLawBadges.add(
+                    PrecomputedInLawBadge(
+                        personId = p.id,
+                        targetParentId = targetParentId,
+                        label = badgeLabel,
+                        cx = badgeCx,
+                        cy = badgeCy,
+                        w = badgeW,
+                        h = badgeH
+                    )
+                )
+                hitAreas.add(HitArea(badgeCx, badgeCy, 14f, "inlaw:$targetParentId", w = badgeW, h = badgeH))
+                return@forEach // Suppress sprawling line
+            }
 
             if (sharedUnit != null) {
                 val primaryPos = posMap[sharedUnit.primary.id]
@@ -4375,6 +4663,30 @@ class FamilyTreeView @JvmOverloads constructor(
                 uncoveredParents.forEach { pid ->
                     val pPos = posMap[pid]
                     if (pPos != null) {
+                        if (isMegaClan && (isSpouseInUnit || kotlin.math.abs(pPos.x - cPos.x) > 600f)) {
+                            val targetParent = allPersons.find { it.id == pid }
+                            val clanName = targetParent?.lastName?.takeIf { it.isNotBlank() }
+                                ?: targetParent?.firstName?.takeIf { it.isNotBlank() }
+                                ?: "Ancestral"
+                            val badgeLabel = "💍 [Root] $clanName ↗"
+                            val badgeW = pInLawBadgeText.measureText(badgeLabel) + 20f
+                            val badgeH = 18f
+                            val badgeCx = cPos.x
+                            val badgeCy = cPos.y - CARD_H / 2f - 11f
+                            precomputedInLawBadges.add(
+                                PrecomputedInLawBadge(
+                                    personId = p.id,
+                                    targetParentId = pid,
+                                    label = badgeLabel,
+                                    cx = badgeCx,
+                                    cy = badgeCy,
+                                    w = badgeW,
+                                    h = badgeH
+                                )
+                            )
+                            hitAreas.add(HitArea(badgeCx, badgeCy, 14f, "inlaw:$pid", w = badgeW, h = badgeH))
+                            return@forEach
+                        }
                         val isChildBelow = cPos.y >= pPos.y
                         val pY = if (isChildBelow) pPos.y + CARD_H / 2f + ADD_BTN_R else (pPos.y - CARD_H / 2f) - 8f
                         val cY = if (isChildBelow) cPos.y - CARD_H / 2f else cPos.y + CARD_H / 2f + ADD_BTN_R
@@ -4690,6 +5002,26 @@ class FamilyTreeView @JvmOverloads constructor(
             }
         }
 
+        // 5. In-Law Lineage Badges (Mega-Clan Scale >= 100 members)
+        for (i in 0 until precomputedInLawBadges.size) {
+            val badge = precomputedInLawBadges[i]
+            if (badge.cx + badge.w / 2f < cullLeft || badge.cx - badge.w / 2f > cullRight ||
+                badge.cy + badge.h / 2f < cullTop || badge.cy - badge.h / 2f > cullBottom
+            ) {
+                continue
+            }
+            tempBadgeRect.set(
+                badge.cx - badge.w / 2f,
+                badge.cy - badge.h / 2f,
+                badge.cx + badge.w / 2f,
+                badge.cy + badge.h / 2f
+            )
+            val cornerR = badge.h / 2f
+            canvas.drawRoundRect(tempBadgeRect, cornerR, cornerR, pInLawBadgeBg)
+            canvas.drawRoundRect(tempBadgeRect, cornerR, cornerR, pInLawBadgeBorder)
+            canvas.drawText(badge.label, badge.cx, badge.cy + 3.5f, pInLawBadgeText)
+        }
+
         // Continuous redraw for smooth 60/120fps heart-throbbing beacon & fade
         if (!focalPersonId.isNullOrEmpty() && focalBeaconStartTime > 0L) {
             val elapsed = System.currentTimeMillis() - focalBeaconStartTime
@@ -4844,6 +5176,31 @@ class FamilyTreeView @JvmOverloads constructor(
             canvas.drawText("✓", badgeX, badgeY + 4.5f, pCheckTxt)
         }
 
+        // Oral History Voice Capsule badge on avatar (🎙)
+        if (p.voiceCapsules.isNotEmpty() && !shouldDim) {
+            val badgeX = cx + NODE_RADIUS * 0.7f
+            val badgeY = avatarCy + NODE_RADIUS * 0.7f
+            canvas.drawCircle(badgeX, badgeY, 13f, pVoiceBadgeBg)
+            canvas.drawText("🎙", badgeX, badgeY + 4f, pVoiceBadgeTxt)
+        }
+
+        // Heritage Milestone Candle / Birthday Badge at top-center of card
+        val hasCandleLit = com.example.btproject2.services.MilestoneNotificationManager.isCandleLit(context, p.id)
+        val isBirthdayToday = p.isLiving && todayBirthdayPersonIds.contains(p.id)
+        if ((hasCandleLit || isBirthdayToday) && !shouldDim) {
+            val badgeX = cx
+            val badgeY = cardTop + 7f
+            if (hasCandleLit) {
+                canvas.drawCircle(badgeX, badgeY, 12f, pCandleBadgeBg)
+                canvas.drawCircle(badgeX, badgeY, 12f, pCandleBadgeBorder)
+                canvas.drawText("🕯️", badgeX, badgeY + 4f, pCandleBadgeTxt)
+            } else {
+                canvas.drawCircle(badgeX, badgeY, 12f, pBirthdayBadgeBg)
+                canvas.drawCircle(badgeX, badgeY, 12f, pBirthdayBadgeBorder)
+                canvas.drawText("🎉", badgeX, badgeY + 4f, pBirthdayBadgeTxt)
+            }
+        }
+
         // 4. Name & Date Texts (Retrieved from O(1) Cache, ZERO text allocation!)
         val cached = cardDisplayCache[p.id]
         val displayFirst = cached?.displayFirstName ?: p.firstName
@@ -4965,6 +5322,13 @@ class FamilyTreeView @JvmOverloads constructor(
             val badgeY = cy - NODE_RADIUS * 0.7f
             canvas.drawCircle(badgeX, badgeY, 13f, pCheckBg)
             canvas.drawText("✓", badgeX, badgeY + 4.5f, pCheckTxt)
+        }
+        // Voice Capsule 🎙
+        if (p.voiceCapsules.isNotEmpty()) {
+            val badgeX = cx + NODE_RADIUS * 0.7f
+            val badgeY = cy + NODE_RADIUS * 0.7f
+            canvas.drawCircle(badgeX, badgeY, 13f, pVoiceBadgeBg)
+            canvas.drawText("🎙", badgeX, badgeY + 4f, pVoiceBadgeTxt)
         }
 
         // Labels
@@ -5213,6 +5577,13 @@ class FamilyTreeView @JvmOverloads constructor(
                         val childId = parts.getOrNull(0).orEmpty()
                         val isFather = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true
                         onAddAncestor(childId, isFather)
+                    }
+                    h.tag.startsWith("inlaw:") -> {
+                        val parentId = h.tag.removePrefix("inlaw:")
+                        centerOnPerson(parentId, animate = true)
+                        val parentPerson = allPersons.find { it.id == parentId }
+                        val parentName = parentPerson?.let { "${it.firstName} ${it.lastName}".trim() } ?: "Ancestral Line"
+                        KinTraceAlert.canvas(context, "In-Law Lineage Jump", "Centered view on $parentName's branch.")
                     }
                     else -> {
                         onOpenPerson(h.tag)

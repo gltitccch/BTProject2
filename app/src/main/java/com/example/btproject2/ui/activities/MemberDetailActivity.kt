@@ -30,6 +30,11 @@ import com.example.btproject2.service.FamilyRelationshipService.ParentRole
 import com.example.btproject2.service.FamilyRelationshipService.ProposedRelationshipType
 import com.example.btproject2.sync.MemberDetailSyncCoordinator
 import com.example.btproject2.ui.dialogs.ActionRestrictedDialog
+import com.example.btproject2.ui.dialogs.HeritagePassBottomSheetDialog
+import com.example.btproject2.models.VoiceCapsule
+import com.example.btproject2.utils.AudioTimeCapsuleEngine
+import com.example.btproject2.utils.KinTraceModalDialog
+import java.util.UUID
 import java.util.Calendar
 import java.util.Locale
 
@@ -42,6 +47,7 @@ class MemberDetailActivity : AppCompatActivity() {
     private val familyService   = FamilyRelationshipService()
     private var treeId          = ""
     private var currentTreeName = "Family Tree"
+    private var currentTree: com.example.btproject2.models.FamilyTree? = null
 
     private var isOwner: Boolean = true
     private var isViewer: Boolean = false
@@ -67,6 +73,16 @@ class MemberDetailActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             setResult(RESULT_OK)
             loadAllAndDisplay()
+        }
+    }
+
+    private val requestAudioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            currentPerson?.let { showRecordVoiceCapsuleDialog(it) }
+        } else {
+            KinTraceAlert.warning(this, "Permission Required", "Microphone access is required to record oral history.")
         }
     }
 
@@ -259,6 +275,10 @@ class MemberDetailActivity : AppCompatActivity() {
     private lateinit var layoutDetailDocsContainer: LinearLayout
     private lateinit var tvDetailNoDocs: TextView
     private lateinit var btnDetailAttachDoc: TextView
+    private lateinit var layoutDetailVoiceContainer: LinearLayout
+    private lateinit var tvDetailNoVoice: TextView
+    private lateinit var tvDetailVoiceCountBadge: TextView
+    private lateinit var btnDetailRecordVoice: TextView
     private lateinit var tvDetailBirthDate: TextView
     private lateinit var tvDetailBirthPlace: TextView
     private lateinit var tvDetailDeathDate: TextView
@@ -334,6 +354,15 @@ class MemberDetailActivity : AppCompatActivity() {
         tvAvatar.setOnClickListener { openRelativePhotoStudio() }
         btnDetailAttachDoc.setOnClickListener {
             detailDocPickerLauncher.launch("*/*")
+        }
+
+        layoutDetailVoiceContainer = findViewById(R.id.layoutDetailVoiceContainer)
+        tvDetailNoVoice           = findViewById(R.id.tvDetailNoVoice)
+        tvDetailVoiceCountBadge   = findViewById(R.id.tvDetailVoiceCountBadge)
+        btnDetailRecordVoice      = findViewById(R.id.btnDetailRecordVoice)
+
+        btnDetailRecordVoice.setOnClickListener {
+            promptRecordVoiceCapsule()
         }
 
         tvDetailBirthDate   = findViewById(R.id.tvDetailBirthDate)
@@ -564,9 +593,15 @@ class MemberDetailActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        AudioTimeCapsuleEngine.stopAudio()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         syncCoordinator.unregister()
+        AudioTimeCapsuleEngine.releaseAll()
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -698,8 +733,7 @@ class MemberDetailActivity : AppCompatActivity() {
     private fun displayPerson(person: Person) {
 
         // ── Avatar initials & Profile Photo ───────────────────────
-        val initials = "${person.firstName.firstOrNull() ?: ""}${person.lastName.firstOrNull() ?: ""}".uppercase()
-        tvAvatar.text = initials
+        tvAvatar.text = person.avatarMonogram
         val circ = com.example.btproject2.utils.DocumentHelper.getCachedCircularAvatar(person.photoBase64, 112)
         if (circ != null) {
             ivDetailPhoto.setImageBitmap(circ)
@@ -811,6 +845,7 @@ class MemberDetailActivity : AppCompatActivity() {
 
         // ── Attached Proof Documents ──────────────────────────────
         renderAttachedDocuments(person)
+        renderVoiceCapsules(person)
 
         // ── Personal Details ──────────────────────────────────────
         if (shouldHideBirth) {
@@ -1088,6 +1123,342 @@ class MemberDetailActivity : AppCompatActivity() {
                 layoutDetailDocsContainer.addView(docView)
             }
         }
+    }
+
+    private fun renderVoiceCapsules(person: Person) {
+        layoutDetailVoiceContainer.removeAllViews()
+        val capsules = person.voiceCapsules
+        val isPrem = currentTree?.isPremium == true || (currentTree?.effectiveQuota ?: 50) >= 200
+        val count = capsules.size
+
+        if (capsules.isEmpty()) {
+            tvDetailNoVoice.visibility = View.VISIBLE
+            tvDetailVoiceCountBadge.text = if (isPrem) "0 Stories • Unlimited 👑" else "0 / ${com.example.btproject2.models.FamilyTree.FREE_AUDIO_CAP} Free"
+            tvDetailVoiceCountBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.dark_subtext))
+        } else {
+            tvDetailNoVoice.visibility = View.GONE
+            if (isPrem) {
+                tvDetailVoiceCountBadge.text = "$count ${if (count == 1) "Story" else "Stories"} • Unlimited 👑"
+                tvDetailVoiceCountBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.gold_accent))
+            } else {
+                tvDetailVoiceCountBadge.text = "$count / ${com.example.btproject2.models.FamilyTree.FREE_AUDIO_CAP} Stories"
+                if (count >= com.example.btproject2.models.FamilyTree.FREE_AUDIO_CAP) {
+                    tvDetailVoiceCountBadge.setTextColor(android.graphics.Color.parseColor("#F59E0B"))
+                } else {
+                    tvDetailVoiceCountBadge.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.mint_text))
+                }
+            }
+
+            for (capsule in capsules) {
+                val capsuleView = layoutInflater.inflate(R.layout.item_voice_capsule, layoutDetailVoiceContainer, false)
+                val btnPlay = capsuleView.findViewById<TextView>(R.id.btnPlayCapsule)
+                val tvTitle = capsuleView.findViewById<TextView>(R.id.tvCapsuleTitle)
+                val tvDuration = capsuleView.findViewById<TextView>(R.id.tvCapsuleDuration)
+                val tvMeta = capsuleView.findViewById<TextView>(R.id.tvCapsuleMeta)
+                val btnDelete = capsuleView.findViewById<TextView>(R.id.btnDeleteCapsule)
+
+                tvTitle.text = capsule.title.ifBlank { "Family Story" }
+                tvDuration.text = "🎙️ ${capsule.durationFormatted.ifBlank { "0:00" }}"
+                tvMeta.text = listOfNotNull(
+                    capsule.fileSizeFormatted.takeIf { it.isNotBlank() },
+                    capsule.promptQuestion.takeIf { it.isNotBlank() }
+                ).joinToString(" • ").ifBlank { "Recorded Audio" }
+
+                val isThisPlaying = AudioTimeCapsuleEngine.isCurrentlyPlaying && AudioTimeCapsuleEngine.activeAudioUri == capsule.audioUri
+                btnPlay.text = if (isThisPlaying) "⏸" else "▶"
+
+                btnPlay.setOnClickListener {
+                    if (AudioTimeCapsuleEngine.isCurrentlyPlaying && AudioTimeCapsuleEngine.activeAudioUri == capsule.audioUri) {
+                        AudioTimeCapsuleEngine.pauseAudio()
+                        btnPlay.text = "▶"
+                    } else if (!AudioTimeCapsuleEngine.isCurrentlyPlaying && AudioTimeCapsuleEngine.activeAudioUri == capsule.audioUri) {
+                        AudioTimeCapsuleEngine.resumeAudio()
+                        btnPlay.text = "⏸"
+                    } else {
+                        val started = AudioTimeCapsuleEngine.playAudio(
+                            context = this,
+                            audioUri = capsule.audioUri,
+                            audioBase64 = capsule.audioBase64,
+                            onProgress = { current, total ->
+                                runOnUiThread {
+                                    tvDuration.text = "🔊 ${AudioTimeCapsuleEngine.formatSeconds(current)} / ${AudioTimeCapsuleEngine.formatSeconds(total)}"
+                                }
+                            },
+                            onCompletion = {
+                                runOnUiThread {
+                                    tvDuration.text = "🎙️ ${capsule.durationFormatted}"
+                                    btnPlay.text = "▶"
+                                }
+                            }
+                        )
+                        if (started) {
+                            for (i in 0 until layoutDetailVoiceContainer.childCount) {
+                                val otherChild = layoutDetailVoiceContainer.getChildAt(i)
+                                otherChild.findViewById<TextView>(R.id.btnPlayCapsule)?.text = "▶"
+                            }
+                            btnPlay.text = "⏸"
+                        } else {
+                            KinTraceAlert.warning(this, "Audio Unavailable", "Could not play this recording on this device.")
+                        }
+                    }
+                }
+
+                btnDelete.visibility = if (isViewer) View.GONE else View.VISIBLE
+                btnDelete.setOnClickListener {
+                    if (isViewer) {
+                        KinTraceAlert.warning(this, "Read-Only Access", "Read-only Viewers cannot remove voice memories.")
+                        return@setOnClickListener
+                    }
+                    KinTraceModalDialog.Builder(this)
+                        .setTitle("Remove Voice Story")
+                        .setMessage("Remove \"${capsule.title}\" from ${person.firstName}'s profile?")
+                        .setPositiveButton("Remove") { _, _ ->
+                            firestoreHelper.removeVoiceCapsule(
+                                personId = person.id,
+                                capsuleId = capsule.id,
+                                onSuccess = {
+                                    KinTraceAlert.show(this, "Voice story removed")
+                                    setResult(RESULT_OK)
+                                    loadAllAndDisplay()
+                                },
+                                onFailure = { ex ->
+                                    KinTraceAlert.show(this, "Failed to remove: ${ex.message}")
+                                }
+                            )
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+
+                layoutDetailVoiceContainer.addView(capsuleView)
+            }
+        }
+    }
+
+    private fun promptRecordVoiceCapsule() {
+        if (isViewer) {
+            ActionRestrictedDialog.newInstance(
+                treeId = treeId,
+                treeName = currentTreeName,
+                actionAttempted = "Record Voice Capsule"
+            ).show(supportFragmentManager, ActionRestrictedDialog.TAG)
+            return
+        }
+        val person = currentPerson ?: return
+
+        // 🛡️ Freemium Gatekeeper: Check if clan tree is on Free Tier and reached 5 stories cap
+        val isPrem = currentTree?.isPremium == true || (currentTree?.effectiveQuota ?: 50) >= 200
+        val personStoryCount = person.voiceCapsules.size
+        val totalClanStoryCount = allMembers.sumOf { it.voiceCapsules.size }
+
+        if (!isPrem && (personStoryCount >= com.example.btproject2.models.FamilyTree.FREE_AUDIO_CAP || totalClanStoryCount >= com.example.btproject2.models.FamilyTree.FREE_AUDIO_CAP)) {
+            val passSheet = HeritagePassBottomSheetDialog.newInstance(
+                treeId = treeId,
+                treeName = currentTreeName,
+                currentQuota = currentTree?.effectiveQuota ?: com.example.btproject2.models.FamilyTree.DEFAULT_FREEMIUM_QUOTA,
+                currentCount = allMembers.size,
+                isPremium = false
+            )
+            passSheet.onPassUnlocked = {
+                currentTree?.isPremium = true
+                renderVoiceCapsules(person)
+            }
+            passSheet.show(supportFragmentManager, "HeritagePassAudioGatekeeper")
+            return
+        }
+
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestAudioPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            return
+        }
+        showRecordVoiceCapsuleDialog(person)
+    }
+
+    private fun showRecordVoiceCapsuleDialog(person: Person) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_record_voice_capsule, null)
+        val dialog = KinTraceModalDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvDialogRecorderTitle)
+        val etTitle = dialogView.findViewById<EditText>(R.id.etCapsuleTitle)
+        val spinnerPrompts = dialogView.findViewById<Spinner>(R.id.spinnerCapsulePrompts)
+        val btnClose = dialogView.findViewById<TextView>(R.id.btnRecorderClose)
+        val tvTimer = dialogView.findViewById<TextView>(R.id.tvStudioTimer)
+        val tvStatus = dialogView.findViewById<TextView>(R.id.tvStudioStatus)
+        val pbAmp = dialogView.findViewById<ProgressBar>(R.id.progressBarStudioAmp)
+        val btnToggle = dialogView.findViewById<Button>(R.id.btnToggleRecord)
+        val layoutReview = dialogView.findViewById<LinearLayout>(R.id.layoutReviewActions)
+        val layoutRecordActions = dialogView.findViewById<LinearLayout>(R.id.layoutRecordActions)
+        val btnPreview = dialogView.findViewById<Button>(R.id.btnPreviewRecording)
+        val btnSave = dialogView.findViewById<Button>(R.id.btnSaveRecording)
+
+        tvTitle.text = "Story for ${person.firstName}"
+
+        val prompts = listOf(
+            "Custom Story Title",
+            "How I met my spouse & our wedding day",
+            "My favorite childhood memory & hometown life",
+            "Advice for my grandchildren & future generations",
+            "The hardest obstacle I overcame in life",
+            "Our family tradition & holiday recipe secret",
+            "A message to my family in the future"
+        )
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, prompts)
+        spinnerPrompts.adapter = adapter
+
+        spinnerPrompts.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+                if (position > 0) {
+                    etTitle.setText(prompts[position])
+                }
+            }
+            override fun onNothingSelected(p0: AdapterView<*>?) {}
+        }
+
+        var recordedResult: AudioTimeCapsuleEngine.RecordedCapsuleResult? = null
+        var isRecording = false
+
+        fun transitionToReview(result: AudioTimeCapsuleEngine.RecordedCapsuleResult) {
+            recordedResult = result
+            isRecording = false
+            runOnUiThread {
+                layoutRecordActions.visibility = View.GONE
+                layoutReview.visibility = View.VISIBLE
+                tvStatus.text = "Recording Complete (${result.durationFormatted} • ${result.fileSizeFormatted})"
+                tvTimer.text = result.durationFormatted
+                pbAmp.progress = 0
+            }
+        }
+
+        btnToggle.setOnClickListener {
+            if (!isRecording) {
+                val started = AudioTimeCapsuleEngine.startRecording(
+                    context = this,
+                    onTick = { sec, amp ->
+                        runOnUiThread {
+                            tvTimer.text = "${AudioTimeCapsuleEngine.formatSeconds(sec)} / 1:00"
+                            pbAmp.progress = (amp * 100).toInt()
+                            tvStatus.text = "Recording live audio... (${60 - sec}s remaining)"
+                        }
+                    },
+                    onAutoStop = { result ->
+                        transitionToReview(result)
+                    },
+                    onError = { err ->
+                        runOnUiThread {
+                            isRecording = false
+                            btnToggle.text = "🎙️ Start Recording"
+                            tvStatus.text = "Error: $err"
+                            KinTraceAlert.warning(this, "Recording Error", err)
+                        }
+                    }
+                )
+                if (started) {
+                    isRecording = true
+                    btnToggle.text = "⏹ Stop Recording"
+                    btnToggle.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#EF4444"))
+                    tvStatus.text = "Recording live audio..."
+                }
+            } else {
+                val result = AudioTimeCapsuleEngine.stopRecording()
+                if (result != null) {
+                    transitionToReview(result)
+                } else {
+                    tvStatus.text = "Recording was too short or empty."
+                    isRecording = false
+                    btnToggle.text = "🎙️ Start Recording"
+                    btnToggle.backgroundTintList = null
+                }
+            }
+        }
+
+        btnPreview.setOnClickListener {
+            val res = recordedResult ?: return@setOnClickListener
+            if (AudioTimeCapsuleEngine.isCurrentlyPlaying) {
+                AudioTimeCapsuleEngine.stopAudio()
+                btnPreview.text = "▶ Preview"
+            } else {
+                btnPreview.text = "⏹ Stop"
+                AudioTimeCapsuleEngine.playAudio(
+                    context = this,
+                    audioUri = res.audioUri,
+                    audioBase64 = res.audioBase64,
+                    onProgress = { cur, tot ->
+                        runOnUiThread {
+                            tvTimer.text = "${AudioTimeCapsuleEngine.formatSeconds(cur)} / ${AudioTimeCapsuleEngine.formatSeconds(tot)}"
+                        }
+                    },
+                    onCompletion = {
+                        runOnUiThread {
+                            btnPreview.text = "▶ Preview"
+                            tvTimer.text = res.durationFormatted
+                        }
+                    }
+                )
+            }
+        }
+
+        btnSave.setOnClickListener {
+            val res = recordedResult ?: return@setOnClickListener
+            val titleText = etTitle.text.toString().trim().ifBlank {
+                val selectedPrompt = spinnerPrompts.selectedItem?.toString().orEmpty()
+                if (selectedPrompt != "Custom Story Title") selectedPrompt else "Oral History Story"
+            }
+            val promptText = spinnerPrompts.selectedItem?.toString().orEmpty().takeIf { it != "Custom Story Title" }.orEmpty()
+
+            btnSave.isEnabled = false
+            btnSave.text = "Saving..."
+
+            val capsule = VoiceCapsule(
+                id = UUID.randomUUID().toString(),
+                title = titleText,
+                promptQuestion = promptText,
+                audioUri = res.audioUri,
+                audioBase64 = res.audioBase64,
+                durationSeconds = res.durationSeconds,
+                durationFormatted = res.durationFormatted,
+                recordedAt = System.currentTimeMillis(),
+                recordedBy = authHelper.getCurrentUser()?.email ?: "Clan Member",
+                fileSizeFormatted = res.fileSizeFormatted
+            )
+
+            firestoreHelper.attachVoiceCapsule(
+                personId = person.id,
+                capsule = capsule,
+                onSuccess = {
+                    AudioTimeCapsuleEngine.stopAudio()
+                    dialog.dismiss()
+                    KinTraceAlert.show(this, "✓ \"$titleText\" has been saved to ${person.firstName}'s profile.")
+                    setResult(RESULT_OK)
+                    val updatedList = person.voiceCapsules + capsule
+                    val updatedPerson = person.copy(voiceCapsules = updatedList)
+                    currentPerson = updatedPerson
+                    allMembers = allMembers.map { if (com.example.btproject2.engine.FamilyLinkValidator.isSameId(it.id, person.id)) updatedPerson else it }
+                    renderVoiceCapsules(updatedPerson)
+                    loadAllAndDisplay()
+                },
+                onFailure = { ex ->
+                    btnSave.isEnabled = true
+                    btnSave.text = "💾 Save Story"
+                    KinTraceAlert.warning(this, "Save Failed", ex.localizedMessage ?: "Could not save audio memory.")
+                }
+            )
+        }
+
+        btnClose.setOnClickListener {
+            recordedResult?.file?.let { if (it.exists()) it.delete() }
+            AudioTimeCapsuleEngine.stopAudio()
+            AudioTimeCapsuleEngine.cancelRecording()
+            dialog.dismiss()
+        }
+
+        dialog.setOnDismissListener {
+            AudioTimeCapsuleEngine.stopAudio()
+        }
+
+        dialog.show()
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -1815,7 +2186,7 @@ class MemberDetailActivity : AppCompatActivity() {
         }
 
         val tvName = TextView(this).apply {
-            text = "${relative.firstName} ${relative.lastName}"
+            text = if (relative.standardDisplayName.isNotBlank()) relative.standardDisplayName else "${relative.firstName} ${relative.lastName}".trim()
             textSize = 13f
             setTypeface(null, Typeface.BOLD)
             setTextColor(ContextCompat.getColor(this@MemberDetailActivity, R.color.text_primary))
@@ -1921,6 +2292,7 @@ class MemberDetailActivity : AppCompatActivity() {
         val currentUserId = authHelper.getCurrentUserId() ?: ""
         firestoreHelper.getTree(treeId,
             onSuccess = { tree ->
+                currentTree = tree
                 currentTreeName = tree?.name ?: "Family Tree"
                 isOwner = tree == null || tree.isOwnedBy(currentUserId)
                 firestoreHelper.getUserMembership(currentUserId, treeId,
@@ -1964,6 +2336,7 @@ class MemberDetailActivity : AppCompatActivity() {
             btnLinkChildExisting.visibility = View.GONE
             btnDetailChangePhoto.visibility = View.GONE
             btnDetailAttachDoc.visibility = View.GONE
+            btnDetailRecordVoice.visibility = View.GONE
 
             val onRestrictedClick: (String) -> Unit = { actionName ->
                 ActionRestrictedDialog.newInstance(
@@ -1987,6 +2360,7 @@ class MemberDetailActivity : AppCompatActivity() {
             btnLinkChildExisting.visibility = View.VISIBLE
             btnDetailChangePhoto.visibility = View.VISIBLE
             btnDetailAttachDoc.visibility = View.VISIBLE
+            btnDetailRecordVoice.visibility = View.VISIBLE
 
             rowFather.setOnClickListener { currentPerson?.let { showFatherPicker(it) } }
             rowMother.setOnClickListener { currentPerson?.let { showMotherPicker(it) } }

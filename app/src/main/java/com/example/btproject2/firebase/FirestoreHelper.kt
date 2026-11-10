@@ -10,7 +10,6 @@ import com.example.btproject2.models.InviteCodeRecord
 import com.example.btproject2.models.MergeCollisionRecord
 import com.example.btproject2.models.MergeRollbackSnapshot
 import com.example.btproject2.models.NotificationRecord
-import com.example.btproject2.models.ReunionPassRecord
 import com.example.btproject2.models.SystemAnnouncement
 import com.example.btproject2.models.Person
 import com.example.btproject2.models.PrivacySettings
@@ -420,7 +419,8 @@ class FirestoreHelper {
                         documents = if (isFullProfileUpdate || updated.documents.isNotEmpty()) updated.documents else existing.documents,
                         updatedAt = if (updated.updatedAt > 0L) updated.updatedAt else existing.updatedAt,
                         hasTimelineConflict = updated.hasTimelineConflict,
-                        lineageRole = if (isFullProfileUpdate || updated.lineageRole.isNotEmpty()) updated.lineageRole else existing.lineageRole
+                        lineageRole = if (isFullProfileUpdate || updated.lineageRole.isNotEmpty()) updated.lineageRole else existing.lineageRole,
+                        voiceCapsules = if (isFullProfileUpdate || updated.voiceCapsules.isNotEmpty()) updated.voiceCapsules else existing.voiceCapsules
                     )
                 } else existing
             }
@@ -5219,20 +5219,6 @@ class FirestoreHelper {
             }
     }
 
-    fun saveReunionPass(
-        pass: ReunionPassRecord,
-        onSuccess: () -> Unit = {},
-        onFailure: (Exception) -> Unit = {}
-    ) {
-        val docId = if (pass.code.isNotBlank()) pass.code else "PASS_${System.currentTimeMillis()}"
-        val record = pass.copy(code = docId)
-        db.collection("reunion_passes")
-            .document(docId)
-            .set(record)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { onFailure(it) }
-    }
-
     data class PlatformTelemetry(
         val totalAccounts: Long = 0,
         val totalClans: Long = 0,
@@ -5934,6 +5920,231 @@ class FirestoreHelper {
                 onSuccess()
             }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Attaches an Oral History Voice Capsule to a family member document in Cloud Firestore.
+     */
+    fun attachVoiceCapsule(
+        personId: String,
+        capsule: com.example.btproject2.models.VoiceCapsule,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("persons").document(personId).get()
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    onFailure(Exception("Person document not found"))
+                    return@addOnSuccessListener
+                }
+                val person = doc.toObject(Person::class.java)
+                val currentCapsules = person?.voiceCapsules.orEmpty().filterNot { it.id == capsule.id }
+                val updatedCapsules = currentCapsules + capsule
+
+                doc.reference.update("voiceCapsules", updatedCapsules)
+                    .addOnSuccessListener {
+                        if (person != null) {
+                            updatePersonInCache(person.copy(voiceCapsules = updatedCapsules))
+                        }
+                        onSuccess()
+                    }
+                    .addOnFailureListener { onFailure(it) }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Removes an Oral History Voice Capsule from a family member document in Cloud Firestore.
+     */
+    fun removeVoiceCapsule(
+        personId: String,
+        capsuleId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("persons").document(personId).get()
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    onFailure(Exception("Person document not found"))
+                    return@addOnSuccessListener
+                }
+                val person = doc.toObject(Person::class.java)
+                val updatedCapsules = person?.voiceCapsules.orEmpty().filterNot { it.id == capsuleId }
+
+                doc.reference.update("voiceCapsules", updatedCapsules)
+                    .addOnSuccessListener {
+                        if (person != null) {
+                            updatePersonInCache(person.copy(voiceCapsules = updatedCapsules))
+                        }
+                        onSuccess()
+                    }
+                    .addOnFailureListener { onFailure(it) }
+            }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Unlocks the Heritage Pass via GCash (powered by Xendit).
+     * Automatically expands tree quota by +150 members (from 50 to 200, or nextExpandedQuota),
+     * clears any pending expansion request, marks approval as "GCASH_XENDIT",
+     * records the payment transaction in the 'heritage_orders' collection for audit,
+     * updates the in-memory cached tree in CentralTreeSynchronizer, and sends a celebration notification.
+     */
+    fun unlockHeritagePassWithGcash(
+        treeId: String,
+        treeName: String,
+        invoiceId: String,
+        externalId: String,
+        amount: Double = 99.0,
+        onSuccess: (newQuota: Int) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val userId = currentUser?.uid.orEmpty()
+        val userEmail = currentUser?.email.orEmpty()
+
+        getTree(treeId, onSuccess = { currentTree ->
+            val prevQuota = currentTree?.effectiveQuota ?: FamilyTree.DEFAULT_FREEMIUM_QUOTA
+            val newQuota = currentTree?.nextExpandedQuota(FamilyTree.EXPANSION_STEP) ?: 200
+            val now = System.currentTimeMillis()
+
+            val treeUpdates = mapOf(
+                "memberQuota" to newQuota,
+                "previousMemberQuota" to prevQuota,
+                "quotaExpansionRequested" to false,
+                "quotaApprovedAt" to now,
+                "quotaApprovedBy" to "GCASH_XENDIT ($externalId)",
+                "isPremium" to true,
+                "heritagePassInvoiceId" to invoiceId,
+                "heritagePassExternalId" to externalId,
+                "heritagePassPurchasedAt" to now
+            )
+
+            db.collection("trees").document(treeId)
+                .set(treeUpdates, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener {
+                    // Record official order/receipt for transparency
+                    val orderDoc = mapOf(
+                        "orderId" to externalId,
+                        "invoiceId" to invoiceId,
+                        "treeId" to treeId,
+                        "treeName" to treeName,
+                        "userId" to userId,
+                        "userEmail" to userEmail,
+                        "amount" to amount,
+                        "currency" to "PHP",
+                        "paymentMethod" to "GCASH",
+                        "gateway" to "XENDIT",
+                        "status" to "PAID",
+                        "expandedQuotaGranted" to newQuota,
+                        "createdAt" to now
+                    )
+                    db.collection("heritage_orders").document(externalId)
+                        .set(orderDoc, com.google.firebase.firestore.SetOptions.merge())
+
+                    // Add celebration notification
+                    val ownerId = currentTree?.ownerId?.takeIf { it.isNotBlank() } ?: userId
+                    if (ownerId.isNotBlank()) {
+                        addNotification(
+                            treeId = treeId,
+                            userId = ownerId,
+                            title = "👑 Heritage Pass Activated (+150 Members)!",
+                            message = "Your GCash payment (Ref: $externalId) was confirmed. Tree quota is now expanded to $newQuota members with unlimited audio stories!",
+                            type = "PAYMENT",
+                            targetId = treeId
+                        )
+                    }
+
+                    onSuccess(newQuota)
+                }
+                .addOnFailureListener { onFailure(it) }
+        }, onFailure = { err ->
+            onFailure(err)
+        })
+    }
+
+    /**
+     * Purchases a +150 Clan Capacity Expansion Booster for ₱50 via GCash.
+     * Guaranteed to preserve existing Heritage Pass privileges (Crown, audio vault, exports).
+     * Never overwrites or resets the ₱99 pass.
+     */
+    fun purchaseClanExpansionBooster(
+        treeId: String,
+        treeName: String,
+        invoiceId: String,
+        externalId: String,
+        amount: Double = FamilyTree.EXPANSION_BOOSTER_PRICE_PHP,
+        onSuccess: (Int) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (treeId.isBlank()) {
+            onFailure(IllegalArgumentException("Tree ID is blank"))
+            return
+        }
+
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid.orEmpty()
+        val userEmail = auth.currentUser?.email.orEmpty()
+
+        getTree(treeId, onSuccess = { currentTree ->
+            val prevQuota = currentTree?.effectiveQuota ?: 200
+            val newQuota = prevQuota + FamilyTree.EXPANSION_STEP
+            val now = System.currentTimeMillis()
+
+            val treeUpdates = mapOf(
+                "memberQuota" to newQuota,
+                "previousMemberQuota" to prevQuota,
+                "quotaExpansionRequested" to false,
+                "quotaApprovedAt" to now,
+                "quotaApprovedBy" to "GCASH_BOOSTER ($externalId)",
+                "isPremium" to true, // Always preserve VIP status
+                "lastBoosterInvoiceId" to invoiceId,
+                "lastBoosterExternalId" to externalId,
+                "lastBoosterPurchasedAt" to now
+            )
+
+            db.collection("trees").document(treeId)
+                .set(treeUpdates, com.google.firebase.firestore.SetOptions.merge())
+                .addOnSuccessListener {
+                    // Record official booster receipt in heritage_orders
+                    val orderDoc = mapOf(
+                        "orderId" to externalId,
+                        "invoiceId" to invoiceId,
+                        "treeId" to treeId,
+                        "treeName" to treeName,
+                        "userId" to userId,
+                        "userEmail" to userEmail,
+                        "amount" to amount,
+                        "currency" to "PHP",
+                        "paymentMethod" to "GCASH",
+                        "orderType" to "CLAN_BOOSTER_50",
+                        "gateway" to "XENDIT",
+                        "status" to "PAID",
+                        "expandedQuotaGranted" to newQuota,
+                        "createdAt" to now
+                    )
+                    db.collection("heritage_orders").document(externalId)
+                        .set(orderDoc, com.google.firebase.firestore.SetOptions.merge())
+
+                    // Add celebration notification
+                    val ownerId = currentTree?.ownerId?.takeIf { it.isNotBlank() } ?: userId
+                    if (ownerId.isNotBlank()) {
+                        addNotification(
+                            treeId = treeId,
+                            userId = ownerId,
+                            title = "⚡ Clan Capacity Boosted (+150 Members)!",
+                            message = "Your ₱50 GCash payment (Ref: $externalId) was confirmed. Tree quota is now expanded to $newQuota members! Your Crown and Heritage Pass remain permanently active.",
+                            type = "PAYMENT",
+                            targetId = treeId
+                        )
+                    }
+
+                    onSuccess(newQuota)
+                }
+                .addOnFailureListener { onFailure(it) }
+        }, onFailure = { err ->
+            onFailure(err)
+        })
     }
 
     /**

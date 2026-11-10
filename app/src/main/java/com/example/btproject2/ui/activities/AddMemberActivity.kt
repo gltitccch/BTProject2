@@ -19,6 +19,7 @@ import com.example.btproject2.utils.KinTraceAlert
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doOnTextChanged
 import com.example.btproject2.R
 import com.example.btproject2.firebase.AuthHelper
 import com.example.btproject2.firebase.FirestoreHelper
@@ -111,7 +112,10 @@ class AddMemberActivity : AppCompatActivity() {
     private lateinit var spinnerGender: Spinner
     private lateinit var spinnerCivilStatus: Spinner
     private lateinit var etFirstName: EditText
+    private lateinit var etMiddleName: EditText
     private lateinit var etLastName: EditText
+    private lateinit var etSuffix: EditText
+    private var isMiddleNameAutoFilled: Boolean = false
     private lateinit var etBirthDate: EditText
     private lateinit var btnSave: Button
     private lateinit var layoutParentContextBanner: View
@@ -271,8 +275,19 @@ class AddMemberActivity : AppCompatActivity() {
         }
 
         etFirstName = findViewById(R.id.etFirstName)
+        etMiddleName = findViewById(R.id.etMiddleName)
         etLastName = findViewById(R.id.etLastName)
+        etSuffix = findViewById(R.id.etSuffix)
         etBirthDate = findViewById(R.id.etBirthDate)
+
+        etMiddleName.doOnTextChanged { text, _, _, _ ->
+            // If user types manually something different from current auto-fill, reset auto-filled flag
+            val currentMom = if (spinnerMother.selectedItemPosition > 0 && spinnerMother.selectedItemPosition - 1 < femaleMembers.size) femaleMembers[spinnerMother.selectedItemPosition - 1] else null
+            val momSurname = currentMom?.lastName?.trim().orEmpty()
+            if (!text.isNullOrBlank() && text.toString().trim() != momSurname) {
+                isMiddleNameAutoFilled = false
+            }
+        }
         spinnerGender = findViewById(R.id.spinnerGender)
         spinnerCivilStatus = findViewById(R.id.spinnerCivilStatus)
         spinnerFather = findViewById(R.id.spinnerFather)
@@ -414,7 +429,9 @@ class AddMemberActivity : AppCompatActivity() {
             if (isSaving) return@setOnClickListener
 
             val firstName = etFirstName.text.toString().trim()
+            val middleName = etMiddleName.text.toString().trim()
             val lastName = etLastName.text.toString().trim()
+            val suffix = etSuffix.text.toString().trim()
             val gender = spinnerGender.selectedItem.toString()
             val civil = spinnerCivilStatus.selectedItem.toString()
 
@@ -454,7 +471,9 @@ class AddMemberActivity : AppCompatActivity() {
             val tempPerson = Person(
                 id = "__draft_new_member__",
                 firstName = firstName,
+                middleName = middleName,
                 lastName = lastName,
+                suffix = suffix,
                 gender = gender,
                 birthDate = selectedDate,
                 isLiving = isLiving,
@@ -685,11 +704,17 @@ class AddMemberActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Check for duplicate member (same name and birth date)
+            // Check for duplicate member (same name and birth date), disambiguating cousins by middle name and mother
             val existingMatch = allMembers.firstOrNull {
-                it.firstName.trim().equals(firstName, ignoreCase = true) &&
-                it.lastName.trim().equals(lastName, ignoreCase = true) &&
-                (it.birthDate.isBlank() && selectedDate.isBlank() || it.birthDate == selectedDate)
+                val sameFirst = it.firstName.trim().equals(firstName, ignoreCase = true)
+                val sameLast = it.lastName.trim().equals(lastName, ignoreCase = true)
+                val sameBirth = (it.birthDate.isBlank() && selectedDate.isBlank() || it.birthDate == selectedDate)
+
+                // Cousin Disambiguation: If middle names are both provided and differ, or mothers differ, they are distinct cousins
+                val distinctMiddle = it.middleName.isNotBlank() && middleName.isNotBlank() && !it.middleName.trim().equals(middleName, ignoreCase = true)
+                val distinctMothers = !it.motherId.isNullOrBlank() && !motherId.isNullOrBlank() && it.motherId != motherId
+
+                sameFirst && sameLast && sameBirth && !(distinctMiddle || distinctMothers)
             }
 
             if (existingMatch != null) {
@@ -771,7 +796,7 @@ class AddMemberActivity : AppCompatActivity() {
                 val actionSuffix = when {
                     !isOwner -> ""
                     requested -> "  ⏳ Queued"
-                    else -> "  ⚡ Expand +${com.example.btproject2.models.FamilyTree.EXPANSION_STEP} ›"
+                    else -> "  👑 Heritage Pass (₱99) ›"
                 }
                 tvBadge.text = "👥 Clan Capacity: $currentCount / $maxCap Members • $tierLabel$actionSuffix"
                 if (isOwner) {
@@ -1373,6 +1398,20 @@ class AddMemberActivity : AppCompatActivity() {
                 if (selectedMother?.id == lastSelectedMotherId) return
                 lastSelectedMotherId = selectedMother?.id
 
+                // Matrilineal auto-inheritance under Philippine Civil Code & RA 11642 adoption
+                if (selectedMother != null) {
+                    val momSurname = selectedMother.lastName.trim()
+                    if (momSurname.isNotBlank()) {
+                        if (etMiddleName.text.isNullOrBlank() || isMiddleNameAutoFilled) {
+                            etMiddleName.setText(momSurname)
+                            isMiddleNameAutoFilled = true
+                        }
+                    }
+                } else if (isMiddleNameAutoFilled) {
+                    etMiddleName.setText("")
+                    isMiddleNameAutoFilled = false
+                }
+
                 val currentFather = if (spinnerFather.selectedItemPosition > 0 && spinnerFather.selectedItemPosition - 1 < maleMembers.size) maleMembers[spinnerFather.selectedItemPosition - 1] else null
 
                 isUpdatingSpinners = true
@@ -1738,27 +1777,31 @@ class AddMemberActivity : AppCompatActivity() {
      * (not only when the tree is already full).
      */
     private fun showOnDemandQuotaExpansionDialog(liveCount: Int, quota: Int, alreadyRequested: Boolean) {
-        val step = com.example.btproject2.models.FamilyTree.EXPANSION_STEP
-        val nextTierCap = quota + step
-        if (alreadyRequested) {
-            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-                .setTitle("⏳ Expansion Already Queued")
-                .setMessage("Your request to expand '$currentTreeName' to $nextTierCap members is waiting in the System Admin Citadel. You'll get a notification once it's approved.")
-                .setPositiveButton("Understood", null)
-                .show()
-            return
-        }
-        com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-            .setTitle("👑 Request Free Clan Expansion")
-            .setMessage(
-                "'$currentTreeName' currently has $liveCount of $quota member slots used.\n\n" +
-                    "Request a free Tier Expansion (+$step capacity, up to $nextTierCap members) from the System Admin Citadel?"
-            )
-            .setNegativeButton("Cancel", null)
-            .setPositiveButton("⚡ Request +$step") { _, _ ->
-                submitQuotaExpansionRequest(liveCount)
+        val isPrem = quota >= 200
+        val sheet = com.example.btproject2.ui.dialogs.HeritagePassBottomSheetDialog.newInstance(
+            treeId = treeId,
+            treeName = currentTreeName,
+            currentQuota = quota,
+            currentCount = liveCount,
+            isPremium = isPrem
+        )
+        sheet.onPassUnlocked = { newQuota ->
+            currentTreeQuota = newQuota
+            isQuotaExpansionRequested = false
+            refreshQuotaBadge(treeId, liveCount)
+            val msg = if (isPrem) {
+                "Clan capacity boosted! Total quota is now $newQuota members (+150 slots) via GCash!"
+            } else {
+                "Heritage Pass Activated! Quota is now expanded to $newQuota members with unlimited audio stories and VIP Crown!"
             }
-            .show()
+            KinTraceAlert.security(
+                this,
+                if (isPrem) "Clan Capacity Boosted" else "Heritage Pass Activated",
+                msg,
+                "VERIFIED"
+            )
+        }
+        sheet.show(supportFragmentManager, "HeritagePassBottomSheetDialog")
     }
 
     private fun submitQuotaExpansionRequest(liveCount: Int) {
@@ -1786,46 +1829,31 @@ class AddMemberActivity : AppCompatActivity() {
     }
 
     private fun showFreemiumCapDialog(liveCount: Int, quota: Int, alreadyRequested: Boolean) {
-        val nextTierCap = quota + com.example.btproject2.models.FamilyTree.EXPANSION_STEP
-        val statusNote = if (alreadyRequested) {
-            "\n\n⏳ Status: Your Clan Expansion request (up to $nextTierCap members) is currently queued in the System Admin Citadel for approval."
-        } else {
-            "\n\nYou can request a free Tier Expansion (+${com.example.btproject2.models.FamilyTree.EXPANSION_STEP} capacity, up to $nextTierCap members) from the System Admin Citadel."
-        }
-
-        val builder = com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
-            .setTitle("👑 Freemium Cap Reached ($liveCount/$quota)")
-            .setMessage(
-                "'$currentTreeName' has reached its current capacity of $quota family members ($liveCount/$quota recorded)." +
-                    statusNote
-            )
-            .setNegativeButton("Close", null)
-
-        if (!alreadyRequested && treeId.isNotBlank()) {
-            builder.setPositiveButton("⚡ Request +${com.example.btproject2.models.FamilyTree.EXPANSION_STEP}") { _, _ ->
-                val email = authHelper.getCurrentUser()?.email.orEmpty()
-                firestoreHelper.requestTreeQuotaExpansion(
-                    treeId = treeId,
-                    requesterEmail = email,
-                    onSuccess = {
-                        isQuotaExpansionRequested = true
-                        KinTraceAlert.security(
-                            this,
-                            "Expansion Requested",
-                            "Request sent to Admin Citadel (+${com.example.btproject2.models.FamilyTree.EXPANSION_STEP} Cap for $currentTreeName).",
-                            "QUEUED"
-                        )
-                    },
-                    onFailure = { err ->
-                        KinTraceAlert.warning(this, "Request Failed", err.message ?: "Unable to submit expansion request.")
-                    }
-                )
+        val isPrem = quota >= 200
+        val sheet = com.example.btproject2.ui.dialogs.HeritagePassBottomSheetDialog.newInstance(
+            treeId = treeId,
+            treeName = currentTreeName,
+            currentQuota = quota,
+            currentCount = liveCount,
+            isPremium = isPrem
+        )
+        sheet.onPassUnlocked = { newQuota ->
+            currentTreeQuota = newQuota
+            isQuotaExpansionRequested = false
+            refreshQuotaBadge(treeId, liveCount)
+            val msg = if (isPrem) {
+                "Clan capacity boosted! Total quota is now $newQuota members (+150 slots) via GCash! You can now save your new family member."
+            } else {
+                "Heritage Pass Activated! Quota is now expanded to $newQuota members with unlimited audio stories! You can now save your new family member."
             }
-        } else {
-            builder.setPositiveButton("Understood", null)
+            KinTraceAlert.security(
+                this,
+                if (isPrem) "Clan Capacity Boosted" else "Heritage Pass Activated",
+                msg,
+                "VERIFIED"
+            )
         }
-
-        builder.show()
+        sheet.show(supportFragmentManager, "HeritagePassBottomSheetDialog")
     }
 
     private fun setSavingState(saving: Boolean) {
@@ -1836,7 +1864,10 @@ class AddMemberActivity : AppCompatActivity() {
 
     private fun clearFormFields() {
         etFirstName.text?.clear()
+        etMiddleName.text?.clear()
         etLastName.text?.clear()
+        etSuffix.text?.clear()
+        isMiddleNameAutoFilled = false
         etBirthDate.text?.clear()
         etMarriageDate.text?.clear()
         selectedDate = ""

@@ -35,6 +35,10 @@ class RegisterActivity : AppCompatActivity() {
 
         val btnBack = findViewById<TextView>(R.id.btnBackToWelcome)
         val etFullName = findViewById<EditText>(R.id.etFullName)
+        val etFirstName = findViewById<EditText?>(R.id.etFirstName)
+        val etMiddleName = findViewById<EditText?>(R.id.etMiddleName)
+        val etLastName = findViewById<EditText?>(R.id.etLastName)
+        val etSuffix = findViewById<EditText?>(R.id.etSuffix)
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val etConfirmPassword = findViewById<EditText>(R.id.etConfirmPassword)
@@ -59,6 +63,17 @@ class RegisterActivity : AppCompatActivity() {
         }
         if (prefillName.isNotEmpty()) {
             etFullName.setText(prefillName)
+            val tokens = prefillName.split(" ").filter { it.isNotBlank() }
+            if (tokens.size == 1) {
+                etFirstName?.setText(tokens[0])
+            } else if (tokens.size == 2) {
+                etFirstName?.setText(tokens[0])
+                etLastName?.setText(tokens[1])
+            } else if (tokens.size >= 3) {
+                etFirstName?.setText(tokens[0])
+                etMiddleName?.setText(tokens.subList(1, tokens.size - 1).joinToString(" "))
+                etLastName?.setText(tokens.last())
+            }
         }
 
         // Must-Scroll-To-Bottom Terms of Service BottomSheet invocation
@@ -114,6 +129,10 @@ class RegisterActivity : AppCompatActivity() {
 
         // Clear errors in real-time as user types
         etFullName.doOnTextChanged { _, _, _, _ -> etFullName.error = null }
+        etFirstName?.doOnTextChanged { _, _, _, _ -> etFirstName?.error = null }
+        etMiddleName?.doOnTextChanged { _, _, _, _ -> etMiddleName?.error = null }
+        etLastName?.doOnTextChanged { _, _, _, _ -> etLastName?.error = null }
+        etSuffix?.doOnTextChanged { _, _, _, _ -> etSuffix?.error = null }
         etEmail.doOnTextChanged { _, _, _, _ -> etEmail.error = null }
         etPassword.doOnTextChanged { _, _, _, _ -> etPassword.error = null }
         etConfirmPassword.doOnTextChanged { _, _, _, _ -> etConfirmPassword.error = null }
@@ -160,7 +179,13 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         btnCreate.setOnClickListener {
-            val fullName = etFullName.text.toString().trim().replace("\\s+".toRegex(), " ")
+            val first = etFirstName?.text?.toString()?.trim().orEmpty()
+            val mid = etMiddleName?.text?.toString()?.trim().orEmpty()
+            val last = etLastName?.text?.toString()?.trim().orEmpty()
+            val suf = etSuffix?.text?.toString()?.trim().orEmpty()
+            val structuredName = listOf(first, mid, last, suf).filter { it.isNotBlank() }.joinToString(" ")
+            val fullName = if (structuredName.isNotBlank()) structuredName else etFullName.text.toString().trim().replace("\\s+".toRegex(), " ")
+
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString()
             val confirmPassword = etConfirmPassword.text.toString()
@@ -188,8 +213,16 @@ class RegisterActivity : AppCompatActivity() {
                     firstErrorField = etEmail
                 }
                 if (validation.fullNameResult is RegistrationValidator.FieldResult.Invalid) {
-                    etFullName.error = validation.fullNameResult.errorMessage
-                    firstErrorField = etFullName
+                    if (etFirstName != null && etFirstName.text.isNullOrBlank()) {
+                        etFirstName.error = "First name is required."
+                        firstErrorField = etFirstName
+                    } else if (etLastName != null && etLastName.text.isNullOrBlank()) {
+                        etLastName.error = "Last name is required."
+                        firstErrorField = etLastName
+                    } else {
+                        etFullName.error = validation.fullNameResult.errorMessage
+                        firstErrorField = etFirstName ?: etFullName
+                    }
                 }
 
                 firstErrorField?.requestFocus()
@@ -248,6 +281,10 @@ class RegisterActivity : AppCompatActivity() {
                     val profile = UserProfile(
                         id = user.uid,
                         displayName = fullName,
+                        firstName = first,
+                        middleName = mid,
+                        lastName = last,
+                        suffix = suf,
                         email = email,
                         role = "user",
                         currentTreeId = "",

@@ -801,6 +801,71 @@
                             android:gravity="center"
                             android:layout_marginBottom="18dp" />
 
+                        <!-- ── KinClash Live Party Trivia Entry Card ── -->
+                        <LinearLayout
+                            android:id="@+id/cardEmptyKinClash"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:background="@drawable/bg_forest_card"
+                            android:padding="16dp"
+                            android:layout_marginBottom="16dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="6dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="🎮"
+                                    android:textSize="18sp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="PLAYING WITH FAMILY OR FRIENDS?"
+                                    android:textSize="11sp"
+                                    android:textStyle="bold"
+                                    android:fontFamily="@font/font_display_sora"
+                                    android:letterSpacing="0.05"
+                                    android:textColor="@color/gold_accent_light" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Join your clan's live KinClash trivia game on your phone in seconds. No tree setup required!"
+                                android:textSize="11.5sp"
+                                android:textColor="@color/dark_subtext"
+                                android:lineSpacingExtra="2dp"
+                                android:layout_marginBottom="12dp" />
+
+                            <Button
+                                android:id="@+id/btnEmptyJoinKinClash"
+                                android:layout_width="match_parent"
+                                android:layout_height="44dp"
+                                android:text="🚀  Enter Game PIN to Join"
+                                android:textSize="12.5sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/btn_gold_text"
+                                android:backgroundTint="@color/gold_accent"
+                                android:layout_marginBottom="8dp" />
+
+                            <Button
+                                android:id="@+id/btnEmptyHostKinClash"
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:text="👑  Host a KinClash Game"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_primary"
+                                android:background="@drawable/btn_outline_bg" />
+                        </LinearLayout>
+
                         <Button
                             android:id="@+id/btnEmptyCreateTree"
                             android:layout_width="match_parent"
@@ -1294,6 +1359,91 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="PDF / CSV"
+                            android:textSize="9.5sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/font_display_sora"
+                            android:textColor="@color/gold_accent_light"
+                            android:background="@drawable/bg_tool_dock_tag"
+                            android:paddingStart="9dp"
+                            android:paddingEnd="9dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="›"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent_light" />
+                    </LinearLayout>
+
+                    <!-- Hairline Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/forest_card_border"
+                        android:layout_marginStart="60dp" />
+
+                    <!-- Tool 7: KinClash Live Party Trivia -->
+                    <LinearLayout
+                        android:id="@+id/cardHostKinClash"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="14dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <FrameLayout
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:background="@drawable/bg_tool_squircle_gold"
+                            android:layout_marginEnd="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="🎮"
+                                android:textSize="16sp" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="KinClash Live Trivia"
+                                android:textSize="12.5sp"
+                                android:textStyle="bold"
+                                android:fontFamily="@font/font_display_sora"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Host 5-min live trivia for family &amp; friends"
+                                android:textSize="10.5sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/dark_subtext"
+                                android:layout_marginTop="1dp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Play Live"
                             android:textSize="9.5sp"
                             android:textStyle="bold"
                             android:fontFamily="@font/font_display_sora"

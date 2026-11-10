@@ -33,10 +33,42 @@ data class Person(
     val photoUri: String = "",
     val photoBase64: String = "",
     val documents: List<AttachedDocument> = emptyList(),
+    val voiceCapsules: List<VoiceCapsule> = emptyList(),
     val updatedAt: Long = 0L,
     val hasTimelineConflict: Boolean = false,
     val lineageRole: String = ""
 ) {
+    @get:Exclude
+    val middleInitial: String
+        get() = middleName.trim().firstOrNull()?.let { "$it." } ?: ""
+
+    @get:Exclude
+    val formalFullName: String
+        get() = listOf(firstName.trim(), middleName.trim(), lastName.trim(), suffix.trim())
+            .filter { it.isNotEmpty() }
+            .joinToString(" ")
+
+    @get:Exclude
+    val standardDisplayName: String
+        get() = listOf(firstName.trim(), middleInitial, lastName.trim(), suffix.trim())
+            .filter { it.isNotEmpty() }
+            .joinToString(" ")
+
+    @get:Exclude
+    val avatarMonogram: String
+        get() {
+            val f = firstName.trim().firstOrNull()?.uppercaseChar()
+            val m = middleName.trim().firstOrNull()?.uppercaseChar()
+            val l = lastName.trim().firstOrNull()?.uppercaseChar()
+            return when {
+                f != null && m != null && l != null -> "$f$m$l"
+                f != null && l != null -> "$f$l"
+                f != null -> "$f"
+                l != null -> "$l"
+                else -> "?"
+            }
+        }
+
     /**
      * Returns all recorded spouse IDs (both the current/latest [spouseId] and any [formerSpouseIds]),
      * preserving order and removing blanks or duplicates.

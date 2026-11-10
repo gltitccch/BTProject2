@@ -1,8 +1,9 @@
 package com.example.btproject2
 
+import com.example.btproject2.firebase.FirestoreHelper
 import com.example.btproject2.models.AdminAuditLog
 import com.example.btproject2.models.DemoAccountRepository
-import com.example.btproject2.models.ReunionPassRecord
+import com.example.btproject2.models.FamilyTree
 import com.example.btproject2.models.SystemAnnouncement
 import org.junit.Assert.*
 import org.junit.Test
@@ -69,29 +70,38 @@ class AdminPortalDomainTest {
     }
 
     @Test
-    fun testReunionPassRecord_DefaultsAndRedemption() {
-        val pass = ReunionPassRecord(
-            code = "REUNION-MALONE-2026",
-            treeId = "tree_malone",
-            treeName = "Malone Clan",
-            validDays = 30,
-            generatedBy = "admin@kintrace.ph"
+    fun testTreeQuotaStatus_CapacityExpansionRules() {
+        val baseTree = FamilyTree(
+            id = "tree_test",
+            name = "Test Clan",
+            memberQuota = FamilyTree.DEFAULT_FREEMIUM_QUOTA // 50
         )
-
-        assertEquals("REUNION-MALONE-2026", pass.code)
-        assertEquals("tree_malone", pass.treeId)
-        assertEquals(30, pass.validDays)
-        assertFalse(pass.isRedeemed)
-        assertEquals("", pass.redeemedByEmail)
-
-        val redeemed = pass.copy(
-            isRedeemed = true,
-            redeemedByEmail = "clark@kintrace.ph",
-            redeemedAt = System.currentTimeMillis()
+        val statusNormal = FirestoreHelper.TreeQuotaStatus(
+            tree = baseTree,
+            liveMemberCount = 10,
+            resolvedOwnerDisplay = "owner@test.ph"
         )
-        assertTrue(redeemed.isRedeemed)
-        assertEquals("clark@kintrace.ph", redeemed.redeemedByEmail)
-        assertTrue(redeemed.redeemedAt > 0L)
+        assertEquals(50, statusNormal.effectiveQuota)
+        assertFalse(statusNormal.isCapped)
+        assertFalse(statusNormal.isNearCap)
+        assertFalse(statusNormal.isExpandedTier)
+
+        val statusCapped = FirestoreHelper.TreeQuotaStatus(
+            tree = baseTree,
+            liveMemberCount = 50,
+            resolvedOwnerDisplay = "owner@test.ph"
+        )
+        assertTrue(statusCapped.isCapped)
+
+        val expandedTree = baseTree.copy(memberQuota = 200)
+        val statusExpanded = FirestoreHelper.TreeQuotaStatus(
+            tree = expandedTree,
+            liveMemberCount = 55,
+            resolvedOwnerDisplay = "owner@test.ph"
+        )
+        assertEquals(200, statusExpanded.effectiveQuota)
+        assertFalse(statusExpanded.isCapped)
+        assertTrue(statusExpanded.isExpandedTier)
     }
 
     @Test

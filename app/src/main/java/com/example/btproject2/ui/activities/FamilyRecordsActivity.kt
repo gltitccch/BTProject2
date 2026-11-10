@@ -488,12 +488,22 @@ class FamilyRecordsActivity : AppCompatActivity() {
             val query = rawQuery.lowercase().trim()
             if (query.isEmpty()) return modeFiltered
             return modeFiltered.filter {
+                val formalName = it.formalFullName.lowercase()
+                val standardName = it.standardDisplayName.lowercase()
+                val midName = it.middleName.lowercase()
+                val midInit = it.middleInitial.lowercase()
+                val suffixStr = it.suffix.lowercase()
                 val name = "${it.firstName} ${it.lastName}".lowercase()
                 val reverseName = "${it.lastName} ${it.firstName}".lowercase()
                 val statusStr = if (it.isLiving) "living" else "deceased"
                 val birthDate = it.birthDate.lowercase()
                 val birthPlace = it.birthPlace.lowercase()
-                name.contains(query) ||
+                formalName.contains(query) ||
+                    standardName.contains(query) ||
+                    midName.contains(query) ||
+                    midInit.contains(query) ||
+                    suffixStr.contains(query) ||
+                    name.contains(query) ||
                     reverseName.contains(query) ||
                     statusStr.contains(query) ||
                     birthDate.contains(query) ||
@@ -502,6 +512,9 @@ class FamilyRecordsActivity : AppCompatActivity() {
         }
 
         fun sortMembers(members: List<Person>, sortMode: String): List<Person> {
+            val nameSelector = { it: Person ->
+                if (it.standardDisplayName.isNotBlank()) it.standardDisplayName.lowercase() else "${it.firstName} ${it.lastName}".lowercase()
+            }
             return when (sortMode.uppercase()) {
                 "OLDEST" -> {
                     val (withYear, withoutYear) = members.partition {
@@ -510,8 +523,8 @@ class FamilyRecordsActivity : AppCompatActivity() {
                     withYear.sortedWith(
                         compareBy<Person> {
                             com.example.btproject2.engine.FamilyLinkValidator.extractYear(it.birthDate) ?: Int.MAX_VALUE
-                        }.thenBy { "${it.firstName} ${it.lastName}".lowercase() }
-                    ) + withoutYear.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+                        }.thenBy(nameSelector)
+                    ) + withoutYear.sortedBy(nameSelector)
                 }
                 "YOUNGEST" -> {
                     val (withYear, withoutYear) = members.partition {
@@ -520,10 +533,10 @@ class FamilyRecordsActivity : AppCompatActivity() {
                     withYear.sortedWith(
                         compareByDescending<Person> {
                             com.example.btproject2.engine.FamilyLinkValidator.extractYear(it.birthDate) ?: Int.MIN_VALUE
-                        }.thenBy { "${it.firstName} ${it.lastName}".lowercase() }
-                    ) + withoutYear.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+                        }.thenBy(nameSelector)
+                    ) + withoutYear.sortedBy(nameSelector)
                 }
-                else -> members.sortedBy { "${it.firstName} ${it.lastName}".lowercase() }
+                else -> members.sortedBy(nameSelector)
             }
         }
 

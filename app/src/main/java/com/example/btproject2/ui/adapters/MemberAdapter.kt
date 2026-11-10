@@ -80,21 +80,21 @@ class MemberAdapter(
     override fun onBindViewHolder(holder: MemberViewHolder, position: Int) {
         val person = members[position]
 
-        // Set initials
-        val initials = "${person.firstName.firstOrNull() ?: ""}${person.lastName.firstOrNull() ?: ""}"
-        holder.tvAvatar.text = initials.uppercase()
+        // Set avatar monogram (3-letter heritage monogram if middle name present, else 2-letter)
+        holder.tvAvatar.text = person.avatarMonogram
 
         val shouldHideDeceased = isViewer && treePrivacy.hideDeceasedStatus
         val shouldHideBirth = isViewer && treePrivacy.hideBirthDates
 
         // Set avatar color and name based on living status
+        val displayName = if (person.standardDisplayName.isNotBlank()) person.standardDisplayName else "${person.firstName} ${person.lastName}".trim()
         if (!person.isLiving && !shouldHideDeceased) {
             holder.tvAvatar.background?.setTint(android.graphics.Color.parseColor("#475569"))
-            holder.tvMemberName.text = "${person.firstName} ${person.lastName} 🕊️"
+            holder.tvMemberName.text = "$displayName 🕊️"
         } else {
             val colorIndex = position % parsedAvatarColors.size
             holder.tvAvatar.background?.setTint(parsedAvatarColors[colorIndex])
-            holder.tvMemberName.text = "${person.firstName} ${person.lastName}"
+            holder.tvMemberName.text = displayName
         }
 
         val effectiveFocal = focalPerson ?: allMembers.firstOrNull() ?: members.firstOrNull()

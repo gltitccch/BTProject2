@@ -47,7 +47,7 @@
             android:lineSpacingMultiplier="1.4"
             android:layout_marginBottom="32dp" />
 
-        <!-- Full Name -->
+        <!-- Full Name (Philippine Civil Structure) -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,19 +57,86 @@
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="6dp" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+
+            <EditText
+                android:id="@+id/etFirstName"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:hint="First Name *"
+                android:inputType="textPersonName|textCapWords"
+                android:background="@drawable/input_bg_white"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:layout_marginEnd="6dp" />
+
+            <EditText
+                android:id="@+id/etMiddleName"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:hint="Middle Name"
+                android:inputType="textPersonName|textCapWords"
+                android:background="@drawable/input_bg_white"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/etLastName"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="2"
+                android:hint="Last Name *"
+                android:inputType="textPersonName|textCapWords"
+                android:background="@drawable/input_bg_white"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:layout_marginEnd="6dp" />
+
+            <EditText
+                android:id="@+id/etSuffix"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:hint="Suffix"
+                android:inputType="textPersonName|textCapWords"
+                android:background="@drawable/input_bg_white"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <!-- Hidden legacy etFullName for backwards compatibility and tests -->
         <EditText
             android:id="@+id/etFullName"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:hint="First and last name"
-            android:inputType="textPersonName|textCapWords"
-            android:background="@drawable/input_bg_white"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:textSize="15sp"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
-            android:layout_marginBottom="16dp" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
 
         <!-- Email -->
         <TextView

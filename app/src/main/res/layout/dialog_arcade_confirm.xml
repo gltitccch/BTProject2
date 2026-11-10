@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_arcade_dialog"
+    android:padding="22dp">
+
+    <!-- Header Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:id="@+id/tvConfirmIcon"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_arcade_letter_pill"
+            android:gravity="center"
+            android:text="⚠️"
+            android:textSize="20sp"
+            android:layout_marginEnd="12dp" />
+
+        <TextView
+            android:id="@+id/tvConfirmTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Exit KinClash Room?"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/font_display_sora"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvConfirmMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="A live trivia game is currently in progress. Exiting will pause the session for all connected clan members."
+        android:textSize="12.5sp"
+        android:fontFamily="@font/font_body_inter"
+        android:lineSpacingExtra="2.5dp"
+        android:textColor="#D1CAE6"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Actions Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/btnConfirmExit"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1"
+            android:text="Exit Room"
+            android:textSize="12.5sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/font_display_sora"
+            android:textColor="#FF0055"
+            android:background="@drawable/bg_arcade_status_card"
+            app:backgroundTint="@null"
+            android:layout_marginEnd="10dp" />
+
+        <Button
+            android:id="@+id/btnConfirmStay"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_weight="1.4"
+            android:text="Stay in Game"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/font_display_sora"
+            android:textColor="#000000"
+            android:background="@drawable/bg_arcade_btn_correct"
+            app:backgroundTint="@null" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -27,8 +27,16 @@ data class FamilyTree(
     val sourceTree2Id: String = "",
     val coOwnerIds: List<String> = emptyList(),
     val founderRole: String = "",
-    val founderPersonId: String = ""
+    val founderPersonId: String = "",
+    @get:PropertyName("isPremium") @set:PropertyName("isPremium") var isPremium: Boolean = false
 ) {
+    val isFreeTier: Boolean
+        get() = !isPremium
+
+    fun isAudioCapped(storiesCount: Int): Boolean {
+        return !isPremium && storiesCount >= FREE_AUDIO_CAP
+    }
+
     val effectiveQuota: Int
         get() = if (memberQuota > 0) memberQuota else DEFAULT_FREEMIUM_QUOTA
 
@@ -70,5 +78,8 @@ data class FamilyTree(
         const val DEFAULT_FREEMIUM_QUOTA = 50
         const val EXPANSION_STEP = 150
         const val NEAR_CAP_RATIO = 0.85
+        const val FREE_AUDIO_CAP = 5
+        const val HERITAGE_PASS_PRICE_PHP = 99.0
+        const val EXPANSION_BOOSTER_PRICE_PHP = 50.0
     }
 }

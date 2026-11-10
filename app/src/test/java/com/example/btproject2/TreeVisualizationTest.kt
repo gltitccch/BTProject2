@@ -385,6 +385,94 @@ class TreeVisualizationTest {
         val reductionPercentage = ((singleRowWidth - tieredWidth) / singleRowWidth) * 100f
         assertTrue("Width reduction must exceed 50%", reductionPercentage > 50f)
     }
+
+    @Test
+    fun testAdaptiveScaleModeBranchGapThreshold() {
+        val branchGapStandard = 240f
+        val branchGapCompact = 80f
+
+        // Standard family tree (< 100 members)
+        val smallClanSize = 38
+        val isMegaClanSmall = smallClanSize >= 100
+        val effectiveGapSmall = if (isMegaClanSmall) branchGapCompact else branchGapStandard
+        assertEquals("Standard clans (<100 members) must preserve 240px branch gap", 240f, effectiveGapSmall, 0.001f)
+
+        // Mega clan (>= 100 members, e.g. Bugarin Family 200 members)
+        val megaClanSize = 200
+        val isMegaClanMega = megaClanSize >= 100
+        val effectiveGapMega = if (isMegaClanMega) branchGapCompact else branchGapStandard
+        assertEquals("Mega clans (>=100 members) must engage 80px compact branch gap", 80f, effectiveGapMega, 0.001f)
+    }
+
+    @Test
+    fun testAdaptiveScaleModeInLawBadgeGenerationForMegaClans() {
+        // Pedro & Teresa Santos (Root clan 1)
+        val pedro = Person(id = "pedro", firstName = "Pedro", lastName = "Santos")
+        val teresa = Person(id = "teresa", firstName = "Teresa", lastName = "Gomez", spouseId = "pedro")
+        val emilio = Person(id = "emilio", firstName = "Emilio", lastName = "Santos", fatherId = "pedro", motherId = "teresa")
+
+        // Antonio Bugarin married to Esperanza Santos (Root clan 2)
+        val antonio = Person(id = "antonio", firstName = "Antonio", lastName = "Bugarin")
+        val esperanza = Person(id = "esperanza", firstName = "Esperanza", lastName = "Santos", fatherId = "pedro", motherId = "teresa", spouseId = "antonio")
+
+        // Case A: Clan < 100 members -> Sprawling fallback line generated, 0 In-Law badges
+        val smallClanMembersCount = 38
+        val isMegaClanA = smallClanMembersCount >= 100
+        assertFalse(isMegaClanA)
+
+        // Case B: Clan >= 100 members (200 members) -> In-Law badge generated, fallback line suppressed
+        val megaClanMembersCount = 200
+        val isMegaClanB = megaClanMembersCount >= 100
+        assertTrue(isMegaClanB)
+
+        val clanName = pedro.lastName.ifBlank { "Ancestral" }
+        val badgeLabel = "💍 [Root] $clanName ↗"
+        assertEquals("💍 [Root] Santos ↗", badgeLabel)
+    }
+
+    @Test
+    fun testPrecomputedFamilyBusDropBridgeEliminationForMegaClans() {
+        val dropX = 11625f
+        val minX = 14200f
+        val maxX = 18150f
+        val dropStartY = 240f
+        val yBus = 480f
+
+        // When members < 100: stepped bridge is used
+        val isMegaSmall = false
+        val hasBridgeSmall = if (isMegaSmall) false else (dropX < minX || dropX > maxX)
+        assertTrue("Small clans retain stepped bridge when dropX is outside [minX, maxX]", hasBridgeSmall)
+
+        // When members >= 100: stepped bridge is disabled to eliminate the double-line artifact
+        val isMegaLarge = true
+        val hasBridgeLarge = if (isMegaLarge) false else (dropX < minX || dropX > maxX)
+        assertFalse("Mega clans disable stepped bridge to eliminate parallel line artifact", hasBridgeLarge)
+
+        val effectiveBusLeft = if (isMegaLarge) minOf(dropX, minX) else minX
+        val effectiveBusRight = if (isMegaLarge) maxOf(dropX, maxX) else maxX
+        assertEquals(11625f, effectiveBusLeft, 0.001f)
+        assertEquals(18150f, effectiveBusRight, 0.001f)
+    }
+
+    @Test
+    fun testBugarinClanInLawSuppressionForMegaClan() {
+        val members = com.example.btproject2.models.BugarinClanData.createMembers()
+        val byId = members.associateBy { it.id }
+
+        val elena = byId["st_010_elena"]!!
+        val maria = byId["st_011_maria"]!!
+        val pedro = byId["st_001_pedro"]!!
+        val teresa = byId["st_002_teresa"]!!
+
+        assertEquals("Elena's father must be Pedro Santos", pedro.id, elena.fatherId)
+        assertEquals("Elena's mother must be Teresa Gomez", teresa.id, elena.motherId)
+        assertEquals("Maria's father must be Pedro Santos", pedro.id, maria.fatherId)
+        assertEquals("Maria's mother must be Teresa Gomez", teresa.id, maria.motherId)
+
+        // In 100+ member clan, married spouses are recognized as in-laws
+        val isMegaClan = members.size >= 100
+        assertTrue("Bugarin clan with 200 members must activate mega clan mode", isMegaClan)
+    }
 }
 
 

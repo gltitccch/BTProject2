@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet_dialog"
+    android:padding="20dp">
+
+    <!-- Header Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="14dp">
+
+        <TextView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="🎙️"
+            android:textSize="22sp"
+            android:background="@drawable/icon_squircle_dark"
+            android:layout_marginEnd="12dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvDialogRecorderTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Record Oral History"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tvDialogRecorderSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Preserve authentic voices (Max 60 seconds)"
+                android:textSize="12sp"
+                android:textColor="@color/gold_accent" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnRecorderClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="✕"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_secondary"
+            android:background="@drawable/badge_pill_dark"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Story Title Input -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Story Memory Title"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/mint_text"
+        android:layout_marginBottom="6dp" />
+
+    <EditText
+        android:id="@+id/etCapsuleTitle"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:background="@drawable/input_bg"
+        android:hint="e.g. How I Met Lola in 1968"
+        android:textColorHint="@color/text_secondary"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:maxLines="1"
+        android:inputType="textCapSentences"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Prompt Question Suggestions Spinner/Chips -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose Prompt Question"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/gold_accent"
+        android:layout_marginBottom="6dp" />
+
+    <Spinner
+        android:id="@+id/spinnerCapsulePrompts"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@drawable/input_bg"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Visual Recording Studio Card -->
+    <LinearLayout
+        android:id="@+id/cardRecorderStudio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/item_member_dark_bg"
+        android:padding="20dp"
+        android:layout_marginBottom="16dp">
+
+        <!-- Pulsating Microphone Circle -->
+        <TextView
+            android:id="@+id/tvStudioMic"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:gravity="center"
+            android:text="🎙️"
+            android:textSize="32sp"
+            android:background="@drawable/icon_squircle_dark"
+            android:layout_marginBottom="10dp" />
+
+        <!-- 60-Second Countdown Timer -->
+        <TextView
+            android:id="@+id/tvStudioTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0:00 / 1:00"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Status Helper -->
+        <TextView
+            android:id="@+id/tvStudioStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ready to record"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Live Amplitude Bar -->
+        <ProgressBar
+            android:id="@+id/progressBarStudioAmp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="@color/gold_accent"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp" />
+    </LinearLayout>
+
+    <!-- Bottom Actions -->
+    <LinearLayout
+        android:id="@+id/layoutRecordActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Main Record/Stop Toggle Button -->
+        <Button
+            android:id="@+id/btnToggleRecord"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="🎙️ Start Recording"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/btn_gold_primary" />
+    </LinearLayout>
+
+    <!-- Review Section (Visible only after recording finishes) -->
+    <LinearLayout
+        android:id="@+id/layoutReviewActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/btnPreviewRecording"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="▶ Preview"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/gold_accent"
+            android:background="@drawable/btn_outline_bg"
+            android:layout_marginEnd="6dp" />
+
+        <Button
+            android:id="@+id/btnSaveRecording"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="💾 Save Story"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/btn_gold_primary"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+</LinearLayout>
