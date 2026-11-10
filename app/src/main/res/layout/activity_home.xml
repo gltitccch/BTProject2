@@ -117,7 +117,7 @@
                             android:ellipsize="end" />
 
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
@@ -134,9 +134,9 @@
 
                             <TextView
                                 android:id="@+id/tvUserName"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:maxWidth="130dp"
+                                android:layout_weight="1"
                                 android:text="Augustine Russell"
                                 android:textSize="13.5sp"
                                 android:textStyle="bold"
@@ -291,6 +291,13 @@
             <include
                 android:id="@+id/layoutHomeShimmer"
                 layout="@layout/layout_home_shimmer" />
+
+            <!-- ── Responsive Dashboard Container (1-Col Phone / 2-Col Wide Grid) ── -->
+            <LinearLayout
+                android:id="@+id/layoutHomeResponsiveGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
             <!-- ── Hero Heritage Card (Direction 1 Botanical Bough + Gold-Bar Stat Well) ── -->
             <FrameLayout
@@ -689,232 +696,6 @@
                     <TextView android:id="@+id/tvTreeRolePill" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
                 </LinearLayout>
             </FrameLayout>
-
-            <!-- ── CLAN BUILDER QUEST HUD (PHASE 2 ONBOARDING - RETIRED) ── -->
-            <include
-                android:id="@+id/cardQuestHud"
-                layout="@layout/layout_clan_quest_hud"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone" />
-
-            <!-- ── EMPTY STATE ── -->
-            <LinearLayout
-                android:id="@+id/layoutEmptyState"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <FrameLayout
-                    android:id="@+id/cardEmptyStateInner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_forest_card"
-                    android:layout_marginBottom="16dp"
-                    android:clipChildren="true"
-                    android:clipToPadding="false">
-
-                    <!-- Dashed Target Ring highlighting the top-left corner position -->
-                    <View
-                        android:id="@+id/viewEmptyCornerPulseRing"
-                        android:layout_width="88dp"
-                        android:layout_height="42dp"
-                        android:layout_gravity="top|start"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginStart="10dp"
-                        android:background="@drawable/bg_empty_corner_pulse_ring"
-                        android:visibility="gone" />
-
-                    <!-- PERMANENT TOP-LEFT CORNER THEME BUTTON (Circled Spot) -->
-                    <LinearLayout
-                        android:id="@+id/btnEmptyThemeToggle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="34dp"
-                        android:layout_gravity="top|start"
-                        android:layout_marginTop="14dp"
-                        android:layout_marginStart="14dp"
-                        android:paddingStart="11dp"
-                        android:paddingEnd="11dp"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:background="@drawable/bg_empty_corner_theme_pill"
-                        android:elevation="6dp"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <TextView
-                            android:id="@+id/tvEmptyThemeToggleIcon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="☀️"
-                            android:textSize="12sp"
-                            android:layout_marginEnd="5dp" />
-
-                        <TextView
-                            android:id="@+id/tvEmptyThemeToggleLabel"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Light"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/empty_corner_theme_text" />
-                    </LinearLayout>
-
-                    <!-- Normal Empty State Interface Body -->
-                    <LinearLayout
-                        android:id="@+id/layoutEmptyStateNormalBody"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingStart="24dp"
-                        android:paddingEnd="24dp"
-                        android:paddingTop="32dp"
-                        android:paddingBottom="24dp"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="60dp"
-                            android:layout_height="60dp"
-                            android:gravity="center"
-                            android:text="🌳"
-                            android:textSize="28sp"
-                            android:background="@drawable/circle_dark_action"
-                            android:layout_marginBottom="14dp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="No family tree yet"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:layout_marginBottom="6dp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Create a new tree or join an existing tree with an invite code."
-                            android:textSize="12sp"
-                            android:textColor="@color/dark_subtext"
-                            android:gravity="center"
-                            android:layout_marginBottom="18dp" />
-
-                        <!-- ── KinClash Live Party Trivia Entry Card ── -->
-                        <LinearLayout
-                            android:id="@+id/cardEmptyKinClash"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:background="@drawable/bg_forest_card"
-                            android:padding="16dp"
-                            android:layout_marginBottom="16dp">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical"
-                                android:layout_marginBottom="6dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="🎮"
-                                    android:textSize="18sp"
-                                    android:layout_marginEnd="8dp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="PLAYING WITH FAMILY OR FRIENDS?"
-                                    android:textSize="11sp"
-                                    android:textStyle="bold"
-                                    android:fontFamily="@font/font_display_sora"
-                                    android:letterSpacing="0.05"
-                                    android:textColor="@color/gold_accent_light" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Join your clan's live KinClash trivia game on your phone in seconds. No tree setup required!"
-                                android:textSize="11.5sp"
-                                android:textColor="@color/dark_subtext"
-                                android:lineSpacingExtra="2dp"
-                                android:layout_marginBottom="12dp" />
-
-                            <Button
-                                android:id="@+id/btnEmptyJoinKinClash"
-                                android:layout_width="match_parent"
-                                android:layout_height="44dp"
-                                android:text="🚀  Enter Game PIN to Join"
-                                android:textSize="12.5sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/btn_gold_text"
-                                android:backgroundTint="@color/gold_accent"
-                                android:layout_marginBottom="8dp" />
-
-                            <Button
-                                android:id="@+id/btnEmptyHostKinClash"
-                                android:layout_width="match_parent"
-                                android:layout_height="40dp"
-                                android:text="👑  Host a KinClash Game"
-                                android:textSize="12sp"
-                                android:textColor="@color/text_primary"
-                                android:background="@drawable/btn_outline_bg" />
-                        </LinearLayout>
-
-                        <Button
-                            android:id="@+id/btnEmptyCreateTree"
-                            android:layout_width="match_parent"
-                            android:layout_height="46dp"
-                            android:text="＋  Create New Family Tree"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/btn_gold_text"
-                            android:backgroundTint="@color/gold_accent"
-                            android:layout_marginBottom="8dp" />
-
-                        <Button
-                            android:id="@+id/btnEmptyJoinTree"
-                            android:layout_width="match_parent"
-                            android:layout_height="46dp"
-                            android:text="👥  Join Tree with Invite Code"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:backgroundTint="@color/forest_card_light"
-                            android:layout_marginBottom="8dp" />
-
-                        <Button
-                            android:id="@+id/btnEmptyAddMember"
-                            android:layout_width="match_parent"
-                            android:layout_height="46dp"
-                            android:text="👤  Add First Family Member"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:backgroundTint="@color/forest_card" />
-
-                        <!-- Replay Quick Start Tour Button (Direction 1) -->
-                        <TextView
-                            android:id="@+id/btnEmptyReplayTour"
-                            android:layout_width="match_parent"
-                            android:layout_height="44dp"
-                            android:gravity="center"
-                            android:text="✨  Replay Quick Start Tour ↻"
-                            android:textSize="12.5sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/gold_accent"
-                            android:background="@drawable/bg_tool_dock_tag"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:layout_marginTop="8dp" />
-                    </LinearLayout>
-                </FrameLayout>
-            </LinearLayout>
 
             <!-- ── POPULATED STATE ── -->
             <LinearLayout
@@ -1535,11 +1316,239 @@
                     android:visibility="gone" />
 
             </LinearLayout>
+            </LinearLayout>
 
-            <!-- Bottom spacer to scroll clear of Floating Navigation Island -->
-            <View
+            <!-- ── CLAN BUILDER QUEST HUD (PHASE 2 ONBOARDING - RETIRED) ── -->
+            <include
+                android:id="@+id/cardQuestHud"
+                layout="@layout/layout_clan_quest_hud"
                 android:layout_width="match_parent"
-                android:layout_height="96dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone" />
+
+            <!-- ── EMPTY STATE ── -->
+            <LinearLayout
+                android:id="@+id/layoutEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <FrameLayout
+                    android:id="@+id/cardEmptyStateInner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_forest_card"
+                    android:layout_marginBottom="16dp"
+                    android:clipChildren="true"
+                    android:clipToPadding="false">
+
+                    <!-- Dashed Target Ring highlighting the top-left corner position -->
+                    <View
+                        android:id="@+id/viewEmptyCornerPulseRing"
+                        android:layout_width="88dp"
+                        android:layout_height="42dp"
+                        android:layout_gravity="top|start"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_empty_corner_pulse_ring"
+                        android:visibility="gone" />
+
+                    <!-- PERMANENT TOP-LEFT CORNER THEME BUTTON (Circled Spot) -->
+                    <LinearLayout
+                        android:id="@+id/btnEmptyThemeToggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_gravity="top|start"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginStart="14dp"
+                        android:paddingStart="11dp"
+                        android:paddingEnd="11dp"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:background="@drawable/bg_empty_corner_theme_pill"
+                        android:elevation="6dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:id="@+id/tvEmptyThemeToggleIcon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="☀️"
+                            android:textSize="12sp"
+                            android:layout_marginEnd="5dp" />
+
+                        <TextView
+                            android:id="@+id/tvEmptyThemeToggleLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Light"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/empty_corner_theme_text" />
+                    </LinearLayout>
+
+                    <!-- Normal Empty State Interface Body -->
+                    <LinearLayout
+                        android:id="@+id/layoutEmptyStateNormalBody"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="24dp"
+                        android:paddingEnd="24dp"
+                        android:paddingTop="32dp"
+                        android:paddingBottom="24dp"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:gravity="center"
+                            android:text="🌳"
+                            android:textSize="28sp"
+                            android:background="@drawable/circle_dark_action"
+                            android:layout_marginBottom="14dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="No family tree yet"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Create a new tree or join an existing tree with an invite code."
+                            android:textSize="12sp"
+                            android:textColor="@color/dark_subtext"
+                            android:gravity="center"
+                            android:layout_marginBottom="18dp" />
+
+                        <!-- ── KinClash Live Party Trivia Entry Card ── -->
+                        <LinearLayout
+                            android:id="@+id/cardEmptyKinClash"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:background="@drawable/bg_forest_card"
+                            android:padding="16dp"
+                            android:layout_marginBottom="16dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="6dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="🎮"
+                                    android:textSize="18sp"
+                                    android:layout_marginEnd="8dp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="PLAYING WITH FAMILY OR FRIENDS?"
+                                    android:textSize="11sp"
+                                    android:textStyle="bold"
+                                    android:fontFamily="@font/font_display_sora"
+                                    android:letterSpacing="0.05"
+                                    android:textColor="@color/gold_accent_light" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Join your clan's live KinClash trivia game on your phone in seconds. No tree setup required!"
+                                android:textSize="11.5sp"
+                                android:textColor="@color/dark_subtext"
+                                android:lineSpacingExtra="2dp"
+                                android:layout_marginBottom="12dp" />
+
+                            <Button
+                                android:id="@+id/btnEmptyJoinKinClash"
+                                android:layout_width="match_parent"
+                                android:layout_height="44dp"
+                                android:text="🚀  Enter Game PIN to Join"
+                                android:textSize="12.5sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/btn_gold_text"
+                                android:backgroundTint="@color/gold_accent"
+                                android:layout_marginBottom="8dp" />
+
+                            <Button
+                                android:id="@+id/btnEmptyHostKinClash"
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:text="👑  Host a KinClash Game"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_primary"
+                                android:background="@drawable/btn_outline_bg" />
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/btnEmptyCreateTree"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:text="＋  Create New Family Tree"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/btn_gold_text"
+                            android:backgroundTint="@color/gold_accent"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btnEmptyJoinTree"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:text="👥  Join Tree with Invite Code"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:backgroundTint="@color/forest_card_light"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btnEmptyAddMember"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:text="👤  Add First Family Member"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:backgroundTint="@color/forest_card" />
+
+                        <!-- Replay Quick Start Tour Button (Direction 1) -->
+                        <TextView
+                            android:id="@+id/btnEmptyReplayTour"
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:gravity="center"
+                            android:text="✨  Replay Quick Start Tour ↻"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/gold_accent"
+                            android:background="@drawable/bg_tool_dock_tag"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginTop="8dp" />
+                    </LinearLayout>
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- Compact breathing room above Floating Navigation Island -->
+            <View
+                android:id="@+id/viewHomeBottomSpacer"
+                android:layout_width="match_parent"
+                android:layout_height="12dp" />
 
         </LinearLayout>
     </ScrollView>

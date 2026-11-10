@@ -336,7 +336,17 @@ class HomeActivity : AppCompatActivity() {
         tvHeaderDate?.text = SimpleDateFormat("EEEE, MMM d", Locale.getDefault()).format(Date()).uppercase()
 
         // Responsive Adaptive Screen Layout
-        com.example.btproject2.utils.AdaptiveLayoutHelper.applyMaxContentWidth(findViewById(R.id.layoutHomeScrollContent))
+        val homeScrollContent = findViewById<View?>(R.id.layoutHomeScrollContent)
+        com.example.btproject2.utils.AdaptiveLayoutHelper.applyMaxContentWidth(homeScrollContent)
+        com.example.btproject2.utils.AdaptiveLayoutHelper.adaptDashboardGrid(
+            findViewById(R.id.layoutHomeResponsiveGrid),
+            layoutStatsHeader,
+            layoutPopulatedState
+        )
+        com.example.btproject2.utils.AdaptiveLayoutHelper.applySafeSystemBarInsets(
+            homeScrollContent,
+            findViewById(R.id.containerFloatingNav)
+        )
         com.example.btproject2.utils.AdaptiveLayoutHelper.adaptHeroButtons(
             findViewById(R.id.btnAddMemberHero),
             findViewById(R.id.btnViewTreeHero),

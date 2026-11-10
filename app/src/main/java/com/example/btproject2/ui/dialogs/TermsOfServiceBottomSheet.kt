@@ -11,6 +11,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.widget.NestedScrollView
 import com.example.btproject2.R
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -45,6 +46,20 @@ class TermsOfServiceBottomSheet : BottomSheetDialogFragment() {
         dialog.setOnShowListener {
             val bottomSheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
             bottomSheet?.background = ColorDrawable(Color.TRANSPARENT)
+            bottomSheet?.let { sheet ->
+                // Concept 3: Near-Full Rounded Top flush to bottom with clean ~20dp rounded top peek
+                sheet.layoutParams = sheet.layoutParams.apply {
+                    height = ViewGroup.LayoutParams.MATCH_PARENT
+                }
+                val behavior = BottomSheetBehavior.from(sheet)
+                val topPeekPx = (20 * resources.displayMetrics.density).toInt()
+                behavior.isFitToContents = false
+                behavior.expandedOffset = topPeekPx
+                behavior.peekHeight = resources.displayMetrics.heightPixels
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                behavior.skipCollapsed = true
+                behavior.isDraggable = true
+            }
         }
         return dialog
     }

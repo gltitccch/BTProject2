@@ -8,16 +8,18 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 /**
- * Universal adaptive layout engine providing responsive bounds, max-width clamping
- * for tablets and foldables, and dynamic typography adaptation for compact devices.
+ * Universal adaptive layout engine providing responsive bounds, multi-column dashboard reflow
+ * for tablets/wide displays, safe system-bar inset handling, and compact-screen scaling.
  */
 object AdaptiveLayoutHelper {
 
-    const val DEFAULT_MAX_CONTENT_WIDTH_DP = 580
-    const val DEFAULT_MAX_NAV_WIDTH_DP = 520
-    const val DEFAULT_MAX_DIALOG_WIDTH_DP = 440
+    const val DEFAULT_MAX_CONTENT_WIDTH_DP = 1200
+    const val DEFAULT_MAX_NAV_WIDTH_DP = 680
+    const val DEFAULT_MAX_DIALOG_WIDTH_DP = 460
     const val COMPACT_SCREEN_THRESHOLD_DP = 360f
     const val TABLET_SCREEN_THRESHOLD_DP = 600f
 
@@ -35,22 +37,128 @@ object AdaptiveLayoutHelper {
     }
 
     /**
-     * Clamps a content container to a maximum width on large displays (tablets, foldables unfolded)
-     * and centers it horizontally, preventing wide 1000dp+ unconstrained stretching.
+     * Dynamically adapts container horizontal padding and optional ultra-wide clamp
+     * instead of forcing wide displays into a fixed narrow phone strip.
      */
     fun applyMaxContentWidth(view: View?, maxDp: Int = DEFAULT_MAX_CONTENT_WIDTH_DP) {
         if (view == null) return
         val dm = view.resources.displayMetrics
-        val screenWidthDp = dm.widthPixels / dm.density
+        val density = dm.density
+        val screenWidthDp = dm.widthPixels / density
+
+        // Adjust horizontal breathing room dynamically to match screen class
+        val horizPadDp = when {
+            screenWidthDp < COMPACT_SCREEN_THRESHOLD_DP -> 12
+            screenWidthDp >= TABLET_SCREEN_THRESHOLD_DP -> 24
+            else -> 16
+        }
+        val horizPadPx = (horizPadDp * density).toInt()
+        view.setPadding(horizPadPx, view.paddingTop, horizPadPx, view.paddingBottom)
+
+        val lp = view.layoutParams ?: return
         if (screenWidthDp > maxDp) {
-            val maxPx = (maxDp * dm.density).toInt()
-            val lp = view.layoutParams ?: return
-            lp.width = maxPx
+            lp.width = (maxDp * density).toInt()
             when (lp) {
                 is LinearLayout.LayoutParams -> lp.gravity = Gravity.CENTER_HORIZONTAL
                 is FrameLayout.LayoutParams -> lp.gravity = Gravity.CENTER_HORIZONTAL
             }
-            view.layoutParams = lp
+        } else {
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+        }
+        view.layoutParams = lp
+    }
+
+    /**
+     * Switches the Main Dashboard container between a single-column vertical flow on phones
+     * and a balanced 2-column horizontal grid on wide displays (tablets, foldables, desktop).
+     */
+    fun adaptDashboardGrid(
+        gridContainer: LinearLayout?,
+        leftColumnView: View?,
+        rightColumnView: View?
+    ) {
+        if (gridContainer == null || leftColumnView == null || rightColumnView == null) return
+        val dm = gridContainer.resources.displayMetrics
+        val density = dm.density
+        val screenWidthDp = dm.widthPixels / density
+
+        if (screenWidthDp >= TABLET_SCREEN_THRESHOLD_DP) {
+            gridContainer.orientation = LinearLayout.HORIZONTAL
+            gridContainer.isBaselineAligned = false
+
+            val gapPx = (16 * density).toInt()
+            (leftColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+                lp.width = 0
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.weight = 1.05f
+                lp.marginEnd = gapPx
+                lp.bottomMargin = 0
+                leftColumnView.layoutParams = lp
+            }
+            (rightColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+                lp.width = 0
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.weight = 1.0f
+                lp.marginStart = 0
+                rightColumnView.layoutParams = lp
+            }
+        } else {
+            gridContainer.orientation = LinearLayout.VERTICAL
+            val bottomGapPx = (18 * density).toInt()
+            (leftColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.weight = 0f
+                lp.marginEnd = 0
+                lp.bottomMargin = bottomGapPx
+                leftColumnView.layoutParams = lp
+            }
+            (rightColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.weight = 0f
+                lp.marginStart = 0
+                rightColumnView.layoutParams = lp
+            }
+        }
+    }
+
+    /**
+     * Applies safe top status-bar / camera-cutout and bottom gesture-bar insets dynamically
+     * so content never overlaps system chrome or leaves hard-coded dead gaps.
+     */
+    fun applySafeSystemBarInsets(
+        topContentView: View?,
+        bottomNavContainer: View?,
+        extraTopDp: Int = 10,
+        extraBottomDp: Int = 10
+    ) {
+        topContentView?.let { topView ->
+            val density = topView.resources.displayMetrics.density
+            val baseLeft = topView.paddingLeft
+            val baseRight = topView.paddingRight
+            val baseBottom = topView.paddingBottom
+            ViewCompat.setOnApplyWindowInsetsListener(topView) { v, insets ->
+                val bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                )
+                v.setPadding(baseLeft, bars.top + (extraTopDp * density).toInt(), baseRight, baseBottom)
+                insets
+            }
+            ViewCompat.requestApplyInsets(topView)
+        }
+
+        bottomNavContainer?.let { navView ->
+            val density = navView.resources.displayMetrics.density
+            val baseLeft = navView.paddingLeft
+            val baseTop = navView.paddingTop
+            val baseRight = navView.paddingRight
+            ViewCompat.setOnApplyWindowInsetsListener(navView) { v, insets ->
+                val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.setPadding(baseLeft, baseTop, baseRight, bars.bottom + (extraBottomDp * density).toInt())
+                insets
+            }
+            ViewCompat.requestApplyInsets(navView)
         }
     }
 
