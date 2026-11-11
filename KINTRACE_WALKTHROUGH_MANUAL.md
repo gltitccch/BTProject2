@@ -1,18 +1,19 @@
-# 📖 KinTrace Walkthrough & Defense Manual
+# 📖 KinTrace Walkthrough & Defense Manual (v1.5.1)
 
 > **Plain-English System Architecture, Screen Logic & Panelist Defense Guide**  
-> *Prepared for Capstone Defense, Panelist Review, and IT Consultant Walkthroughs*
+> *Updated for Release v1.5.1 (Code 17) • Prepared for Capstone Defense, Live Demo & IT Consultant Walkthroughs*
 
 ---
 
 ## 🗺️ Master Table of Contents
 
+- [Chapter 0: 🎤 Live System Demo Speaker Script (Step-by-Step Defense Day Script)](#-chapter-0-live-system-demo-speaker-script-step-by-step-defense-day-script)
 - [Chapter 1: The Front Gate — Authentication & Security Gateway (`LoginActivity.kt`)](#-chapter-1-the-front-gate--authentication--security-gateway)
 - [Chapter 2: The Recovery Lifeline — Password Reset & Account Retrieval Gateway (`ForgotPasswordActivity.kt`)](#-chapter-2-the-recovery-lifeline--password-reset--account-retrieval-gateway)
 - [Chapter 3: The Clan Gateway — Registration, Password Policy & 16-Clause Data Stewardship (`RegisterActivity.kt`)](#-chapter-3-the-clan-gateway--registration-password-policy--data-stewardship)
 - [Chapter 4: The Defense Arsenal — KinTrace Account Studio & Dual-Mode Vault (`DemoVaultBottomSheet.kt`)](#-chapter-4-the-defense-arsenal--kintrace-account-studio--dual-mode-vault)
-- [Chapter 5: The Heritage Command Center — Dynamic Clan Dashboard & Multi-Stage Lifecycle (`HomeActivity.kt`)](#-chapter-5-the-heritage-command-center--dynamic-clan-dashboard--multi-stage-lifecycle)
-- [Chapter 6: Comprehensive Guide — Add Member Module (`AddMemberActivity.kt`)](#-chapter-6-comprehensive-guide--add-member-module-addmemberactivitykt)
+- [Chapter 5: The Heritage Command Center — Responsive Dynamic Clan Dashboard (`HomeActivity.kt`)](#-chapter-5-the-heritage-command-center--dynamic-clan-dashboard--multi-stage-lifecycle)
+- [Chapter 6: Comprehensive Guide — Add Member Module, Middle Name Auto-Fill & Civil Rules (`AddMemberActivity.kt`)](#-chapter-6-comprehensive-guide--add-member-module-addmemberactivitykt)
 - [Chapter 7: The Demographic & Data Health Hub (`InsightsActivity.kt`)](#-chapter-7-the-demographic--data-health-hub-insightsactivitykt)
 - [Chapter 8: The Bloodline Tracer & Kinship Calculator (`TraceActivity.kt`)](#-chapter-8-the-bloodline-tracer--kinship-calculator-traceactivitykt)
 - [Chapter 9: The Master Family Tree Visualizer Subsystem (`FamilyTreeActivity.kt` & `InteractiveTreeActivity.kt`)](#-chapter-9-the-master-family-tree-visualizer-subsystem)
@@ -32,6 +33,62 @@
 - [Chapter 23: The Kin Academy Heritage Learning Hub & Kamag-anak Lexicon (`KinAcademyActivity.kt` & `EducationalContentRepository.kt`)](#-chapter-23-the-kin-academy-heritage-learning-hub--kamag-anak-lexicon)
 - [Chapter 24: The Kinship Reference Guide & Civil Consanguinity Law Matrix (`RelationshipTypesActivity.kt`)](#-chapter-24-the-kinship-reference-guide--civil-consanguinity-law-matrix)
 - [Chapter 25: The Central Command Citadel — Part 5: Zero-Cost Over-The-Air (OTA) Release Desk & In-App Auto-Installer Subsystem (`AdminPortalActivity.kt` & `InAppUpdateManager.kt`)](#-chapter-25-the-central-command-citadel--part-5-zero-cost-over-the-air-ota-release-desk--in-app-auto-installer-subsystem)
+
+---
+
+# 🎤 Chapter 0: Live System Demo Speaker Script (Step-by-Step Defense Day Script)
+
+> **How to Use This Script**: Keep this open during your live capstone demonstration. Every stage gives you exact **"What to Tap"** instructions paired with **natural, everyday spoken lines** written in plain English so you sound calm, clear, and confident without getting tripped up by heavy technical jargon. Total demo time: **~6–8 minutes**.
+
+---
+
+### Part 1: Opening, Security & Smart Registration (1 Minute)
+* **Screen**: Open **KinTrace** on `LoginActivity`, then tap **Create Account** (`RegisterActivity`).
+* **🎙️ Say to the Panel**:
+  > *"Good morning/afternoon, members of the panel. Today we will demonstrate **KinTrace**, our mobile family tree and Philippine kinship verification app.*
+  > *Let's start at the registration gate. Notice how we collect a person's **complete 4-part Philippine legal name**—First Name, Middle Name, Last Name, and Suffix—rather than stuffing everything into one box. Notice also our live password checker that updates as you type, and our quick email domain chips that prevent common spelling mistakes while automatically blocking fake throwaway emails.*
+  > *Most importantly, before anyone can create an account, they must tap our **Terms & Clan Stewardship** agreement. It opens cleanly across the full screen, and the Agree button stays locked until the user actually scrolls through all 16 sections—ensuring real informed consent under the Philippine Data Privacy Act."*
+* **📱 Action**: Scroll briefly through the **Terms & Clan Stewardship** sheet to show it filling the screen, then tap `✕` and go back to `LoginActivity`.
+
+---
+
+### Part 2: 1-Tap Defense Login & Responsive Dashboard (1 Minute)
+* **Screen**: `LoginActivity` ➔ Tap **`Account & Demo Vault`** ➔ Tap **Augustine Russell (`⚡ 1-Tap`)** ➔ Lands on `HomeActivity`.
+* **🎙️ Say to the Panel**:
+  > *"To save time during our evaluation without typing passwords repeatedly, we built this Account & Demo Vault for instant 1-tap role switching.*
+  > *Now we are logged into the **Russell Family**, a mature 4-generation tree with 20 documented members. Notice our Main Dashboard automatically adjusts to whatever device screen size you are using—stacking cleanly on phones, and expanding into a balanced 2-column layout on wider tablets or landscape screens while respecting notches and navigation bars.*
+  > *On this hero card, members see their total generations, clan size, branches, and records updated in real time."*
+* **📱 Action**: Quickly show the **Theme Toggle (`☀️`)** if helpful, then tap **`＋ Add Member`**.
+
+---
+
+### Part 3: Smart Middle Name Auto-Fill & Legal Marriage Guard (1.5 Minutes)
+* **Screen**: `AddMemberActivity`.
+* **🎙️ Say to the Panel**:
+  > *"Here is how families document new relatives safely. Notice we have First Name, Middle Name, Last Name, and Suffix.*
+  > *Following Philippine naming tradition under the Civil Code, watch what happens when I select the mother from the dropdown—say, **Clara Hayes**—KinTrace automatically fills her maiden surname **'Hayes'** into the child's Middle Name box. It also handles adoptive and stepparent naming rules cleanly, keeping a natural mother's middle name when applicable.*
+  > *And if two first cousins happen to share the exact same first and last name because they were named after the same grandfather, KinTrace checks their **Middle Name** and **Mother** so it never treats two different cousins as an accidental duplicate.*
+  > *Even better, if someone tries to link close blood relatives—like siblings or first cousins—as spouses, KinTrace stops the save and warns them based on the Family Code of the Philippines."*
+* **📱 Action**: Select **Clara Hayes** in the Mother dropdown so panelists visibly see **`Hayes`** appear inside **Middle Name**, then tap **`← Back`** to return to Dashboard.
+
+---
+
+### Part 4: Interactive Family Tree & Kinship Tracing (1.5 Minutes)
+* **Screen**: Tap **`Tree View`** (quickly show panning/zooming, living vs. deceased tributes, and search), tap Back ➔ Tap **`Family Records`** (quickly type a middle initial/name to show instant filtering and 3-letter monogram badges), tap Back ➔ Tap **`Trace Bloodline`**.
+* **🎙️ Say to the Panel**:
+  > *"In **Tree View**, relatives can pinch, zoom, tap any person's card to open their full life profile, or switch to the ancestral Pedigree view.*
+  > *In **Family Records**, our directory shows clean middle initials and 3-letter monograms like 'JSD', and lets families search by middle name or suffix too.*
+  > *Now let's test the **Bloodline Tracer**. When I pick two relatives, KinTrace walks up both family lines to find their closest shared ancestor. It computes their exact degree of blood relationship and checks whether marriage is allowed or restricted by law. And for first cousins, it clearly identifies whether they are **Maternal First Cousins (Pinsang Buo sa Ina)**, **Paternal First Cousins (Pinsang Buo sa Ama)**, or **Double First Cousins**—and lets you export a signed PDF relationship certificate."*
+
+---
+
+### Part 5: Privacy Shield, Soft-Delete Recovery & Admin Citadel OTA Update (1.5 Minutes)
+* **Screen**: Return Home ➔ Briefly show **`Privacy & Access`** ➔ Tap Profile Avatar (`A`) ➔ Sign Out ➔ In **`Account & Demo Vault`**, tap **`Admin & Demo Vault`** ➔ Tap **Super Admin (`admin@kintrace.ph`)**.
+* **🎙️ Say to the Panel**:
+  > *"Finally, privacy and long-term data safety are central to KinTrace. Tree owners can mask living members' birthdates from viewers, combine separate trees safely with **Merge Branches**, or backup everything to PDF and CSV.*
+  > *And here inside the **Admin Citadel**, administrators oversee live platform totals, expand a family's 50-member free limit cleanly to 200 when their clan grows, and recover any accidentally deleted member intact with all parent and spouse links preserved.*
+  > *Lastly, our **Over-The-Air Release Desk** lets us push new app versions through GitHub Releases so all family members get updates in one tap right inside the app without needing Google Play Store fees.*
+  > *That concludes our live system walkthrough. We are now ready for your questions."*
 
 ---
 
@@ -387,8 +444,10 @@ firestoreHelper.addNotification(notif)
 1. **Back Navigation Pill (`← Back`)**:
    - Styled via `bg_nav_back_pill` at [line 53 of `RegisterActivity.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/activities/RegisterActivity.kt#L53). Tapping it safely calls `finish()` to return to the welcome or login gate.
 
-2. **Full Name Field**:
-   - Text field that automatically collapses redundant whitespace (`replace("\\s+".toRegex(), " ")`) to prevent accidental double-space typos in official ancestral records.
+2. **Structured 4-Part Philippine Legal Name Fields (`etFirstName`, `etMiddleName`, `etLastName`, `etSuffix`)**:
+   - Captures the complete civil identity format (**First Name**, **Middle Name**, **Last Name**, and **Suffix** such as `Jr.` or `III`) right at account creation.
+   - Automatically generates standardized names (`Juan S. Dela Cruz Jr.`), formal legal names (`Juan Santos Dela Cruz Jr.`), and 3-letter heritage monogram avatars (`JSD`) via [`UserProfile.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/models/UserProfile.kt).
+   - Collapses redundant spaces to prevent accidental double-space typos in official ancestral records.
 
 3. **Email Address Field & Smart Disposable Domain Shield**:
    - Trims whitespace and validates domain syntax through [`RegistrationValidator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/RegistrationValidator.kt).
@@ -415,7 +474,7 @@ firestoreHelper.addNotification(notif)
 7. **The Data Stewardship & Terms Gate (`Tap card to read`)**:
    - Summarizes the 4 core pillars: *Privacy & Data Usage*, *Clan Stewardship License*, *Community & Family Code*, and *Data Security & RA 10173*.
    - Displays a dynamic scroll-counter badge (`0/16`).
-   - Tapping opens the full-screen bottom sheet dialog.
+   - Tapping opens the **Near-Full Rounded Top** sheet (~94% screen height via [`TermsOfServiceBottomSheet.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/dialogs/TermsOfServiceBottomSheet.kt)) with over double the vertical reading space so users can comfortably read every clause.
 
 8. **"Create Account" Action Button**:
    - **Strictly Disabled by Default**: Remains greyed out (`isEnabled = false`) until the user has opened and scrolled through 100% of the Terms of Service.
@@ -876,8 +935,10 @@ cardView.setOnClickListener {
 4. **Live Lineage Feed (`containerRecentItems`)**:
    - Displays the last 5 genealogical activities—such as newly added relatives, updated marriage records, or consanguinity traces—with relative timestamps (e.g., `2h ago`, `Just now`).
 
-5. **Floating Heritage Island Bottom Navigation**:
-   - Persistent, responsive bottom navigation dock facilitating seamless movement between `Home`, `Tree`, `Guide`, `Trace`, and `Profile`.
+5. **Floating Heritage Island Bottom Navigation & Responsive Multi-Grid Engine**:
+   - Persistent bottom navigation dock (`Home`, `Tree`, `Guide`, `Trace`, `Profile`) styled cleanly across phones and centered proportionally up to `680dp` on tablets/wide screens.
+   - **Dynamic Device Screen Adaptation ([`AdaptiveLayoutHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/AdaptiveLayoutHelper.kt))**: Instead of locking the dashboard to a narrow phone column, `layoutHomeResponsiveGrid` automatically adjusts to the device screen size—stacking vertically on compact/standard phones (`< 600dp`), switching into a balanced **2-column horizontal dashboard** on tablets, foldables, or landscape displays (`>= 600dp`), expanding the header user name dynamically, and applying safe status-bar and gesture-bar insets (`applySafeSystemBarInsets`).
+   - Also integrates **KinClash Live Trivia** (`cardHostKinClash`), **Heritage Milestones**, and **Audio Voice Capsules** cleanly inside the Governance Tools card.
 
 ---
 
@@ -1160,12 +1221,12 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ PERSONAL DETAILS                                                │
-│ ┌─────────────────────────────────────────────────────────────┐ │
-│ │ First Name (Required • Auto-trimmed)                        │ │
-│ └─────────────────────────────────────────────────────────────┘ │
-│ ┌─────────────────────────────────────────────────────────────┐ │
-│ │ Last Name (Required • Auto-trimmed)                         │ │
-│ └─────────────────────────────────────────────────────────────┘ │
+│ ┌───────────────────────────────┐ ┌───────────────────────────┐ │
+│ │ First Name *                  │ │ Middle Name (Auto-Filled) │ │
+│ └───────────────────────────────┘ └───────────────────────────┘ │
+│ ┌───────────────────────────────────────┐ ┌───────────────────┐ │
+│ │ Last Name *                           │ │ Suffix (Jr., III) │ │
+│ └───────────────────────────────────────┘ └───────────────────┘ │
 │ ┌───────────────────────────────┐ ┌───────────────────────────┐ │
 │ │ Gender: Male / Female         │ │ Civil Status: Single...   │ │
 │ └───────────────────────────────┘ └───────────────────────────┘ │
@@ -1178,10 +1239,11 @@ Walk them through the screen from **Top to Bottom**, matching your live app inte
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-1. **First Name (`etFirstName`) & Last Name (`etLastName`)**:
-   - **Mandatory**: Both fields are strictly required. Leaving either blank halts saving with: *"Please enter first and last name."*
-   - **Whitespace Sanitation**: Automatically strips leading, trailing, and double whitespace (`.trim()`).
-   - **Anti-Duplicate Sentry**: If you enter an identical First Name, Last Name, and Birthdate matching an existing relative, the app halts and opens a **Duplicate Comparison Dialog** comparing both records side by side.
+1. **4-Part Legal Identity (`etFirstName`, `etMiddleName`, `etLastName`, `etSuffix`)**:
+   - **Mandatory Fields**: `First Name` and `Last Name` are strictly required. Leaving either blank halts saving with: *"Please enter first and last name."*
+   - **Smart Mother Maiden Surname Auto-Inheritance**: Under Article 364 of the Civil Code of the Philippines and RA 11642 adoption rules, selecting a biological or adoptive mother in the Mother dropdown automatically pre-fills her maiden surname into the child's **Middle Name** field (while preserving any custom value if the user types manually, and following *In Re: Stephanie Garcia* stepparent rules where natural mothers retain middle name lineage).
+   - **Suffix Support**: Optional generational suffixes (`Jr.`, `Sr.`, `III`) keep namesake fathers and sons distinct.
+   - **Whitespace Sanitation & Cousin Duplicate Disambiguation**: Strips extra whitespace, and ensures two first cousins who share the same First & Last Name (e.g., both named after their Lolo) are **never falsely flagged as duplicates** by [`DuplicateDetector.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/utils/DuplicateDetector.kt) or [`TreeHealthCalculator.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/TreeHealthCalculator.kt) if they have different middle names or mothers.
 
 2. **Gender (`spinnerGender`)**:
    - **Options**: `Male` | `Female`.
@@ -1742,11 +1804,11 @@ val degree = min + max
 ```
 
 
-#### 💬 Question 2: *"How does the system distinguish biological bloodlines from adoption or step-families?"*
-> **Panelist Probe**: *Can an adopted child accidentally be treated as a biological blood ancestor?*
+#### 💬 Question 2: *"How does the system distinguish biological bloodlines, maternal vs. paternal cousins, and adoption?"*
+> **Panelist Probe**: *Can an adopted child accidentally be treated as a biological blood ancestor, and can it tell mother's-side cousins from father's-side cousins?*
 > 
 > **Your Answer:**
-> *"No. In [lines 33–50 of `AncestorFinder.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/AncestorFinder.kt#L33-L50), the BFS queue strictly inspects `motherRelationshipType` and `fatherRelationshipType`. Only links designated as 'Biological' are traversed for consanguinity. Adoptive and step links are handed off to [`checkNonBiologicalImpediments()`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/BloodlineTracer.kt#L207) to evaluate legal impediments under Article 38 of the Family Code without falsifying biological degrees."*
+> *"First, in [`AncestorFinder.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/AncestorFinder.kt#L33-L50), the tracer checks `motherRelationshipType` and `fatherRelationshipType`. Only 'Biological' links count toward biological blood degrees, while 'Adoptive' links are checked against Article 38 marriage rules and RA 11642 middle-name rules without faking biological ancestry. Second, [`KinshipTitleHelper.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/engine/KinshipTitleHelper.kt) checks whether the shared aunt or uncle belongs to the mother's side or the father's side, clearly distinguishing **Maternal First Cousins (Pinsang Buo sa Ina)** from **Paternal First Cousins (Pinsang Buo sa Ama)** and **Double First Cousins**."*
 
 
 #### 💬 Question 3: *"What prevents an infinite loop if the family tree has a cycle?"*
@@ -2094,7 +2156,7 @@ Android `Path.arcTo()` constructs the smooth curved wedge boundaries with zero l
 
 > *"The Interactive Family Tree Canvas is KinTrace’s flagship 2D graphical visualization engine. 
 > 
-> Unlike traditional static trees that only display fixed boxes, our custom-built Android Canvas engine supports infinite panning, pinch-to-zoom, and an intelligent **Multi-Focal Kinship Camera**. By simply tapping any relative or selecting them from the perspective bar, the entire family network dynamically recalculates all kinship titles relative to that person in real time. It pairs high-performance rendering—using viewport culling and zero-allocation draw passes—with cloud-persisted custom layouts, allowing clan owners to drag and arrange nodes freely while keeping all family members' devices in sync."*
+> Unlike traditional static trees that only display fixed boxes, our custom-built Android Canvas engine supports smooth panning, pinch-to-zoom, and an intelligent **Multi-Focal Kinship Camera**. By simply tapping any relative or selecting them from the perspective bar, the entire family network dynamically recalculates all kinship titles relative to that person in real time. To keep scrolling butter-smooth even with hundreds of relatives, it only draws the branch cards currently visible on your screen and saves custom node positions directly to the cloud for everyone in the family."*
 
 ---
 
@@ -2388,8 +2450,8 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
    - `chipSortOldest`: Sorts chronologically by birth year, placing earliest progenitors at the top.
    - `chipSortYoungest`: Sorts by youngest descendants first, ideal for reviewing new family additions.
 
-6. **Combined Real-Time Filter & Search Indexer**:
-   - The search bar and active filter chips work in tandem through `filterAndSortMembers()`. Users can filter by `"Living"`, sort by `"Oldest"`, and type `"Cremen"` simultaneously with 0ms query latency.
+6. **Combined Real-Time Filter & Middle-Name Search Indexer**:
+   - The search bar and active filter chips work in tandem through `filterAndSortMembers()`. Users can search by first name, last name, **middle name** (e.g., `"Santos"`), **middle initial** (e.g., `"S."`), or **suffix** (e.g., `"Jr."`) simultaneously with filter chips like `"Living"` or `"Oldest"` with zero lag.
 
 ---
 
@@ -2422,7 +2484,9 @@ if (pos.x < cullLeft || pos.x > cullRight || pos.y < cullTop || pos.y > cullBott
 
 Each member row in [`MemberAdapter.kt`](file:///c:/Users/Renzy/AndroidStudioProjects/BTProject2/app/src/main/java/com/example/btproject2/ui/adapters/MemberAdapter.kt) is packed with genealogical context:
 
-1. **Color-Coded Initials Avatar**:
+1. **Color-Coded 3-Letter Heritage Monogram Avatar & Standard Legal Name**:
+   - **Names**: Uses `standardDisplayName` (`Juan S. Dela Cruz Jr.`) so middle initials and suffixes display consistently across rows and exports.
+   - **Heritage Monogram (`avatarMonogram`)**: Displays 3 initials (e.g., `JSD`) when a middle name is recorded, or 2 initials (`AR`) otherwise.
    - **Living Members**: Assigned an aesthetic palette index based on list position (`#1D9E75`, `#185FA5`, `#BA7517`, `#993556`, etc.).
    - **Deceased Relatives**: Automatically tinted in a somber **Memorial Slate Grey (`#475569`)** (*Arthur Malone*, *Beatrice Hayes*).
 2. **Memorial Dove Tribute (`🕊️`)**:
@@ -3922,7 +3986,7 @@ The Citadel Command Hub (`AdminPortalActivity.kt`) is designed in an executive, 
 │ System Administration, Live Telemetry & Quota Governance    │
 ├─────────────────────────────────────────────────────────────┤
 │ ┌───────────────┐ ┌────────────────┐ ┌────────────────────┐ │
-│ │ 📊 Telemetry  │ │ 📢 Broadcaster │ │  👑 Quota & Passes │ │
+│ │ 📊 Telemetry  │ │ 📢 Broadcaster │ │   👑 Clan Quotas   │ │
 │ └───────────────┘ └────────────────┘ └────────────────────┘ │
 ├─────────────────────────────────────────────────────────────┤
 │ 📊 Platform Telemetry                                       │
@@ -3974,7 +4038,7 @@ The Citadel Command Hub (`AdminPortalActivity.kt`) is designed in an executive, 
 - A horizontal pill carousel switching between the 3 core administrative consoles:
   1. **`tabTelemetryBtn` (`📊 Telemetry`)**: Highlights in radiant gold (`#D4AF37`) when selected.
   2. **`tabBroadcasterBtn` (`📢 Broadcaster`)**: System-wide notifications and amber alerts.
-  3. **`tabQuotaBtn` (`👑 Quota & Passes`)**: Free tier expansions and 30-day reunion pass generator.
+  3. **`tabQuotaBtn` (`👑 Clan Quotas`)**: Free 50-member tier expansions and clan capacity approval queue.
   4. **`tabOpsBtn` (`🛠️ Ops & Recovery`)**: Soft-delete restoration and merge collision resolution.
 
 #### 3. Platform Telemetry Grid (4 Core Real-Time Metrics)
@@ -4199,7 +4263,7 @@ When presenting this screen during your capstone defense:
 1. **Tab Navigation Dock (Top)**:
    - **`[📊 Telemetry]`**: Displays live platform statistics and storage pruner.
    - **`[📢 Broadcaster]`** *(Active Gold Tab)*: Unfolds the maintenance announcement command studio.
-   - **`[👑 Quota & Passes]`**: Manages clan member expansion requests.
+   - **`[👑 Clan Quotas]`**: Manages clan member expansion requests.
 
 2. **Notice Headline Input Field**:
    - Single-line title box (e.g., *"Scheduled Cloud Optimization"*).
@@ -4412,12 +4476,12 @@ When presenting this screen during your capstone defense:
 
 1. **Tab Navigation Bar (Citadel Header)**:
    - **`[📢 Broadcaster]`**: In-app maintenance banner dispatcher.
-   - **`[👑 Quota & Passes]`** *(Active Gold Tab)*: Unfolds the Freemium Quota Governance and Clan Expansion Queue.
+   - **`[👑 Clan Quotas]`** *(Active Gold Tab)*: Unfolds the Freemium Quota Governance and Clan Expansion Queue.
    - **`[🛠️ Ops & Recovery]`**: Database rollback and disaster recovery controls.
 
 2. **Queue Card Header & Sync Action**:
    - **Title**: *"👑 Freemium 50-Member Cap & Clan Expansion Queue"*.
-   - **Subtitle**: *"Administer cap expansions and grant 30-day reunion passes without database overflow."*.
+   - **Subtitle**: *"Administer capacity expansions and review freemium tree upgrades cleanly without database overflow."*.
    - **`[🔄 Sync Queue]` Button**: Re-queries Firestore across all clans to detect new expansion requests in real time.
 
 3. **Dynamic Clan Expansion Cards (The Live Queue)**:
@@ -4564,8 +4628,8 @@ When presenting this screen during your capstone defense:
 
 When presenting this screen during your capstone defense:
 
-1. **Step 1: Switch to the Quota & Passes Tab**
-   - In the Citadel Command Hub, tap the **`[👑 Quota & Passes]`** tab.
+1. **Step 1: Switch to the Clan Quotas Tab**
+   - In the Citadel Command Hub, tap the **`[👑 Clan Quotas]`** tab.
    - *Say to panelists:* *"Now let's examine KinTrace's Freemium Capacity Governance and Clan Expansion Queue."*
 
 2. **Step 2: Explain the Live Queue Prioritization**
@@ -4612,7 +4676,7 @@ When presenting this screen during your capstone defense:
 
 1. **Tab Navigation Bar (Top)**:
    - **`[📢 Broadcaster]`**: In-app maintenance banner dispatcher.
-   - **`[👑 Quota & Passes]`**: Clan tier expansion and 30-day reunion pass manager.
+   - **`[👑 Clan Quotas]`**: Clan tier expansion queue and capacity manager.
    - **`[🛠️ Ops & Recovery]`** *(Active Gold Tab)*: Unfolds the disaster recovery console, merge collision docket, sandbox manager, and OTA deployment desk.
 
 2. **Deleted Member Recovery Console Header**:
@@ -5710,7 +5774,7 @@ Under Article 966 of the Civil Code:
 
 ### 25.1 The Plain English 10-Second Pitch (Your Panelist Opening Statement)
 
-> *"The Over-The-Air (OTA) Release Desk is KinTrace's enterprise-grade, zero-cost continuous deployment engine. In academic capstone evaluations and real-world family testing, distributing updated APKs manually over chat or USB drives is error-prone and tedious. KinTrace solves this completely: from the Citadel Command Hub, a Super Administrator configures a new version (such as v1.4.0, Code 13) and publishes it in 1 tap. Within seconds, client devices quietly stream the signed binary from GitHub Releases in the background and present a non-intrusive floating install pill—enabling seamless, continuous software delivery without expensive Play Store developer fees or cloud hosting costs."*
+> *"The Over-The-Air (OTA) Release Desk is KinTrace's enterprise-grade, zero-cost continuous deployment engine. In academic capstone evaluations and real-world family testing, distributing updated APKs manually over chat or USB drives is error-prone and tedious. KinTrace solves this completely: from the Citadel Command Hub, a Super Administrator configures a new version (such as v1.5.1, Code 17) and publishes it in 1 tap. Within seconds, client devices quietly stream the signed binary from GitHub Releases in the background and present a non-intrusive floating install pill—enabling seamless, continuous software delivery without expensive Play Store developer fees or cloud hosting costs."*
 
 ---
 
@@ -5851,4 +5915,4 @@ sequenceDiagram
 
 ---
 
-*(End of KinTrace Walkthrough & Defense Manual — Fully Updated for v1.4.0)*
+*(End of KinTrace Walkthrough & Defense Manual — Fully Updated for v1.5.1)*

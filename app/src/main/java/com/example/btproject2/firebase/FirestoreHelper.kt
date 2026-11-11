@@ -6191,6 +6191,99 @@ class FirestoreHelper {
     }
 
     /**
+     * Injects a clean 4-member floating nuclear family into the specified family tree (e.g., Malone Family).
+     * The 4 members are linked to each other as a family (Father Danilo 💍 Mother Cynthia, with Son Gabriel & Sister Andrea),
+     * but have ZERO links to the existing clan members, creating a floating disconnected branch ready for live manual linking.
+     */
+    fun addFloating4MemberFamilyToTree(
+        treeId: String,
+        onSuccess: (List<Person>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val now = System.currentTimeMillis()
+        val fatherId = "floating_morales_father"
+        val motherId = "floating_morales_mother"
+        val sonId = "floating_morales_son"
+        val sisterId = "floating_morales_sister"
+
+        val floatingMembers = listOf(
+            Person(
+                id = fatherId,
+                treeId = treeId,
+                firstName = "Danilo",
+                lastName = "Morales",
+                gender = "Male",
+                birthDate = "1968-04-15",
+                birthPlace = "Vigan, Ilocos Sur",
+                isLiving = true,
+                spouseId = motherId,
+                maritalStatus = "Married",
+                fatherId = null,
+                motherId = null,
+                lineageRole = "PATRIARCH",
+                updatedAt = now
+            ),
+            Person(
+                id = motherId,
+                treeId = treeId,
+                firstName = "Cynthia",
+                lastName = "Ramos",
+                gender = "Female",
+                birthDate = "1970-08-22",
+                birthPlace = "Laoag, Ilocos Norte",
+                isLiving = true,
+                spouseId = fatherId,
+                maritalStatus = "Married",
+                fatherId = null,
+                motherId = null,
+                lineageRole = "MATRIARCH",
+                updatedAt = now
+            ),
+            Person(
+                id = sonId,
+                treeId = treeId,
+                firstName = "Gabriel",
+                lastName = "Morales",
+                gender = "Male",
+                birthDate = "1996-11-05",
+                birthPlace = "Quezon City",
+                isLiving = true,
+                spouseId = null,
+                maritalStatus = "Single",
+                fatherId = fatherId,
+                motherId = motherId,
+                updatedAt = now
+            ),
+            Person(
+                id = sisterId,
+                treeId = treeId,
+                firstName = "Andrea",
+                lastName = "Morales",
+                gender = "Female",
+                birthDate = "2000-02-14",
+                birthPlace = "Quezon City",
+                isLiving = true,
+                spouseId = null,
+                maritalStatus = "Single",
+                fatherId = fatherId,
+                motherId = motherId,
+                updatedAt = now
+            )
+        )
+
+        val batch = db.batch()
+        floatingMembers.forEach { member ->
+            batch.set(db.collection("persons").document(member.id), member)
+        }
+        val treeRef = db.collection("trees").document(treeId)
+        batch.update(treeRef, "memberCount", com.google.firebase.firestore.FieldValue.increment(4L))
+
+        batch.commit()
+            .addOnSuccessListener { onSuccess(floatingMembers) }
+            .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
      * Flushes the isolated `[DEMO] Heritage Sandbox Clan` and any legacy seeded demo documents
      * (`member_elias_malone`, `member_juan_delacruz`, `escalation_402`) from Firestore.
      */

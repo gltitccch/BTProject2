@@ -288,7 +288,7 @@
                 android:id="@+id/rbBridgeSpouse"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="💍 Spousal Union (Member in Tree A married to Member in Tree B)"
+                android:text="💍 Spousal Union (Marriage link connecting Husband and Wife)"
                 android:textSize="12sp"
                 android:textColor="@color/text_primary"
                 android:checked="true" />
@@ -297,7 +297,7 @@
                 android:id="@+id/rbBridgeParentChild"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="👶 Parent-Child Link (Member in Tree A is Parent of Member in Tree B)"
+                android:text="👶 Parent-Child Link (Direct lineage connecting Parent to Child)"
                 android:textSize="12sp"
                 android:textColor="@color/text_primary" />
 
@@ -305,15 +305,7 @@
                 android:id="@+id/rbBridgeSharedAncestor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="👥 Shared Ancestor (Same relative exists in both trees)"
-                android:textSize="12sp"
-                android:textColor="@color/text_primary" />
-
-            <RadioButton
-                android:id="@+id/rbBridgeSibling"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="👥 Sibling &amp; Lineage Bridge (In-laws linked as siblings / shared ancestors)"
+                android:text="👥 Shared Ancestor (Merge identical relative into one)"
                 android:textSize="12sp"
                 android:textColor="@color/text_primary" />
         </RadioGroup>

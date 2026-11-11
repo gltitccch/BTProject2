@@ -151,6 +151,30 @@ class MergeBranchesActivity : AppCompatActivity() {
                 com.example.btproject2.education.EducationalContentRepository.QuickAssistContext.MERGE_BRANCHES
             ).show(supportFragmentManager, "QuickAssistMerge")
         }
+        btnQuickAssistMerge?.setOnLongClickListener {
+            com.example.btproject2.utils.KinTraceModalDialog.Builder(this)
+                .setTitle("Add Floating Family")
+                .setMessage("Add the 4-member floating family (Danilo, Cynthia, Gabriel, Andrea) directly into the current tree as a disconnected branch for live manual connecting?")
+                .setPositiveButton("Add to Tree") { _, _ ->
+                    firestoreHelper.addFloating4MemberFamilyToTree(
+                        treeId = activeTreeId,
+                        onSuccess = { members ->
+                            runOnUiThread {
+                                com.example.btproject2.utils.KinTraceAlert.show(this, "✅ 4-Member floating family added to current tree! You can now link them manually.")
+                                checkRoleAndLoadData()
+                            }
+                        },
+                        onFailure = { err ->
+                            runOnUiThread {
+                                com.example.btproject2.utils.KinTraceAlert.show(this, "⚠️ Failed to add: ${err.message}")
+                            }
+                        }
+                    )
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+            true
+        }
 
         tvSubtitle = findViewById(R.id.tvSubtitle)
         tvMergeRoleBadge = findViewById(R.id.tvMergeRoleBadge)
@@ -702,7 +726,6 @@ class MergeBranchesActivity : AppCompatActivity() {
         val rbBridgeSpouse = dialogView.findViewById<RadioButton>(R.id.rbBridgeSpouse)
         val rbBridgeParentChild = dialogView.findViewById<RadioButton>(R.id.rbBridgeParentChild)
         val rbBridgeSharedAncestor = dialogView.findViewById<RadioButton>(R.id.rbBridgeSharedAncestor)
-        val rbBridgeSibling = dialogView.findViewById<RadioButton>(R.id.rbBridgeSibling)
 
         val tvAnchor1Label = dialogView.findViewById<TextView>(R.id.tvAnchor1Label)
         val spinnerAnchorPerson1 = dialogView.findViewById<Spinner>(R.id.spinnerAnchorPerson1)
@@ -777,7 +800,6 @@ class MergeBranchesActivity : AppCompatActivity() {
                     rbBridgeSpouse.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
                     rbBridgeParentChild.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.PARENT_CHILD
                     rbBridgeSharedAncestor.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SHARED_ANCESTOR
-                    rbBridgeSibling?.isChecked == true -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SIBLING_LINEAGE
                     else -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
                 }
 
@@ -1205,7 +1227,6 @@ class MergeBranchesActivity : AppCompatActivity() {
                 rbBridgeSpouse.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
                 rbBridgeParentChild.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.PARENT_CHILD
                 rbBridgeSharedAncestor.isChecked -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SHARED_ANCESTOR
-                rbBridgeSibling?.isChecked == true -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SIBLING_LINEAGE
                 else -> com.example.btproject2.engine.MergeBridgeValidator.BridgeMode.SPOUSAL_UNION
             }
 

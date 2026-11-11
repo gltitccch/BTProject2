@@ -69,8 +69,9 @@ object AdaptiveLayoutHelper {
     }
 
     /**
-     * Switches the Main Dashboard container between a single-column vertical flow on phones
-     * and a balanced 2-column horizontal grid on wide displays (tablets, foldables, desktop).
+     * Preserves the normal unified single-column vertical flow across all screen sizes
+     * (phones, foldables, and tablets) so the Heritage card and dashboard tools stack
+     * seamlessly with full width and zero empty voids.
      */
     fun adaptDashboardGrid(
         gridContainer: LinearLayout?,
@@ -80,46 +81,24 @@ object AdaptiveLayoutHelper {
         if (gridContainer == null || leftColumnView == null || rightColumnView == null) return
         val dm = gridContainer.resources.displayMetrics
         val density = dm.density
-        val screenWidthDp = dm.widthPixels / density
 
-        if (screenWidthDp >= TABLET_SCREEN_THRESHOLD_DP) {
-            gridContainer.orientation = LinearLayout.HORIZONTAL
-            gridContainer.isBaselineAligned = false
-
-            val gapPx = (16 * density).toInt()
-            (leftColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
-                lp.width = 0
-                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                lp.weight = 1.05f
-                lp.marginEnd = gapPx
-                lp.bottomMargin = 0
-                leftColumnView.layoutParams = lp
-            }
-            (rightColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
-                lp.width = 0
-                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                lp.weight = 1.0f
-                lp.marginStart = 0
-                rightColumnView.layoutParams = lp
-            }
-        } else {
-            gridContainer.orientation = LinearLayout.VERTICAL
-            val bottomGapPx = (18 * density).toInt()
-            (leftColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
-                lp.width = ViewGroup.LayoutParams.MATCH_PARENT
-                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                lp.weight = 0f
-                lp.marginEnd = 0
-                lp.bottomMargin = bottomGapPx
-                leftColumnView.layoutParams = lp
-            }
-            (rightColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
-                lp.width = ViewGroup.LayoutParams.MATCH_PARENT
-                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                lp.weight = 0f
-                lp.marginStart = 0
-                rightColumnView.layoutParams = lp
-            }
+        // Always maintain clean, unified single-column vertical flow across all screen sizes
+        gridContainer.orientation = LinearLayout.VERTICAL
+        val bottomGapPx = (18 * density).toInt()
+        (leftColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            lp.weight = 0f
+            lp.marginEnd = 0
+            lp.bottomMargin = bottomGapPx
+            leftColumnView.layoutParams = lp
+        }
+        (rightColumnView.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            lp.weight = 0f
+            lp.marginStart = 0
+            rightColumnView.layoutParams = lp
         }
     }
 
